@@ -70,31 +70,31 @@ func printImages(obj runtime.Object) error {
 	switch o := obj.(type) {
 	case *appsv1.Deployment:
 		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println(o.Name, container.Name, container.Image)
+			fmt.Println("apps/v1/Deployment", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
 		}
 	case *appsv1.DaemonSet:
 		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println(o.Name, container.Name, container.Image)
+			fmt.Println("apps/v1/DaemonSet", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
 		}
 	case *appsv1.ReplicaSet:
 		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println(o.Name, container.Name, container.Image)
+			fmt.Println("apps/v1/ReplicaSet", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
 		}
 	case *appsv1.StatefulSet:
 		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println(o.Name, container.Name, container.Image)
+			fmt.Println("apps/v1/StatefulSet", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
 		}
 	case *batchv1.CronJob:
 		for _, container := range o.Spec.JobTemplate.Spec.Template.Spec.Containers {
-			fmt.Println(o.Name, container.Name, container.Image)
+			fmt.Println("batch/v1/CronJob", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
 		}
 	case *batchv1.Job:
 		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println(o.Name, container.Name, container.Image)
+			fmt.Println("batch/v1/Job", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
 		}
 	case *corev1.Pod:
 		for _, container := range o.Spec.Containers {
-			fmt.Println(o.Name, container.Name, container.Image)
+			fmt.Println("core/v1/Pod", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
 		}
 	default:
 		panic("unsupported object kind")
