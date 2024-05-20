@@ -4,15 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/AlexGustafsson/k8s-image-feed/internal/source"
+	"github.com/AlexGustafsson/k8s-image-feed/internal/source/k8s"
 	"golang.org/x/sync/errgroup"
-	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/pager"
 )
 
 func main() {
@@ -24,81 +19,36 @@ func main() {
 		Host: "http://localhost:8001",
 	}
 
-	clientset, err := kubernetes.NewForConfig(config)
+	k8sSource, err := k8s.New(config)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	pageFuncs := []pager.ListPageFunc{
-		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
-			return clientset.AppsV1().Deployments("").List(ctx, opts)
-		},
-		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
-			return clientset.AppsV1().DaemonSets("").List(ctx, opts)
-		},
-		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
-			return clientset.AppsV1().ReplicaSets("").List(ctx, opts)
-		},
-		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
-			return clientset.AppsV1().StatefulSets("").List(ctx, opts)
-		},
-		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
-			return clientset.BatchV1().CronJobs("").List(ctx, opts)
-		},
-		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
-			return clientset.BatchV1().Jobs("").List(ctx, opts)
-		},
-		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
-			return clientset.CoreV1().Pods("").List(ctx, opts)
-		},
-	}
+	sources := []source.Source{k8sSource}
 
 	var wg errgroup.Group
-	for _, pageFunc := range pageFuncs {
-		pager := pager.New(pageFunc)
+	for _, s := range sources {
+		s := s
 		wg.Go(func() error {
-			return pager.EachListItem(context.TODO(), metav1.ListOptions{}, printImages)
+			return s.EachListItem(context.Background(), func(e source.Entry) error {
+				fmt.Printf("%s@%s\n", e.Image, e.Version)
+
+				switch o := e.Origin.(type) {
+				case *k8s.Origin:
+					fmt.Println("\tKind:", o.ResourceKind)
+					fmt.Println("\tNamespace:", o.Namespace)
+					fmt.Println("\tName:", o.Name)
+					fmt.Println("\tContainerName:", o.ContainerName)
+					fmt.Println("\tCreated:", o.Created)
+				}
+				fmt.Println()
+
+				return nil
+			})
 		})
 	}
 
 	if err := wg.Wait(); err != nil {
 		panic(err.Error())
 	}
-}
-
-func printImages(obj runtime.Object) error {
-	switch o := obj.(type) {
-	case *appsv1.Deployment:
-		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println("apps/v1/Deployment", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
-		}
-	case *appsv1.DaemonSet:
-		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println("apps/v1/DaemonSet", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
-		}
-	case *appsv1.ReplicaSet:
-		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println("apps/v1/ReplicaSet", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
-		}
-	case *appsv1.StatefulSet:
-		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println("apps/v1/StatefulSet", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
-		}
-	case *batchv1.CronJob:
-		for _, container := range o.Spec.JobTemplate.Spec.Template.Spec.Containers {
-			fmt.Println("batch/v1/CronJob", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
-		}
-	case *batchv1.Job:
-		for _, container := range o.Spec.Template.Spec.Containers {
-			fmt.Println("batch/v1/Job", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
-		}
-	case *corev1.Pod:
-		for _, container := range o.Spec.Containers {
-			fmt.Println("core/v1/Pod", o.Name, o.CreationTimestamp.UTC().String(), container.Name, container.Image)
-		}
-	default:
-		panic("unsupported object kind")
-	}
-
-	return nil
 }
