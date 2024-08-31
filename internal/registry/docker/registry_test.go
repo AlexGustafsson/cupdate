@@ -34,3 +34,11 @@ func TestRegistryGetLatestVersion(t *testing.T) {
 
 	fmt.Println(image)
 }
+
+func TestRegistryGetRepository(t *testing.T) {
+	var registry Registry
+	repository, err := registry.GetRepository(context.TODO(), "homeassistant", "home-assistant")
+	require.NoError(t, err)
+
+	fmt.Println(repository.FullDescription)
+}

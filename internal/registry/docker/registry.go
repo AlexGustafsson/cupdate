@@ -104,6 +104,30 @@ func (r *Registry) GetLatestVersion(ctx context.Context, name string) (*registry
 	return nil, fmt.Errorf("not implemented")
 }
 
+func (r *Registry) GetRepository(ctx context.Context, owner string, name string) (*Repository, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/%s", url.PathEscape(owner), url.PathEscape(name)), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := r.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	}
+
+	var result Repository
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 type Page[T any] struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
@@ -142,4 +166,38 @@ type Image struct {
 	Status       string    `json:"status"`
 	LastPulled   time.Time `json:"last_pulled"`
 	LastPushed   time.Time `json:"last_pushed"`
+}
+
+type Repository struct {
+	User              string          `json:"user"`
+	Name              string          `json:"name"`
+	Namespace         string          `json:"namespace"`
+	Type              string          `json:"repository_type"`
+	Status            int             `json:"status"`
+	StatusDescription string          `json:"status_description"`
+	Description       string          `json:"description"`
+	IsPrivate         bool            `json:"is_private"`
+	IsAutomated       bool            `json:"is_automated"`
+	StarCount         int             `json:"star_count"`
+	PullCount         int             `json:"pull_count"`
+	LastUpdated       time.Time       `json:"last_updated"`
+	DateRegistered    time.Time       `json:"date_registered"`
+	CollaboratorCount int             `json:"collaborator_count"`
+	Affiliation       json.RawMessage `json:"affiliation"` // Unknown
+	HubUser           string          `json:"hub_user"`
+	HasStarred        bool            `json:"has_starred"`
+	FullDescription   string          `json:"full_description"`
+	Permissions       struct {
+		Read  bool `json:"read"`
+		Write bool `json:"write"`
+		Admin bool `json:"admin"`
+	} `json:"permissions"`
+	MediaTypes   []string `json:"media_types"`
+	ContentTypes []string `json:"content_types"`
+	Categories   []struct {
+		Name string `json:"name"`
+		Slug string `json:"slug"`
+	} `json:"categories"`
+	ImmutableTags      bool   `json:"immutable_tags"`
+	ImmutableTagsRules string `json:"immutable_tags_rules"`
 }
