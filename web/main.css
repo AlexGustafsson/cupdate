@@ -8,6 +8,49 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
     padding-bottom: env(safe-area-inset-bottom);
+    font-family:
+      system,
+      -apple-system,
+      '.SFNSText-Regular',
+      'San Francisco',
+      'Roboto',
+      'Segoe UI',
+      'Helvetica Neue',
+      'Lucida Grande',
+      sans-serif;
+  }
+
+  body {
+    background-color: #fafafa;
+    padding: 40px 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead {
+  }
+
+  thead tr {
+    border-bottom: 1px solid #ebebeb;
+  }
+
+  th {
+    text-align: start;
+    padding: 10px;
+  }
+
+  tbody {
+  }
+
+  td {
+    padding: 10px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #f3f3f3;
   }
 }
 
