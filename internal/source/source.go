@@ -9,6 +9,7 @@ type Source interface {
 type Entry struct {
 	Image   string
 	Version string
+	ImageID string
 	Origin  Origin
 }
 

@@ -14,8 +14,15 @@ type Origin struct {
 	Name          string
 	Created       time.Time
 	ContainerName string
+	Owners        []Origin
+	Parents       []Parent
 }
 
 func (o *Origin) Kind() string {
 	return "k8s"
+}
+
+type Parent struct {
+	ResourceKind string
+	Name         string
 }

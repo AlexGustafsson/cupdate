@@ -32,6 +32,9 @@ func main() {
 		wg.Go(func() error {
 			return s.EachListItem(context.Background(), func(e source.Entry) error {
 				fmt.Printf("%s@%s\n", e.Image, e.Version)
+				if e.ImageID != "" {
+					fmt.Println("\tResolved:", e.ImageID)
+				}
 
 				switch o := e.Origin.(type) {
 				case *k8s.Origin:
@@ -40,6 +43,10 @@ func main() {
 					fmt.Println("\tName:", o.Name)
 					fmt.Println("\tContainerName:", o.ContainerName)
 					fmt.Println("\tCreated:", o.Created)
+
+					for _, p := range o.Parents {
+						fmt.Println("\tParent:", p.ResourceKind, p.Name)
+					}
 				}
 				fmt.Println()
 

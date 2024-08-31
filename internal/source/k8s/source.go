@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/AlexGustafsson/k8s-image-feed/internal/source"
@@ -58,6 +59,11 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 		},
 	}
 
+	// TODO: Build ImageID for resources that don't have them.
+	// TODO: Connect pods with other resources (jobs etc.) to sort out duplicates.
+	// We still want to cover deployments, jobs etc. that haven't run but still
+	// refer to an image, though.
+
 	var wg errgroup.Group
 	for _, pageFunc := range pageFuncs {
 		pager := pager.New(pageFunc)
@@ -67,6 +73,7 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 				case *appsv1.Deployment:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
+						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
@@ -76,12 +83,14 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 								Name:          o.Name,
 								Created:       o.CreationTimestamp.UTC(),
 								ContainerName: container.Name,
+								Parents:       parents,
 							},
 						})
 					}
 				case *appsv1.DaemonSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
+						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
@@ -91,12 +100,14 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 								Name:          o.Name,
 								Created:       o.CreationTimestamp.UTC(),
 								ContainerName: container.Name,
+								Parents:       parents,
 							},
 						})
 					}
 				case *appsv1.ReplicaSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
+						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
@@ -106,12 +117,14 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 								Name:          o.Name,
 								Created:       o.CreationTimestamp.UTC(),
 								ContainerName: container.Name,
+								Parents:       parents,
 							},
 						})
 					}
 				case *appsv1.StatefulSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
+						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
@@ -121,12 +134,14 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 								Name:          o.Name,
 								Created:       o.CreationTimestamp.UTC(),
 								ContainerName: container.Name,
+								Parents:       parents,
 							},
 						})
 					}
 				case *batchv1.CronJob:
 					for _, container := range o.Spec.JobTemplate.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
+						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
@@ -136,12 +151,14 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 								Name:          o.Name,
 								Created:       o.CreationTimestamp.UTC(),
 								ContainerName: container.Name,
+								Parents:       parents,
 							},
 						})
 					}
 				case *batchv1.Job:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
+						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
@@ -151,25 +168,31 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 								Name:          o.Name,
 								Created:       o.CreationTimestamp.UTC(),
 								ContainerName: container.Name,
+								Parents:       parents,
 							},
 						})
 					}
 				case *corev1.Pod:
-					for _, container := range o.Spec.Containers {
+					for i, container := range o.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
+						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
+							ImageID: o.Status.ContainerStatuses[i].ImageID,
 							Origin: &Origin{
 								ResourceKind:  "core/v1/Pod",
 								Namespace:     o.Namespace,
 								Name:          o.Name,
 								Created:       o.CreationTimestamp.UTC(),
 								ContainerName: container.Name,
+								Parents:       parents,
 							},
 						})
 					}
 				default:
+					// Panic as missing entries would be a programming issue, not runtime
+					// bug
 					panic("unsupported object kind")
 				}
 
@@ -179,4 +202,19 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 	}
 
 	return wg.Wait()
+}
+
+func formatOwnerReference(owner metav1.OwnerReference) Parent {
+	return Parent{
+		ResourceKind: fmt.Sprintf("%s/%s", owner.APIVersion, owner.Kind),
+		Name:         owner.Name,
+	}
+}
+
+func mapSlice[I, O any](slice []I, f func(I) O) []O {
+	result := make([]O, len(slice))
+	for i := range slice {
+		result[i] = f(slice[i])
+	}
+	return result
 }
