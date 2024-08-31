@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 
+import { Badge } from '../components/Badge'
+
 interface Tag {
   label: string
   color: string
@@ -55,6 +57,8 @@ export function Dashboard(): JSX.Element {
     },
   ]
 
+  // TODO: It makes sense to have this as a query so that it can be shared
+  // easily
   const toggleTag = useCallback(
     (tag: string) => {
       setFilteredTags((previous) => {
@@ -82,22 +86,22 @@ export function Dashboard(): JSX.Element {
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="rounded-lg bg-white p-3 flex space-x-5">
-        <div className="p-5 w-24 h-24 bg-blue-100 rounded-lg">
-          <p className="text-sm">Images</p>
-          <p className="text-xl font-medium">15</p>
+      <div className="p-3 flex space-x-5">
+        <div className="p-5 w-32 h-32 bg-blue-100 rounded-lg">
+          <p className="text-md font-medium">Images</p>
+          <p className="text-3xl font-bold">15</p>
         </div>
-        <div className="p-5 w-24 h-24 bg-orange-100 rounded-lg">
-          <p className="text-sm">Outdated</p>
-          <p className="text-xl font-medium">15</p>
+        <div className="p-5 w-32 h-32 bg-orange-100 rounded-lg">
+          <p className="text-md font-medium">Outdated</p>
+          <p className="text-3xl font-bold">15</p>
         </div>
-        <div className="p-5 w-24 h-24 bg-purple-100 rounded-lg">
-          <p className="text-sm">Pods</p>
-          <p className="text-xl font-medium">71</p>
+        <div className="p-5 w-32 h-32 bg-purple-100 rounded-lg">
+          <p className="text-md font-medium">Pods</p>
+          <p className="text-3xl font-bold">71</p>
         </div>
       </div>
       <div className="relative mt-6">
-        <div className="rounded-lg bg-white px-4 py-2 max-w-screen-sm">
+        <div className="rounded-lg bg-white px-4 py-2 shadow">
           <table>
             <thead>
               <tr>
@@ -126,35 +130,35 @@ export function Dashboard(): JSX.Element {
                   <td className="text-end">{x.new}</td>
                   <td className="flex flex-wrap">
                     {x.tags.map((x) => (
-                      <span
-                        key={x}
-                        className="rounded-full bg-red-100 px-2 py-1 text-xs text-nowrap m-1 cursor-pointer"
-                        onClick={() => toggleTag(x)}
-                      >
-                        {x}
-                      </span>
+                      <Badge
+                        label={x}
+                        color={
+                          tags.find((y) => y.label === x)?.color ||
+                          'bg-blue-100'
+                        }
+                        onClick={() => setFilteredTags([x])}
+                      />
                     ))}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="mt-2">
+          <div className="mt-4">
             <p className="text-sm">Showing 50 of 50 entries</p>
           </div>
         </div>
         <div className="absolute left-full top-0 px-2">
-          <div className="rounded-lg bg-white p-4 w-64">
+          <div className="rounded-lg bg-white p-4 w-64 shadow">
             <p>Tags</p>
             <div className="flex flex-wrap mt-2">
               {tags.map((x) => (
-                <span
-                  key={x.label}
-                  className={`rounded-full px-2 py-1 text-xs text-nowrap cursor-pointer ${x.color} ${filteredTags.includes(x.label) ? '' : 'opacity-50'} m-1`}
+                <Badge
+                  label={x.label}
+                  color={x.color}
+                  disabled={!filteredTags.includes(x.label)}
                   onClick={() => toggleTag(x.label)}
-                >
-                  {x.label}
-                </span>
+                />
               ))}
             </div>
           </div>
