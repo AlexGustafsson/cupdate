@@ -21,3 +21,26 @@ export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
 
   return [filter, setFilter]
 }
+
+export function useSort(): [
+  string | undefined,
+  Dispatch<SetStateAction<string | undefined>>,
+] {
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // TODO: Will treat an empty string differently from a missing value
+  const [sort, setSort] = useState(searchParams.get('sort') || undefined)
+
+  useEffect(() => {
+    setSearchParams((current) => {
+      if (!sort) {
+        current.delete('sort')
+      } else {
+        current.set('sort', sort)
+      }
+      return current
+    })
+  }, [sort])
+
+  return [sort, setSort]
+}

@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect } from 'react'
 
 import { Badge } from '../components/Badge'
-import { useFilter } from '../hooks'
+import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
+import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
+import { useFilter, useSort } from '../hooks'
 
 interface Tag {
   label: string
@@ -21,6 +22,8 @@ export function Dashboard(): JSX.Element {
   ]
 
   const [filter, setFilter] = useFilter()
+
+  const [sort, setSort] = useSort()
 
   const rowItems = [
     {
@@ -83,6 +86,22 @@ export function Dashboard(): JSX.Element {
     [filter, setFilter]
   )
 
+  const toggleSort = useCallback(
+    (name: string) => {
+      setSort((current) => {
+        if (current === `${name}_asc`) {
+          return `${name}_desc`
+        } else if (current === `${name}_desc`) {
+          return `${name}_asc`
+        } else {
+          // Default
+          return `${name}_desc`
+        }
+      })
+    },
+    [setSort]
+  )
+
   return (
     <div className="flex flex-col items-center w-full">
       <div className="p-3 flex space-x-5">
@@ -104,14 +123,45 @@ export function Dashboard(): JSX.Element {
           <table>
             <thead>
               <tr>
-                <th scope="col" colSpan={2} className="text-nowrap text-center">
+                <th
+                  scope="col"
+                  colSpan={2}
+                  className="text-nowrap text-center cursor-pointer"
+                  onClick={() => toggleSort('image')}
+                >
                   Image
+                  {sort === 'image_asc' && (
+                    <FluentArrowSortUp24Filled className="inline" />
+                  )}
+                  {sort === 'image_desc' && (
+                    <FluentArrowSortDown24Filled className="inline" />
+                  )}
                 </th>
-                <th scope="col" className="text-nowrap text-center">
+                <th
+                  scope="col"
+                  className="text-nowrap text-center cursor-pointer"
+                  onClick={() => toggleSort('version')}
+                >
                   Version
+                  {sort === 'version_asc' && (
+                    <FluentArrowSortUp24Filled className="inline" />
+                  )}
+                  {sort === 'version_desc' && (
+                    <FluentArrowSortDown24Filled className="inline" />
+                  )}
                 </th>
-                <th scope="col" className="text-nowrap text-center">
-                  New version
+                <th
+                  scope="col"
+                  className="text-nowrap text-center cursor-pointer"
+                  onClick={() => toggleSort('new_version')}
+                >
+                  New Version
+                  {sort === 'new_version_asc' && (
+                    <FluentArrowSortUp24Filled className="inline" />
+                  )}
+                  {sort === 'new_version_desc' && (
+                    <FluentArrowSortDown24Filled className="inline" />
+                  )}
                 </th>
                 <th scope="col" className="text-nowrap text-center">
                   Tags
