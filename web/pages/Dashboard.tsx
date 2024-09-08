@@ -155,7 +155,7 @@ export function Dashboard(): JSX.Element {
                   className="text-nowrap text-center cursor-pointer"
                   onClick={() => toggleSort('new_version')}
                 >
-                  New Version
+                  New version
                   {sort === 'new_version_asc' && (
                     <FluentArrowSortUp24Filled className="inline" />
                   )}
