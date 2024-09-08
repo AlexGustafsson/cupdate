@@ -26,6 +26,15 @@ func TestRegistryGet(t *testing.T) {
 
 	assert.Equal(t, expected, actual)
 }
+func TestRegistryGetManifest(t *testing.T) {
+	expected := &Manifest{}
+
+	var registry Registry
+	actual, err := registry.GetManifests(context.TODO(), "postgres", "12-alpine")
+	require.NoError(t, err)
+
+	assert.Equal(t, expected, actual)
+}
 
 func TestRegistryGetLatestVersion(t *testing.T) {
 	var registry Registry

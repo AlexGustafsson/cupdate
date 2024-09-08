@@ -56,11 +56,107 @@ func (r *Registry) Get(ctx context.Context, name string, version string) (*regis
 	}, nil
 }
 
+func (r *Registry) GetRegistryToken(ctx context.Context, name string) (string, error) {
+	dockerName := name
+	if !strings.Contains(dockerName, "/") {
+		dockerName = "library/" + url.PathEscape(dockerName)
+	}
+
+	// TODO: Registries expose the realm and scheme via Www-Authenticate if 403
+	// is given
+	u, err := url.Parse("https://auth.docker.io/token?service=registry.docker.io")
+	if err != nil {
+		return "", err
+	}
+
+	query := u.Query()
+	query.Set("scope", fmt.Sprintf("repository:%s:pull", dockerName))
+	u.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return "", err
+	}
+
+	res, err := r.Client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %s", res.Status)
+	}
+
+	var result struct {
+		Token     string    `json:"token"`
+		ExpiresIn int       `json:"expires_in"`
+		IssuedAt  time.Time `json:"issued_at"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	return result.Token, nil
+}
+
+func (r *Registry) GetManifests(ctx context.Context, name string, tag string) ([]Manifest, error) {
+	dockerName := name
+	if !strings.Contains(dockerName, "/") {
+		dockerName = "library/" + url.PathEscape(dockerName)
+	}
+
+	// NOTE: If name contains a /, it is not path escaped as we can't easily tell
+	// what part is the namespace or not
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://registry-1.docker.io/v2/%s/manifests/%s", dockerName, url.PathEscape(tag)), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept", strings.Join([]string{
+		"application/vnd.docker.distribution.manifest.list.v2+json",
+		"application/vnd.docker.distribution.manifest.v2+json",
+		"application/vnd.oci.image.manifest.v1+json",
+		"application/vnd.oci.image.index.v1+json",
+	}, ", "))
+
+	token, err := r.GetRegistryToken(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	res, err := r.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	}
+
+	var result struct {
+		SchemaVersion int        `json:"schemaVersion"`
+		MediaType     string     `json:"mediaType"`
+		Manifests     []Manifest `json:"manifests"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	// TODO: Handle content type switch
+	if result.MediaType != "application/vnd.oci.image.index.v1+json" || result.SchemaVersion != 2 {
+		return nil, fmt.Errorf("unsupported manifest type")
+	}
+
+	return result.Manifests, nil
+}
+
 // GetLatestVersion implements registry.Registry.
 func (r *Registry) GetLatestVersion(ctx context.Context, name string) (*registry.Image, error) {
 	dockerName := name
 	if !strings.Contains(dockerName, "/") {
-		dockerName = "library/" + dockerName
+		dockerName = "library/" + url.PathEscape(dockerName)
 	}
 
 	u, err := url.Parse(fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/tags", dockerName))
@@ -200,4 +296,18 @@ type Repository struct {
 	} `json:"categories"`
 	ImmutableTags      bool   `json:"immutable_tags"`
 	ImmutableTagsRules string `json:"immutable_tags_rules"`
+}
+
+// TODO: Rearrange - OCI is the common package, then packages for docker, ghcr,
+// google, ecr etc.?
+
+type Manifest struct {
+	Annotations map[string]string `json:"annotations"`
+	Digest      string            `json:"digest"`
+	MediaType   string            `json:"mediaType"`
+	Platform    struct {
+		Architecture string `json:"architecture"`
+		OS           string `json:"os"`
+	} `json:"platform"`
+	Size int `json:"size"`
 }
