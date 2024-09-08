@@ -1,6 +1,8 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { Badge } from '../components/Badge'
+import { useFilter } from '../hooks'
 
 interface Tag {
   label: string
@@ -18,9 +20,7 @@ export function Dashboard(): JSX.Element {
     { label: 'outdated', color: 'bg-red-100' },
   ]
 
-  const [filteredTags, setFilteredTags] = useState<string[]>(
-    tags.map((x) => x.label)
-  )
+  const [filter, setFilter] = useFilter()
 
   const rowItems = [
     {
@@ -57,11 +57,16 @@ export function Dashboard(): JSX.Element {
     },
   ]
 
-  // TODO: It makes sense to have this as a query so that it can be shared
-  // easily
+  // If the filter excludes all tags, default to show all tags again
+  useEffect(() => {
+    if (filter.length === 0) {
+      setFilter(tags.map((x) => x.label))
+    }
+  }, [filter, setFilter])
+
   const toggleTag = useCallback(
     (tag: string) => {
-      setFilteredTags((previous) => {
+      setFilter((previous) => {
         // If all are selected, only select the clicked tag
         if (previous.length === tags.length) {
           return [tag]
@@ -72,16 +77,10 @@ export function Dashboard(): JSX.Element {
           ? previous.filter((x) => x !== tag)
           : [...previous, tag]
 
-        // If the filter excludes all tags, default to show all tags again
-        if (selection.length === 0) {
-          return tags.map((x) => x.label)
-        }
-
-        // Use the filtered selection
         return selection
       })
     },
-    [filteredTags, setFilteredTags]
+    [filter, setFilter]
   )
 
   return (
@@ -136,7 +135,7 @@ export function Dashboard(): JSX.Element {
                           tags.find((y) => y.label === x)?.color ||
                           'bg-blue-100'
                         }
-                        onClick={() => setFilteredTags([x])}
+                        onClick={() => setFilter([x])}
                       />
                     ))}
                   </td>
@@ -156,7 +155,7 @@ export function Dashboard(): JSX.Element {
                 <Badge
                   label={x.label}
                   color={x.color}
-                  disabled={!filteredTags.includes(x.label)}
+                  disabled={!filter.includes(x.label)}
                   onClick={() => toggleTag(x.label)}
                 />
               ))}
