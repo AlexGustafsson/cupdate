@@ -153,7 +153,12 @@ func (r *Registry) GetManifests(ctx context.Context, name string, tag string) ([
 }
 
 // GetLatestVersion implements registry.Registry.
-func (r *Registry) GetLatestVersion(ctx context.Context, name string) (*registry.Image, error) {
+func (r *Registry) GetLatestVersion(ctx context.Context, name string, currentTag string) (*registry.Image, error) {
+	currentVersion, err := ParseVersion(currentTag)
+	if err != nil || currentVersion == nil {
+		return nil, fmt.Errorf("unsupported version: %s", err)
+	}
+
 	dockerName := name
 	if !strings.Contains(dockerName, "/") {
 		dockerName = "library/" + url.PathEscape(dockerName)
@@ -191,13 +196,35 @@ func (r *Registry) GetLatestVersion(ctx context.Context, name string) (*registry
 		return nil, err
 	}
 
+	// TODO:
+	// As we've sorted versions in released time, let's assume the first version
+	// that is higher than ours, is the latest version. Might not be true if the
+	// current version is 1.0.0, there have been a lot of nightlies or other types
+	// of tags, so that the page contains only fix 1.0.1, but in reality 2.0.0 was
+	// released a while ago and would be on the next page, would we be greedy.
+	// Look at any large image with LTS, such as postgres, node.
 	for _, tag := range result.Results {
-		if tag.Name != "" {
-			fmt.Println(tag.Name, tag.Digest, tag.LastUpdated)
+		if tag.Name == "" {
+			continue
+		}
+
+		newVersion, err := ParseVersion(tag.Name)
+		if err != nil || newVersion == nil {
+			continue
+		}
+
+		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
+			return &registry.Image{
+				Name:         name,
+				Version:      tag.Name,
+				Published:    tag.TagLastPushed,
+				Digest:       tag.Digest,
+				ReleaseNotes: "", // TODO
+			}, nil
 		}
 	}
 
-	return nil, fmt.Errorf("not implemented")
+	return nil, nil
 }
 
 func (r *Registry) GetRepository(ctx context.Context, owner string, name string) (*Repository, error) {

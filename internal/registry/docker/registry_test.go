@@ -38,7 +38,7 @@ func TestRegistryGetManifest(t *testing.T) {
 
 func TestRegistryGetLatestVersion(t *testing.T) {
 	var registry Registry
-	image, err := registry.GetLatestVersion(context.TODO(), "postgres")
+	image, err := registry.GetLatestVersion(context.TODO(), "renovate/renovate", "38.70.2")
 	require.NoError(t, err)
 
 	fmt.Println(image)

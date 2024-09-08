@@ -20,7 +20,7 @@ func (r *Registry) Get(ctx context.Context, name string, version string) (*regis
 }
 
 // GetLatestVersion implements registry.Registry.
-func (r *Registry) GetLatestVersion(ctx context.Context, name string) (*registry.Image, error) {
+func (r *Registry) GetLatestVersion(ctx context.Context, name string, currentTag string) (*registry.Image, error) {
 	// TODO: Use filter?
 	// ...?filters%5Bversion_type%5D=tagged
 	// res, err := r.Client.Get(fmt.Sprintf("https://github.com/%s/pkgs/container/trivy/versions", name))

@@ -6,7 +6,7 @@ import (
 )
 
 type Registry interface {
-	GetLatestVersion(ctx context.Context, name string) (*Image, error)
+	GetLatestVersion(ctx context.Context, name string, currentTag string) (*Image, error)
 	Get(ctx context.Context, name string, version string) (*Image, error)
 }
 
