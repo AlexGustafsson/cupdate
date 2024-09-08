@@ -126,42 +126,48 @@ export function Dashboard(): JSX.Element {
                 <th
                   scope="col"
                   colSpan={2}
-                  className="text-nowrap text-center cursor-pointer"
+                  className="text-nowrap text-center cursor-pointer pr-[24px]"
                   onClick={() => toggleSort('image')}
                 >
                   Image
-                  {sort === 'image_asc' && (
-                    <FluentArrowSortUp24Filled className="inline" />
-                  )}
-                  {sort === 'image_desc' && (
-                    <FluentArrowSortDown24Filled className="inline" />
-                  )}
+                  <div className="inline-block relative py-[9px]">
+                    {sort === 'image_asc' && (
+                      <FluentArrowSortUp24Filled className="absolute top-0" />
+                    )}
+                    {sort === 'image_desc' && (
+                      <FluentArrowSortDown24Filled className="absolute top-0" />
+                    )}
+                  </div>
                 </th>
                 <th
                   scope="col"
-                  className="text-nowrap text-center cursor-pointer"
+                  className="text-nowrap text-center cursor-pointer pr-[24px]"
                   onClick={() => toggleSort('version')}
                 >
                   Version
-                  {sort === 'version_asc' && (
-                    <FluentArrowSortUp24Filled className="inline" />
-                  )}
-                  {sort === 'version_desc' && (
-                    <FluentArrowSortDown24Filled className="inline" />
-                  )}
+                  <div className="inline-block relative py-[9px]">
+                    {sort === 'version_asc' && (
+                      <FluentArrowSortUp24Filled className="absolute top-0" />
+                    )}
+                    {sort === 'version_desc' && (
+                      <FluentArrowSortDown24Filled className="absolute top-0" />
+                    )}
+                  </div>
                 </th>
                 <th
                   scope="col"
-                  className="text-nowrap text-center cursor-pointer"
+                  className="text-nowrap text-center cursor-pointer pr-[24px]"
                   onClick={() => toggleSort('new_version')}
                 >
                   New version
-                  {sort === 'new_version_asc' && (
-                    <FluentArrowSortUp24Filled className="inline" />
-                  )}
-                  {sort === 'new_version_desc' && (
-                    <FluentArrowSortDown24Filled className="inline" />
-                  )}
+                  <div className="inline-block relative py-[9px]">
+                    {sort === 'new_version_asc' && (
+                      <FluentArrowSortUp24Filled className="absolute top-0" />
+                    )}
+                    {sort === 'new_version_desc' && (
+                      <FluentArrowSortDown24Filled className="absolute top-0" />
+                    )}
+                  </div>
                 </th>
                 <th scope="col" className="text-nowrap text-center">
                   Tags
@@ -174,9 +180,9 @@ export function Dashboard(): JSX.Element {
                   <td>
                     <img className="w-10 rounded" src={x.imageUrl} />
                   </td>
-                  <td>{x.image}</td>
-                  <td className="text-end">{x.current}</td>
-                  <td className="text-end">{x.new}</td>
+                  <td className="pr-[24px]">{x.image}</td>
+                  <td className="text-end pr-[24px]">{x.current}</td>
+                  <td className="text-end pr-[24px]">{x.new}</td>
                   <td className="flex flex-wrap">
                     {x.tags.map((x) => (
                       <Badge

@@ -30,9 +30,6 @@
     border-collapse: collapse;
   }
 
-  thead {
-  }
-
   thead tr {
     border-bottom: 1px solid #ebebeb;
   }
@@ -40,9 +37,6 @@
   th {
     text-align: start;
     padding: 10px;
-  }
-
-  tbody {
   }
 
   td {
