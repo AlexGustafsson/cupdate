@@ -3,7 +3,7 @@ package source
 import "context"
 
 type Source interface {
-	EachListItem(context.Context, func(Entry) error) error
+	Entries(context.Context) ([]Entry, error)
 }
 
 type Entry struct {

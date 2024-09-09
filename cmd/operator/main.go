@@ -30,28 +30,46 @@ func main() {
 	for _, s := range sources {
 		s := s
 		wg.Go(func() error {
-			return s.EachListItem(context.Background(), func(e source.Entry) error {
-				fmt.Printf("%s@%s\n", e.Image, e.Version)
+			entries, err := s.Entries(context.Background())
+			if err != nil {
+				return err
+			}
+
+			for _, e := range entries {
+				// For now, let's focus on leaves - actually running pods. It's easier
+				// as we don't have to deduplicate from templates
+				switch o := e.Origin.(type) {
+				case *k8s.Origin:
+					if o.Container.Pod.IsTemplate {
+						continue
+					}
+				}
+
+				fmt.Printf("%s:%s\n", e.Image, e.Version)
 				if e.ImageID != "" {
 					fmt.Println("\tResolved:", e.ImageID)
 				}
 
 				switch o := e.Origin.(type) {
 				case *k8s.Origin:
-					fmt.Println("\tKind:", o.ResourceKind)
-					fmt.Println("\tNamespace:", o.Namespace)
-					fmt.Println("\tName:", o.Name)
-					fmt.Println("\tContainerName:", o.ContainerName)
-					fmt.Println("\tCreated:", o.Created)
-
-					for _, p := range o.Parents {
-						fmt.Println("\tParent:", p.ResourceKind, p.Name)
+					fmt.Println("\tContainer name:", o.Container.Name)
+					fmt.Println("\tIs template:", o.Container.Pod.IsTemplate)
+					if o.Container.Pod.Name == "" {
+						fmt.Println("\tPod name:", "-")
+					} else {
+						fmt.Println("\tPod name:", o.Container.Pod.Name)
+					}
+					if o.Container.Pod.Parent != nil {
+						fmt.Println("\tParent:")
+						fmt.Println("\t\tKind:", o.Container.Pod.Parent.ResourceKind)
+						fmt.Println("\t\tNamespace:", o.Container.Pod.Parent.Namespace)
+						fmt.Println("\t\tName:", o.Container.Pod.Parent.Name)
 					}
 				}
 				fmt.Println()
+			}
 
-				return nil
-			})
+			return nil
 		})
 	}
 

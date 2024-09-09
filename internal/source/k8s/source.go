@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/source"
@@ -32,6 +31,14 @@ func New(config *rest.Config) (*Source, error) {
 	return &Source{
 		clientset: clientset,
 	}, nil
+}
+
+func (s *Source) Entries(ctx context.Context) ([]source.Entry, error) {
+	entries := make([]source.Entry, 0)
+	return entries, s.EachListItem(ctx, func(e source.Entry) error {
+		entries = append(entries, e)
+		return nil
+	})
 }
 
 func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) error {
@@ -73,120 +80,176 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 				case *appsv1.Deployment:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
-						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
 							Origin: &Origin{
-								ResourceKind:  "apps/v1/Deployment",
-								Namespace:     o.Namespace,
-								Name:          o.Name,
-								Created:       o.CreationTimestamp.UTC(),
-								ContainerName: container.Name,
-								Parents:       parents,
+								Container: &Container{
+									Name:      container.Name,
+									Namespace: o.Namespace,
+									Pod: &Pod{
+										Name:       o.Spec.Template.Name,
+										Namespace:  o.Namespace,
+										IsTemplate: true,
+										Parent: &Parent{
+											ResourceKind: ResourceKindAppsV1Deployment,
+											Namespace:    o.Namespace,
+											Name:         o.Name,
+										},
+									},
+								},
 							},
 						})
 					}
 				case *appsv1.DaemonSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
-						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
 							Origin: &Origin{
-								ResourceKind:  "apps/v1/DaemonSet",
-								Namespace:     o.Namespace,
-								Name:          o.Name,
-								Created:       o.CreationTimestamp.UTC(),
-								ContainerName: container.Name,
-								Parents:       parents,
+								Container: &Container{
+									Name:      container.Name,
+									Namespace: o.Namespace,
+									Pod: &Pod{
+										Name:       o.Spec.Template.Name,
+										Namespace:  o.Namespace,
+										IsTemplate: true,
+										Parent: &Parent{
+											ResourceKind: ResourceKindAppsV1DaemonSet,
+											Namespace:    o.Namespace,
+											Name:         o.Name,
+										},
+									},
+								},
 							},
 						})
 					}
 				case *appsv1.ReplicaSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
-						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
 							Origin: &Origin{
-								ResourceKind:  "apps/v1/ReplicaSet",
-								Namespace:     o.Namespace,
-								Name:          o.Name,
-								Created:       o.CreationTimestamp.UTC(),
-								ContainerName: container.Name,
-								Parents:       parents,
+								Container: &Container{
+									Name:      container.Name,
+									Namespace: o.Namespace,
+									Pod: &Pod{
+										Name:       o.Spec.Template.Name,
+										Namespace:  o.Namespace,
+										IsTemplate: true,
+										Parent: &Parent{
+											ResourceKind: ResourceKindAppsV1ReplicaSet,
+											Namespace:    o.Namespace,
+											Name:         o.Name,
+										},
+									},
+								},
 							},
 						})
 					}
 				case *appsv1.StatefulSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
-						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
 							Origin: &Origin{
-								ResourceKind:  "apps/v1/StatefulSet",
-								Namespace:     o.Namespace,
-								Name:          o.Name,
-								Created:       o.CreationTimestamp.UTC(),
-								ContainerName: container.Name,
-								Parents:       parents,
+								Container: &Container{
+									Name:      container.Name,
+									Namespace: o.Namespace,
+									Pod: &Pod{
+										Name:       o.Spec.Template.Name,
+										Namespace:  o.Namespace,
+										IsTemplate: true,
+										Parent: &Parent{
+											ResourceKind: ResourceKindAppsV1StatefulSet,
+											Namespace:    o.Namespace,
+											Name:         o.Name,
+										},
+									},
+								},
 							},
 						})
 					}
 				case *batchv1.CronJob:
 					for _, container := range o.Spec.JobTemplate.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
-						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
 							Origin: &Origin{
-								ResourceKind:  "batch/v1/CronJob",
-								Namespace:     o.Namespace,
-								Name:          o.Name,
-								Created:       o.CreationTimestamp.UTC(),
-								ContainerName: container.Name,
-								Parents:       parents,
+								Container: &Container{
+									Name:      container.Name,
+									Namespace: o.Namespace,
+									Pod: &Pod{
+										Name:       o.Spec.JobTemplate.Spec.Template.Name,
+										Namespace:  o.Namespace,
+										IsTemplate: true,
+										Parent: &Parent{
+											ResourceKind: ResourceKindBatchV1CronJob,
+											Namespace:    o.Namespace,
+											Name:         o.Name,
+										},
+									},
+								},
 							},
 						})
 					}
 				case *batchv1.Job:
 					for _, container := range o.Spec.Template.Spec.Containers {
 						image, version, _ := strings.Cut(container.Image, ":")
-						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
 							Origin: &Origin{
-								ResourceKind:  "batch/v1/Job",
-								Namespace:     o.Namespace,
-								Name:          o.Name,
-								Created:       o.CreationTimestamp.UTC(),
-								ContainerName: container.Name,
-								Parents:       parents,
+								Container: &Container{
+									Name:      container.Name,
+									Namespace: o.Namespace,
+									Pod: &Pod{
+										Name:       o.Spec.Template.Name,
+										Namespace:  o.Namespace,
+										IsTemplate: true,
+										Parent: &Parent{
+											ResourceKind: ResourceKindBatchV1Job,
+											Namespace:    o.Namespace,
+											Name:         o.Name,
+										},
+									},
+								},
 							},
 						})
 					}
 				case *corev1.Pod:
 					for i, container := range o.Spec.Containers {
+						// For now, let's assume a pod only has one owning reference
+						var parent *Parent
+						if len(o.OwnerReferences) > 0 {
+							parent = &Parent{
+								ResourceKind: ResourceKind(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind),
+								Namespace:    o.Namespace,
+								Name:         o.Name,
+							}
+						}
+
 						image, version, _ := strings.Cut(container.Image, ":")
-						parents := mapSlice(o.OwnerReferences, formatOwnerReference)
 						fn(source.Entry{
 							Image:   image,
 							Version: version,
 							ImageID: o.Status.ContainerStatuses[i].ImageID,
 							Origin: &Origin{
-								ResourceKind:  "core/v1/Pod",
-								Namespace:     o.Namespace,
-								Name:          o.Name,
-								Created:       o.CreationTimestamp.UTC(),
-								ContainerName: container.Name,
-								Parents:       parents,
+								Container: &Container{
+									Name:      container.Name,
+									Namespace: o.Namespace,
+									Pod: &Pod{
+										Name:       o.Name,
+										Namespace:  o.Namespace,
+										IsTemplate: false,
+										Created:    o.CreationTimestamp.UTC(),
+										Parent:     parent,
+									},
+								},
 							},
 						})
 					}
@@ -202,19 +265,4 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 	}
 
 	return wg.Wait()
-}
-
-func formatOwnerReference(owner metav1.OwnerReference) Parent {
-	return Parent{
-		ResourceKind: fmt.Sprintf("%s/%s", owner.APIVersion, owner.Kind),
-		Name:         owner.Name,
-	}
-}
-
-func mapSlice[I, O any](slice []I, f func(I) O) []O {
-	result := make([]O, len(slice))
-	for i := range slice {
-		result[i] = f(slice[i])
-	}
-	return result
 }
