@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexGustafsson/k8s-image-feed/internal/registry"
-	"github.com/AlexGustafsson/k8s-image-feed/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/registry"
+	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

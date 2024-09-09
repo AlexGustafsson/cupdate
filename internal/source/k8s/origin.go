@@ -3,7 +3,7 @@ package k8s
 import (
 	"time"
 
-	"github.com/AlexGustafsson/k8s-image-feed/internal/source"
+	"github.com/AlexGustafsson/cupdate/internal/source"
 )
 
 var _ source.Origin = (*Origin)(nil)

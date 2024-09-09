@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/AlexGustafsson/k8s-image-feed/internal/source"
-	"github.com/AlexGustafsson/k8s-image-feed/internal/source/k8s"
+	"github.com/AlexGustafsson/cupdate/internal/source"
+	"github.com/AlexGustafsson/cupdate/internal/source/k8s"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
 )

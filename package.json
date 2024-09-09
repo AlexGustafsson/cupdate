@@ -1,5 +1,5 @@
 {
-  "name": "k8s-image-feed",
+  "name": "cupdate",
   "packageManager": "yarn@4.4.1",
   "private": true,
   "type": "module",

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexGustafsson/k8s-image-feed/internal/registry"
-	"github.com/AlexGustafsson/k8s-image-feed/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/registry"
+	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
 type Client struct {

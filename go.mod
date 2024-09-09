@@ -1,4 +1,4 @@
-module github.com/AlexGustafsson/k8s-image-feed
+module github.com/AlexGustafsson/cupdate
 
 go 1.23
 

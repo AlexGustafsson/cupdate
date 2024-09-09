@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AlexGustafsson/k8s-image-feed/internal/source"
+	"github.com/AlexGustafsson/cupdate/internal/source"
 	"golang.org/x/sync/errgroup"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
