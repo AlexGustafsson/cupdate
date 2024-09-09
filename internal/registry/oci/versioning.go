@@ -1,4 +1,4 @@
-package docker
+package oci
 
 import (
 	"regexp"

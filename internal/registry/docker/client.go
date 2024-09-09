@@ -10,16 +10,14 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/k8s-image-feed/internal/registry"
+	"github.com/AlexGustafsson/k8s-image-feed/internal/registry/oci"
 )
 
-var _ registry.Registry = (*Registry)(nil)
-
-type Registry struct {
-	Client http.Client
+type Client struct {
+	Client *http.Client
 }
 
-// Get implements registry.Registry.
-func (r *Registry) Get(ctx context.Context, name string, version string) (*registry.Image, error) {
+func (c *Client) Get(ctx context.Context, name string, version string) (*registry.Image, error) {
 	dockerName := name
 	if !strings.Contains(dockerName, "/") {
 		dockerName = "library/" + dockerName
@@ -30,7 +28,12 @@ func (r *Registry) Get(ctx context.Context, name string, version string) (*regis
 		return nil, err
 	}
 
-	res, err := r.Client.Do(req)
+	client := c.Client
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +59,7 @@ func (r *Registry) Get(ctx context.Context, name string, version string) (*regis
 	}, nil
 }
 
-func (r *Registry) GetRegistryToken(ctx context.Context, name string) (string, error) {
+func (c *Client) GetRegistryToken(ctx context.Context, name string) (string, error) {
 	dockerName := name
 	if !strings.Contains(dockerName, "/") {
 		dockerName = "library/" + url.PathEscape(dockerName)
@@ -78,7 +81,12 @@ func (r *Registry) GetRegistryToken(ctx context.Context, name string) (string, e
 		return "", err
 	}
 
-	res, err := r.Client.Do(req)
+	client := c.Client
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -99,62 +107,24 @@ func (r *Registry) GetRegistryToken(ctx context.Context, name string) (string, e
 	return result.Token, nil
 }
 
-func (r *Registry) GetManifests(ctx context.Context, name string, tag string) ([]Manifest, error) {
-	dockerName := name
-	if !strings.Contains(dockerName, "/") {
-		dockerName = "library/" + url.PathEscape(dockerName)
-	}
-
-	// NOTE: If name contains a /, it is not path escaped as we can't easily tell
-	// what part is the namespace or not
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://registry-1.docker.io/v2/%s/manifests/%s", dockerName, url.PathEscape(tag)), nil)
+func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]oci.Manifest, error) {
+	token, err := c.GetRegistryToken(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Set("Accept", strings.Join([]string{
-		"application/vnd.docker.distribution.manifest.list.v2+json",
-		"application/vnd.docker.distribution.manifest.v2+json",
-		"application/vnd.oci.image.manifest.v1+json",
-		"application/vnd.oci.image.index.v1+json",
-	}, ", "))
-
-	token, err := r.GetRegistryToken(ctx, name)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	res, err := r.Client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	ociClient := &oci.Client{
+		Registry: "https://registry-1.docker.io/v2",
+		Client:   c.Client,
+		// TODO: Cache token
+		Authorizer: oci.AuthorizerToken(token),
 	}
 
-	var result struct {
-		SchemaVersion int        `json:"schemaVersion"`
-		MediaType     string     `json:"mediaType"`
-		Manifests     []Manifest `json:"manifests"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-
-	// TODO: Handle content type switch
-	if result.MediaType != "application/vnd.oci.image.index.v1+json" || result.SchemaVersion != 2 {
-		return nil, fmt.Errorf("unsupported manifest type")
-	}
-
-	return result.Manifests, nil
+	return ociClient.GetManifests(ctx, name, tag)
 }
 
-// GetLatestVersion implements registry.Registry.
-func (r *Registry) GetLatestVersion(ctx context.Context, name string, currentTag string) (*registry.Image, error) {
-	currentVersion, err := ParseVersion(currentTag)
+func (c *Client) GetLatestVersion(ctx context.Context, name string, currentTag string) (*registry.Image, error) {
+	currentVersion, err := oci.ParseVersion(currentTag)
 	if err != nil || currentVersion == nil {
 		return nil, fmt.Errorf("unsupported version: %s", err)
 	}
@@ -181,7 +151,12 @@ func (r *Registry) GetLatestVersion(ctx context.Context, name string, currentTag
 		return nil, err
 	}
 
-	res, err := r.Client.Do(req)
+	client := c.Client
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +183,7 @@ func (r *Registry) GetLatestVersion(ctx context.Context, name string, currentTag
 			continue
 		}
 
-		newVersion, err := ParseVersion(tag.Name)
+		newVersion, err := oci.ParseVersion(tag.Name)
 		if err != nil || newVersion == nil {
 			continue
 		}
@@ -227,13 +202,18 @@ func (r *Registry) GetLatestVersion(ctx context.Context, name string, currentTag
 	return nil, nil
 }
 
-func (r *Registry) GetRepository(ctx context.Context, owner string, name string) (*Repository, error) {
+func (c *Client) GetRepository(ctx context.Context, owner string, name string) (*Repository, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/%s", url.PathEscape(owner), url.PathEscape(name)), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := r.Client.Do(req)
+	client := c.Client
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -323,18 +303,4 @@ type Repository struct {
 	} `json:"categories"`
 	ImmutableTags      bool   `json:"immutable_tags"`
 	ImmutableTagsRules string `json:"immutable_tags_rules"`
-}
-
-// TODO: Rearrange - OCI is the common package, then packages for docker, ghcr,
-// google, ecr etc.?
-
-type Manifest struct {
-	Annotations map[string]string `json:"annotations"`
-	Digest      string            `json:"digest"`
-	MediaType   string            `json:"mediaType"`
-	Platform    struct {
-		Architecture string `json:"architecture"`
-		OS           string `json:"os"`
-	} `json:"platform"`
-	Size int `json:"size"`
 }
