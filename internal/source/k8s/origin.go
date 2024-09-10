@@ -24,7 +24,6 @@ type Parent struct {
 	ResourceKind ResourceKind
 	Namespace    string
 	Name         string
-	Parent       *Parent
 }
 
 type Pod struct {
