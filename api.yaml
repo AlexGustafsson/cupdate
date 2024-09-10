@@ -1,0 +1,157 @@
+openapi: 3.1.0
+
+info:
+  title: Cupdate
+  version: '1.0'
+
+servers:
+  - url: http://localhost:8080/v1
+
+paths:
+  /images:
+    get:
+      summary: Returns a paginated list of images.
+      parameters:
+        - in: query
+          name: tags
+          description: Comma-separated list of tags to include.
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: sort
+          description: Property to sort by.
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: page
+          description: Page to view.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: limit
+          description: Page size limit for pagination.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: A page of images.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImagePage'
+
+components:
+  schemas:
+    ImagePage:
+      type: object
+      properties:
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/Image'
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+        required:
+          - images
+          - pagination
+
+    PaginationMetadata:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        next:
+          type: ['null', string]
+        previous:
+          type: ['null', string]
+      required:
+        - total
+        - page
+        - next
+        - previous
+
+    Image:
+      type: object
+      properties:
+        image:
+          type: string
+        version:
+          type: string
+        newVersion:
+          type: string
+        origin:
+          $ref: '#/components/schemas/Origin'
+        required:
+          - image
+          - version
+          - newVersion
+          - origin
+
+    Origin:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/KubernetesOrigin'
+      discriminator:
+        propertyName: kind
+
+    KubernetesOrigin:
+      type: object
+      properties:
+        kind:
+          type: string
+          const: 'kubernetes'
+        container:
+          $ref: '#/components/schemas/KubernetesContainer'
+        required:
+          - kind
+          - container
+
+    KubernetesContainer:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        pod:
+          $ref: '#/components/schemas/KubernetesPod'
+      required:
+        - name
+        - namespace
+        - pod
+
+    KubernetesPod:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        parent:
+          $ref: '#/components/schemas/KubernetesResource'
+
+    KubernetesResource:
+      type: object
+      properties:
+        resourceKind:
+          type: string
+          enum:
+            - apps/v1/Deployment
+            - apps/v1/DaemonSet
+            - apps/v1/ReplicaSet
+            - apps/v1/StatefulSet
+            - batch/v1/CronJob
+            - batch/v1/Job
+            - core/v1/Pod
+        namespace: string
+        name: string
+      required:
+        - resourceKind
+        - namespace
+        - name
