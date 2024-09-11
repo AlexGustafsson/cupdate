@@ -1,6 +1,7 @@
 /node_modules
 /.yarn/install-state.gz
-/tsconfig.buildinfo
+/tsconfig.tsbuildinfo
 .DS_Store
 /coverage
 /.eslintcache
+/build
