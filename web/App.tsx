@@ -1,5 +1,8 @@
+import { Route, Routes } from 'react-router-dom'
+
 import { SimpleIconsRss } from './components/icons/simple-icon-rss'
 import { Dashboard } from './pages/Dashboard'
+import { ImagePage } from './pages/ImagePage'
 
 export function App(): JSX.Element {
   return (
@@ -9,7 +12,10 @@ export function App(): JSX.Element {
           <SimpleIconsRss className="text-orange-400" />
         </a>
       </div>
-      <Dashboard />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/image" element={<ImagePage />} />
+      </Routes>
     </>
   )
 }

@@ -1,6 +1,9 @@
 import { useCallback, useEffect } from 'react'
+import { NavLink } from 'react-router-dom'
 
 import { Badge } from '../components/Badge'
+import { FluentChevronRight24Regular } from '../components/icons/fluent-chevron-right-24-regular'
+import { FluentInfo20Regular } from '../components/icons/fluent-info-20-filled'
 import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
 import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
 import { useFilter, useSort } from '../hooks'
@@ -172,6 +175,7 @@ export function Dashboard(): JSX.Element {
                 <th scope="col" className="text-nowrap text-center">
                   Tags
                 </th>
+                <th scope="col"></th>
               </tr>
             </thead>
             <tbody>
@@ -194,6 +198,11 @@ export function Dashboard(): JSX.Element {
                         onClick={() => setFilter([x])}
                       />
                     ))}
+                  </td>
+                  <td>
+                    <NavLink to={`/image/${x.image}/${x.current}`}>
+                      <FluentChevronRight24Regular />
+                    </NavLink>
                   </td>
                 </tr>
               ))}
