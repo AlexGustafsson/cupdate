@@ -55,9 +55,9 @@ components:
             $ref: '#/components/schemas/Image'
         pagination:
           $ref: '#/components/schemas/PaginationMetadata'
-        required:
-          - images
-          - pagination
+      required:
+        - images
+        - pagination
 
     PaginationMetadata:
       type: object
@@ -87,11 +87,11 @@ components:
           type: string
         origin:
           $ref: '#/components/schemas/Origin'
-        required:
-          - image
-          - version
-          - newVersion
-          - origin
+      required:
+        - image
+        - version
+        - newVersion
+        - origin
 
     Origin:
       type: object
@@ -105,12 +105,12 @@ components:
       properties:
         kind:
           type: string
-          const: 'kubernetes'
+          const: kubernetes
         container:
           $ref: '#/components/schemas/KubernetesContainer'
-        required:
-          - kind
-          - container
+      required:
+        - kind
+        - container
 
     KubernetesContainer:
       type: object
@@ -135,6 +135,9 @@ components:
           type: string
         parent:
           $ref: '#/components/schemas/KubernetesResource'
+      required:
+        - name
+        - namespace
 
     KubernetesResource:
       type: object
@@ -149,8 +152,10 @@ components:
             - batch/v1/CronJob
             - batch/v1/Job
             - core/v1/Pod
-        namespace: string
-        name: string
+        namespace:
+          type: string
+        name:
+          type: string
       required:
         - resourceKind
         - namespace
