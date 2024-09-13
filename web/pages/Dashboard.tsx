@@ -6,6 +6,7 @@ import { Badge } from '../components/Badge'
 import { FluentChevronRight24Regular } from '../components/icons/fluent-chevron-right-24-regular'
 import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
 import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
+import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
 import { SimpleIconsRss } from '../components/icons/simple-icons-rss'
 import { useFilter, useSort } from '../hooks'
 
@@ -148,8 +149,12 @@ export function Dashboard(): JSX.Element {
                 {images.value.images.map((image) => (
                   <tr key={image.name} className="">
                     <td>
-                      {image.image && (
-                        <img className="w-10 rounded" src={image.image} />
+                      {image.image ? (
+                        <img className="w-10 h-10 rounded" src={image.image} />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-blue-500 flex items-center justify-center">
+                          <SimpleIconsOci className="text-white" />
+                        </div>
                       )}
                     </td>
                     <td className="pr-[24px]">{image.name}</td>
