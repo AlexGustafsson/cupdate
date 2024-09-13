@@ -17,7 +17,7 @@ export function App(): JSX.Element {
 
   return (
     <>
-      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow bg-white">
+      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow bg-white z-50">
         <div className="justify-self-start ml-5">
           {location.pathname != '/' && (
             <NavLink to="/">
