@@ -59,25 +59,113 @@ func (a *API) GetImages(ctx context.Context, tags []string, sort string, asc boo
 			CurrentVersion: "2024.4.4",
 			LatestVersion:  "2024.8.3",
 			Tags:           []string{"k8s", "pod", "outdated"},
-			Image:          "https://www.gravatar.com/avatar/461df105cc6cfcf386ebd5af85b925dc?s=120&r=g&d=404",
+			Links: []ImageLink{
+				{
+					Type: "github",
+					URL:  "https://github.com/home-assistant/core",
+				},
+				{
+					Type: "gitlab",
+					URL:  "https://gitlab.com/arm-research/smarter/smarter-device-manager",
+				},
+				{
+					Type: "docker",
+					URL:  "https://hub.docker.com/r/homeassistant/home-assistant",
+				},
+				{
+					Type: "quay",
+					URL:  "https://quay.io/repository/jetstack/cert-manager-webhook?tab=info",
+				},
+				{
+					Type: "git",
+					URL:  "https://github.com/home-assistant/core",
+				},
+			},
+			Image: "https://www.gravatar.com/avatar/461df105cc6cfcf386ebd5af85b925dc?s=120&r=g&d=404",
 		},
 		{
 			Name:           "jacobalberty/unifi",
 			CurrentVersion: "v7",
 			LatestVersion:  "v7",
-			Tags:           []string{"k8s", "pod", "up-to-date"},
+			Links: []ImageLink{
+				{
+					Type: "github",
+					URL:  "https://github.com/home-assistant/core",
+				},
+				{
+					Type: "gitlab",
+					URL:  "https://gitlab.com/arm-research/smarter/smarter-device-manager",
+				},
+				{
+					Type: "docker",
+					URL:  "https://hub.docker.com/r/homeassistant/home-assistant",
+				},
+				{
+					Type: "quay",
+					URL:  "https://quay.io/repository/jetstack/cert-manager-webhook?tab=info",
+				},
+				{
+					Type: "git",
+					URL:  "https://github.com/home-assistant/core",
+				},
+			},
+			Tags: []string{"k8s", "pod", "up-to-date"},
 		},
 		{
 			Name:           "yooooomi/your_spotify_server",
 			CurrentVersion: "1.11.0",
 			LatestVersion:  "1.11.0",
-			Tags:           []string{"k8s", "pod", "up-to-date"},
+			Links: []ImageLink{
+				{
+					Type: "github",
+					URL:  "https://github.com/home-assistant/core",
+				},
+				{
+					Type: "gitlab",
+					URL:  "https://gitlab.com/arm-research/smarter/smarter-device-manager",
+				},
+				{
+					Type: "docker",
+					URL:  "https://hub.docker.com/r/homeassistant/home-assistant",
+				},
+				{
+					Type: "quay",
+					URL:  "https://quay.io/repository/jetstack/cert-manager-webhook?tab=info",
+				},
+				{
+					Type: "git",
+					URL:  "https://github.com/home-assistant/core",
+				},
+			},
+			Tags: []string{"k8s", "pod", "up-to-date"},
 		},
 		{
 			Name:           "hashicorp/vault",
 			CurrentVersion: "2024.4.4",
 			LatestVersion:  "2024.4.8",
-			Tags:           []string{"k8s", "pod", "outdated"},
+			Links: []ImageLink{
+				{
+					Type: "github",
+					URL:  "https://github.com/home-assistant/core",
+				},
+				{
+					Type: "gitlab",
+					URL:  "https://gitlab.com/arm-research/smarter/smarter-device-manager",
+				},
+				{
+					Type: "docker",
+					URL:  "https://hub.docker.com/r/homeassistant/home-assistant",
+				},
+				{
+					Type: "quay",
+					URL:  "https://quay.io/repository/jetstack/cert-manager-webhook?tab=info",
+				},
+				{
+					Type: "git",
+					URL:  "https://github.com/home-assistant/core",
+				},
+			},
+			Tags: []string{"k8s", "pod", "outdated"},
 		},
 	}
 
@@ -108,7 +196,29 @@ func (a *API) GetImage(ctx context.Context, name string, version string) (*Image
 		CurrentVersion: "2024.4.4",
 		LatestVersion:  "2024.8.3",
 		Tags:           []string{"k8s", "pod", "outdated"},
-		Image:          "https://www.gravatar.com/avatar/461df105cc6cfcf386ebd5af85b925dc?s=120&r=g&d=404",
+		Links: []ImageLink{
+			{
+				Type: "github",
+				URL:  "https://github.com/home-assistant/core",
+			},
+			{
+				Type: "gitlab",
+				URL:  "https://gitlab.com/arm-research/smarter/smarter-device-manager",
+			},
+			{
+				Type: "docker",
+				URL:  "https://hub.docker.com/r/homeassistant/home-assistant",
+			},
+			{
+				Type: "quay",
+				URL:  "https://quay.io/repository/jetstack/cert-manager-webhook?tab=info",
+			},
+			{
+				Type: "git",
+				URL:  "https://github.com/home-assistant/core",
+			},
+		},
+		Image: "https://www.gravatar.com/avatar/461df105cc6cfcf386ebd5af85b925dc?s=120&r=g&d=404",
 	}, nil
 }
 

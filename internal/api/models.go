@@ -27,11 +27,12 @@ type PaginationMetadata struct {
 }
 
 type Image struct {
-	Name           string   `json:"name"`
-	CurrentVersion string   `json:"currentVersion"`
-	LatestVersion  string   `json:"latestVersion"`
-	Tags           []string `json:"tags"`
-	Image          string   `json:"image,omitempty"`
+	Name           string      `json:"name"`
+	CurrentVersion string      `json:"currentVersion"`
+	LatestVersion  string      `json:"latestVersion"`
+	Tags           []string    `json:"tags"`
+	Links          []ImageLink `json:"links"`
+	Image          string      `json:"image,omitempty"`
 }
 
 type ImageDescription struct {
@@ -41,6 +42,11 @@ type ImageDescription struct {
 type ImageReleaseNotes struct {
 	Title string `json:"title"`
 	HTML  string `json:"html,omitempty"`
+}
+
+type ImageLink struct {
+	Type string `json:"type"`
+	URL  string `json:"url"`
 }
 
 type Graph struct {

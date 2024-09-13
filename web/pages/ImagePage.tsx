@@ -13,7 +13,7 @@ import {
   useNodesState,
 } from '@xyflow/react'
 import '@xyflow/react/dist/base.css'
-import { useCallback, useEffect } from 'react'
+import { ReactNode, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import {
@@ -36,6 +36,48 @@ import { SimpleIconsGithub } from '../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
 import { nodeTypes, useNodesAndEdges } from '../graph'
+
+const titles: Record<string, string | undefined> = {
+  github: "Project's page on GitHub",
+  gitlab: "Project's page on GitLab",
+  docker: "Project's page on Docker Hub",
+  quay: "Project's page on Quay.io",
+  git: "Project's git page",
+}
+
+export function ImageLink({
+  type,
+  url,
+}: {
+  type: string
+  url: string
+}): JSX.Element {
+  const title = titles[type]
+  let icon: ReactNode
+  switch (type) {
+    case 'github':
+      icon = <SimpleIconsGithub className="text-black" />
+      break
+    case 'gitlab':
+      icon = <SimpleIconsGitlab className="text-orange-500" />
+      break
+    case 'docker':
+      icon = <SimpleIconsDocker className="text-blue-500" />
+      break
+    case 'quay':
+      icon = <Quay className="text-blue-700" />
+      break
+    case 'git':
+      icon = <SimpleIconsGit className="text-orange-500" />
+      break
+  }
+
+  return (
+    <a title={title} href={url} target="_blank">
+      {icon}
+    </a>
+  )
+}
 
 export function ImagePage(): JSX.Element {
   const [params, _] = useSearchParams()
@@ -86,41 +128,13 @@ export function ImagePage(): JSX.Element {
 
       {/* Release notes */}
       <div className="flex mt-2 space-x-4 items-center">
-        <a
-          title="Project's page on GitHub"
-          href="https://github.com/home-assistant/core"
-          target="_blank"
-        >
-          <SimpleIconsGithub className="text-black" />
-        </a>
-        <a
-          title="Project's page on GitLab"
-          href="https://gitlab.com/arm-research/smarter/smarter-device-manager"
-          target="_blank"
-        >
-          <SimpleIconsGitlab className="text-orange-500" />
-        </a>
-        <a
-          title="Project's page on Docker Hub"
-          href="https://hub.docker.com/r/homeassistant/home-assistant"
-          target="_blank"
-        >
-          <SimpleIconsDocker className="text-blue-500" />
-        </a>
-        <a
-          title="Project's page on Quay"
-          href="https://quay.io/repository/jetstack/cert-manager-webhook?tab=info"
-          target="_blank"
-        >
-          <Quay className="text-blue-500" />
-        </a>
-        <a
-          title="Project's source code"
-          href="https://quay.io/repository/jetstack/cert-manager-webhook?tab=info"
-          target="_blank"
-        >
-          <SimpleIconsGit className="text-orange-500" />
-        </a>
+        {image.value.links.map((link) => (
+          <ImageLink
+            key={`${link.type}:${link.url}`}
+            type={link.type}
+            url={link.url}
+          />
+        ))}
       </div>
 
       <main className="min-w-[200px] max-w-[980px] box-border space-y-6 mt-6">

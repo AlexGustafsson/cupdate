@@ -31,6 +31,7 @@ export interface Image {
   currentVersion: string
   latestVersion: string
   tags: string[]
+  links: ImageLink[]
   image?: string
 }
 
@@ -41,6 +42,11 @@ export interface ImageDescription {
 export interface ImageReleaseNotes {
   title: string
   html?: string
+}
+
+export interface ImageLink {
+  type: string
+  url: string
 }
 
 export interface Graph {

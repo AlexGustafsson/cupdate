@@ -227,16 +227,20 @@ components:
           type: array
           items:
             type: string
+        links:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageLink'
         image:
           type: string
           format: url
           description: URL to an image
-        # TODO: SVC, Docker hub, quay etc.
       required:
         - name
         - currentVersion
         - latestVersion
         - tags
+        - links
 
     ImageDescription:
       type: object
@@ -253,6 +257,19 @@ components:
           type: string
       required:
         - title
+
+    ImageLink:
+      type: object
+      properties:
+        type:
+          type: string
+          example: github
+        url:
+          type: string
+          format: url
+      required:
+        - type
+        - url
 
     Graph:
       type: object
