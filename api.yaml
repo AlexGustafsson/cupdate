@@ -5,9 +5,22 @@ info:
   version: '1.0'
 
 servers:
-  - url: http://localhost:8080/v1
+  - url: http://localhost:8080/api/v1
 
 paths:
+  /tags:
+    get:
+      summary: Returns available tags.
+    responses:
+      '200':
+        description: A list of tags.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Tag'
+
   /images:
     get:
       summary: Returns a paginated list of images.
@@ -24,6 +37,16 @@ paths:
           schema:
             type: string
           required: false
+        - in: query
+          name: asc
+          description: Sort by the by the property in ascending order.
+          schema:
+            type: boolean
+        - in: query
+          name: desc
+          description: Sort by the by the property in descending order.
+          schema:
+            type: boolean
         - in: query
           name: page
           description: Page to view.
@@ -66,8 +89,88 @@ paths:
               schema:
                 $ref: '#/components/schemas/Image'
 
+  /image/description:
+    get:
+      summary: Returns an image's description.
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: version
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Rendered HTML description of the image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageDescription'
+        '404':
+          description: No description was found
+
+  /image/release-notes:
+    get:
+      summary: Returns an image's release notes.
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: version
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Description of the version's release notes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageReleaseNotes'
+        '404':
+          description: No release notes were found
+
+  /image/graph:
+    get:
+      summary: Returns an image's graph
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: version
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: The image's graph
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+
 components:
   schemas:
+    Tag:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+
     ImagePage:
       type: object
       properties:
@@ -75,10 +178,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Image'
+        summary:
+          images:
+            description: Total number of images
+            type: number
+          outdated:
+            description: Total number of outdated images
+            type: number
+          pods:
+            description: Total number of pods
+            type: number
         pagination:
           $ref: '#/components/schemas/PaginationMetadata'
       required:
         - images
+        - summary
         - pagination
 
     PaginationMetadata:
@@ -88,97 +202,86 @@ components:
           type: integer
         page:
           type: integer
+        size:
+          type: integer
         next:
-          type: ['null', string]
+          type: string
         previous:
-          type: ['null', string]
+          type: string
       required:
         - total
         - page
-        - next
-        - previous
+        - size
 
     Image:
       type: object
       properties:
+        name:
+          type: string
+        currentVersion:
+          type: string
+        latestVersion:
+          type: string
+          description: The latest available version on the same track
+        tags:
+          type: array
+          items:
+            type: string
         image:
           type: string
-        version:
-          type: string
-        newVersion:
-          type: string
-        origin:
-          $ref: '#/components/schemas/Origin'
-      required:
-        - image
-        - version
-        - newVersion
-        - origin
-
-    Origin:
-      type: object
-      oneOf:
-        - $ref: '#/components/schemas/KubernetesOrigin'
-      discriminator:
-        propertyName: kind
-
-    KubernetesOrigin:
-      type: object
-      properties:
-        kind:
-          type: string
-          const: kubernetes
-        container:
-          $ref: '#/components/schemas/KubernetesContainer'
-      required:
-        - kind
-        - container
-
-    KubernetesContainer:
-      type: object
-      properties:
-        name:
-          type: string
-        namespace:
-          type: string
-        pod:
-          $ref: '#/components/schemas/KubernetesPod'
+          format: url
+          description: URL to an image
+        # TODO: SVC, Docker hub, quay etc.
       required:
         - name
-        - namespace
-        - pod
+        - currentVersion
+        - latestVersion
+        - tags
 
-    KubernetesPod:
+    ImageDescription:
       type: object
       properties:
-        name:
+        html:
           type: string
-        namespace:
-          type: string
-        parent:
-          $ref: '#/components/schemas/KubernetesResource'
-      required:
-        - name
-        - namespace
 
-    KubernetesResource:
+    ImageReleaseNotes:
       type: object
       properties:
-        resourceKind:
+        title:
           type: string
-          enum:
-            - apps/v1/Deployment
-            - apps/v1/DaemonSet
-            - apps/v1/ReplicaSet
-            - apps/v1/StatefulSet
-            - batch/v1/CronJob
-            - batch/v1/Job
-            - core/v1/Pod
-        namespace:
-          type: string
-        name:
+        html:
           type: string
       required:
-        - resourceKind
-        - namespace
+        - title
+
+    Graph:
+      type: object
+      description: A graph explaining why the image is used
+      properties:
+        root:
+          description: The root node. This is always the image
+          $ref: '#/components/schemas/GraphNode'
+      required:
+        - root
+
+    GraphNode:
+      type: object
+      properties:
+        domain:
+          type: string
+          example: kubernetes
+        type:
+          type: string
+          example: apps/v1/DeploymentSet
+        name:
+          type: string
+          example: default
+        parents:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+      required:
+        - domain
+        - type
         - name
+        - parents

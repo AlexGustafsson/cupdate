@@ -17,9 +17,10 @@ export function Badge({
     <span
       {...rest}
       className={
-        `rounded-full px-2 py-1 text-xs text-nowrap ${color} ${disabled ? 'opacity-50' : ''} m-1 ` +
+        `rounded-full px-2 py-1 text-xs text-nowrap ${disabled ? 'opacity-50' : ''} m-1 ` +
         className
       }
+      style={{ backgroundColor: color }}
     >
       {label}
     </span>

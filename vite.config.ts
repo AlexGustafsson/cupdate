@@ -6,7 +6,7 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
   // The dev server listens on port 8080, use it during development with vite
   if (!process.env['VITE_API_ENDPOINT']) {
     if (mode === 'development') {
-      process.env['VITE_API_ENDPOINT'] = 'localhost:8080/api/v1'
+      process.env['VITE_API_ENDPOINT'] = 'http://localhost:8080/api/v1'
     } else {
       process.env['VITE_API_ENDPOINT'] = ''
     }
