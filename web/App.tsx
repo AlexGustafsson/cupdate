@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom'
 
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
-import { SimpleIconsRss } from './components/icons/simple-icon-rss'
+import { SimpleIconsRss } from './components/icons/simple-icons-rss'
 import { Dashboard } from './pages/Dashboard'
 import { ImagePage } from './pages/ImagePage'
 

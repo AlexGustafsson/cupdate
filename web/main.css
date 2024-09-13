@@ -1,3 +1,5 @@
+@import '../node_modules/github-markdown-css/github-markdown.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -48,4 +50,13 @@
 }
 
 @layer components {
+  @media (max-width: 767px) {
+    .markdown-body {
+      padding: 15px;
+    }
+  }
+
+  .markdown-body li {
+    list-style-type: disc;
+  }
 }

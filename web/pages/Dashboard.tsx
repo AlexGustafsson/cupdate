@@ -5,7 +5,7 @@ import { Badge } from '../components/Badge'
 import { FluentChevronRight24Regular } from '../components/icons/fluent-chevron-right-24-regular'
 import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
 import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
-import { SimpleIconsRss } from '../components/icons/simple-icon-rss'
+import { SimpleIconsRss } from '../components/icons/simple-icons-rss'
 import { useFilter, useSort } from '../hooks'
 
 interface Tag {
