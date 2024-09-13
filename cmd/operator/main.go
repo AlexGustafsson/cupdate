@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	apiServer := api.NewServer(api.New())
+	apiServer := api.NewServer(mockAPI)
 
 	mux := http.NewServeMux()
 

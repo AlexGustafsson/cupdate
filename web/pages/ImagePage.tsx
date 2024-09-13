@@ -108,13 +108,23 @@ export function ImagePage(): JSX.Element {
   const graph = useImageGraph(imageName, imageVersion)
 
   if (
-    tags.status !== 'resolved' ||
-    image.status !== 'resolved' ||
-    description.status !== 'resolved' ||
-    releaseNotes.status !== 'resolved' ||
-    graph.status !== 'resolved'
+    tags.status === 'idle' ||
+    image.status === 'idle' ||
+    description.status === 'idle' ||
+    releaseNotes.status === 'idle' ||
+    graph.status === 'idle'
   ) {
     return <p>Loading</p>
+  }
+
+  if (
+    tags.status === 'rejected' ||
+    image.status === 'rejected' ||
+    description.status === 'rejected' ||
+    releaseNotes.status === 'rejected' ||
+    graph.status === 'rejected'
+  ) {
+    return <p>Error</p>
   }
 
   // Redirect if image was not found

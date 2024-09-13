@@ -73,20 +73,28 @@ export function Dashboard(): JSX.Element {
     <>
       <div className="flex flex-col items-center w-full py-[40px] px-[20px]">
         <div className="p-3 flex space-x-5">
-          <div className="p-5 w-32 h-32 bg-blue-100 rounded-lg">
-            <p className="text-md font-medium">Images</p>
-            <p className="text-3xl font-bold">{images.value.summary.images}</p>
-          </div>
-          <div className="p-5 w-32 h-32 bg-orange-100 rounded-lg">
-            <p className="text-md font-medium">Outdated</p>
-            <p className="text-3xl font-bold">
-              {images.value.summary.outdated}
-            </p>
-          </div>
-          <div className="p-5 w-32 h-32 bg-purple-100 rounded-lg">
-            <p className="text-md font-medium">Pods</p>
-            <p className="text-3xl font-bold">{images.value.summary.pods}</p>
-          </div>
+          {images.value.summary.images !== undefined && (
+            <div className="p-5 w-32 h-32 bg-blue-100 rounded-lg">
+              <p className="text-md font-medium">Images</p>
+              <p className="text-3xl font-bold">
+                {images.value.summary.images}
+              </p>
+            </div>
+          )}
+          {images.value.summary.outdated !== undefined && (
+            <div className="p-5 w-32 h-32 bg-orange-100 rounded-lg">
+              <p className="text-md font-medium">Outdated</p>
+              <p className="text-3xl font-bold">
+                {images.value.summary.outdated}
+              </p>
+            </div>
+          )}
+          {images.value.summary.pods !== undefined && (
+            <div className="p-5 w-32 h-32 bg-purple-100 rounded-lg">
+              <p className="text-md font-medium">Pods</p>
+              <p className="text-3xl font-bold">{images.value.summary.pods}</p>
+            </div>
+          )}
         </div>
         <div className="relative mt-6">
           <div className="rounded-lg bg-white px-4 py-2 shadow">

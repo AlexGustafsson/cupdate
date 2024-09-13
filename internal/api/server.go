@@ -11,11 +11,11 @@ import (
 )
 
 type Server struct {
-	api *API
+	api API
 	mux *http.ServeMux
 }
 
-func NewServer(api *API) *Server {
+func NewServer(api API) *Server {
 	s := &Server{
 		api: api,
 		mux: http.NewServeMux(),

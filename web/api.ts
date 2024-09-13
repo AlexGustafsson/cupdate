@@ -171,7 +171,7 @@ export function useImageDescription(
     )
       .then((res) => {
         if (res.status === 404) {
-          setResult({ status: 'resolved', value: null })
+          return null
         } else if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
@@ -201,7 +201,7 @@ export function useImageReleaseNotes(
     )
       .then((res) => {
         if (res.status === 404) {
-          setResult({ status: 'resolved', value: null })
+          return null
         } else if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
@@ -231,7 +231,7 @@ export function useImageGraph(
     )
       .then((res) => {
         if (res.status === 404) {
-          setResult({ status: 'resolved', value: null })
+          return null
         } else if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
