@@ -1,20 +1,27 @@
 import {
   Connection,
   Controls,
+  Edge,
   MiniMap,
+  Node,
   NodeTypes,
+  OnEdgesChange,
+  OnNodesChange,
   ReactFlow,
   addEdge,
   useEdgesState,
   useNodesState,
 } from '@xyflow/react'
 import '@xyflow/react/dist/base.css'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import {
+  Graph,
+  Result,
   useImage,
   useImageDescription,
+  useImageGraph,
   useImageReleaseNotes,
   useTags,
 } from '../api'
@@ -28,106 +35,62 @@ import { SimpleIconsDocker } from '../components/icons/simple-icons-docker'
 import { SimpleIconsGit } from '../components/icons/simple-icons-git'
 import { SimpleIconsGithub } from '../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
-
-interface Tag {
-  label: string
-  color: string
-}
+import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
 
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
 }
 
-const initNodes = [
-  {
-    id: '1',
-    type: 'custom',
-    data: { subtitle: 'default', title: 'Namespace', label: 'N' },
-    position: { x: 0, y: 50 },
-  },
-  {
-    id: '2',
-    type: 'custom',
-    data: { subtitle: 'home-assistant', title: 'Deployment', label: 'D' },
-    position: { x: 0, y: 150 },
-  },
-  {
-    id: '3',
-    type: 'custom',
-    data: { subtitle: 'home-assistant', title: 'Pod', label: 'P' },
-    position: { x: 0, y: 250 },
-  },
-  {
-    id: '4',
-    type: 'custom',
-    data: { subtitle: 'home-assistant', title: 'Container', label: 'C' },
-    position: { x: 0, y: 350 },
-  },
+interface NodeType extends Node {
+  // id: string
+  // type: string
+  // data: {
+  //   subtitle: string
+  //   title: string
+  //   label: string
+  // }
+  // position: { x: number; y: number }
+}
 
-  {
-    id: '8',
-    type: 'custom',
-    data: { subtitle: 'test', title: 'Namespace', label: 'N' },
-    position: { x: 250, y: 150 },
-  },
-  {
-    id: '6',
-    type: 'custom',
-    data: { subtitle: 'home-assistant', title: 'Pod', label: 'P' },
-    position: { x: 250, y: 250 },
-  },
-  {
-    id: '7',
-    type: 'custom',
-    data: { subtitle: 'home-assistant', title: 'Container', label: 'C' },
-    position: { x: 250, y: 350 },
-  },
+interface EdgeType extends Edge {
+  // id: string
+  // source: string
+  // target: string
+}
 
-  {
-    id: '5',
-    type: 'custom',
-    data: { subtitle: 'home-assistant', title: 'Image', label: 'I' },
-    position: { x: 0, y: 450 },
-  },
-]
+function useNodesAndEdges(
+  graph: Result<Graph>
+): [
+  [NodeType[], OnNodesChange<NodeType>],
+  [EdgeType[], OnEdgesChange<EdgeType>],
+] {
+  const [nodes, setNodes, onNodesChange] = useNodesState<NodeType>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeType>([])
 
-const initEdges = [
-  {
-    id: 'e1',
-    source: '1',
-    target: '2',
-  },
-  {
-    id: 'e2',
-    source: '2',
-    target: '3',
-  },
-  {
-    id: 'e3',
-    source: '3',
-    target: '4',
-  },
-  {
-    id: 'e4',
-    source: '4',
-    target: '5',
-  },
-  {
-    id: 'e5',
-    source: '6',
-    target: '7',
-  },
-  {
-    id: 'e6',
-    source: '7',
-    target: '5',
-  },
-  {
-    id: 'e7',
-    source: '8',
-    target: '6',
-  },
-]
+  useEffect(() => {
+    if (graph.status !== 'resolved') {
+      return
+    }
+
+    setNodes([
+      {
+        id: 'root',
+        type: 'custom',
+        data: {
+          subtitle: graph.value.root.name,
+          title: 'Image',
+          label: <SimpleIconsOci className="text-blue-700" />,
+        },
+        position: { x: 0, y: 0 },
+      },
+    ])
+  }, [graph])
+
+  return [
+    [nodes, onNodesChange],
+    [edges, onEdgesChange],
+  ]
+}
 
 export function ImagePage(): JSX.Element {
   const [params, _] = useSearchParams()
@@ -138,10 +101,11 @@ export function ImagePage(): JSX.Element {
   const image = useImage()
   const description = useImageDescription()
   const releaseNotes = useImageReleaseNotes()
+  const graph = useImageGraph()
   const tags = useTags()
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initNodes)
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges)
+  const [[nodes, onNodesChange], [edges, _onEdgesChange]] =
+    useNodesAndEdges(graph)
 
   if (
     image.status !== 'resolved' ||

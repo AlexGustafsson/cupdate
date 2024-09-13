@@ -164,3 +164,25 @@ export function useImageReleaseNotes(): Result<ImageReleaseNotes | undefined> {
 
   return result
 }
+
+// TODO: Add query parameters
+export function useImageGraph(): Result<Graph> {
+  const [result, setResult] = useState<Result<Graph>>({
+    status: 'idle',
+  })
+
+  useEffect(() => {
+    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image/graph`)
+      .then((res) => {
+        if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [])
+
+  return result
+}
