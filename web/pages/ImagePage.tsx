@@ -146,12 +146,20 @@ export function ImagePage(): JSX.Element {
       )}
       <h1 className="text-2xl font-medium">{image.value.name}</h1>
       <div className="flex items-center">
-        <FluentChevronDown20Regular className="text-red-500" />
-        <p className="font-medium text-red-500">{image.value.currentVersion}</p>
-        <p className="font-medium ml-4 text-green-500">
-          {image.value.latestVersion}
-        </p>
-        <FluentChevronUp20Regular className="text-green-500" />
+        {image.value.currentVersion === image.value.latestVersion ? (
+          <p className="font-medium">{image.value.currentVersion}</p>
+        ) : (
+          <>
+            <FluentChevronDown20Regular className="text-red-500" />
+            <p className="font-medium text-red-500">
+              {image.value.currentVersion}
+            </p>
+            <p className="font-medium ml-4 text-green-500">
+              {image.value.latestVersion}
+            </p>
+            <FluentChevronUp20Regular className="text-green-500" />
+          </>
+        )}
       </div>
       <div className="flex mt-2 items-center">
         {imageTags.map((x) => (
