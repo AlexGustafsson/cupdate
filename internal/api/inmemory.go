@@ -23,8 +23,10 @@ func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string,
 	images := a.Images
 
 	return &ImagePage{
-		Images:  images,
-		Summary: ImagePageSummary{},
+		Images: images,
+		Summary: ImagePageSummary{
+			Images: len(a.Images),
+		},
 		Pagination: PaginationMetadata{
 			Total:    len(images),
 			Page:     1,
