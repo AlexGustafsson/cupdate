@@ -141,7 +141,7 @@ export function useImage(name: string, version: string): Result<Image | null> {
     fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image?${query.toString()}`)
       .then((res) => {
         if (res.status === 404) {
-          throw new Error(`unexpected status code ${res.status}`)
+          return null
         } else if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
