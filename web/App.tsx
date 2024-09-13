@@ -17,7 +17,7 @@ export function App(): JSX.Element {
 
   return (
     <>
-      <div className="static top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow bg-white">
+      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow bg-white">
         <div className="justify-self-start ml-5">
           {location.pathname != '/' && (
             <NavLink to="/">
@@ -36,10 +36,12 @@ export function App(): JSX.Element {
           </a>
         </div>
       </div>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/image" element={<ImagePage />} />
-      </Routes>
+      <main className="pt-[64px]">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/image" element={<ImagePage />} />
+        </Routes>
+      </main>
     </>
   )
 }
