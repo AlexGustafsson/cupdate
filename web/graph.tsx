@@ -116,7 +116,7 @@ function formatGraph(root: GraphNode): [NodeType[], EdgeType[]] {
 }
 
 export function useNodesAndEdges(
-  graph: Result<Graph>
+  graph: Graph
 ): [
   [NodeType[], OnNodesChange<NodeType>],
   [EdgeType[], OnEdgesChange<EdgeType>],
@@ -125,11 +125,7 @@ export function useNodesAndEdges(
   const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeType>([])
 
   useEffect(() => {
-    if (graph.status !== 'resolved') {
-      return
-    }
-
-    const [nodes, edges] = formatGraph(graph.value.root)
+    const [nodes, edges] = formatGraph(graph.root)
     setNodes(nodes)
     setEdges(edges)
   }, [graph])

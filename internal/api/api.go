@@ -187,9 +187,9 @@ func (a *API) GetImages(ctx context.Context, tags []string, sort string, asc boo
 }
 
 func (a *API) GetImage(ctx context.Context, name string, version string) (*Image, error) {
-	// if name == "" || version == "" {
-	// 	return nil, ErrBadRequest
-	// }
+	if name == "" || version == "" {
+		return nil, ErrBadRequest
+	}
 
 	return &Image{
 		Name:           "home-assistant",
@@ -223,9 +223,9 @@ func (a *API) GetImage(ctx context.Context, name string, version string) (*Image
 }
 
 func (a *API) GetImageDescription(ctx context.Context, name string, version string) (*ImageDescription, error) {
-	// if name == "" || version == "" {
-	// 	return nil, ErrBadRequest
-	// }
+	if name == "" || version == "" {
+		return nil, ErrBadRequest
+	}
 
 	html := `<h1 id="home-assistant">Home Assistant</h1>
       <p>
@@ -272,9 +272,9 @@ func (a *API) GetImageDescription(ctx context.Context, name string, version stri
 }
 
 func (a *API) GetImageReleaseNotes(ctx context.Context, name string, version string) (*ImageReleaseNotes, error) {
-	// if name == "" || version == "" {
-	// 	return nil, ErrBadRequest
-	// }
+	if name == "" || version == "" {
+		return nil, ErrBadRequest
+	}
 
 	html := `<ul>
         <li>
@@ -616,9 +616,9 @@ func (a *API) GetImageReleaseNotes(ctx context.Context, name string, version str
 }
 
 func (a *API) GetImageGraph(ctx context.Context, name string, version string) (*Graph, error) {
-	// if name == "" || version == "" {
-	// 	return nil, ErrBadRequest
-	// }
+	if name == "" || version == "" {
+		return nil, ErrBadRequest
+	}
 
 	return &Graph{
 		Root: GraphNode{

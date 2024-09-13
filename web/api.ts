@@ -84,11 +84,40 @@ export function useTags(): Result<Tag[]> {
   return result
 }
 
-export function useImages(): Result<ImagePage> {
+interface UseImagesProps {
+  tags?: string[]
+  sort?: string
+  asc?: boolean
+  desc?: boolean
+  page?: number
+  limit?: number
+}
+
+export function useImages(options?: UseImagesProps): Result<ImagePage> {
   const [result, setResult] = useState<Result<ImagePage>>({ status: 'idle' })
 
   useEffect(() => {
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/images`)
+    const query = new URLSearchParams()
+    if (options?.tags !== undefined) {
+      query.set('tags', options.tags.join(','))
+    }
+    if (options?.sort !== undefined) {
+      query.set('sort', options.sort)
+    }
+    if (options?.asc !== undefined) {
+      query.set('asc', '')
+    }
+    if (options?.desc !== undefined) {
+      query.set('desc', '')
+    }
+    if (options?.page !== undefined) {
+      query.set('page', options.page.toString())
+    }
+    if (options?.limit !== undefined) {
+      query.set('limit', options.limit.toString())
+    }
+
+    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/images?${query.toString()}`)
       .then((res) => {
         if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
@@ -98,42 +127,21 @@ export function useImages(): Result<ImagePage> {
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [])
+  }, [options])
 
   return result
 }
 
 // TODO: Add query parameters
-export function useImage(): Result<Image> {
-  const [result, setResult] = useState<Result<Image>>({ status: 'idle' })
+export function useImage(name: string, version: string): Result<Image | null> {
+  const [result, setResult] = useState<Result<Image | null>>({ status: 'idle' })
 
   useEffect(() => {
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image`)
-      .then((res) => {
-        if (res.status !== 200) {
-          throw new Error(`unexpected status code ${res.status}`)
-        }
-
-        return res.json()
-      })
-      .then((value) => setResult({ status: 'resolved', value }))
-      .catch((error) => setResult({ status: 'rejected', error }))
-  }, [])
-
-  return result
-}
-
-// TODO: Add query parameters
-export function useImageDescription(): Result<ImageDescription | undefined> {
-  const [result, setResult] = useState<Result<ImageDescription | undefined>>({
-    status: 'idle',
-  })
-
-  useEffect(() => {
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image/description`)
+    const query = new URLSearchParams({ name, version })
+    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image?${query.toString()}`)
       .then((res) => {
         if (res.status === 404) {
-          setResult({ status: 'resolved', value: undefined })
+          throw new Error(`unexpected status code ${res.status}`)
         } else if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
@@ -142,22 +150,28 @@ export function useImageDescription(): Result<ImageDescription | undefined> {
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [])
+  }, [name, version])
 
   return result
 }
 
 // TODO: Add query parameters
-export function useImageReleaseNotes(): Result<ImageReleaseNotes | undefined> {
-  const [result, setResult] = useState<Result<ImageReleaseNotes | undefined>>({
+export function useImageDescription(
+  name: string,
+  version: string
+): Result<ImageDescription | null> {
+  const [result, setResult] = useState<Result<ImageDescription | null>>({
     status: 'idle',
   })
 
   useEffect(() => {
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image/release-notes`)
+    const query = new URLSearchParams({ name, version })
+    fetch(
+      `${import.meta.env['VITE_API_ENDPOINT']}/image/description?${query.toString()}`
+    )
       .then((res) => {
         if (res.status === 404) {
-          setResult({ status: 'resolved', value: undefined })
+          setResult({ status: 'resolved', value: null })
         } else if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
@@ -166,21 +180,29 @@ export function useImageReleaseNotes(): Result<ImageReleaseNotes | undefined> {
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [])
+  }, [name, version])
 
   return result
 }
 
 // TODO: Add query parameters
-export function useImageGraph(): Result<Graph> {
-  const [result, setResult] = useState<Result<Graph>>({
+export function useImageReleaseNotes(
+  name: string,
+  version: string
+): Result<ImageReleaseNotes | null> {
+  const [result, setResult] = useState<Result<ImageReleaseNotes | null>>({
     status: 'idle',
   })
 
   useEffect(() => {
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image/graph`)
+    const query = new URLSearchParams({ name, version })
+    fetch(
+      `${import.meta.env['VITE_API_ENDPOINT']}/image/release-notes?${query.toString()}`
+    )
       .then((res) => {
-        if (res.status !== 200) {
+        if (res.status === 404) {
+          setResult({ status: 'resolved', value: null })
+        } else if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
 
@@ -188,7 +210,37 @@ export function useImageGraph(): Result<Graph> {
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [])
+  }, [name, version])
+
+  return result
+}
+
+// TODO: Add query parameters
+export function useImageGraph(
+  name: string,
+  version: string
+): Result<Graph | null> {
+  const [result, setResult] = useState<Result<Graph | null>>({
+    status: 'idle',
+  })
+
+  useEffect(() => {
+    const query = new URLSearchParams({ name, version })
+    fetch(
+      `${import.meta.env['VITE_API_ENDPOINT']}/image/graph?${query.toString()}`
+    )
+      .then((res) => {
+        if (res.status === 404) {
+          setResult({ status: 'resolved', value: null })
+        } else if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [name, version])
 
   return result
 }

@@ -1,24 +1,10 @@
-import {
-  Connection,
-  Controls,
-  Edge,
-  MiniMap,
-  Node,
-  NodeTypes,
-  OnEdgesChange,
-  OnNodesChange,
-  ReactFlow,
-  addEdge,
-  useEdgesState,
-  useNodesState,
-} from '@xyflow/react'
+import { Controls, ReactFlow } from '@xyflow/react'
 import '@xyflow/react/dist/base.css'
-import { ReactNode, useCallback, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { ReactNode } from 'react'
+import { Navigate, useSearchParams } from 'react-router-dom'
 
 import {
   Graph,
-  Result,
   useImage,
   useImageDescription,
   useImageGraph,
@@ -79,31 +65,64 @@ export function ImageLink({
   )
 }
 
-export function ImagePage(): JSX.Element {
-  const [params, _] = useSearchParams()
+type GraphCardProps = {
+  graph: Graph
+}
 
-  const imageName = params.get('name')
-  const imageVersion = params.get('version')
-
-  const image = useImage()
-  const description = useImageDescription()
-  const releaseNotes = useImageReleaseNotes()
-  const graph = useImageGraph()
-  const tags = useTags()
-
+export function GraphCard({ graph }: GraphCardProps): JSX.Element {
   const [[nodes, onNodesChange], [edges, _onEdgesChange]] =
     useNodesAndEdges(graph)
 
+  return (
+    <div className="rounded-lg bg-white px-4 py-2 shadow h-[480px]">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        nodeTypes={nodeTypes}
+        fitView
+        edgesFocusable={false}
+        nodesDraggable={true}
+        nodesConnectable={false}
+        nodesFocusable={false}
+        draggable={true}
+        panOnDrag={true}
+        elementsSelectable={false}
+      >
+        <Controls />
+      </ReactFlow>
+    </div>
+  )
+}
+
+export function ImagePage(): JSX.Element {
+  const [params, _] = useSearchParams()
+
+  const imageName = params.get('name')!
+  const imageVersion = params.get('version')!
+
+  const tags = useTags()
+  const image = useImage(imageName, imageVersion)
+  const description = useImageDescription(imageName, imageVersion)
+  const releaseNotes = useImageReleaseNotes(imageName, imageVersion)
+  const graph = useImageGraph(imageName, imageVersion)
+
   if (
+    tags.status !== 'resolved' ||
     image.status !== 'resolved' ||
     description.status !== 'resolved' ||
     releaseNotes.status !== 'resolved' ||
-    tags.status !== 'resolved'
+    graph.status !== 'resolved'
   ) {
     return <p>Loading</p>
   }
 
-  const imageTags = tags.value.filter((x) => image.value.tags.includes(x.name))
+  // Redirect if image was not found
+  if (!image.value) {
+    return <Navigate to="/" replace />
+  }
+
+  const imageTags = tags.value.filter((x) => image.value!.tags.includes(x.name))
 
   return (
     <div className="flex flex-col items-center w-full py-[40px] px-[20px]">
@@ -142,38 +161,27 @@ export function ImagePage(): JSX.Element {
       </div>
 
       <main className="min-w-[200px] max-w-[980px] box-border space-y-6 mt-6">
-        <div className="rounded-lg bg-white px-4 py-6 shadow">
-          <div className="markdown-body">
-            <HTML>{description.value?.html}</HTML>
+        {/* Description */}
+        {description.value?.html && (
+          <div className="rounded-lg bg-white px-4 py-6 shadow">
+            <div className="markdown-body">
+              <HTML>{description.value.html}</HTML>
+            </div>
           </div>
-        </div>
+        )}
 
-        <div className="rounded-lg bg-white px-4 py-6 shadow">
-          <div className="markdown-body">
-            <h1>{releaseNotes.value?.title}</h1>
-            <HTML>{releaseNotes.value?.html}</HTML>
+        {/* Release notes */}
+        {releaseNotes.value?.html && (
+          <div className="rounded-lg bg-white px-4 py-6 shadow">
+            <div className="markdown-body">
+              <h1>{releaseNotes.value?.title}</h1>
+              <HTML>{releaseNotes.value?.html}</HTML>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Graph */}
-        <div className="rounded-lg bg-white px-4 py-2 shadow h-[480px]">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            nodeTypes={nodeTypes}
-            fitView
-            edgesFocusable={false}
-            nodesDraggable={true}
-            nodesConnectable={false}
-            nodesFocusable={false}
-            draggable={true}
-            panOnDrag={true}
-            elementsSelectable={false}
-          >
-            <Controls />
-          </ReactFlow>
-        </div>
+        {graph.value && <GraphCard graph={graph.value} />}
       </main>
     </div>
   )
