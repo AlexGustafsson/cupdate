@@ -27,7 +27,6 @@ import {
 } from '../api'
 import { Badge } from '../components/Badge'
 import { HTML } from '../components/HTML'
-import CustomNode from '../components/Node'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { Quay } from '../components/icons/quay'
@@ -36,61 +35,7 @@ import { SimpleIconsGit } from '../components/icons/simple-icons-git'
 import { SimpleIconsGithub } from '../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
-
-const nodeTypes: NodeTypes = {
-  custom: CustomNode,
-}
-
-interface NodeType extends Node {
-  // id: string
-  // type: string
-  // data: {
-  //   subtitle: string
-  //   title: string
-  //   label: string
-  // }
-  // position: { x: number; y: number }
-}
-
-interface EdgeType extends Edge {
-  // id: string
-  // source: string
-  // target: string
-}
-
-function useNodesAndEdges(
-  graph: Result<Graph>
-): [
-  [NodeType[], OnNodesChange<NodeType>],
-  [EdgeType[], OnEdgesChange<EdgeType>],
-] {
-  const [nodes, setNodes, onNodesChange] = useNodesState<NodeType>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeType>([])
-
-  useEffect(() => {
-    if (graph.status !== 'resolved') {
-      return
-    }
-
-    setNodes([
-      {
-        id: 'root',
-        type: 'custom',
-        data: {
-          subtitle: graph.value.root.name,
-          title: 'Image',
-          label: <SimpleIconsOci className="text-blue-700" />,
-        },
-        position: { x: 0, y: 0 },
-      },
-    ])
-  }, [graph])
-
-  return [
-    [nodes, onNodesChange],
-    [edges, onEdgesChange],
-  ]
-}
+import { nodeTypes, useNodesAndEdges } from '../graph'
 
 export function ImagePage(): JSX.Element {
   const [params, _] = useSearchParams()

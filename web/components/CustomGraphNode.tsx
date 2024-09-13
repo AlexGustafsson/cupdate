@@ -1,13 +1,15 @@
 import { Handle, NodeProps, Position } from '@xyflow/react'
-import { memo } from 'react'
+import { type ReactNode } from 'react'
 
-import { SimpleIconsKubernetes } from './icons/simple-icons-kubernetes'
-
-function CustomNode({
+export function CustomGraphNode({
   data,
 }: NodeProps & {
-  data: any
-  type: any
+  data: {
+    subtitle: string
+    title: string
+    label: ReactNode
+  }
+  type: 'custom'
 }): JSX.Element {
   return (
     <div className="px-4 py-2 shadow-md rounded-md bg-white border-2 border-stone-400">
@@ -34,5 +36,3 @@ function CustomNode({
     </div>
   )
 }
-
-export default memo(CustomNode)
