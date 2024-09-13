@@ -6,9 +6,16 @@ import (
 	"os"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
+	"github.com/AlexGustafsson/cupdate/internal/cache"
 )
 
 func main() {
+	cache, err := cache.NewDiskCache("./cache")
+	if err != nil {
+		slog.Error("Failed to serve", slog.Any("error", err))
+		os.Exit(1)
+	}
+
 	apiServer := api.NewServer(mockAPI)
 
 	mux := http.NewServeMux()
