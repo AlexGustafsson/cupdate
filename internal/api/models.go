@@ -7,9 +7,9 @@ type Tag struct {
 }
 
 type ImagePage struct {
-	Images     []Image            `json:"images"`
-	Summary    ImagePageSummary   `json:"summary"`
-	Pagination PaginationMetadata `json:"pagination"`
+	Images     []Image             `json:"images"`
+	Summary    *ImagePageSummary   `json:"summary"`
+	Pagination *PaginationMetadata `json:"pagination"`
 }
 
 type ImagePageSummary struct {
@@ -27,12 +27,12 @@ type PaginationMetadata struct {
 }
 
 type Image struct {
-	Name           string      `json:"name"`
-	CurrentVersion string      `json:"currentVersion"`
-	LatestVersion  string      `json:"latestVersion"`
-	Tags           []string    `json:"tags"`
-	Links          []ImageLink `json:"links"`
-	Image          string      `json:"image,omitempty"`
+	Name           string       `json:"name"`
+	CurrentVersion string       `json:"currentVersion"`
+	LatestVersion  string       `json:"latestVersion"`
+	Tags           []string     `json:"tags"`
+	Links          []*ImageLink `json:"links"`
+	Image          string       `json:"image,omitempty"`
 }
 
 type ImageDescription struct {
@@ -50,12 +50,12 @@ type ImageLink struct {
 }
 
 type Graph struct {
-	Root GraphNode `json:"root"`
+	Root *GraphNode `json:"root"`
 }
 
 type GraphNode struct {
-	Domain  string      `json:"domain"`
-	Type    string      `json:"type"`
-	Name    string      `json:"name"`
-	Parents []GraphNode `json:"parents"`
+	Domain  string       `json:"domain"`
+	Type    string       `json:"type"`
+	Name    string       `json:"name"`
+	Parents []*GraphNode `json:"parents"`
 }

@@ -1,6 +1,8 @@
 package api
 
-import "context"
+import (
+	"context"
+)
 
 var _ API = (*InMemoryAPI)(nil)
 
@@ -24,10 +26,10 @@ func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string,
 
 	return &ImagePage{
 		Images: images,
-		Summary: ImagePageSummary{
+		Summary: &ImagePageSummary{
 			Images: len(a.Images),
 		},
-		Pagination: PaginationMetadata{
+		Pagination: &PaginationMetadata{
 			Total:    len(images),
 			Page:     1,
 			Size:     len(images),

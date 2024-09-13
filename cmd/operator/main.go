@@ -103,23 +103,68 @@ func main() {
 				Name:           entry.Image,
 				CurrentVersion: entry.Version,
 				LatestVersion:  entry.Version,
-				Tags:           []string{"k8s", "pod"},
-				Links:          []api.ImageLink{},
-				Image:          "",
+				// TODO: Tags should include pod, job, chron job, deployment set etc.
+				// Everything's a pod, so try to use the topmost descriptor
+				Tags:  []string{"k8s"},
+				Links: []*api.ImageLink{},
+				Image: "",
 			})
 
-			// TODO: Build actual graph. Can occur more than once
-			graphs[entry.Image+":"+entry.Version] = &api.Graph{
-				Root: api.GraphNode{
-					Domain:  "oic",
-					Type:    "image",
-					Name:    entry.Image,
-					Parents: make([]api.GraphNode, 0),
-				},
+			// TODO: Build actual graph. We don't handle duplicates right now...
+			root := &api.GraphNode{
+				Domain: "oci",
+				Type:   "image",
+				Name:   entry.Image,
 			}
+
+			container := &api.GraphNode{
+				Domain: "kubernetes",
+				Type:   "core/v1/container",
+				Name:   origin.Container.Name,
+			}
+			root.Parents = []*api.GraphNode{container}
+
+			pod := &api.GraphNode{
+				Domain: "kubernetes",
+				Type:   "core/v1/pod",
+				Name:   origin.Container.Pod.Name,
+			}
+			container.Parents = []*api.GraphNode{pod}
+
+			currentNode := pod
+			currentParent := origin.Container.Pod.Parent
+			for currentParent != nil {
+				node := &api.GraphNode{
+					Domain:  "kubernetes",
+					Type:    string(currentParent.ResourceKind),
+					Name:    currentParent.Name,
+					Parents: make([]*api.GraphNode, 0),
+				}
+				currentNode.Parents = []*api.GraphNode{node}
+
+				currentNode = node
+				currentParent = currentParent.Parent
+			}
+
+			// Namespace is implicit
+			currentNode.Parents = []*api.GraphNode{{
+				Domain:  "kubernetes",
+				Type:    "core/v1/namespace",
+				Name:    origin.Container.Namespace,
+				Parents: make([]*api.GraphNode, 0),
+			}}
+
+			graph := &api.Graph{
+				Root: root,
+			}
+
+			// TODO: Can overwrite. The graph should be shared among all ways the
+			// image is used
+			graphs[entry.Image+":"+entry.Version] = graph
 		}
 
 		data.Images = images
+		data.Graphs = graphs
 
 		return nil
 	})

@@ -178,7 +178,7 @@ export function ImagePage(): JSX.Element {
         ))}
       </div>
 
-      <main className="min-w-[200px] max-w-[980px] box-border space-y-6 mt-6">
+      <main className="min-w-[200px] max-w-[980px] w-full box-border space-y-6 mt-6">
         {/* Description */}
         {description.value?.html && (
           <div className="rounded-lg bg-white px-4 py-6 shadow">

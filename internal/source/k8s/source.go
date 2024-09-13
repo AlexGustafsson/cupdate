@@ -227,7 +227,7 @@ func (s *Source) EachListItem(ctx context.Context, fn func(source.Entry) error) 
 						var parent *Parent
 						if len(o.OwnerReferences) > 0 {
 							parent = &Parent{
-								ResourceKind: ResourceKind(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind),
+								ResourceKind: ResourceKind(strings.ToLower(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind)),
 								Namespace:    o.Namespace,
 								Name:         o.Name,
 							}

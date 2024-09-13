@@ -11,19 +11,20 @@ var _ source.Origin = (*Origin)(nil)
 type ResourceKind string
 
 const (
-	ResourceKindAppsV1Deployment  = "apps/v1/Deployment"
-	ResourceKindAppsV1DaemonSet   = "apps/v1/DaemonSet"
-	ResourceKindAppsV1ReplicaSet  = "apps/v1/ReplicaSet"
-	ResourceKindAppsV1StatefulSet = "apps/v1/StatefulSet"
-	ResourceKindBatchV1CronJob    = "batch/v1/CronJob"
-	ResourceKindBatchV1Job        = "batch/v1/Job"
-	ResourceKindCoreV1Pod         = "core/v1/Pod"
+	ResourceKindAppsV1Deployment  = "apps/v1/deployment"
+	ResourceKindAppsV1DaemonSet   = "apps/v1/daemonset"
+	ResourceKindAppsV1ReplicaSet  = "apps/v1/replicaset"
+	ResourceKindAppsV1StatefulSet = "apps/v1/statefulset"
+	ResourceKindBatchV1CronJob    = "batch/v1/cronjob"
+	ResourceKindBatchV1Job        = "batch/v1/job"
+	ResourceKindCoreV1Pod         = "core/v1/pod"
 )
 
 type Parent struct {
 	ResourceKind ResourceKind
 	Namespace    string
 	Name         string
+	Parent       *Parent
 }
 
 type Pod struct {
