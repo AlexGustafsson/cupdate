@@ -1,19 +1,13 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback } from 'react'
 import { NavLink } from 'react-router-dom'
 
-import { useImage, useImages, useTags } from '../api'
+import { useImages, useTags } from '../api'
 import { Badge } from '../components/Badge'
 import { FluentChevronRight24Regular } from '../components/icons/fluent-chevron-right-24-regular'
 import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
 import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
-import { SimpleIconsRss } from '../components/icons/simple-icons-rss'
 import { useFilter, useSort } from '../hooks'
-
-interface Tag {
-  label: string
-  color: string
-}
 
 export function Dashboard(): JSX.Element {
   const [filter, setFilter] = useFilter()
@@ -72,6 +66,7 @@ export function Dashboard(): JSX.Element {
   return (
     <>
       <div className="flex flex-col items-center w-full py-[40px] px-[20px]">
+        {/* Header with summary */}
         <div className="p-3 flex space-x-5">
           {images.value.summary.images !== undefined && (
             <div className="p-5 w-32 h-32 bg-blue-100 rounded-lg">
@@ -96,6 +91,8 @@ export function Dashboard(): JSX.Element {
             </div>
           )}
         </div>
+
+        {/* Table card */}
         <div className="relative mt-6">
           <div className="rounded-lg bg-white px-4 py-2 shadow">
             <table>
@@ -196,6 +193,8 @@ export function Dashboard(): JSX.Element {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination footer */}
             <div className="mt-4">
               <p className="text-sm">
                 Showing {images.value.pagination.size} of{' '}
@@ -203,6 +202,8 @@ export function Dashboard(): JSX.Element {
               </p>
             </div>
           </div>
+
+          {/* Side menu with tag filters */}
           <div className="absolute left-full top-0 px-2">
             <div className="rounded-lg bg-white p-4 w-64 shadow">
               <p>Tags</p>
