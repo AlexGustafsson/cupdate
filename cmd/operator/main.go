@@ -31,7 +31,7 @@ func main() {
 	// }
 
 	data := &api.InMemoryAPI{
-		Tags: []api.Tag{
+		Tags: []*api.Tag{
 			{
 				Name:        "k8s",
 				Description: "Kubernetes",
@@ -45,6 +45,31 @@ func main() {
 			{
 				Name:        "job",
 				Description: "A kubernetes job",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "chron job",
+				Description: "A kubernetes chron job",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "deployment",
+				Description: "A kubernetes deployment",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "replica set",
+				Description: "A kubernetes replica set",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "daemon set",
+				Description: "A kubernetes daemon set",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "stateful set",
+				Description: "A kubernetes stateful set",
 				Color:       "#DBEAFE",
 			},
 			{
@@ -63,7 +88,7 @@ func main() {
 				Color:       "#FEE2E2",
 			},
 		},
-		Images:       []api.Image{},
+		Images:       []*api.Image{},
 		Descriptions: map[string]*api.ImageDescription{},
 		ReleaseNotes: map[string]*api.ImageReleaseNotes{},
 		Graphs:       map[string]*api.Graph{},
@@ -88,7 +113,7 @@ func main() {
 			return err
 		}
 
-		images := make([]api.Image, 0)
+		images := make([]*api.Image, 0)
 		graphs := make(map[string]*api.Graph)
 
 		for _, entry := range entries {
@@ -99,7 +124,7 @@ func main() {
 				continue
 			}
 
-			images = append(images, api.Image{
+			image := &api.Image{
 				Name:           entry.Image,
 				CurrentVersion: entry.Version,
 				LatestVersion:  entry.Version,
@@ -108,7 +133,7 @@ func main() {
 				Tags:  []string{"k8s"},
 				Links: []*api.ImageLink{},
 				Image: "",
-			})
+			}
 
 			// TODO: Build actual graph. We don't handle duplicates right now...
 			root := &api.GraphNode{
@@ -131,6 +156,7 @@ func main() {
 			}
 			container.Parents = []*api.GraphNode{pod}
 
+			tag := "pod"
 			currentNode := pod
 			currentParent := origin.Container.Pod.Parent
 			for currentParent != nil {
@@ -142,9 +168,27 @@ func main() {
 				}
 				currentNode.Parents = []*api.GraphNode{node}
 
+				switch currentParent.ResourceKind {
+				case k8s.ResourceKindAppsV1Deployment:
+					tag = "deployment"
+				case k8s.ResourceKindAppsV1DaemonSet:
+					tag = "daemon set"
+				case k8s.ResourceKindAppsV1ReplicaSet:
+					tag = "replica set"
+				case k8s.ResourceKindBatchV1CronJob:
+					tag = "chron job"
+				case k8s.ResourceKindBatchV1Job:
+					tag = "job"
+				case k8s.ResourceKindAppsV1StatefulSet:
+					tag = "stateful set"
+				}
+
 				currentNode = node
 				currentParent = currentParent.Parent
 			}
+
+			image.Tags = append(image.Tags, tag)
+			images = append(images, image)
 
 			// Namespace is implicit
 			currentNode.Parents = []*api.GraphNode{{

@@ -7,7 +7,7 @@ type Tag struct {
 }
 
 type ImagePage struct {
-	Images     []Image             `json:"images"`
+	Images     []*Image            `json:"images"`
 	Summary    *ImagePageSummary   `json:"summary"`
 	Pagination *PaginationMetadata `json:"pagination"`
 }

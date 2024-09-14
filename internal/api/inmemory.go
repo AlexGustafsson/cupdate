@@ -7,8 +7,8 @@ import (
 var _ API = (*InMemoryAPI)(nil)
 
 type InMemoryAPI struct {
-	Tags   []Tag
-	Images []Image
+	Tags   []*Tag
+	Images []*Image
 	// Descriptions is mapped by name:version
 	Descriptions map[string]*ImageDescription
 	// ReleaseNotes is mapped by name:version
@@ -17,7 +17,7 @@ type InMemoryAPI struct {
 	Graphs map[string]*Graph
 }
 
-func (a *InMemoryAPI) GetTags(ctx context.Context) ([]Tag, error) {
+func (a *InMemoryAPI) GetTags(ctx context.Context) ([]*Tag, error) {
 	return a.Tags, nil
 }
 
@@ -46,7 +46,7 @@ func (a *InMemoryAPI) GetImage(ctx context.Context, name string, version string)
 
 	for _, image := range a.Images {
 		if image.Name == name && image.CurrentVersion == version {
-			return &image, nil
+			return image, nil
 		}
 	}
 
