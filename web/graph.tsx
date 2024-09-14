@@ -38,7 +38,8 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     'apps/v1/deployment': 'Deployment',
     'apps/v1/replicaset': 'Replica set',
     'batch/v1/job': 'Job',
-    'batch/v1/chronjob': 'Chron job',
+    'batch/v1/cron': 'Cron job',
+    'apps/v1/statefulset': 'Stateful set',
   },
 }
 

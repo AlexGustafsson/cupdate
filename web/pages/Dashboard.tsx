@@ -152,7 +152,10 @@ export function Dashboard(): JSX.Element {
               </thead>
               <tbody>
                 {images.value.images.map((image) => (
-                  <tr key={image.name} className="">
+                  <tr
+                    key={image.name + ':' + image.currentVersion}
+                    className=""
+                  >
                     <td>
                       {image.image ? (
                         <img className="w-10 h-10 rounded" src={image.image} />

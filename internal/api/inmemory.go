@@ -2,34 +2,43 @@ package api
 
 import (
 	"context"
+	"slices"
+
+	"github.com/AlexGustafsson/cupdate/internal/models"
 )
 
 var _ API = (*InMemoryAPI)(nil)
 
 type InMemoryAPI struct {
-	Tags   []*Tag
-	Images []*Image
-	// Descriptions is mapped by name:version
-	Descriptions map[string]*ImageDescription
-	// ReleaseNotes is mapped by name:version
-	ReleaseNotes map[string]*ImageReleaseNotes
-	// Graphs is mapped by name:version
-	Graphs map[string]*Graph
+	Store *models.Store
 }
 
-func (a *InMemoryAPI) GetTags(ctx context.Context) ([]*Tag, error) {
-	return a.Tags, nil
+func (a *InMemoryAPI) GetTags(ctx context.Context) ([]*models.Tag, error) {
+	return a.Store.Tags, nil
 }
 
-func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string, asc bool, desc bool, page int64, limit int64) (*ImagePage, error) {
-	images := a.Images
+func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string, asc bool, desc bool, page int64, limit int64) (*models.ImagePage, error) {
+	images := a.Store.Images
 
-	return &ImagePage{
+	outdated := 0
+	pods := 0
+	for _, image := range images {
+		if slices.Contains(image.Tags, "pod") {
+			pods++
+		}
+		if slices.Contains(image.Tags, "outdated") {
+			outdated++
+		}
+	}
+
+	return &models.ImagePage{
 		Images: images,
-		Summary: &ImagePageSummary{
-			Images: len(a.Images),
+		Summary: &models.ImagePageSummary{
+			Images:   len(a.Store.Images),
+			Outdated: outdated,
+			Pods:     pods,
 		},
-		Pagination: &PaginationMetadata{
+		Pagination: &models.PaginationMetadata{
 			Total:    len(images),
 			Page:     1,
 			Size:     len(images),
@@ -39,12 +48,12 @@ func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string,
 	}, nil
 }
 
-func (a *InMemoryAPI) GetImage(ctx context.Context, name string, version string) (*Image, error) {
+func (a *InMemoryAPI) GetImage(ctx context.Context, name string, version string) (*models.Image, error) {
 	if name == "" || version == "" {
 		return nil, ErrBadRequest
 	}
 
-	for _, image := range a.Images {
+	for _, image := range a.Store.Images {
 		if image.Name == name && image.CurrentVersion == version {
 			return image, nil
 		}
@@ -53,12 +62,12 @@ func (a *InMemoryAPI) GetImage(ctx context.Context, name string, version string)
 	return nil, ErrNotFound
 }
 
-func (a *InMemoryAPI) GetImageDescription(ctx context.Context, name string, version string) (*ImageDescription, error) {
+func (a *InMemoryAPI) GetImageDescription(ctx context.Context, name string, version string) (*models.ImageDescription, error) {
 	if name == "" || version == "" {
 		return nil, ErrBadRequest
 	}
 
-	result, ok := a.Descriptions[name+":"+version]
+	result, ok := a.Store.Descriptions[name+":"+version]
 	if !ok {
 		return nil, ErrNotFound
 	}
@@ -66,12 +75,12 @@ func (a *InMemoryAPI) GetImageDescription(ctx context.Context, name string, vers
 	return result, nil
 }
 
-func (a *InMemoryAPI) GetImageReleaseNotes(ctx context.Context, name string, version string) (*ImageReleaseNotes, error) {
+func (a *InMemoryAPI) GetImageReleaseNotes(ctx context.Context, name string, version string) (*models.ImageReleaseNotes, error) {
 	if name == "" || version == "" {
 		return nil, ErrBadRequest
 	}
 
-	result, ok := a.ReleaseNotes[name+":"+version]
+	result, ok := a.Store.ReleaseNotes[name+":"+version]
 	if !ok {
 		return nil, ErrNotFound
 	}
@@ -79,12 +88,12 @@ func (a *InMemoryAPI) GetImageReleaseNotes(ctx context.Context, name string, ver
 	return result, nil
 }
 
-func (a *InMemoryAPI) GetImageGraph(ctx context.Context, name string, version string) (*Graph, error) {
+func (a *InMemoryAPI) GetImageGraph(ctx context.Context, name string, version string) (*models.Graph, error) {
 	if name == "" || version == "" {
 		return nil, ErrBadRequest
 	}
 
-	result, ok := a.Graphs[name+":"+version]
+	result, ok := a.Store.Graphs[name+":"+version]
 	if !ok {
 		return nil, ErrNotFound
 	}

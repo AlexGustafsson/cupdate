@@ -8,6 +8,9 @@ import (
 	"os/signal"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
+	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/models"
+	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/source/k8s"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
@@ -24,14 +27,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	// cache, err := cache.NewDiskCache("./cache")
-	// if err != nil {
-	// 	slog.Error("Failed to serve", slog.Any("error", err))
-	// 	os.Exit(1)
-	// }
+	cache, err := cache.NewDiskCache("./cache")
+	if err != nil {
+		slog.Error("Failed to serve", slog.Any("error", err))
+		os.Exit(1)
+	}
 
 	data := &api.InMemoryAPI{
-		Tags: []*api.Tag{
+		Store: &models.Store{
+			Tags:         []*models.Tag{},
+			Images:       []*models.Image{},
+			Descriptions: map[string]*models.ImageDescription{},
+			ReleaseNotes: map[string]*models.ImageReleaseNotes{},
+			Graphs:       map[string]*models.Graph{},
+		},
+	}
+
+	store := &models.UnprocessedStore{
+		Tags: []*models.Tag{
 			{
 				Name:        "k8s",
 				Description: "Kubernetes",
@@ -48,8 +61,8 @@ func main() {
 				Color:       "#DBEAFE",
 			},
 			{
-				Name:        "chron job",
-				Description: "A kubernetes chron job",
+				Name:        "cron job",
+				Description: "A kubernetes cron job",
 				Color:       "#DBEAFE",
 			},
 			{
@@ -88,10 +101,10 @@ func main() {
 				Color:       "#FEE2E2",
 			},
 		},
-		Images:       []*api.Image{},
-		Descriptions: map[string]*api.ImageDescription{},
-		ReleaseNotes: map[string]*api.ImageReleaseNotes{},
-		Graphs:       map[string]*api.Graph{},
+		Images:       []*models.Image{},
+		Descriptions: map[string]*models.ImageDescription{},
+		ReleaseNotes: map[string]*models.ImageReleaseNotes{},
+		Graphs:       map[string][]*models.Graph{},
 	}
 
 	apiServer := api.NewServer(data)
@@ -113,60 +126,63 @@ func main() {
 			return err
 		}
 
-		images := make([]*api.Image, 0)
-		graphs := make(map[string]*api.Graph)
+		images := make([]*models.Image, 0)
+		graphs := make(map[string][]*models.Graph)
 
 		for _, entry := range entries {
 			origin := entry.Origin.(*k8s.Origin)
 
 			// For now, ignore definitions referencing images, just use running pods
-			if origin.Container.Pod.IsTemplate {
-				continue
-			}
+			// if origin.Container.Pod.IsTemplate {
+			// 	continue
+			// }
 
-			image := &api.Image{
+			image := &models.Image{
 				Name:           entry.Image,
 				CurrentVersion: entry.Version,
 				LatestVersion:  entry.Version,
-				// TODO: Tags should include pod, job, chron job, deployment set etc.
+				// TODO: Tags should include pod, job, cron job, deployment set etc.
 				// Everything's a pod, so try to use the topmost descriptor
-				Tags:  []string{"k8s"},
-				Links: []*api.ImageLink{},
+				Tags:  []string{"k8s", "pod"},
+				Links: []*models.ImageLink{},
 				Image: "",
 			}
 
 			// TODO: Build actual graph. We don't handle duplicates right now...
-			root := &api.GraphNode{
+			root := &models.GraphNode{
 				Domain: "oci",
 				Type:   "image",
 				Name:   entry.Image,
 			}
 
-			container := &api.GraphNode{
+			container := &models.GraphNode{
 				Domain: "kubernetes",
 				Type:   "core/v1/container",
 				Name:   origin.Container.Name,
 			}
-			root.Parents = []*api.GraphNode{container}
+			root.Parents = []*models.GraphNode{container}
 
-			pod := &api.GraphNode{
+			pod := &models.GraphNode{
 				Domain: "kubernetes",
 				Type:   "core/v1/pod",
 				Name:   origin.Container.Pod.Name,
 			}
-			container.Parents = []*api.GraphNode{pod}
+			if pod.Name == "" && origin.Container.Pod.IsTemplate {
+				pod.Name = "(template)"
+			}
+			container.Parents = []*models.GraphNode{pod}
 
 			tag := "pod"
 			currentNode := pod
 			currentParent := origin.Container.Pod.Parent
 			for currentParent != nil {
-				node := &api.GraphNode{
+				node := &models.GraphNode{
 					Domain:  "kubernetes",
 					Type:    string(currentParent.ResourceKind),
 					Name:    currentParent.Name,
-					Parents: make([]*api.GraphNode, 0),
+					Parents: make([]*models.GraphNode, 0),
 				}
-				currentNode.Parents = []*api.GraphNode{node}
+				currentNode.Parents = []*models.GraphNode{node}
 
 				switch currentParent.ResourceKind {
 				case k8s.ResourceKindAppsV1Deployment:
@@ -176,7 +192,7 @@ func main() {
 				case k8s.ResourceKindAppsV1ReplicaSet:
 					tag = "replica set"
 				case k8s.ResourceKindBatchV1CronJob:
-					tag = "chron job"
+					tag = "cron job"
 				case k8s.ResourceKindBatchV1Job:
 					tag = "job"
 				case k8s.ResourceKindAppsV1StatefulSet:
@@ -191,25 +207,38 @@ func main() {
 			images = append(images, image)
 
 			// Namespace is implicit
-			currentNode.Parents = []*api.GraphNode{{
+			currentNode.Parents = []*models.GraphNode{{
 				Domain:  "kubernetes",
 				Type:    "core/v1/namespace",
 				Name:    origin.Container.Namespace,
-				Parents: make([]*api.GraphNode, 0),
+				Parents: make([]*models.GraphNode, 0),
 			}}
 
-			graph := &api.Graph{
+			graph := &models.Graph{
 				Root: root,
 			}
 
 			// TODO: Can overwrite. The graph should be shared among all ways the
 			// image is used
-			graphs[entry.Image+":"+entry.Version] = graph
+			_, ok := graphs[entry.Image+":"+entry.Version]
+			if !ok {
+				g := make([]*models.Graph, 0)
+				graphs[entry.Image+":"+entry.Version] = g
+			}
+
+			graphs[entry.Image+":"+entry.Version] = append(graphs[entry.Image+":"+entry.Version], graph)
 		}
 
-		data.Images = images
-		data.Graphs = graphs
+		store.Images = images
+		store.Graphs = graphs
 
+		pipeline := registry.NewPipeline(cache)
+		processedStore, err := pipeline.Run(ctx, store)
+		if err != nil {
+			return err
+		}
+
+		data.Store = processedStore
 		return nil
 	})
 
