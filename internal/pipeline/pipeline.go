@@ -140,6 +140,8 @@ func (p *Pipeline) EnrichFromManifests(ctx context.Context, store *models.Store)
 			continue
 		}
 
+		// TODO: Support custom overrides. Very few images seem to actually use
+		// these annotations...
 		source := manifests[0].SourceAnnotation()
 		if source != "" {
 			// TODO: Identify different sources (GitHub etc.)
@@ -205,6 +207,15 @@ func (p *Pipeline) EnrichFromDockerHub(ctx context.Context, store *models.Store)
 		image.Description = repository.Description
 		store.Descriptions[image.Name+":"+image.CurrentVersion] = &models.ImageDescription{
 			Markdown: repository.FullDescription,
+		}
+
+		img, err := c.GetLatestVersion(ctx, image.Name, image.CurrentVersion)
+		if err != nil {
+			slog.Error("Failed to get image version info", slog.Any("error", err))
+			continue
+		}
+		if img != nil {
+			image.LatestVersion = img.Version
 		}
 
 		// TODO: add tags from Docker Hub categories?
