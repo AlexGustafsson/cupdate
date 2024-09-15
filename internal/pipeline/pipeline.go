@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
+	"slices"
 	"strings"
 	"time"
 
@@ -100,6 +101,14 @@ func (p *Pipeline) Run(ctx context.Context, store *models.UnprocessedStore) (*mo
 			image.Tags = append(image.Tags, "outdated")
 		}
 	}
+
+	// Sort tags
+	for _, image := range newStore.Images {
+		slices.Sort(image.Tags)
+	}
+	slices.SortFunc(newStore.Tags, func(a *models.Tag, b *models.Tag) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 
 	return newStore, nil
 }
