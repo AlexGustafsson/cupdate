@@ -184,6 +184,16 @@ export function ImagePage(): JSX.Element {
       </div>
 
       <main className="min-w-[200px] max-w-[980px] w-full box-border space-y-6 mt-6">
+        {/* Release notes */}
+        {releaseNotes.value?.html && (
+          <div className="rounded-lg bg-white px-4 py-6 shadow">
+            <div className="markdown-body">
+              <h1>{releaseNotes.value?.title}</h1>
+              <HTML>{releaseNotes.value?.html}</HTML>
+            </div>
+          </div>
+        )}
+
         {/* Description */}
         {(description.value?.html || description.value?.markdown) && (
           <div className="rounded-lg bg-white px-4 py-6 shadow">
@@ -192,16 +202,6 @@ export function ImagePage(): JSX.Element {
               {description.value.markdown && (
                 <Markdown>{description.value.markdown}</Markdown>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Release notes */}
-        {releaseNotes.value?.html && (
-          <div className="rounded-lg bg-white px-4 py-6 shadow">
-            <div className="markdown-body">
-              <h1>{releaseNotes.value?.title}</h1>
-              <HTML>{releaseNotes.value?.html}</HTML>
             </div>
           </div>
         )}
