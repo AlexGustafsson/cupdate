@@ -237,6 +237,36 @@ func (c *Client) GetRepository(ctx context.Context, name string) (*Repository, e
 	return &result, nil
 }
 
+func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser string) (*Entity, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://hub.docker.com/v2/orgs/"+url.PathEscape(organizationOrUser), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := c.Client
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
+	} else if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	}
+
+	var result Entity
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 type Page[T any] struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
@@ -309,4 +339,20 @@ type Repository struct {
 	} `json:"categories"`
 	ImmutableTags      bool   `json:"immutable_tags"`
 	ImmutableTagsRules string `json:"immutable_tags_rules"`
+}
+
+type Entity struct {
+	ID               string    `json:"id"`
+	UUID             string    `json:"uuid,omitempty"`
+	OrganizationName string    `json:"orgname"`
+	Username         string    `json:"username,omitempty"`
+	FullName         string    `json:"full_name"`
+	Location         string    `json:"location"`
+	Company          string    `json:"company"`
+	ProfileURL       string    `json:"profile_url"`
+	DateJoined       time.Time `json:"date_joined"`
+	GravatarURL      string    `json:"gravatar_url"`
+	GravatarEmail    string    `json:"gravatar_email"`
+	Type             string    `json:"type"`
+	Badge            string    `json:"badge,omitempty"`
 }

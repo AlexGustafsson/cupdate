@@ -292,6 +292,39 @@ func (p *Pipeline) enrichDescriptionFromDockerHub(ctx context.Context, image *mo
 		Markdown: repository.FullDescription,
 	}
 
+	cacheKey = fmt.Sprintf("v1/docker/organization-or-user/%s/%s", name, image.CurrentVersion)
+	var entity *docker.Entity
+	if err := p.cache.GetJSON(ctx, cacheKey, &entity, 24*time.Hour); err != nil {
+		slog.Error("Failed to get cache", slog.Any("error", err))
+		// Fallthrough
+	}
+
+	if entity == nil {
+		log.Debug("Fetching entity")
+
+		c := docker.Client{}
+		var err error
+		entity, err = c.GetOrganizationOrUser(ctx, repository.Namespace)
+		if err != nil {
+			slog.Error("Failed to get Docker Hub entity", slog.Any("error", err))
+			return nil
+		}
+
+		if entity != nil {
+			if err := p.cache.SetJSON(ctx, cacheKey, &entity); err != nil {
+				slog.Error("Failed to set cache", slog.Any("error", err))
+				// Fallthrough
+			}
+		}
+	}
+
+	if entity == nil {
+		log.Warn("Entity not found", slog.String("image", name))
+		return nil
+	}
+
+	image.Image = entity.GravatarURL
+
 	return nil
 }
 
