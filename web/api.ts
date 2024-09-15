@@ -38,6 +38,7 @@ export interface Image {
 
 export interface ImageDescription {
   html?: string
+  markdown?: string
 }
 
 export interface ImageReleaseNotes {

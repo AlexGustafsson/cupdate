@@ -200,8 +200,7 @@ func (p *Pipeline) EnrichFromDockerHub(ctx context.Context, store *models.Store)
 
 		image.Description = repository.Description
 		store.Descriptions[image.Name+":"+image.CurrentVersion] = &models.ImageDescription{
-			// TODO actual HTML, not markdown - or just do markdown and render in client?
-			HTML: repository.FullDescription,
+			Markdown: repository.FullDescription,
 		}
 
 		// TODO: add tags from Docker Hub categories?

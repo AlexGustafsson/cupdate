@@ -37,7 +37,8 @@ type Image struct {
 }
 
 type ImageDescription struct {
-	HTML string `json:"html,omitempty"`
+	HTML     string `json:"html,omitempty"`
+	Markdown string `json:"markdown,omitempty"`
 }
 
 type ImageReleaseNotes struct {

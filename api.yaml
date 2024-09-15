@@ -249,6 +249,8 @@ components:
       properties:
         html:
           type: string
+        markdown:
+          type: string
 
     ImageReleaseNotes:
       type: object

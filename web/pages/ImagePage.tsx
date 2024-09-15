@@ -13,6 +13,7 @@ import {
 } from '../api'
 import { Badge } from '../components/Badge'
 import { HTML } from '../components/HTML'
+import { Markdown } from '../components/Markdown'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { Quay } from '../components/icons/quay'
@@ -184,10 +185,13 @@ export function ImagePage(): JSX.Element {
 
       <main className="min-w-[200px] max-w-[980px] w-full box-border space-y-6 mt-6">
         {/* Description */}
-        {description.value?.html && (
+        {(description.value?.html || description.value?.markdown) && (
           <div className="rounded-lg bg-white px-4 py-6 shadow">
             <div className="markdown-body">
-              <HTML>{description.value.html}</HTML>
+              {description.value.html && <HTML>{description.value.html}</HTML>}
+              {description.value.markdown && (
+                <Markdown>{description.value.markdown}</Markdown>
+              )}
             </div>
           </div>
         )}
