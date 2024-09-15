@@ -202,8 +202,13 @@ func (c *Client) GetLatestVersion(ctx context.Context, name string, currentTag s
 	return nil, nil
 }
 
-func (c *Client) GetRepository(ctx context.Context, owner string, name string) (*Repository, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/%s", url.PathEscape(owner), url.PathEscape(name)), nil)
+func (c *Client) GetRepository(ctx context.Context, name string) (*Repository, error) {
+	dockerName := name
+	if !strings.Contains(dockerName, "/") {
+		dockerName = "library/" + url.PathEscape(dockerName)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://hub.docker.com/v2/repositories/"+url.PathEscape(dockerName), nil)
 	if err != nil {
 		return nil, err
 	}

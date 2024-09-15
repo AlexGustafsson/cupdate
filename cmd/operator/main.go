@@ -10,7 +10,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/api"
 	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/registry"
+	"github.com/AlexGustafsson/cupdate/internal/pipeline"
 	"github.com/AlexGustafsson/cupdate/internal/source/k8s"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
@@ -232,7 +232,7 @@ func main() {
 		store.Images = images
 		store.Graphs = graphs
 
-		pipeline := registry.NewPipeline(cache)
+		pipeline := pipeline.New(cache)
 		processedStore, err := pipeline.Run(ctx, store)
 		if err != nil {
 			return err

@@ -2,7 +2,9 @@ package docker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -47,8 +49,10 @@ func TestClientGetLatestVersion(t *testing.T) {
 
 func TestClientGetRepository(t *testing.T) {
 	var client Client
-	repository, err := client.GetRepository(context.TODO(), "homeassistant", "home-assistant")
+	repository, err := client.GetRepository(context.TODO(), "mongo")
 	require.NoError(t, err)
 
 	fmt.Println(repository.FullDescription)
+
+	json.NewEncoder(os.Stdout).Encode(repository)
 }

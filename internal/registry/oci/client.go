@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -48,9 +49,10 @@ func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]M
 
 	req.Header.Set("Accept", strings.Join([]string{
 		"application/vnd.docker.distribution.manifest.list.v2+json",
-		"application/vnd.docker.distribution.manifest.v2+json",
-		"application/vnd.oci.image.manifest.v1+json",
 		"application/vnd.oci.image.index.v1+json",
+		// These two formats never occur?
+		// "application/vnd.docker.distribution.manifest.v2+json",
+		// "application/vnd.oci.image.manifest.v1+json",
 	}, ", "))
 
 	if c.Authorizer != nil {
@@ -73,19 +75,54 @@ func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]M
 		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
 	}
 
-	var result struct {
-		SchemaVersion int        `json:"schemaVersion"`
-		MediaType     string     `json:"mediaType"`
-		Manifests     []Manifest `json:"manifests"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Handle content type switch
-	if result.MediaType != "application/vnd.oci.image.index.v1+json" || result.SchemaVersion != 2 {
-		return nil, fmt.Errorf("unsupported manifest type")
+	var result struct {
+		SchemaVersion int    `json:"schemaVersion"`
+		MediaType     string `json:"mediaType"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, err
 	}
 
-	return result.Manifests, nil
+	if result.MediaType == "application/vnd.docker.distribution.manifest.list.v2+json" && result.SchemaVersion == 2 {
+		var result DockerDistributionManifestListV2
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, err
+		}
+
+		manifests := make([]Manifest, 0)
+		for _, manifest := range result.Manifests {
+			manifests = append(manifests, Manifest{
+				SchemaVersion: manifest.SchemaVersion,
+				MediaType:     manifest.MediaType,
+				Annotations:   make(map[string]string),
+			})
+		}
+
+		return manifests, nil
+	}
+
+	if result.MediaType == "application/vnd.oci.image.index.v1+json" && result.SchemaVersion == 2 {
+		var result OCIImageIndexV1
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, err
+		}
+
+		manifests := make([]Manifest, 0)
+		for _, manifest := range result.Manifests {
+			manifests = append(manifests, Manifest{
+				SchemaVersion: manifest.SchemaVersion,
+				MediaType:     manifest.MediaType,
+				Annotations:   manifest.Annotations,
+			})
+		}
+
+		return manifests, nil
+	}
+
+	return nil, fmt.Errorf("unsupported manifest type: %s (%d)", result.MediaType, result.SchemaVersion)
 }
