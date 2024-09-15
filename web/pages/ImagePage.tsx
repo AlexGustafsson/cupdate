@@ -144,7 +144,9 @@ export function ImagePage(): JSX.Element {
           <SimpleIconsOci className="text-white" />
         </div>
       )}
+      {/* Image name */}
       <h1 className="text-2xl font-medium">{image.value.name}</h1>
+      {/* Image version */}
       <div className="flex items-center">
         {image.value.currentVersion === image.value.latestVersion ? (
           <p className="font-medium">{image.value.currentVersion}</p>
@@ -161,13 +163,15 @@ export function ImagePage(): JSX.Element {
           </>
         )}
       </div>
+      {/* Image description, if available */}
+      {image.value.description && <p>{image.value.description}</p>}
+      {/* Image tags */}
       <div className="flex mt-2 items-center">
         {imageTags.map((x) => (
           <Badge key={x.name} label={x.name} color={x.color} />
         ))}
       </div>
-
-      {/* Release notes */}
+      {/* Links */}
       <div className="flex mt-2 space-x-4 items-center">
         {image.value.links.map((link) => (
           <ImageLink

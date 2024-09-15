@@ -28,6 +28,7 @@ export interface PaginationMetadata {
 
 export interface Image {
   name: string
+  description?: string
   currentVersion: string
   latestVersion: string
   tags: string[]

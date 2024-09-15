@@ -165,7 +165,12 @@ export function Dashboard(): JSX.Element {
                         </div>
                       )}
                     </td>
-                    <td className="pr-[24px]">{image.name}</td>
+                    <td className="pr-[24px]">
+                      <p>{image.name} </p>
+                      {image.description && (
+                        <p className="text-xs">{image.description}</p>
+                      )}
+                    </td>
                     <td className="text-end pr-[24px]">
                       {image.currentVersion}
                     </td>

@@ -28,6 +28,7 @@ type PaginationMetadata struct {
 
 type Image struct {
 	Name           string       `json:"name"`
+	Description    string       `json:"description,omitempty"`
 	CurrentVersion string       `json:"currentVersion"`
 	LatestVersion  string       `json:"latestVersion"`
 	Tags           []string     `json:"tags"`

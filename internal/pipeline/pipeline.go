@@ -198,6 +198,7 @@ func (p *Pipeline) EnrichFromDockerHub(ctx context.Context, store *models.Store)
 			URL:  fmt.Sprintf("https://hub.docker.com/%s/%s", owner, repository.Name),
 		})
 
+		image.Description = repository.Description
 		store.Descriptions[image.Name+":"+image.CurrentVersion] = &models.ImageDescription{
 			// TODO actual HTML, not markdown - or just do markdown and render in client?
 			HTML: repository.FullDescription,
