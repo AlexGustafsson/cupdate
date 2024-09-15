@@ -14,7 +14,9 @@ export function Dashboard(): JSX.Element {
 
   const [sort, setSort] = useSort()
 
-  const images = useImages()
+  const images = useImages({
+    tags: filter,
+  })
   const tags = useTags()
 
   // // If the filter excludes all tags, default to show all tags again

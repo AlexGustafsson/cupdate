@@ -31,17 +31,27 @@ func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string,
 		}
 	}
 
+	filteredImages := filter(images, func(v *models.Image) bool {
+		matched := 0
+		for _, tag := range tags {
+			if slices.Contains(v.Tags, tag) {
+				matched++
+			}
+		}
+		return matched == len(tags)
+	})
+
 	return &models.ImagePage{
-		Images: images,
+		Images: filteredImages,
 		Summary: &models.ImagePageSummary{
 			Images:   len(a.Store.Images),
 			Outdated: outdated,
 			Pods:     pods,
 		},
 		Pagination: &models.PaginationMetadata{
-			Total:    len(images),
+			Total:    len(filteredImages),
 			Page:     1,
-			Size:     len(images),
+			Size:     len(filteredImages),
 			Next:     "",
 			Previous: "",
 		},
@@ -99,4 +109,14 @@ func (a *InMemoryAPI) GetImageGraph(ctx context.Context, name string, version st
 	}
 
 	return result, nil
+}
+
+func filter[T any](values []T, filterFunc func(T) bool) []T {
+	new := make([]T, 0)
+	for _, v := range values {
+		if filterFunc(v) {
+			new = append(new, v)
+		}
+	}
+	return new
 }
