@@ -259,6 +259,9 @@ components:
           type: string
         html:
           type: string
+        released:
+          type: string
+          format: date
       required:
         - title
 

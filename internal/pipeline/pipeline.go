@@ -6,8 +6,10 @@ import (
 	"log/slog"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/github"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
 )
@@ -84,16 +86,15 @@ func (p *Pipeline) Run(ctx context.Context, store *models.UnprocessedStore) (*mo
 		slog.Error("Failed to enrich images from manifests", slog.Any("error", err))
 	}
 
+	if err := p.EnrichFromGitHub(ctx, newStore); err != nil {
+		slog.Error("Failed to enrich images from GitHub", slog.Any("error", err))
+	}
+
 	return newStore, nil
 }
 
 func (p *Pipeline) EnrichFromManifests(ctx context.Context, store *models.Store) error {
-	// Temp before cache
-	fetched := 0
 	for _, image := range store.Images {
-		if fetched > 0 {
-			continue
-		}
 		registry := ""
 		name := ""
 
@@ -116,7 +117,7 @@ func (p *Pipeline) EnrichFromManifests(ctx context.Context, store *models.Store)
 		// TODO: Support other registries
 		if registry != "docker.io" {
 			log.Warn("Skipping unsupported registry")
-			return nil
+			continue
 		}
 
 		log.Debug("Fetching annotations")
@@ -129,9 +130,14 @@ func (p *Pipeline) EnrichFromManifests(ctx context.Context, store *models.Store)
 			return err
 		}
 
+		if manifests == nil {
+			slog.Error("Image manifests not found")
+			continue
+		}
+
 		if len(manifests) == 0 {
 			slog.Error("Got zero manifests", slog.Any("error", err))
-			return nil
+			continue
 		}
 
 		source := manifests[0].SourceAnnotation()
@@ -141,7 +147,6 @@ func (p *Pipeline) EnrichFromManifests(ctx context.Context, store *models.Store)
 				Type: "git",
 				URL:  source,
 			})
-			fetched++
 		}
 	}
 
@@ -149,12 +154,7 @@ func (p *Pipeline) EnrichFromManifests(ctx context.Context, store *models.Store)
 }
 
 func (p *Pipeline) EnrichFromDockerHub(ctx context.Context, store *models.Store) error {
-	// Temp before cache
-	fetched := 0
 	for _, image := range store.Images {
-		if fetched > 0 {
-			continue
-		}
 		registry := ""
 		name := ""
 
@@ -175,8 +175,8 @@ func (p *Pipeline) EnrichFromDockerHub(ctx context.Context, store *models.Store)
 		log := slog.With(slog.String("registry", registry), slog.String("image", name), slog.String("version", image.CurrentVersion))
 
 		if registry != "docker.io" {
-			log.Warn("Skipping unsupported registry")
-			return nil
+			log.Warn("Skipping unsupported registry", slog.String("registry", registry), slog.String("image", name), slog.String("version", image.CurrentVersion))
+			continue
 		}
 
 		log.Debug("Fetching repository")
@@ -185,8 +185,12 @@ func (p *Pipeline) EnrichFromDockerHub(ctx context.Context, store *models.Store)
 		// TODO: Cache
 		repository, err := c.GetRepository(ctx, name)
 		if err != nil {
-			slog.Error("Failed to get Docker Hub  repository", slog.Any("error", err))
+			slog.Error("Failed to get Docker Hub repository", slog.Any("error", err))
 			return err
+		}
+		if repository == nil {
+			log.Warn("Repository not found", slog.String("image", name))
+			continue
 		}
 
 		owner := repository.Namespace
@@ -204,6 +208,65 @@ func (p *Pipeline) EnrichFromDockerHub(ctx context.Context, store *models.Store)
 		}
 
 		// TODO: add tags from Docker Hub categories?
+	}
+
+	return nil
+}
+
+func (p *Pipeline) EnrichFromGitHub(ctx context.Context, store *models.Store) error {
+	// Temp before cache
+	fetched := 0
+	for _, image := range store.Images {
+		if fetched > 0 {
+			continue
+		}
+
+		// TODO: Don't rely on links for this?
+		source := ""
+		for _, link := range image.Links {
+			if strings.HasPrefix(link.URL, "https://github.com/") {
+				source = link.URL
+				break
+			}
+		}
+
+		if source == "" {
+			continue
+		}
+
+		// TODO: Support other hosts?
+		_, owner, repository, _, ok := github.ParseURL(source)
+		if !ok {
+			slog.Warn("Failed to parse GitHub URL", slog.String("url", source))
+			continue
+		}
+
+		c := &github.Client{}
+		release, err := c.GetRelease(ctx, owner, repository, image.LatestVersion)
+		if err != nil {
+			slog.Error("Failed to get GitHub release", slog.Any("error", err))
+		}
+		if release == nil {
+			continue
+		}
+
+		image.Links = append(image.Links, &models.ImageLink{
+			Type: "github-release",
+			URL:  release.URL,
+		})
+
+		// NOTE: The current version is used as an identifier as we only ever show
+		// images as being of the current version, with information that can
+		// reference a new version
+		notes := &models.ImageReleaseNotes{
+			Title: release.Title,
+			HTML:  release.Description,
+		}
+		if !release.Released.IsZero() {
+			notes.Released = release.Released.UTC().Format(time.RFC3339)
+		}
+		store.ReleaseNotes[image.Name+":"+image.CurrentVersion] = notes
+
 		fetched++
 	}
 

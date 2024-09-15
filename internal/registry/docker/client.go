@@ -223,8 +223,9 @@ func (c *Client) GetRepository(ctx context.Context, name string) (*Repository, e
 		return nil, err
 	}
 	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
+	} else if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
 	}
 

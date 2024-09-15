@@ -44,6 +44,7 @@ export interface ImageDescription {
 export interface ImageReleaseNotes {
   title: string
   html?: string
+  released?: string
 }
 
 export interface ImageLink {

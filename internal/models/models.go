@@ -42,8 +42,9 @@ type ImageDescription struct {
 }
 
 type ImageReleaseNotes struct {
-	Title string `json:"title"`
-	HTML  string `json:"html,omitempty"`
+	Title    string `json:"title"`
+	HTML     string `json:"html,omitempty"`
+	Released string `json:"released,omitempty"`
 }
 
 type ImageLink struct {

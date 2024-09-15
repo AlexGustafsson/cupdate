@@ -37,6 +37,15 @@ type OCIImageManifestV1 struct {
 	Annotations map[string]string `json:"annotations"`
 }
 
+// application/vnd.docker.distribution.manifest.v1+prettyjws
+type DockerDistributionManifestV1 struct {
+	// 1
+	SchemaVersion int    `json:"schemaVersion"`
+	Name          string `json:"name"`
+	Tag           string `json:"tag"`
+	Architecture  string `json:"architecture"`
+}
+
 type Manifest struct {
 	SchemaVersion int               `json:"schemaVersion"`
 	MediaType     string            `json:"mediaType"`

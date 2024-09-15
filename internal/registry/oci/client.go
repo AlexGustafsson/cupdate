@@ -71,7 +71,9 @@ func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]M
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
+	} else if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
 	}
 
@@ -87,6 +89,8 @@ func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]M
 	if err := json.Unmarshal(body, &result); err != nil {
 		return nil, err
 	}
+
+	contentType := res.Header.Get("Content-Type")
 
 	if result.MediaType == "application/vnd.docker.distribution.manifest.list.v2+json" && result.SchemaVersion == 2 {
 		var result DockerDistributionManifestListV2
@@ -124,5 +128,14 @@ func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]M
 		return manifests, nil
 	}
 
-	return nil, fmt.Errorf("unsupported manifest type: %s (%d)", result.MediaType, result.SchemaVersion)
+	if contentType == "application/vnd.docker.distribution.manifest.v1+prettyjws" && result.SchemaVersion == 1 {
+		var result DockerDistributionManifestV1
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, err
+		}
+
+		return make([]Manifest, 0), nil
+	}
+
+	return nil, fmt.Errorf("unsupported manifest type: %s (%s ,%d)", res.Header["Content-Type"], result.MediaType, result.SchemaVersion)
 }
