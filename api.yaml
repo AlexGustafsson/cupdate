@@ -38,15 +38,11 @@ paths:
             type: string
           required: false
         - in: query
-          name: asc
-          description: Sort by the by the property in ascending order.
+          name: order
+          description: Order to sort by.
           schema:
-            type: boolean
-        - in: query
-          name: desc
-          description: Sort by the by the property in descending order.
-          schema:
-            type: boolean
+            type: string
+            enum: ['asc', 'desc']
         - in: query
           name: page
           description: Page to view.

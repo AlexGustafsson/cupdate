@@ -35,9 +35,11 @@ func NewServer(api API) *Server {
 
 		sort := query.Get("sort")
 
-		asc := query.Get("asc") == ""
-
-		desc := query.Get("desc") == ""
+		order := query.Get("order")
+		if order != "" && order != "desc" && order != "asc" {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
 
 		pageString := query.Get("page")
 		var page int64 = 1
@@ -61,7 +63,7 @@ func NewServer(api API) *Server {
 			}
 		}
 
-		response, err := api.GetImages(r.Context(), tags, sort, asc, desc, page, limit)
+		response, err := api.GetImages(r.Context(), tags, sort, order, page, limit)
 		s.handleJSONResponse(w, r, response, err)
 	})
 

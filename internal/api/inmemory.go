@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"slices"
+	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/models"
 )
@@ -17,7 +18,7 @@ func (a *InMemoryAPI) GetTags(ctx context.Context) ([]*models.Tag, error) {
 	return a.Store.Tags, nil
 }
 
-func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string, asc bool, desc bool, page int64, limit int64) (*models.ImagePage, error) {
+func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string, order string, page int64, limit int64) (*models.ImagePage, error) {
 	images := a.Store.Images
 
 	outdated := 0
@@ -39,6 +40,33 @@ func (a *InMemoryAPI) GetImages(ctx context.Context, tags []string, sort string,
 			}
 		}
 		return matched == len(tags)
+	})
+
+	slices.SortFunc(filteredImages, func(a *models.Image, b *models.Image) int {
+		valueA := ""
+		valueB := ""
+		if sort == "imageName" {
+			valueA = a.Name
+			valueB = b.Name
+		} else if sort == "currentVersion" {
+			// TODO: User version sort
+			valueA = a.CurrentVersion
+			valueB = b.CurrentVersion
+		} else if sort == "latestVersion" {
+			// TODO: User version sort
+			valueA = a.LatestVersion
+			valueB = b.LatestVersion
+		}
+
+		cmp := strings.Compare(valueA, valueB)
+		if order == "desc" {
+			return -cmp
+		} else if order == "asc" {
+			return cmp
+		} else {
+			// Default asc
+			return cmp
+		}
 	})
 
 	return &models.ImagePage{

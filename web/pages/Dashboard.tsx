@@ -12,10 +12,12 @@ import { useFilter, useSort } from '../hooks'
 export function Dashboard(): JSX.Element {
   const [filter, setFilter] = useFilter()
 
-  const [sort, setSort] = useSort()
+  const [sortProperty, setSortProperty, sortOrder, setSortOrder] = useSort()
 
   const images = useImages({
     tags: filter,
+    sort: sortProperty,
+    order: sortOrder,
   })
   const tags = useTags()
 
@@ -47,18 +49,14 @@ export function Dashboard(): JSX.Element {
 
   const toggleSort = useCallback(
     (name: string) => {
-      setSort((current) => {
-        if (current === `${name}_asc`) {
-          return `${name}_desc`
-        } else if (current === `${name}_desc`) {
-          return `${name}_asc`
-        } else {
-          // Default
-          return `${name}_desc`
-        }
-      })
+      if (sortProperty === name) {
+        setSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'))
+      } else {
+        setSortOrder('desc')
+        setSortProperty(name)
+      }
     },
-    [setSort]
+    [sortProperty, sortOrder, setSortProperty, setSortOrder]
   )
 
   if (images.status !== 'resolved' || tags.status !== 'resolved') {
@@ -104,14 +102,14 @@ export function Dashboard(): JSX.Element {
                     scope="col"
                     colSpan={2}
                     className="text-nowrap text-center cursor-pointer pr-[24px]"
-                    onClick={() => toggleSort('image')}
+                    onClick={() => toggleSort('imageName')}
                   >
                     Image
                     <div className="inline-block relative py-[9px]">
-                      {sort === 'image_asc' && (
+                      {sortProperty === 'imageName' && sortOrder === 'asc' && (
                         <FluentArrowSortUp24Filled className="absolute top-0" />
                       )}
-                      {sort === 'image_desc' && (
+                      {sortProperty === 'imageName' && sortOrder === 'desc' && (
                         <FluentArrowSortDown24Filled className="absolute top-0" />
                       )}
                     </div>
@@ -119,31 +117,34 @@ export function Dashboard(): JSX.Element {
                   <th
                     scope="col"
                     className="text-nowrap text-center cursor-pointer pr-[24px]"
-                    onClick={() => toggleSort('version')}
+                    onClick={() => toggleSort('currentVersion')}
                   >
                     Version
                     <div className="inline-block relative py-[9px]">
-                      {sort === 'version_asc' && (
-                        <FluentArrowSortUp24Filled className="absolute top-0" />
-                      )}
-                      {sort === 'version_desc' && (
-                        <FluentArrowSortDown24Filled className="absolute top-0" />
-                      )}
+                      {sortProperty === 'currentVersion' &&
+                        sortOrder === 'asc' && (
+                          <FluentArrowSortUp24Filled className="absolute top-0" />
+                        )}
+                      {sortProperty === 'currentVersion' &&
+                        sortOrder === 'desc' && (
+                          <FluentArrowSortDown24Filled className="absolute top-0" />
+                        )}
                     </div>
                   </th>
                   <th
                     scope="col"
                     className="text-nowrap text-center cursor-pointer pr-[24px]"
-                    onClick={() => toggleSort('new_version')}
+                    onClick={() => toggleSort('newVersion')}
                   >
                     New version
                     <div className="inline-block relative py-[9px]">
-                      {sort === 'new_version_asc' && (
+                      {sortProperty === 'newVersion' && sortOrder === 'asc' && (
                         <FluentArrowSortUp24Filled className="absolute top-0" />
                       )}
-                      {sort === 'new_version_desc' && (
-                        <FluentArrowSortDown24Filled className="absolute top-0" />
-                      )}
+                      {sortProperty === 'newVersion' &&
+                        sortOrder === 'desc' && (
+                          <FluentArrowSortDown24Filled className="absolute top-0" />
+                        )}
                     </div>
                   </th>
                   <th scope="col" className="text-nowrap text-center">

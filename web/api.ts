@@ -90,8 +90,7 @@ export function useTags(): Result<Tag[]> {
 interface UseImagesProps {
   tags?: string[]
   sort?: string
-  asc?: boolean
-  desc?: boolean
+  order?: 'asc' | 'desc'
   page?: number
   limit?: number
 }
@@ -107,11 +106,8 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
     if (options?.sort !== undefined) {
       query.set('sort', options.sort)
     }
-    if (options?.asc !== undefined) {
-      query.set('asc', '')
-    }
-    if (options?.desc !== undefined) {
-      query.set('desc', '')
+    if (options?.order !== undefined) {
+      query.set('order', options.order)
     }
     if (options?.page !== undefined) {
       query.set('page', options.page.toString())
@@ -130,7 +126,13 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [options])
+  }, [
+    options?.tags,
+    options?.sort,
+    options?.order,
+    options?.page,
+    options?.limit,
+  ])
 
   return result
 }

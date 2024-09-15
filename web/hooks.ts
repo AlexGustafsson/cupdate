@@ -25,22 +25,42 @@ export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
 export function useSort(): [
   string | undefined,
   Dispatch<SetStateAction<string | undefined>>,
+  'asc' | 'desc',
+  Dispatch<SetStateAction<'asc' | 'desc'>>,
 ] {
   const [searchParams, setSearchParams] = useSearchParams()
 
   // TODO: Will treat an empty string differently from a missing value
-  const [sort, setSort] = useState(searchParams.get('sort') || undefined)
+  const [property, setProperty] = useState(
+    searchParams.get('sort') || undefined
+  )
+  const [order, setOrder] = useState<'asc' | 'desc'>(
+    searchParams.has('asc') ? 'asc' : searchParams.has('desc') ? 'desc' : 'asc'
+  )
 
   useEffect(() => {
     setSearchParams((current) => {
-      if (!sort) {
+      if (!property) {
         current.delete('sort')
       } else {
-        current.set('sort', sort)
+        current.set('sort', property)
       }
       return current
     })
-  }, [sort])
+  }, [property])
 
-  return [sort, setSort]
+  useEffect(() => {
+    setSearchParams((current) => {
+      current.delete('asc')
+      current.delete('desc')
+      if (order === 'asc') {
+        current.set('asc', '')
+      } else if (order === 'desc') {
+        current.set('desc', '')
+      }
+      return current
+    })
+  }, [order])
+
+  return [property, setProperty, order, setOrder]
 }
