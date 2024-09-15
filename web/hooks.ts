@@ -1,23 +1,35 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const [filter, setFilter] = useState(
-    (searchParams.get('filter') || '').split(',').filter((x) => x.length > 0)
-  )
+  const filter = useMemo(() => {
+    return (searchParams.get('tags') || '')
+      .split(',')
+      .filter((x) => x.length > 0)
+  }, [searchParams])
 
-  useEffect(() => {
-    setSearchParams((current) => {
-      if (filter.length === 0) {
-        current.delete('filter')
-      } else {
-        current.set('filter', filter.join(','))
-      }
-      return current
-    })
-  }, [filter])
+  const setFilter = useCallback(
+    (s: string[] | ((current: string[]) => string[])) => {
+      setSearchParams((current) => {
+        if (typeof s === 'function') {
+          s = s(
+            (searchParams.get('tags') || '')
+              .split(',')
+              .filter((x) => x.length > 0)
+          )
+        }
+        if (!s) {
+          current.delete('tags')
+        } else {
+          current.set('tags', s.join(','))
+        }
+        return current
+      })
+    },
+    [setSearchParams]
+  )
 
   return [filter, setFilter]
 }
@@ -25,42 +37,63 @@ export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
 export function useSort(): [
   string | undefined,
   Dispatch<SetStateAction<string | undefined>>,
-  'asc' | 'desc',
-  Dispatch<SetStateAction<'asc' | 'desc'>>,
+  'asc' | 'desc' | undefined,
+  Dispatch<SetStateAction<'asc' | 'desc' | undefined>>,
 ] {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // TODO: Will treat an empty string differently from a missing value
-  const [property, setProperty] = useState(
-    searchParams.get('sort') || undefined
-  )
-  const [order, setOrder] = useState<'asc' | 'desc'>(
-    searchParams.has('asc') ? 'asc' : searchParams.has('desc') ? 'desc' : 'asc'
+  const property = searchParams.get('sort') || undefined
+  const order =
+    searchParams.get('order') == 'desc'
+      ? 'desc'
+      : searchParams.get('order') === 'asc'
+        ? 'asc'
+        : undefined
+
+  const setProperty = useCallback(
+    (s?: string | ((current: string | undefined) => string | undefined)) => {
+      setSearchParams((current) => {
+        if (typeof s === 'function') {
+          s = s(current.get('sort') || undefined)
+        }
+        if (!s) {
+          current.delete('sort')
+        } else {
+          current.set('sort', s)
+        }
+        return current
+      })
+    },
+    [setSearchParams]
   )
 
-  useEffect(() => {
-    setSearchParams((current) => {
-      if (!property) {
-        current.delete('sort')
-      } else {
-        current.set('sort', property)
-      }
-      return current
-    })
-  }, [property])
-
-  useEffect(() => {
-    setSearchParams((current) => {
-      current.delete('asc')
-      current.delete('desc')
-      if (order === 'asc') {
-        current.set('asc', '')
-      } else if (order === 'desc') {
-        current.set('desc', '')
-      }
-      return current
-    })
-  }, [order])
+  const setOrder = useCallback(
+    (
+      s?:
+        | 'asc'
+        | 'desc'
+        | ((current: 'asc' | 'desc' | undefined) => 'asc' | 'desc' | undefined)
+    ) => {
+      setSearchParams((current) => {
+        if (typeof s === 'function') {
+          s = s(
+            current.get('order') === 'asc'
+              ? 'asc'
+              : current.get('order') === 'desc'
+                ? 'desc'
+                : undefined
+          )
+        }
+        if (!s) {
+          current.delete('order')
+        } else {
+          current.set('order', s)
+        }
+        return current
+      })
+    },
+    [setSearchParams]
+  )
 
   return [property, setProperty, order, setOrder]
 }
