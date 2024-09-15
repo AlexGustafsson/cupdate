@@ -27,6 +27,8 @@ paths:
       parameters:
         - in: query
           name: tags
+          # TODO: Space-separated instead, have names be URL-safe, show
+          # description or label in UI instead. Comma becomes %2C.
           description: Comma-separated list of tags to include.
           schema:
             type: string
