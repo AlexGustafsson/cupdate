@@ -92,6 +92,15 @@ func (p *Pipeline) Run(ctx context.Context, store *models.UnprocessedStore) (*mo
 		slog.Error("Failed to enrich images from GitHub", slog.Any("error", err))
 	}
 
+	// Add updated / outdated tags
+	for _, image := range newStore.Images {
+		if image.CurrentVersion == image.LatestVersion {
+			image.Tags = append(image.Tags, "up-to-date")
+		} else {
+			image.Tags = append(image.Tags, "outdated")
+		}
+	}
+
 	return newStore, nil
 }
 
