@@ -11,7 +11,8 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/pipeline"
-	"github.com/AlexGustafsson/cupdate/internal/source/k8s"
+	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
+	"github.com/distribution/reference"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
 )
@@ -23,7 +24,7 @@ func main() {
 		Host: "http://localhost:8001",
 	}
 
-	source, err := k8s.New(config)
+	platform, err := kubernetes.NewPlatform(config)
 	if err != nil {
 		slog.Error("Failed to create kubernetes source", slog.Any("error", err))
 		os.Exit(1)
@@ -123,7 +124,7 @@ func main() {
 		// check once or poll
 
 		slog.Info("Fetching initial state")
-		entries, err := source.Entries(ctx)
+		references, graph, err := platform.Images(ctx)
 		if err != nil {
 			return err
 		}
@@ -131,18 +132,31 @@ func main() {
 		images := make([]*models.Image, 0)
 		graphs := make(map[string][]*models.Graph)
 
-		for _, entry := range entries {
-			origin := entry.Origin.(*k8s.Origin)
+		for _, ref := range references {
+			// origin := entry.Origin.(*kubernetes.Origin)
 
 			// For now, ignore definitions referencing images, just use running pods
 			// if origin.Container.Pod.IsTemplate {
 			// 	continue
 			// }
 
+			imageName := ""
+			if named, ok := ref.(reference.Named); ok {
+				imageName = named.Name()
+			} else {
+				slog.Warn("Skipping identified image because it seems to be unnamed", slog.String("reference", ref.String()))
+				continue
+			}
+
+			imageTag := "latest"
+			if named, ok := ref.(reference.Tagged); ok {
+				imageTag = named.Tag()
+			}
+
 			image := &models.Image{
-				Name:           entry.Image,
-				CurrentVersion: entry.Version,
-				LatestVersion:  entry.Version,
+				Name:           imageName,
+				CurrentVersion: imageTag,
+				LatestVersion:  imageTag,
 				// TODO: Tags should include pod, job, cron job, deployment set etc.
 				// Everything's a pod, so try to use the topmost descriptor
 				Tags:  []string{"k8s", "pod"},
@@ -150,85 +164,91 @@ func main() {
 				Image: "",
 			}
 
-			// TODO: Build actual graph. We don't handle duplicates right now...
-			root := &models.GraphNode{
-				Domain: "oci",
-				Type:   "image",
-				Name:   entry.Image,
-			}
+			origins := graph.Origins(ref)
+			for _, origin := range origins {
+				// TODO: Build actual graph. We don't handle duplicates right now...
+				root := &models.GraphNode{
+					Domain: "oci",
+					Type:   "image",
+					Name:   imageName,
+				}
 
-			container := &models.GraphNode{
-				Domain: "kubernetes",
-				Type:   "core/v1/container",
-				Name:   origin.Container.Name,
-			}
-			root.Parents = []*models.GraphNode{container}
+				origin := origin.(*kubernetes.Origin)
 
-			pod := &models.GraphNode{
-				Domain: "kubernetes",
-				Type:   "core/v1/pod",
-				Name:   origin.Container.Pod.Name,
-			}
-			if pod.Name == "" && origin.Container.Pod.IsTemplate {
-				pod.Name = "(template)"
-			}
-			container.Parents = []*models.GraphNode{pod}
+				container := &models.GraphNode{
+					Domain: "kubernetes",
+					Type:   "core/v1/container",
+					Name:   origin.Container.Name,
+				}
+				root.Parents = []*models.GraphNode{container}
 
-			tag := "pod"
-			currentNode := pod
-			currentParent := origin.Container.Pod.Parent
-			for currentParent != nil {
-				node := &models.GraphNode{
+				pod := &models.GraphNode{
+					Domain: "kubernetes",
+					Type:   "core/v1/pod",
+					Name:   origin.Container.Pod.Name,
+				}
+				if pod.Name == "" && origin.Container.Pod.IsTemplate {
+					pod.Name = "(template)"
+				}
+				container.Parents = []*models.GraphNode{pod}
+
+				tag := "pod"
+				currentNode := pod
+				currentParent := origin.Container.Pod.Parent
+				for currentParent != nil {
+					node := &models.GraphNode{
+						Domain:  "kubernetes",
+						Type:    string(currentParent.ResourceKind),
+						Name:    currentParent.Name,
+						Parents: make([]*models.GraphNode, 0),
+					}
+					currentNode.Parents = []*models.GraphNode{node}
+
+					switch currentParent.ResourceKind {
+					case kubernetes.ResourceKindAppsV1Deployment:
+						tag = "deployment"
+					case kubernetes.ResourceKindAppsV1DaemonSet:
+						tag = "daemon set"
+					case kubernetes.ResourceKindAppsV1ReplicaSet:
+						tag = "replica set"
+					case kubernetes.ResourceKindBatchV1CronJob:
+						tag = "cron job"
+					case kubernetes.ResourceKindBatchV1Job:
+						tag = "job"
+					case kubernetes.ResourceKindAppsV1StatefulSet:
+						tag = "stateful set"
+					}
+
+					currentNode = node
+					currentParent = currentParent.Parent
+				}
+
+				image.Tags = append(image.Tags, tag)
+
+				// Namespace is implicit
+				currentNode.Parents = []*models.GraphNode{{
 					Domain:  "kubernetes",
-					Type:    string(currentParent.ResourceKind),
-					Name:    currentParent.Name,
+					Type:    "core/v1/namespace",
+					Name:    origin.Container.Namespace,
 					Parents: make([]*models.GraphNode, 0),
-				}
-				currentNode.Parents = []*models.GraphNode{node}
+				}}
 
-				switch currentParent.ResourceKind {
-				case k8s.ResourceKindAppsV1Deployment:
-					tag = "deployment"
-				case k8s.ResourceKindAppsV1DaemonSet:
-					tag = "daemon set"
-				case k8s.ResourceKindAppsV1ReplicaSet:
-					tag = "replica set"
-				case k8s.ResourceKindBatchV1CronJob:
-					tag = "cron job"
-				case k8s.ResourceKindBatchV1Job:
-					tag = "job"
-				case k8s.ResourceKindAppsV1StatefulSet:
-					tag = "stateful set"
+				graph := &models.Graph{
+					Root: root,
 				}
 
-				currentNode = node
-				currentParent = currentParent.Parent
+				// TODO: Can overwrite. The graph should be shared among all ways the
+				// image is used
+				_, ok := graphs[ref.String()]
+				if !ok {
+					g := make([]*models.Graph, 0)
+					graphs[ref.String()] = g
+				}
+
+				graphs[ref.String()] = append(graphs[ref.String()], graph)
 			}
 
-			image.Tags = append(image.Tags, tag)
 			images = append(images, image)
-
-			// Namespace is implicit
-			currentNode.Parents = []*models.GraphNode{{
-				Domain:  "kubernetes",
-				Type:    "core/v1/namespace",
-				Name:    origin.Container.Namespace,
-				Parents: make([]*models.GraphNode, 0),
-			}}
-
-			graph := &models.Graph{
-				Root: root,
-			}
-
-			// TODO: Can overwrite. The graph should be shared among all ways the
-			// image is used
-			_, ok := graphs[entry.Image+":"+entry.Version]
-			if !ok {
-				g := make([]*models.Graph, 0)
-				graphs[entry.Image+":"+entry.Version] = g
-			}
-
-			graphs[entry.Image+":"+entry.Version] = append(graphs[entry.Image+":"+entry.Version], graph)
 		}
 
 		store.Images = images

@@ -1,12 +1,12 @@
-package k8s
+package kubernetes
 
 import (
 	"time"
 
-	"github.com/AlexGustafsson/cupdate/internal/source"
+	"github.com/AlexGustafsson/cupdate/internal/platform"
 )
 
-var _ source.Origin = (*Origin)(nil)
+var _ platform.Origin = (*Origin)(nil)
 
 type ResourceKind string
 
@@ -48,9 +48,9 @@ type Container struct {
 }
 
 type Origin struct {
-	Container *Container
+	Container Container
 }
 
 func (o *Origin) Kind() string {
-	return "k8s"
+	return "kubernetes"
 }
