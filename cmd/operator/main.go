@@ -8,9 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
-	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/pipeline"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/distribution/reference"
 	"golang.org/x/sync/errgroup"
@@ -30,11 +28,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	cache, err := cache.NewDiskCache("./cache")
-	if err != nil {
-		slog.Error("Failed to serve", slog.Any("error", err))
-		os.Exit(1)
-	}
+	// cache, err := cache.NewDiskCache("./cache")
+	// if err != nil {
+	// 	slog.Error("Failed to serve", slog.Any("error", err))
+	// 	os.Exit(1)
+	// }
 
 	data := &api.InMemoryAPI{
 		Store: &models.Store{
@@ -140,13 +138,7 @@ func main() {
 			// 	continue
 			// }
 
-			imageName := ""
-			if named, ok := ref.(reference.Named); ok {
-				imageName = named.Name()
-			} else {
-				slog.Warn("Skipping identified image because it seems to be unnamed", slog.String("reference", ref.String()))
-				continue
-			}
+			imageName := ref.Name()
 
 			imageTag := "latest"
 			if named, ok := ref.(reference.Tagged); ok {
@@ -254,13 +246,17 @@ func main() {
 		store.Images = images
 		store.Graphs = graphs
 
-		pipeline := pipeline.New(cache)
-		processedStore, err := pipeline.Run(ctx, store)
-		if err != nil {
-			return err
-		}
+		// pipeline := pipeline.New(cache, jobs.DefaultJobs())
+		// TODO: How will deduplication work with this when we invoke just one image
+		// at a time?
+		// for _, image := range images {
+		// 	processedStore, err := pipeline.Run(ctx, jobs.Image)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
 
-		data.Store = processedStore
+		// data.Store = processedStore
 		return nil
 	})
 
