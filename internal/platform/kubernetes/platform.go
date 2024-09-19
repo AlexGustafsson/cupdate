@@ -15,6 +15,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/pager"
+
+	_ "crypto/sha256" // Load sha256 for references.Parse*
 )
 
 var _ platform.Platform = (*Platform)(nil)
@@ -34,16 +36,16 @@ func NewPlatform(config *rest.Config) (*Platform, error) {
 	}, nil
 }
 
-func (p *Platform) Images(ctx context.Context) ([]reference.Reference, platform.Graph, error) {
-	references := make([]reference.Reference, 0)
+func (p *Platform) Images(ctx context.Context) ([]reference.Named, platform.Graph, error) {
+	references := make([]reference.Named, 0)
 	graph := make(platform.Graph)
-	return references, graph, p.EachListItem(ctx, func(reference reference.Reference, origin platform.Origin) {
+	return references, graph, p.EachListItem(ctx, func(reference reference.Named, origin platform.Origin) {
 		references = append(references, reference)
 		graph.AddOrigin(reference, origin)
 	})
 }
 
-func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference, platform.Origin)) error {
+func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Named, platform.Origin)) error {
 	pageFuncs := []pager.ListPageFunc{
 		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
 			return p.clientset.AppsV1().Deployments("").List(ctx, opts)
@@ -81,7 +83,7 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference
 				switch o := obj.(type) {
 				case *appsv1.Deployment:
 					for _, container := range o.Spec.Template.Spec.Containers {
-						reference, err := reference.ParseAnyReference(container.Image)
+						reference, err := reference.ParseNormalizedNamed(container.Image)
 						if err != nil {
 							return err
 						}
@@ -105,7 +107,7 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference
 					}
 				case *appsv1.DaemonSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
-						reference, err := reference.ParseAnyReference(container.Image)
+						reference, err := reference.ParseNormalizedNamed(container.Image)
 						if err != nil {
 							return err
 						}
@@ -129,7 +131,7 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference
 					}
 				case *appsv1.ReplicaSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
-						reference, err := reference.ParseAnyReference(container.Image)
+						reference, err := reference.ParseNormalizedNamed(container.Image)
 						if err != nil {
 							return err
 						}
@@ -153,7 +155,7 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference
 					}
 				case *appsv1.StatefulSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
-						reference, err := reference.ParseAnyReference(container.Image)
+						reference, err := reference.ParseNormalizedNamed(container.Image)
 						if err != nil {
 							return err
 						}
@@ -177,7 +179,7 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference
 					}
 				case *batchv1.CronJob:
 					for _, container := range o.Spec.JobTemplate.Spec.Template.Spec.Containers {
-						reference, err := reference.ParseAnyReference(container.Image)
+						reference, err := reference.ParseNormalizedNamed(container.Image)
 						if err != nil {
 							return err
 						}
@@ -201,7 +203,7 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference
 					}
 				case *batchv1.Job:
 					for _, container := range o.Spec.Template.Spec.Containers {
-						reference, err := reference.ParseAnyReference(container.Image)
+						reference, err := reference.ParseNormalizedNamed(container.Image)
 						if err != nil {
 							return err
 						}
@@ -235,7 +237,7 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(reference.Reference
 							}
 						}
 
-						reference, err := reference.ParseAnyReference(container.Image)
+						reference, err := reference.ParseNormalizedNamed(container.Image)
 						if err != nil {
 							return err
 						}

@@ -9,7 +9,7 @@ import (
 type Platform interface {
 	// Images returns all unique images in use or referenced within the platform
 	// as well as a Graph describing in what ways the images are used.
-	Images(context.Context) ([]reference.Reference, Graph, error)
+	Images(context.Context) ([]reference.Named, Graph, error)
 }
 
 type Origin interface {
