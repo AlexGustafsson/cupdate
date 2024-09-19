@@ -3,6 +3,9 @@ package registry
 import (
 	"context"
 	"time"
+
+	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/distribution/reference"
 )
 
 type Registry interface {
@@ -16,4 +19,8 @@ type Image struct {
 	Published    time.Time
 	Digest       string
 	ReleaseNotes string
+}
+
+type Client interface {
+	GetManifests(ctx context.Context, image reference.Named) ([]oci.Manifest, error)
 }

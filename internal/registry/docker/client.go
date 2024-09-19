@@ -11,6 +11,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/distribution/reference"
 )
 
 type Client struct {
@@ -59,12 +60,7 @@ func (c *Client) Get(ctx context.Context, name string, version string) (*registr
 	}, nil
 }
 
-func (c *Client) GetRegistryToken(ctx context.Context, name string) (string, error) {
-	dockerName := name
-	if !strings.Contains(dockerName, "/") {
-		dockerName = "library/" + url.PathEscape(dockerName)
-	}
-
+func (c *Client) GetRegistryToken(ctx context.Context, image reference.Named) (string, error) {
 	// TODO: Registries expose the realm and scheme via Www-Authenticate if 403
 	// is given
 	u, err := url.Parse("https://auth.docker.io/token?service=registry.docker.io")
@@ -73,7 +69,7 @@ func (c *Client) GetRegistryToken(ctx context.Context, name string) (string, err
 	}
 
 	query := u.Query()
-	query.Set("scope", fmt.Sprintf("repository:%s:pull", dockerName))
+	query.Set("scope", fmt.Sprintf("repository:%s:pull", reference.Path(image)))
 	u.RawQuery = query.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
@@ -107,20 +103,19 @@ func (c *Client) GetRegistryToken(ctx context.Context, name string) (string, err
 	return result.Token, nil
 }
 
-func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]oci.Manifest, error) {
-	token, err := c.GetRegistryToken(ctx, name)
+func (c *Client) GetManifests(ctx context.Context, image reference.Named) ([]oci.Manifest, error) {
+	token, err := c.GetRegistryToken(ctx, image)
 	if err != nil {
 		return nil, err
 	}
 
 	ociClient := &oci.Client{
-		Registry: "https://registry-1.docker.io/v2",
-		Client:   c.Client,
+		Client: c.Client,
 		// TODO: Cache token
 		Authorizer: oci.AuthorizerToken(token),
 	}
 
-	return ociClient.GetManifests(ctx, name, tag)
+	return ociClient.GetManifests(ctx, image)
 }
 
 func (c *Client) GetLatestVersion(ctx context.Context, name string, currentTag string) (*registry.Image, error) {

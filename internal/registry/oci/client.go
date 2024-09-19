@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/distribution/reference"
 )
 
 type Authorizer interface {
@@ -28,21 +30,23 @@ func (s AuthorizerToken) Authorize(ctx context.Context, req *http.Request) error
 }
 
 type Client struct {
-	// Registry is the registry endpoint, such as https://registry-1.docker.io/v2.
-	Registry   string
 	Client     *http.Client
 	Authorizer Authorizer
 }
 
-func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]Manifest, error) {
-	dockerName := name
-	if !strings.Contains(dockerName, "/") {
-		dockerName = "library/" + url.PathEscape(dockerName)
+func (c *Client) GetManifests(ctx context.Context, image reference.Named) ([]Manifest, error) {
+	// NOTE: It's rather unclear why we need to do this dance manually and why
+	// docker.io simply doesn't just redirect us
+	id := ""
+	if tagged, ok := image.(reference.Tagged); ok {
+		id = tagged.Tag()
+	} else if digested, ok := image.(reference.Digested); ok {
+		id = digested.Digest().String()
+	} else {
+		return nil, fmt.Errorf("unsupported reference type: must be tagged or digested")
 	}
-
-	// NOTE: If name contains a /, it is not path escaped as we can't easily tell
-	// what part is the namespace or not
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/%s/manifests/%s", c.Registry, dockerName, url.PathEscape(tag)), nil)
+	domain := strings.Replace(reference.Domain(image), "docker.io", "registry-1.docker.io/v2", 1)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/%s/manifests/%s", domain, reference.Path(image), url.PathEscape(id)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +78,10 @@ func (c *Client) GetManifests(ctx context.Context, name string, tag string) ([]M
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
 	} else if res.StatusCode != http.StatusOK {
+		fmt.Println(res.Header)
+		x, _ := io.ReadAll(res.Body)
+		fmt.Printf("%s\n", x)
+		fmt.Printf("%s\n", res.Request.URL.String())
 		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
 	}
 

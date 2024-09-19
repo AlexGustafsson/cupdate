@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/distribution/reference"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -33,7 +34,9 @@ func TestClientGetManifest(t *testing.T) {
 	expected := &oci.Manifest{}
 
 	var client Client
-	actual, err := client.GetManifests(context.TODO(), "postgres", "12-alpine")
+	ref, err := reference.ParseNormalizedNamed("postgres:12-alpine")
+	require.NoError(t, err)
+	actual, err := client.GetManifests(context.TODO(), ref.(reference.NamedTagged))
 	require.NoError(t, err)
 
 	assert.Equal(t, expected, actual)
