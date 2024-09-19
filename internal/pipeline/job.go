@@ -3,6 +3,7 @@ package pipeline
 import (
 	"context"
 	"errors"
+	"reflect"
 	"sync"
 	"time"
 
@@ -79,22 +80,39 @@ func (c Context[T]) SetOutput(key string, value any) {
 	c.outputs[key] = value
 }
 
-func (c Context[T]) GetOutput(key string) (value any, ok bool) {
-	value, ok = c.outputs[key]
-	return
+func (c Context[T]) GetOutput(key string, value any) bool {
+	v, ok := c.outputs[key]
+	if !ok {
+		return false
+	}
+
+	reflectedStoredValue := reflect.ValueOf(v)
+	reflectedReturnValue := reflect.Indirect(reflect.ValueOf(value))
+
+	if !reflectedStoredValue.Type().AssignableTo(reflectedReturnValue.Type()) {
+		return false
+	}
+
+	reflectedReturnValue.Set(reflectedStoredValue)
+
+	return true
 }
 
-func (c Context[T]) MustGetOutput(key string) (value any) {
-	var ok bool
-	value, ok = c.outputs[key]
+func (c Context[T]) MustGetOutput(key string, value any) {
+	ok := c.GetOutput(key, value)
 	if !ok {
 		panic("job is missing expected output: " + key)
 	}
-	return
 }
 
 type Job[T any] interface {
 	Execute(ctx Context[T]) error
+}
+
+type JobFunc[T any] func(ctx Context[T]) error
+
+func (f JobFunc[T]) Execute(ctx Context[T]) error {
+	return f(ctx)
 }
 
 type Series[T any] []Job[T]

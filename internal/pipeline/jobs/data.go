@@ -9,9 +9,10 @@ import (
 type ImageData struct {
 	ImageReference reference.Named
 	Image          *string
-	LatestVersion  *string
+	LatestVersion  *reference.Named
 	Tags           *[]string
 	Description    *string
+	ReleaseNotes   *string
 	Graph          *platform.Graph
 	Links          *[]models.ImageLink
 }

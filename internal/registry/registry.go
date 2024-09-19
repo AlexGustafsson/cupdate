@@ -9,16 +9,13 @@ import (
 )
 
 type Registry interface {
-	GetLatestVersion(ctx context.Context, name string, currentTag string) (*Image, error)
-	Get(ctx context.Context, name string, version string) (*Image, error)
+	GetLatestVersion(ctx context.Context, image reference.NamedTagged) (*Image, error)
 }
 
 type Image struct {
-	Name         string
-	Version      string
-	Published    time.Time
-	Digest       string
-	ReleaseNotes string
+	Name      reference.NamedTagged
+	Published time.Time
+	Digest    string
 }
 
 type Client interface {

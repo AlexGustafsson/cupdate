@@ -30,7 +30,8 @@ func GetImageManifests(client string) *GetImageManifestsJob {
 }
 
 func (j GetImageManifestsJob) Execute(ctx pipeline.Context[ImageData]) error {
-	client := ctx.MustGetOutput(j.client).(registry.Client)
+	var client registry.Client
+	ctx.MustGetOutput(j.client, &client)
 
 	cacheKey := "pipeline/get-image-manifests-v1/" + ctx.Data.ImageReference.String()
 	var manifests []oci.Manifest
