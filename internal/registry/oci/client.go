@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/distribution/reference"
 )
 
 type Authorizer interface {
@@ -34,19 +32,19 @@ type Client struct {
 	Authorizer Authorizer
 }
 
-func (c *Client) GetManifests(ctx context.Context, image reference.Named) ([]Manifest, error) {
+func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest, error) {
 	// NOTE: It's rather unclear why we need to do this dance manually and why
 	// docker.io simply doesn't just redirect us
 	id := ""
-	if tagged, ok := image.(reference.Tagged); ok {
-		id = tagged.Tag()
-	} else if digested, ok := image.(reference.Digested); ok {
-		id = digested.Digest().String()
+	if image.HasTag {
+		id = image.Tag
+	} else if image.HasDigest {
+		id = image.Digest
 	} else {
 		return nil, fmt.Errorf("unsupported reference type: must be tagged or digested")
 	}
-	domain := strings.Replace(reference.Domain(image), "docker.io", "registry-1.docker.io/v2", 1)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/%s/manifests/%s", domain, reference.Path(image), url.PathEscape(id)), nil)
+	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io/v2", 1)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/%s/manifests/%s", domain, image.Path, url.PathEscape(id)), nil)
 	if err != nil {
 		return nil, err
 	}

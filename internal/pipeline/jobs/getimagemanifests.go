@@ -7,7 +7,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/pipeline"
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/distribution/reference"
 )
 
 type GetImageManifestsJob struct {
@@ -40,9 +39,7 @@ func (j GetImageManifestsJob) Execute(ctx pipeline.Context[ImageData]) error {
 		// Fallthrough
 	}
 
-	domain := reference.Domain(ctx.Data.ImageReference)
-
-	log := slog.With(slog.String("domain", domain), slog.String("imageReference", ctx.Data.ImageReference.String()))
+	log := slog.With(slog.String("domain", ctx.Data.ImageReference.Domain), slog.String("imageReference", ctx.Data.ImageReference.String()))
 
 	if manifests == nil {
 		log.Debug("Fetching annotations")

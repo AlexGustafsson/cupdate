@@ -10,7 +10,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/api"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
-	"github.com/distribution/reference"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
 )
@@ -141,8 +140,8 @@ func main() {
 			imageName := ref.Name()
 
 			imageTag := "latest"
-			if named, ok := ref.(reference.Tagged); ok {
-				imageTag = named.Tag()
+			if ref.HasTag {
+				imageTag = ref.Tag
 			}
 
 			image := &models.Image{

@@ -10,14 +10,13 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/distribution/reference"
 )
 
 type Client struct {
 	Client *http.Client
 }
 
-func (c *Client) GetRegistryToken(ctx context.Context, image reference.Named) (string, error) {
+func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (string, error) {
 	// TODO: Registries expose the realm and scheme via Www-Authenticate if 403
 	// is given
 	u, err := url.Parse("https://auth.docker.io/token?service=registry.docker.io")
@@ -26,7 +25,7 @@ func (c *Client) GetRegistryToken(ctx context.Context, image reference.Named) (s
 	}
 
 	query := u.Query()
-	query.Set("scope", fmt.Sprintf("repository:%s:pull", reference.Path(image)))
+	query.Set("scope", fmt.Sprintf("repository:%s:pull", image.Path))
 	u.RawQuery = query.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
@@ -60,7 +59,7 @@ func (c *Client) GetRegistryToken(ctx context.Context, image reference.Named) (s
 	return result.Token, nil
 }
 
-func (c *Client) GetManifests(ctx context.Context, image reference.Named) ([]oci.Manifest, error) {
+func (c *Client) GetManifests(ctx context.Context, image oci.Reference) ([]oci.Manifest, error) {
 	token, err := c.GetRegistryToken(ctx, image)
 	if err != nil {
 		return nil, err
@@ -75,13 +74,17 @@ func (c *Client) GetManifests(ctx context.Context, image reference.Named) ([]oci
 	return ociClient.GetManifests(ctx, image)
 }
 
-func (c *Client) GetLatestVersion(ctx context.Context, image reference.NamedTagged) (*registry.Image, error) {
-	currentVersion, err := oci.ParseVersion(image.Tag())
+func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*registry.Image, error) {
+	if !image.HasTag {
+		return nil, nil
+	}
+
+	currentVersion, err := oci.ParseVersion(image.Tag)
 	if err != nil || currentVersion == nil {
 		return nil, fmt.Errorf("unsupported version: %s", err)
 	}
 
-	u, err := url.Parse(fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/tags", reference.Path(image)))
+	u, err := url.Parse(fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/tags", image.Path))
 	if err != nil {
 		return nil, err
 	}
@@ -136,13 +139,10 @@ func (c *Client) GetLatestVersion(ctx context.Context, image reference.NamedTagg
 		}
 
 		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
-			tagged, err := reference.WithTag(image, tag.Name)
-			if err != nil {
-				return nil, err
-			}
+			image.Tag = tag.Name
 
 			return &registry.Image{
-				Name:      tagged,
+				Name:      image,
 				Published: tag.TagLastPushed,
 				Digest:    tag.Digest,
 			}, nil
@@ -152,8 +152,8 @@ func (c *Client) GetLatestVersion(ctx context.Context, image reference.NamedTagg
 	return nil, nil
 }
 
-func (c *Client) GetRepository(ctx context.Context, image reference.Named) (*Repository, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://hub.docker.com/v2/repositories/"+url.PathEscape(reference.Path(image)), nil)
+func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repository, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://hub.docker.com/v2/repositories/"+url.PathEscape(image.Path), nil)
 	if err != nil {
 		return nil, err
 	}

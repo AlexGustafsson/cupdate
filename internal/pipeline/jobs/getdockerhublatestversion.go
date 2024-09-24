@@ -7,7 +7,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/pipeline"
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
-	"github.com/distribution/reference"
 )
 
 type GetDockerHubLatestVersionJob struct {
@@ -29,8 +28,7 @@ func GetDockerHubLatestVersion() *GetDockerHubLatestVersionJob {
 func (j GetDockerHubLatestVersionJob) Execute(ctx pipeline.Context[ImageData]) error {
 	log := slog.With(slog.String("imageReference", ctx.Data.ImageReference.String()))
 
-	tagged, ok := ctx.Data.ImageReference.(reference.NamedTagged)
-	if !ok {
+	if !ctx.Data.ImageReference.HasTag {
 		log.Info("Skipping non-tagged image")
 		return nil
 	}
@@ -48,7 +46,7 @@ func (j GetDockerHubLatestVersionJob) Execute(ctx pipeline.Context[ImageData]) e
 		client := &docker.Client{}
 
 		var err error
-		image, err = client.GetLatestVersion(ctx, tagged)
+		image, err = client.GetLatestVersion(ctx, ctx.Data.ImageReference)
 		if err != nil {
 			log.Error("Failed to get latest image", slog.Any("error", err))
 			return err

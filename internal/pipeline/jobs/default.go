@@ -9,7 +9,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/distribution/reference"
 )
 
 func DefaultJobs() pipeline.Job[ImageData] {
@@ -110,7 +109,7 @@ func DefaultJobs() pipeline.Job[ImageData] {
 							return nil
 						}
 
-						*ctx.Data.LatestVersion = reference.Named(image.Name)
+						*ctx.Data.LatestVersion = image.Name
 
 						return nil
 					}),

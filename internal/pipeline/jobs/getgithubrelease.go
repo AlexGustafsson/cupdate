@@ -8,7 +8,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/github"
 	"github.com/AlexGustafsson/cupdate/internal/pipeline"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/distribution/reference"
 )
 
 type GetGitHubReleaseJob struct {
@@ -39,8 +38,12 @@ func (j GetGitHubReleaseJob) Execute(ctx pipeline.Context[ImageData]) error {
 		return nil
 	}
 
-	tagged, ok := (*ctx.Data.LatestVersion).(reference.Tagged)
-	if !ok {
+	if ctx.Data.LatestVersion == nil {
+		log.Debug("Skipping GitHub release - latest version not found")
+		return nil
+	}
+
+	if !ctx.Data.LatestVersion.HasTag {
 		log.Debug("Skipping GitHub release - latest version isn't tagged")
 		return nil
 	}
@@ -83,7 +86,7 @@ func (j GetGitHubReleaseJob) Execute(ctx pipeline.Context[ImageData]) error {
 
 		var err error
 		client := &github.Client{}
-		release, err = client.GetRelease(ctx, owner, repository, tagged.Tag())
+		release, err = client.GetRelease(ctx, owner, repository, ctx.Data.LatestVersion.Tag)
 		if err != nil {
 			log.Error("Failed to get release", slog.Any("error", err))
 			return err
