@@ -37,3 +37,4 @@ func (p *Pipeline[T]) Run(ctx context.Context, data T) (T, error) {
 // difference. Perhaps, the issue is long-running jobs (i.e. a WaitForLimit)
 // that could leave a lot of goroutines waiting for something we know will take
 // a while.
+// TODO: How do we handle cases when a job fails? Stop all jobs?
