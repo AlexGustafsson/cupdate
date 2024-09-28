@@ -34,16 +34,9 @@ func NewPlatform(config *rest.Config) (*Platform, error) {
 	}, nil
 }
 
-func (p *Platform) Images(ctx context.Context) ([]oci.Reference, platform.Graph, error) {
-	references := make([]oci.Reference, 0)
-	graph := make(platform.Graph)
-	return references, graph, p.EachListItem(ctx, func(reference oci.Reference, origin platform.Origin) {
-		references = append(references, reference)
-		graph.AddOrigin(reference, origin)
-	})
-}
+func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
+	graph := platform.NewGraph()
 
-func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, platform.Origin)) error {
 	pageFuncs := []pager.ListPageFunc{
 		func(ctx context.Context, opts metav1.ListOptions) (runtime.Object, error) {
 			return p.clientset.AppsV1().Deployments("").List(ctx, opts)
@@ -68,11 +61,6 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 		},
 	}
 
-	// TODO: Build ImageID for resources that don't have them.
-	// TODO: Connect pods with other resources (jobs etc.) to sort out duplicates.
-	// We still want to cover deployments, jobs etc. that haven't run but still
-	// refer to an image, though.
-
 	var wg errgroup.Group
 	for _, pageFunc := range pageFuncs {
 		pager := pager.New(pageFunc)
@@ -86,22 +74,42 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 							return err
 						}
 
-						fn(reference, &Origin{
-							Container: Container{
-								Name:      container.Name,
-								Namespace: o.Namespace,
-								Pod: &Pod{
-									Name:       o.Spec.Template.Name,
-									Namespace:  o.Namespace,
-									IsTemplate: true,
-									Parent: &Parent{
-										ResourceKind: ResourceKindAppsV1Deployment,
-										Namespace:    o.Namespace,
-										Name:         o.Name,
-									},
-								},
+						graph.InsertTree(
+							platform.ImageNode{
+								Reference: reference,
 							},
-						})
+							resource{
+								kind: ResourceKindCoreV1Container,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1Deployment, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+									ResourceKindCoreV1Container, container.Name,
+								}, "/"),
+								name: container.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Pod,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1Deployment, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Spec.Template.Name,
+							},
+							resource{
+								kind: ResourceKindAppsV1Deployment,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1Deployment, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Name,
+							},
+						)
 					}
 				case *appsv1.DaemonSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
@@ -110,22 +118,42 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 							return err
 						}
 
-						fn(reference, &Origin{
-							Container: Container{
-								Name:      container.Name,
-								Namespace: o.Namespace,
-								Pod: &Pod{
-									Name:       o.Spec.Template.Name,
-									Namespace:  o.Namespace,
-									IsTemplate: true,
-									Parent: &Parent{
-										ResourceKind: ResourceKindAppsV1DaemonSet,
-										Namespace:    o.Namespace,
-										Name:         o.Name,
-									},
-								},
+						graph.InsertTree(
+							platform.ImageNode{
+								Reference: reference,
 							},
-						})
+							resource{
+								kind: ResourceKindCoreV1Container,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1DaemonSet, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+									ResourceKindCoreV1Container, container.Name,
+								}, "/"),
+								name: container.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Pod,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1DaemonSet, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Spec.Template.Name,
+							},
+							resource{
+								kind: ResourceKindAppsV1DaemonSet,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1Deployment, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Name,
+							},
+						)
 					}
 				case *appsv1.ReplicaSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
@@ -134,22 +162,42 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 							return err
 						}
 
-						fn(reference, &Origin{
-							Container: Container{
-								Name:      container.Name,
-								Namespace: o.Namespace,
-								Pod: &Pod{
-									Name:       o.Spec.Template.Name,
-									Namespace:  o.Namespace,
-									IsTemplate: true,
-									Parent: &Parent{
-										ResourceKind: ResourceKindAppsV1ReplicaSet,
-										Namespace:    o.Namespace,
-										Name:         o.Name,
-									},
-								},
+						graph.InsertTree(
+							platform.ImageNode{
+								Reference: reference,
 							},
-						})
+							resource{
+								kind: ResourceKindCoreV1Container,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1ReplicaSet, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+									ResourceKindCoreV1Container, container.Name,
+								}, "/"),
+								name: container.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Pod,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1ReplicaSet, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Spec.Template.Name,
+							},
+							resource{
+								kind: ResourceKindAppsV1ReplicaSet,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1Deployment, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Name,
+							},
+						)
 					}
 				case *appsv1.StatefulSet:
 					for _, container := range o.Spec.Template.Spec.Containers {
@@ -158,22 +206,42 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 							return err
 						}
 
-						fn(reference, &Origin{
-							Container: Container{
-								Name:      container.Name,
-								Namespace: o.Namespace,
-								Pod: &Pod{
-									Name:       o.Spec.Template.Name,
-									Namespace:  o.Namespace,
-									IsTemplate: true,
-									Parent: &Parent{
-										ResourceKind: ResourceKindAppsV1StatefulSet,
-										Namespace:    o.Namespace,
-										Name:         o.Name,
-									},
-								},
+						graph.InsertTree(
+							platform.ImageNode{
+								Reference: reference,
 							},
-						})
+							resource{
+								kind: ResourceKindCoreV1Container,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1StatefulSet, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+									ResourceKindCoreV1Container, container.Name,
+								}, "/"),
+								name: container.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Pod,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1StatefulSet, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Spec.Template.Name,
+							},
+							resource{
+								kind: ResourceKindAppsV1StatefulSet,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindAppsV1StatefulSet, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Name,
+							},
+						)
 					}
 				case *batchv1.CronJob:
 					for _, container := range o.Spec.JobTemplate.Spec.Template.Spec.Containers {
@@ -182,22 +250,42 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 							return err
 						}
 
-						fn(reference, &Origin{
-							Container: Container{
-								Name:      container.Name,
-								Namespace: o.Namespace,
-								Pod: &Pod{
-									Name:       o.Spec.JobTemplate.Spec.Template.Name,
-									Namespace:  o.Namespace,
-									IsTemplate: true,
-									Parent: &Parent{
-										ResourceKind: ResourceKindBatchV1CronJob,
-										Namespace:    o.Namespace,
-										Name:         o.Name,
-									},
-								},
+						graph.InsertTree(
+							platform.ImageNode{
+								Reference: reference,
 							},
-						})
+							resource{
+								kind: ResourceKindCoreV1Container,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindBatchV1CronJob, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.JobTemplate.Name,
+									ResourceKindCoreV1Container, container.Name,
+								}, "/"),
+								name: container.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Pod,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindBatchV1CronJob, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.JobTemplate.Name,
+								}, "/"),
+								name: o.Spec.JobTemplate.Name,
+							},
+							resource{
+								kind: ResourceKindBatchV1CronJob,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindBatchV1CronJob, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.JobTemplate.Name,
+								}, "/"),
+								name: o.Name,
+							},
+						)
 					}
 				case *batchv1.Job:
 					for _, container := range o.Spec.Template.Spec.Containers {
@@ -206,33 +294,58 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 							return err
 						}
 
-						fn(reference, &Origin{
-							Container: Container{
-								Name:      container.Name,
-								Namespace: o.Namespace,
-								Pod: &Pod{
-									Name:       o.Spec.Template.Name,
-									Namespace:  o.Namespace,
-									IsTemplate: true,
-									Parent: &Parent{
-										ResourceKind: ResourceKindBatchV1Job,
-										Namespace:    o.Namespace,
-										Name:         o.Name,
-									},
-								},
+						graph.InsertTree(
+							platform.ImageNode{
+								Reference: reference,
 							},
-						})
+							resource{
+								kind: ResourceKindCoreV1Container,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindBatchV1Job, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+									ResourceKindCoreV1Container, container.Name,
+								}, "/"),
+								name: container.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Pod,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindBatchV1Job, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Spec.Template.Name,
+							},
+							resource{
+								kind: ResourceKindBatchV1Job,
+								id: strings.Join([]string{
+									"kubernetes",
+									o.Namespace,
+									ResourceKindBatchV1Job, o.Name,
+									ResourceKindCoreV1Pod, o.Spec.Template.Name,
+								}, "/"),
+								name: o.Name,
+							},
+						)
 					}
 				case *corev1.Pod:
 					for _, container := range o.Spec.Containers {
 						// For now, let's assume a pod only has one owning reference
-						var parent *Parent
+						var parent Resource
 						if len(o.OwnerReferences) > 0 {
-							parent = &Parent{
-								ResourceKind: ResourceKind(strings.ToLower(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind)),
-								Namespace:    o.Namespace,
-								Name:         o.Name,
+							parent = resource{
+								id:   string(o.OwnerReferences[0].UID),
+								kind: ResourceKind(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind),
+								name: o.OwnerReferences[0].Name,
 							}
+						}
+
+						parentID := "kubernetes"
+						if parent != nil {
+							parentID = parent.ID()
 						}
 
 						reference, err := oci.ParseReference(container.Image)
@@ -240,19 +353,33 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 							return err
 						}
 
-						fn(reference, &Origin{
-							Container: Container{
-								Name:      container.Name,
-								Namespace: o.Namespace,
-								Pod: &Pod{
-									Name:       o.Name,
-									Namespace:  o.Namespace,
-									IsTemplate: false,
-									Created:    o.CreationTimestamp.UTC(),
-									Parent:     parent,
-								},
+						tree := []platform.Node{
+							platform.ImageNode{
+								Reference: reference,
 							},
-						})
+							resource{
+								kind: ResourceKindCoreV1Container,
+								id: strings.Join([]string{
+									parentID,
+									ResourceKindCoreV1Pod, o.Name,
+									ResourceKindCoreV1Container, container.Name,
+								}, "/"),
+								name: container.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Pod,
+								id: strings.Join([]string{
+									parentID,
+									ResourceKindCoreV1Pod, o.Name,
+								}, "/"),
+								name: o.Name,
+							},
+						}
+						if parent != nil {
+							tree = append(tree, parent)
+						}
+
+						graph.InsertTree(tree...)
 					}
 				default:
 					// Panic as missing entries would be a programming issue, not runtime
@@ -265,5 +392,9 @@ func (p *Platform) EachListItem(ctx context.Context, fn func(oci.Reference, plat
 		})
 	}
 
-	return wg.Wait()
+	if err := wg.Wait(); err != nil {
+		return nil, err
+	}
+
+	return graph, nil
 }

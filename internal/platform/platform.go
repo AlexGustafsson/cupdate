@@ -2,37 +2,37 @@ package platform
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/AlexGustafsson/cupdate/internal/graphing"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
+type Node interface {
+	ID() string
+	Type() string
+}
+
+type Graph = *graphing.Forest[Node]
+
+type ImageNode struct {
+	Reference oci.Reference
+}
+
+func (n ImageNode) ID() string {
+	return fmt.Sprintf("oci/image/%s", n.Reference)
+}
+
+func (n ImageNode) Type() string {
+	return "image"
+}
+
 type Platform interface {
-	// Images returns all unique images in use or referenced within the platform
-	// as well as a Graph describing in what ways the images are used.
-	Images(context.Context) ([]oci.Reference, Graph, error)
+	// Graph returns a graph of all images found on the platform.
+	// The graph's roots are [ImageNode]s.
+	Graph(context.Context) (Graph, error)
 }
 
-type Origin interface {
-	Kind() string
-}
-
-type Graph map[string][]Origin
-
-func (g Graph) AddOrigin(reference oci.Reference, origin Origin) {
-	key := reference.String()
-
-	origins := g[key]
-	if origins == nil {
-		origins = []Origin{origin}
-	} else {
-		origins = append(origins, origin)
-	}
-
-	g[key] = origins
-}
-
-func (g Graph) Origins(reference oci.Reference) []Origin {
-	key := reference.String()
-
-	return g[key]
+func NewGraph() Graph {
+	return graphing.NewForest[Node]()
 }

@@ -27,7 +27,7 @@ func TestDefaultPipeline(t *testing.T) {
 	tags := make([]string, 0)
 	description := ""
 	releaseNotes := ""
-	graph := make(platform.Graph) // TODO
+	graph := platform.NewGraph() // TODO
 	links := make([]models.ImageLink, 0)
 
 	data := ImageData{

@@ -13,6 +13,77 @@ depending on the information gathered about the image from the registry.
 
 ## Platforms
 
+Platforms are responsible for identifying all images in use, as well as how they
+are used, by building a graph. Below is an example graph collected from
+Kubernetes. In practice, the node for the platform itself is implicit and not
+definied in code.
+
+```mermaid
+flowchart TD
+  kubernetes[Kubernetes]
+  kubernetes --> namespaceA
+  kubernetes --> namespaceB
+
+  namespaceA[Namespace A]
+  deploymentA[Deployment A]
+  podA[Pod A]
+  containerA[Container A]
+  containerB[Container B]
+  imageA[Image A]
+
+  namespaceA --> deploymentA
+  deploymentA --> podA
+  podA --> containerA
+  podA --> containerB
+  containerA --> imageA
+  containerB --> imageA
+
+  namespaceB[Namespace B]
+  daemonSetB[Daemon set B]
+  podB[Pod B]
+  containerC[Container C]
+  imageB[Image B]
+
+  namespaceB --> daemonSetB
+  daemonSetB --> podB
+  podB --> containerC
+  containerC --> imageB
+```
+
+The graphs are generated and stored per image.
+
+```mermaid
+flowchart TD
+  namespaceA[Namespace A]
+  deploymentA[Deployment A]
+  podA[Pod A]
+  containerA[Container A]
+  containerB[Container B]
+  imageA[Image A]
+
+  namespaceA --> deploymentA
+  deploymentA --> podA
+  podA --> containerA
+  podA --> containerB
+  containerA --> imageA
+  containerB --> imageA
+```
+
+```mermaid
+flowchart TD
+  namespaceB[Namespace B]
+  daemonSetB[Daemon set B]
+  podB[Pod B]
+  containerC[Container C]
+  imageB[Image B]
+
+  namespaceB --> daemonSetB
+  daemonSetB --> podB
+  podB --> containerC
+  containerC --> imageB
+```
+
+
 ### Kubernetes
 
 ![An overview of how Cupdate uses Kubernetes](kubernetes.excalidraw.png)
