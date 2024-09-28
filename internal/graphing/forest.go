@@ -10,6 +10,10 @@ type Node interface {
 	ID() string
 }
 
+type stringer interface {
+	String() string
+}
+
 // Forest is a directed, unweighted graph describing how an image is used.
 type Forest[T Node] struct {
 	// edges holds a set of adjacent node ids, mapped by the node's id. The bool
@@ -101,8 +105,18 @@ func (f *Forest[T]) describeFromRoot(rootID string) string {
 
 	paths := f.traverse(rootID)
 	for i := 0; i < len(paths); i++ {
-		result.WriteString(strings.Join(paths[i], "->"))
-		if i < len(paths)-1 {
+		labels := make([]string, 0)
+		for _, nodeID := range paths[i] {
+			node := f.nodes[nodeID]
+			if named, ok := any(node).(stringer); ok {
+				labels = append(labels, named.String())
+			} else {
+				labels = append(labels, node.ID())
+			}
+		}
+
+		result.WriteString(strings.Join(labels, "->"))
+		if i < len(labels)-1 {
 			result.WriteByte('\n')
 		}
 	}

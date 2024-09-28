@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"context"
-	"strings"
+	"fmt"
 
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
@@ -80,33 +80,17 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 							},
 							resource{
 								kind: ResourceKindCoreV1Container,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1Deployment, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-									ResourceKindCoreV1Container, container.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/container/%s", o.UID, container.Name),
 								name: container.Name,
 							},
 							resource{
 								kind: ResourceKindCoreV1Pod,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1Deployment, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/pod", o.UID),
 								name: o.Spec.Template.Name,
 							},
 							resource{
 								kind: ResourceKindAppsV1Deployment,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1Deployment, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
 						)
@@ -124,33 +108,17 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 							},
 							resource{
 								kind: ResourceKindCoreV1Container,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1DaemonSet, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-									ResourceKindCoreV1Container, container.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/container/%s", o.UID, container.Name),
 								name: container.Name,
 							},
 							resource{
 								kind: ResourceKindCoreV1Pod,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1DaemonSet, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/pod", o.UID),
 								name: o.Spec.Template.Name,
 							},
 							resource{
 								kind: ResourceKindAppsV1DaemonSet,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1Deployment, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
 						)
@@ -168,33 +136,17 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 							},
 							resource{
 								kind: ResourceKindCoreV1Container,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1ReplicaSet, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-									ResourceKindCoreV1Container, container.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/container/%s", o.UID, container.Name),
 								name: container.Name,
 							},
 							resource{
 								kind: ResourceKindCoreV1Pod,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1ReplicaSet, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/pod", o.UID),
 								name: o.Spec.Template.Name,
 							},
 							resource{
 								kind: ResourceKindAppsV1ReplicaSet,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1Deployment, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
 						)
@@ -212,33 +164,17 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 							},
 							resource{
 								kind: ResourceKindCoreV1Container,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1StatefulSet, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-									ResourceKindCoreV1Container, container.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/container/%s", o.UID, container.Name),
 								name: container.Name,
 							},
 							resource{
 								kind: ResourceKindCoreV1Pod,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1StatefulSet, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/pod", o.UID),
 								name: o.Spec.Template.Name,
 							},
 							resource{
 								kind: ResourceKindAppsV1StatefulSet,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindAppsV1StatefulSet, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
 						)
@@ -256,33 +192,17 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 							},
 							resource{
 								kind: ResourceKindCoreV1Container,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindBatchV1CronJob, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.JobTemplate.Name,
-									ResourceKindCoreV1Container, container.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/container/%s", o.UID, container.Name),
 								name: container.Name,
 							},
 							resource{
 								kind: ResourceKindCoreV1Pod,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindBatchV1CronJob, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.JobTemplate.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/pod", o.UID),
 								name: o.Spec.JobTemplate.Name,
 							},
 							resource{
 								kind: ResourceKindBatchV1CronJob,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindBatchV1CronJob, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.JobTemplate.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
 						)
@@ -300,33 +220,17 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 							},
 							resource{
 								kind: ResourceKindCoreV1Container,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindBatchV1Job, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-									ResourceKindCoreV1Container, container.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/container/%s", o.UID, container.Name),
 								name: container.Name,
 							},
 							resource{
 								kind: ResourceKindCoreV1Pod,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindBatchV1Job, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/pod", o.UID),
 								name: o.Spec.Template.Name,
 							},
 							resource{
 								kind: ResourceKindBatchV1Job,
-								id: strings.Join([]string{
-									"kubernetes",
-									o.Namespace,
-									ResourceKindBatchV1Job, o.Name,
-									ResourceKindCoreV1Pod, o.Spec.Template.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
 						)
@@ -337,15 +241,10 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 						var parent Resource
 						if len(o.OwnerReferences) > 0 {
 							parent = resource{
-								id:   string(o.OwnerReferences[0].UID),
+								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								kind: ResourceKind(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind),
 								name: o.OwnerReferences[0].Name,
 							}
-						}
-
-						parentID := "kubernetes"
-						if parent != nil {
-							parentID = parent.ID()
 						}
 
 						reference, err := oci.ParseReference(container.Image)
@@ -359,22 +258,16 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 							},
 							resource{
 								kind: ResourceKindCoreV1Container,
-								id: strings.Join([]string{
-									parentID,
-									ResourceKindCoreV1Pod, o.Name,
-									ResourceKindCoreV1Container, container.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/container/%s", o.UID, container.Name),
 								name: container.Name,
 							},
 							resource{
 								kind: ResourceKindCoreV1Pod,
-								id: strings.Join([]string{
-									parentID,
-									ResourceKindCoreV1Pod, o.Name,
-								}, "/"),
+								id:   fmt.Sprintf("kubernetes/%s/pod", o.UID),
 								name: o.Name,
 							},
 						}
+
 						if parent != nil {
 							tree = append(tree, parent)
 						}

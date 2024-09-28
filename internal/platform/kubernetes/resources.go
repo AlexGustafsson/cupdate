@@ -1,6 +1,10 @@
 package kubernetes
 
-import "github.com/AlexGustafsson/cupdate/internal/platform"
+import (
+	"fmt"
+
+	"github.com/AlexGustafsson/cupdate/internal/platform"
+)
 
 type ResourceKind string
 
@@ -19,6 +23,7 @@ type Resource interface {
 	platform.Node
 	Kind() ResourceKind
 	Name() string
+	String() string
 }
 
 type resource struct {
@@ -41,4 +46,8 @@ func (r resource) Kind() ResourceKind {
 
 func (r resource) Name() string {
 	return r.name
+}
+
+func (r resource) String() string {
+	return fmt.Sprintf("%s<%s>", r.kind, r.name)
 }

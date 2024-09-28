@@ -27,6 +27,10 @@ func (n ImageNode) Type() string {
 	return "image"
 }
 
+func (n ImageNode) String() string {
+	return fmt.Sprintf("%s<%s>", n.Type(), n.Reference.String())
+}
+
 type Platform interface {
 	// Graph returns a graph of all images found on the platform.
 	// The graph's roots are [ImageNode]s.
