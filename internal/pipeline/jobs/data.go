@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
@@ -11,8 +10,7 @@ type ImageData struct {
 	Image          *string
 	LatestVersion  *oci.Reference
 	Tags           *[]string
-	Description    *string
-	ReleaseNotes   *string
-	Graph          *platform.Graph
+	Description    **models.ImageDescription
+	ReleaseNotes   **models.ImageReleaseNotes
 	Links          *[]models.ImageLink
 }

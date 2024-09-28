@@ -3,13 +3,11 @@ package jobs
 import (
 	"context"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/pipeline"
-	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/stretchr/testify/require"
 )
@@ -25,9 +23,8 @@ func TestDefaultPipeline(t *testing.T) {
 	latestVersion, err := oci.ParseReference("renovate/renovate:38.70.2")
 	require.NoError(t, err)
 	tags := make([]string, 0)
-	description := ""
-	releaseNotes := ""
-	graph := platform.NewGraph() // TODO
+	var description *models.ImageDescription
+	var releaseNotes *models.ImageReleaseNotes
 	links := make([]models.ImageLink, 0)
 
 	data := ImageData{
@@ -37,7 +34,6 @@ func TestDefaultPipeline(t *testing.T) {
 		Tags:           &tags,
 		Description:    &description,
 		ReleaseNotes:   &releaseNotes,
-		Graph:          &graph,
 		Links:          &links,
 	}
 
@@ -48,8 +44,8 @@ func TestDefaultPipeline(t *testing.T) {
 	fmt.Println("image", image)
 	fmt.Println("latestVersion", latestVersion)
 	fmt.Println("tags", tags)
-	fmt.Println("description", strings.ReplaceAll(description[:min(100, len(description))], "\n", "\t"))
-	fmt.Println("releaseNotes", strings.ReplaceAll(releaseNotes[:min(100, len(releaseNotes))], "\n", "\t"))
+	// fmt.Println("description", strings.ReplaceAll(description[:min(100, len(description))], "\n", "\t"))
+	// fmt.Println("releaseNotes", strings.ReplaceAll(releaseNotes[:min(100, len(releaseNotes))], "\n", "\t"))
 	// fmt.Println("graph", graph) // TODO
 	fmt.Printf("links %+v\n", links)
 }

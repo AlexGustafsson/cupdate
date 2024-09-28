@@ -9,7 +9,10 @@ import (
 	"os/signal"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
+	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/models"
+	"github.com/AlexGustafsson/cupdate/internal/pipeline"
+	"github.com/AlexGustafsson/cupdate/internal/pipeline/jobs"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"golang.org/x/sync/errgroup"
@@ -29,76 +32,84 @@ func main() {
 		os.Exit(1)
 	}
 
-	// cache, err := cache.NewDiskCache("./cache")
-	// if err != nil {
-	// 	slog.Error("Failed to serve", slog.Any("error", err))
-	// 	os.Exit(1)
-	// }
+	cache, err := cache.NewDiskCache("./cache")
+	if err != nil {
+		slog.Error("Failed to serve", slog.Any("error", err))
+		os.Exit(1)
+	}
 
 	data := &api.InMemoryAPI{
 		Store: &models.Store{
-			Tags: []*models.Tag{
-				{
-					Name:        "k8s",
-					Description: "Kubernetes",
-					Color:       "#DBEAFE",
-				},
-				{
-					Name:        "pod",
-					Description: "A kubernetes pod",
-					Color:       "#FFEDD5",
-				},
-				{
-					Name:        "job",
-					Description: "A kubernetes job",
-					Color:       "#DBEAFE",
-				},
-				{
-					Name:        "cron job",
-					Description: "A kubernetes cron job",
-					Color:       "#DBEAFE",
-				},
-				{
-					Name:        "deployment",
-					Description: "A kubernetes deployment",
-					Color:       "#DBEAFE",
-				},
-				{
-					Name:        "replica set",
-					Description: "A kubernetes replica set",
-					Color:       "#DBEAFE",
-				},
-				{
-					Name:        "daemon set",
-					Description: "A kubernetes daemon set",
-					Color:       "#DBEAFE",
-				},
-				{
-					Name:        "stateful set",
-					Description: "A kubernetes stateful set",
-					Color:       "#DBEAFE",
-				},
-				{
-					Name:        "docker",
-					Description: "A docker container",
-					Color:       "#FEE2E2",
-				},
-				{
-					Name:        "up-to-date",
-					Description: "Up-to-date images",
-					Color:       "#DCFCE7",
-				},
-				{
-					Name:        "outdated",
-					Description: "Outdated images",
-					Color:       "#FEE2E2",
-				},
-			},
+			Tags:         []*models.Tag{},
 			Images:       []*models.Image{},
 			Descriptions: map[string]*models.ImageDescription{},
 			ReleaseNotes: map[string]*models.ImageReleaseNotes{},
 			Graphs:       map[string]models.Graph{},
 		},
+	}
+
+	processedStore := &models.Store{
+		Tags: []*models.Tag{
+			{
+				Name:        "k8s",
+				Description: "Kubernetes",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "pod",
+				Description: "A kubernetes pod",
+				Color:       "#FFEDD5",
+			},
+			{
+				Name:        "job",
+				Description: "A kubernetes job",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "cron job",
+				Description: "A kubernetes cron job",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "deployment",
+				Description: "A kubernetes deployment",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "replica set",
+				Description: "A kubernetes replica set",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "daemon set",
+				Description: "A kubernetes daemon set",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "stateful set",
+				Description: "A kubernetes stateful set",
+				Color:       "#DBEAFE",
+			},
+			{
+				Name:        "docker",
+				Description: "A docker container",
+				Color:       "#FEE2E2",
+			},
+			{
+				Name:        "up-to-date",
+				Description: "Up-to-date images",
+				Color:       "#DCFCE7",
+			},
+			{
+				Name:        "outdated",
+				Description: "Outdated images",
+				Color:       "#FEE2E2",
+			},
+		},
+		Images:       []*models.Image{},
+		Descriptions: map[string]*models.ImageDescription{},
+		ReleaseNotes: map[string]*models.ImageReleaseNotes{},
+		Graphs:       map[string]models.Graph{},
 	}
 
 	apiServer := api.NewServer(data)
@@ -125,25 +136,6 @@ func main() {
 		for _, root := range roots {
 			imageNode := root.(platform.ImageNode)
 			ref := imageNode.Reference
-
-			imageName := ref.Name()
-
-			imageTag := "latest"
-			if ref.HasTag {
-				imageTag = ref.Tag
-			}
-
-			image := &models.Image{
-				Name:           imageName,
-				CurrentVersion: imageTag,
-				LatestVersion:  imageTag,
-				// TODO: Tags should include pod, job, cron job, deployment set etc.
-				// Everything's a pod, so try to use the topmost descriptor
-				Tags:  []string{"k8s", "pod"},
-				Links: []*models.ImageLink{},
-				Image: "",
-			}
-			data.Store.Images = append(data.Store.Images, image)
 
 			subgraph := graph.Subgraph(root.ID())
 
@@ -175,20 +167,55 @@ func main() {
 				Nodes: mappedNodes,
 			}
 
-			data.Store.Graphs[ref.String()] = mappedGraph
+			processedStore.Graphs[ref.String()] = mappedGraph
 		}
 
-		// pipeline := pipeline.New(cache, jobs.DefaultJobs())
-		// TODO: How will deduplication work with this when we invoke just one image
-		// at a time?
-		// for _, image := range images {
-		// 	processedStore, err := pipeline.Run(ctx, jobs.Image)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
+		pipeline := pipeline.New(cache, jobs.DefaultJobs())
+		for _, root := range roots {
+			imageNode := root.(platform.ImageNode)
 
-		// data.Store = processedStore
+			var image string
+			latestVersion := imageNode.Reference
+			tags := make([]string, 0)
+			var description *models.ImageDescription
+			var releaseNotes *models.ImageReleaseNotes
+			links := make([]models.ImageLink, 0)
+
+			_, err := pipeline.Run(ctx, jobs.ImageData{
+				ImageReference: imageNode.Reference,
+				Image:          &image,
+				LatestVersion:  &latestVersion,
+				Tags:           &tags,
+				Description:    &description,
+				ReleaseNotes:   &releaseNotes,
+				Links:          &links,
+			})
+			if err != nil {
+				slog.Error("Failed to run pipeline for image", slog.Any("error", err))
+				continue
+			}
+
+			processedStore.Images = append(processedStore.Images, &models.Image{
+				Name: imageNode.Reference.Name(),
+				// TODO: Handle digests, not just tags
+				CurrentVersion: imageNode.Reference.Tag,
+				LatestVersion:  latestVersion.Tag,
+				// TODO: Tags should include pod, job, cron job, deployment set etc.
+				// Everything's a pod, so try to use the topmost descriptor
+				Tags:  tags,
+				Image: image,
+				Links: links,
+			})
+
+			if description != nil {
+				processedStore.Descriptions[imageNode.Reference.String()] = description
+			}
+			if releaseNotes != nil {
+				processedStore.ReleaseNotes[imageNode.Reference.String()] = releaseNotes
+			}
+		}
+
+		data.Store = processedStore
 		return nil
 	})
 

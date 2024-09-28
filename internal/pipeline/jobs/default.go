@@ -66,7 +66,9 @@ func DefaultJobs() pipeline.Job[ImageData] {
 							return nil
 						}
 
-						*ctx.Data.Description = repository.FullDescription
+						*ctx.Data.Description = &models.ImageDescription{
+							Markdown: repository.FullDescription,
+						}
 
 						return nil
 					}),
@@ -126,7 +128,9 @@ func DefaultJobs() pipeline.Job[ImageData] {
 				return nil
 			}
 
-			*ctx.Data.ReleaseNotes = release.Description
+			*ctx.Data.ReleaseNotes = &models.ImageReleaseNotes{
+				HTML: release.Description,
+			}
 
 			return nil
 		}),
