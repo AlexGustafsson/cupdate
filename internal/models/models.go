@@ -57,8 +57,8 @@ type Graph struct {
 }
 
 type GraphNode struct {
-	Domain  string       `json:"domain"`
-	Type    string       `json:"type"`
-	Name    string       `json:"name"`
-	Parents []*GraphNode `json:"parents"`
+	Domain   string       `json:"domain"`
+	Type     string       `json:"type"`
+	Name     string       `json:"name"`
+	Children []*GraphNode `json:"children"`
 }

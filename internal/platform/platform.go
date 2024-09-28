@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/AlexGustafsson/cupdate/internal/graphing"
+	"github.com/AlexGustafsson/cupdate/internal/graph"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
@@ -13,7 +13,7 @@ type Node interface {
 	Type() string
 }
 
-type Graph = *graphing.Forest[Node]
+type Graph = *graph.Graph[Node]
 
 type ImageNode struct {
 	Reference oci.Reference
@@ -38,5 +38,5 @@ type Platform interface {
 }
 
 func NewGraph() Graph {
-	return graphing.NewForest[Node]()
+	return graph.New[Node]()
 }

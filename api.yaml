@@ -294,11 +294,11 @@ components:
           example: kubernetes
         type:
           type: string
-          example: apps/v1/DeploymentSet
+          example: apps/v1/deploymentset
         name:
           type: string
           example: default
-        parents:
+        children:
           type: array
           items:
             $ref: '#/components/schemas/GraphNode'
@@ -306,4 +306,4 @@ components:
         - domain
         - type
         - name
-        - parents
+        - children

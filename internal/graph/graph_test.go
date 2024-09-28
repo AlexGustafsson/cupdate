@@ -1,4 +1,4 @@
-package graphing
+package graph
 
 import (
 	"strings"
@@ -15,10 +15,10 @@ func (n testNode) ID() string {
 	return n.id
 }
 
-func TestForestLeaves(t *testing.T) {
-	f := NewForest[testNode]()
+func TestGraphRoots(t *testing.T) {
+	g := New[testNode]()
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image a"},
 		testNode{id: "container a"},
 		testNode{id: "pod a"},
@@ -26,7 +26,7 @@ func TestForestLeaves(t *testing.T) {
 		testNode{id: "namespace a"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image a"},
 		testNode{id: "container b"},
 		testNode{id: "pod a"},
@@ -34,7 +34,7 @@ func TestForestLeaves(t *testing.T) {
 		testNode{id: "namespace a"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image a"},
 		testNode{id: "container c"},
 		testNode{id: "pod b"},
@@ -42,7 +42,7 @@ func TestForestLeaves(t *testing.T) {
 		testNode{id: "namespace b"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image b"},
 		testNode{id: "container d"},
 		testNode{id: "pod c"},
@@ -50,7 +50,7 @@ func TestForestLeaves(t *testing.T) {
 		testNode{id: "namespace c"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image c"},
 	)
 
@@ -60,13 +60,13 @@ func TestForestLeaves(t *testing.T) {
 		testNode{id: "image c"},
 	}
 
-	assert.ElementsMatch(t, expectedRoots, f.Roots())
+	assert.ElementsMatch(t, expectedRoots, g.Roots())
 }
 
-func TestForestString(t *testing.T) {
-	f := NewForest[testNode]()
+func TestGraphString(t *testing.T) {
+	g := New[testNode]()
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image a"},
 		testNode{id: "container a"},
 		testNode{id: "pod a"},
@@ -74,7 +74,7 @@ func TestForestString(t *testing.T) {
 		testNode{id: "namespace a"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image a"},
 		testNode{id: "container b"},
 		testNode{id: "pod a"},
@@ -82,7 +82,7 @@ func TestForestString(t *testing.T) {
 		testNode{id: "namespace a"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image a"},
 		testNode{id: "container c"},
 		testNode{id: "pod b"},
@@ -90,7 +90,7 @@ func TestForestString(t *testing.T) {
 		testNode{id: "namespace b"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image b"},
 		testNode{id: "container d"},
 		testNode{id: "pod c"},
@@ -98,7 +98,7 @@ func TestForestString(t *testing.T) {
 		testNode{id: "namespace c"},
 	)
 
-	f.InsertTree(
+	g.InsertTree(
 		testNode{id: "image c"},
 	)
 
@@ -108,7 +108,7 @@ image a->container c->pod b->deployment b->namespace b
 image b->container d->pod c->deployment c->namespace c
 image c`
 
-	actualString := f.String()
+	actualString := g.String()
 
 	// Ignore order when matching
 	expected := strings.Split(expectedString, "\n")

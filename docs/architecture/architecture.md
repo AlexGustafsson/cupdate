@@ -20,67 +20,49 @@ definied in code.
 
 ```mermaid
 flowchart TD
-  kubernetes[Kubernetes]
-  kubernetes --> namespaceA
-  kubernetes --> namespaceB
-
-  namespaceA[Namespace A]
-  deploymentA[Deployment A]
-  podA[Pod A]
-  containerA[Container A]
-  containerB[Container B]
   imageA[Image A]
-
-  namespaceA --> deploymentA
-  deploymentA --> podA
-  podA --> containerA
-  podA --> containerB
-  containerA --> imageA
-  containerB --> imageA
-
-  namespaceB[Namespace B]
-  daemonSetB[Daemon set B]
-  podB[Pod B]
-  containerC[Container C]
-  imageB[Image B]
-
-  namespaceB --> daemonSetB
-  daemonSetB --> podB
-  podB --> containerC
-  containerC --> imageB
-```
-
-The graphs are generated and stored per image.
-
-```mermaid
-flowchart TD
-  namespaceA[Namespace A]
-  deploymentA[Deployment A]
-  podA[Pod A]
   containerA[Container A]
+  podA[Pod A]
+  deploymentA[Deployment A]
+  namespaceA[Namespace A]
+
+  imageA --> containerA
+  containerA --> podA
+  podA --> deploymentA
+  deploymentA --> namespaceA
+
   containerB[Container B]
-  imageA[Image A]
+  imageA --> containerB
+  containerB --> podA
 
-  namespaceA --> deploymentA
-  deploymentA --> podA
-  podA --> containerA
-  podA --> containerB
-  containerA --> imageA
-  containerB --> imageA
-```
-
-```mermaid
-flowchart TD
-  namespaceB[Namespace B]
-  daemonSetB[Daemon set B]
-  podB[Pod B]
   containerC[Container C]
-  imageB[Image B]
+  podB[Pod B]
+  deploymentB[Deployment B]
+  namespaceB[Namespace B]
 
-  namespaceB --> daemonSetB
-  daemonSetB --> podB
-  podB --> containerC
-  containerC --> imageB
+  imageA --> containerC
+  containerC --> podB
+  podB --> deploymentB
+  deploymentB --> namespaceB
+
+  imageB[Image B]
+  containerD[Container D]
+  podC[Pod C]
+  deploymentC[Deployment C]
+  namespaceC[Namespace C]
+
+  imageB --> containerD
+  containerD --> podC
+  podC --> deploymentC
+  deploymentC --> namespaceC
+
+  imageC[Image C]
+  containerE[Container E]
+  podD[Pod D]
+
+  imageC --> containerE
+  containerE --> podD
+  podD --> namespaceB
 ```
 
 

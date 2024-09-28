@@ -1,4 +1,4 @@
-package graphing
+package graph
 
 import (
 	"strings"
@@ -14,8 +14,8 @@ type stringer interface {
 	String() string
 }
 
-// Forest is a directed, unweighted graph describing how an image is used.
-type Forest[T Node] struct {
+// Graph is a directed, cyclic, unweighted graph.
+type Graph[T Node] struct {
 	// edges holds a set of adjacent node ids, mapped by the node's id. The bool
 	// describes whether or not a is the parent of b.
 	//   - true: a->b
@@ -25,55 +25,55 @@ type Forest[T Node] struct {
 	nodes map[string]T
 }
 
-func NewForest[T Node]() *Forest[T] {
-	return &Forest[T]{
+func New[T Node]() *Graph[T] {
+	return &Graph[T]{
 		edges: make(map[string]map[string]bool),
 		nodes: make(map[string]T),
 	}
 }
 
 // InsertTree inserts nodes of a tree, ordered root first, leaf last.
-func (f *Forest[T]) InsertTree(nodes ...T) {
+func (g *Graph[T]) InsertTree(nodes ...T) {
 	for i := 0; i < len(nodes); i++ {
-		f.insertNode(nodes[i])
+		g.insertNode(nodes[i])
 		if i > 0 {
-			f.insertEdge(nodes[i-1].ID(), nodes[i].ID(), true)
-			f.insertEdge(nodes[i].ID(), nodes[i-1].ID(), false)
+			g.insertEdge(nodes[i-1].ID(), nodes[i].ID(), true)
+			g.insertEdge(nodes[i].ID(), nodes[i-1].ID(), false)
 		}
 	}
 }
 
-// InsertForest merges other into f.
-func (f *Forest[T]) InsertForest(other *Forest[T]) {
+// InsertGraph merges other into g.
+func (g *Graph[T]) InsertGraph(other *Graph[T]) {
 	for from, edges := range other.edges {
 		for to, direction := range edges {
-			f.insertEdge(from, to, direction)
+			g.insertEdge(from, to, direction)
 		}
 	}
 
 	for _, node := range other.nodes {
-		f.insertNode(node)
+		g.insertNode(node)
 	}
 }
 
-// insertNode inserts the node into the forest.
-func (f *Forest[T]) insertNode(n T) {
-	f.nodes[n.ID()] = n
+// insertNode inserts the node into the graph.
+func (g *Graph[T]) insertNode(n T) {
+	g.nodes[n.ID()] = n
 }
 
 // insertEdge inserts an edge from a to b with the specified direction.
-func (f *Forest[T]) insertEdge(a string, b string, direction bool) {
-	if _, ok := f.edges[a]; !ok {
-		f.edges[a] = make(map[string]bool)
+func (g *Graph[T]) insertEdge(a string, b string, direction bool) {
+	if _, ok := g.edges[a]; !ok {
+		g.edges[a] = make(map[string]bool)
 	}
-	f.edges[a][b] = direction
+	g.edges[a][b] = direction
 }
 
-func (f *Forest[T]) Roots() []T {
+func (g *Graph[T]) Roots() []T {
 	roots := make([]T, 0)
-	for nodeID, node := range f.nodes {
+	for nodeID, node := range g.nodes {
 		parents := 0
-		for _, isParent := range f.edges[nodeID] {
+		for _, isParent := range g.edges[nodeID] {
 			if !isParent {
 				parents++
 			}
@@ -86,12 +86,12 @@ func (f *Forest[T]) Roots() []T {
 	return roots
 }
 
-func (f *Forest[T]) String() string {
+func (g *Graph[T]) String() string {
 	var result strings.Builder
 
-	roots := f.Roots()
+	roots := g.Roots()
 	for i := 0; i < len(roots); i++ {
-		result.WriteString(f.describeFromRoot(roots[i].ID()))
+		result.WriteString(g.describeFromRoot(roots[i].ID()))
 		if i < len(roots)-1 {
 			result.WriteByte('\n')
 		}
@@ -100,14 +100,14 @@ func (f *Forest[T]) String() string {
 	return result.String()
 }
 
-func (f *Forest[T]) describeFromRoot(rootID string) string {
+func (g *Graph[T]) describeFromRoot(rootID string) string {
 	var result strings.Builder
 
-	paths := f.traverse(rootID)
+	paths := g.traverse(rootID)
 	for i := 0; i < len(paths); i++ {
 		labels := make([]string, 0)
 		for _, nodeID := range paths[i] {
-			node := f.nodes[nodeID]
+			node := g.nodes[nodeID]
 			if named, ok := any(node).(stringer); ok {
 				labels = append(labels, named.String())
 			} else {
@@ -124,9 +124,9 @@ func (f *Forest[T]) describeFromRoot(rootID string) string {
 	return result.String()
 }
 
-func (f *Forest[T]) childrenIDs(nodeID string) []string {
+func (g *Graph[T]) Children(nodeID string) []string {
 	childrenIDs := make([]string, 0)
-	for adjacentID, isParent := range f.edges[nodeID] {
+	for adjacentID, isParent := range g.edges[nodeID] {
 		if isParent {
 			childrenIDs = append(childrenIDs, adjacentID)
 		}
@@ -134,15 +134,15 @@ func (f *Forest[T]) childrenIDs(nodeID string) []string {
 	return childrenIDs
 }
 
-func (f *Forest[T]) traverse(rootID string) [][]string {
-	children := f.childrenIDs(rootID)
+func (g *Graph[T]) traverse(rootID string) [][]string {
+	children := g.Children(rootID)
 	if len(children) == 0 {
 		return [][]string{{rootID}}
 	}
 
 	paths := make([][]string, 0)
 	for _, child := range children {
-		for _, path := range f.traverse(child) {
+		for _, path := range g.traverse(child) {
 			path = append([]string{rootID}, path...)
 			paths = append(paths, path)
 		}
