@@ -19,5 +19,5 @@ type Store struct {
 	// ReleaseNotes is mapped by name:version
 	ReleaseNotes map[string]*ImageReleaseNotes
 	// Graphs is mapped by name:version
-	Graphs map[string]*Graph
+	Graphs map[string]Graph
 }

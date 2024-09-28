@@ -116,7 +116,7 @@ func (g *Graph[T]) describeFromRoot(rootID string) string {
 		}
 
 		result.WriteString(strings.Join(labels, "->"))
-		if i < len(labels)-1 {
+		if i < len(paths)-1 {
 			result.WriteByte('\n')
 		}
 	}
@@ -124,7 +124,7 @@ func (g *Graph[T]) describeFromRoot(rootID string) string {
 	return result.String()
 }
 
-func (g *Graph[T]) Children(nodeID string) []string {
+func (g *Graph[T]) children(nodeID string) []string {
 	childrenIDs := make([]string, 0)
 	for adjacentID, isParent := range g.edges[nodeID] {
 		if isParent {
@@ -134,8 +134,43 @@ func (g *Graph[T]) Children(nodeID string) []string {
 	return childrenIDs
 }
 
+func (g *Graph[T]) Subgraph(rootID string) *Graph[T] {
+	subgraph := New[T]()
+
+	visited := make(map[string]struct{})
+	queue := []string{rootID}
+	for len(queue) > 0 {
+		root := queue[0]
+		queue = queue[1:]
+		subgraph.insertNode(g.nodes[root])
+
+		children := g.children(root)
+		for _, child := range children {
+			if _, ok := visited[child]; !ok {
+				queue = append(queue, child)
+				subgraph.insertEdge(root, child, true)
+				subgraph.insertEdge(child, root, false)
+			}
+		}
+	}
+
+	return subgraph
+}
+
+func (g *Graph[T]) Edges() map[string]map[string]bool {
+	return g.edges
+}
+
+func (g *Graph[T]) Nodes() []T {
+	nodes := make([]T, 0)
+	for _, node := range g.nodes {
+		nodes = append(nodes, node)
+	}
+	return nodes
+}
+
 func (g *Graph[T]) traverse(rootID string) [][]string {
-	children := g.Children(rootID)
+	children := g.children(rootID)
 	if len(children) == 0 {
 		return [][]string{{rootID}}
 	}

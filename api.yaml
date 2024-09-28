@@ -278,13 +278,21 @@ components:
 
     Graph:
       type: object
-      description: A graph explaining why the image is used
+      description: A graph explaining why the image is used.
       properties:
-        root:
-          description: The root node. This is always the image
-          $ref: '#/components/schemas/GraphNode'
+        edges:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: boolean
+        nodes:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/GraphNode'
       required:
-        - root
+        - edges
+        - nodes
 
     GraphNode:
       type: object
@@ -298,12 +306,7 @@ components:
         name:
           type: string
           example: default
-        children:
-          type: array
-          items:
-            $ref: '#/components/schemas/GraphNode'
       required:
         - domain
         - type
         - name
-        - children

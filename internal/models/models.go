@@ -53,12 +53,12 @@ type ImageLink struct {
 }
 
 type Graph struct {
-	Root *GraphNode `json:"root"`
+	Edges map[string]map[string]bool `json:"edges"`
+	Nodes map[string]GraphNode       `json:"nodes"`
 }
 
 type GraphNode struct {
-	Domain   string       `json:"domain"`
-	Type     string       `json:"type"`
-	Name     string       `json:"name"`
-	Children []*GraphNode `json:"children"`
+	Domain string `json:"domain"`
+	Type   string `json:"type"`
+	Name   string `json:"name"`
 }

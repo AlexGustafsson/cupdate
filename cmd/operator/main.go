@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -36,76 +37,68 @@ func main() {
 
 	data := &api.InMemoryAPI{
 		Store: &models.Store{
-			Tags:         []*models.Tag{},
+			Tags: []*models.Tag{
+				{
+					Name:        "k8s",
+					Description: "Kubernetes",
+					Color:       "#DBEAFE",
+				},
+				{
+					Name:        "pod",
+					Description: "A kubernetes pod",
+					Color:       "#FFEDD5",
+				},
+				{
+					Name:        "job",
+					Description: "A kubernetes job",
+					Color:       "#DBEAFE",
+				},
+				{
+					Name:        "cron job",
+					Description: "A kubernetes cron job",
+					Color:       "#DBEAFE",
+				},
+				{
+					Name:        "deployment",
+					Description: "A kubernetes deployment",
+					Color:       "#DBEAFE",
+				},
+				{
+					Name:        "replica set",
+					Description: "A kubernetes replica set",
+					Color:       "#DBEAFE",
+				},
+				{
+					Name:        "daemon set",
+					Description: "A kubernetes daemon set",
+					Color:       "#DBEAFE",
+				},
+				{
+					Name:        "stateful set",
+					Description: "A kubernetes stateful set",
+					Color:       "#DBEAFE",
+				},
+				{
+					Name:        "docker",
+					Description: "A docker container",
+					Color:       "#FEE2E2",
+				},
+				{
+					Name:        "up-to-date",
+					Description: "Up-to-date images",
+					Color:       "#DCFCE7",
+				},
+				{
+					Name:        "outdated",
+					Description: "Outdated images",
+					Color:       "#FEE2E2",
+				},
+			},
 			Images:       []*models.Image{},
 			Descriptions: map[string]*models.ImageDescription{},
 			ReleaseNotes: map[string]*models.ImageReleaseNotes{},
-			Graphs:       map[string]*models.Graph{},
+			Graphs:       map[string]models.Graph{},
 		},
-	}
-
-	store := &models.UnprocessedStore{
-		Tags: []*models.Tag{
-			{
-				Name:        "k8s",
-				Description: "Kubernetes",
-				Color:       "#DBEAFE",
-			},
-			{
-				Name:        "pod",
-				Description: "A kubernetes pod",
-				Color:       "#FFEDD5",
-			},
-			{
-				Name:        "job",
-				Description: "A kubernetes job",
-				Color:       "#DBEAFE",
-			},
-			{
-				Name:        "cron job",
-				Description: "A kubernetes cron job",
-				Color:       "#DBEAFE",
-			},
-			{
-				Name:        "deployment",
-				Description: "A kubernetes deployment",
-				Color:       "#DBEAFE",
-			},
-			{
-				Name:        "replica set",
-				Description: "A kubernetes replica set",
-				Color:       "#DBEAFE",
-			},
-			{
-				Name:        "daemon set",
-				Description: "A kubernetes daemon set",
-				Color:       "#DBEAFE",
-			},
-			{
-				Name:        "stateful set",
-				Description: "A kubernetes stateful set",
-				Color:       "#DBEAFE",
-			},
-			{
-				Name:        "docker",
-				Description: "A docker container",
-				Color:       "#FEE2E2",
-			},
-			{
-				Name:        "up-to-date",
-				Description: "Up-to-date images",
-				Color:       "#DCFCE7",
-			},
-			{
-				Name:        "outdated",
-				Description: "Outdated images",
-				Color:       "#FEE2E2",
-			},
-		},
-		Images:       []*models.Image{},
-		Descriptions: map[string]*models.ImageDescription{},
-		ReleaseNotes: map[string]*models.ImageReleaseNotes{},
-		Graphs:       map[string][]*models.Graph{},
 	}
 
 	apiServer := api.NewServer(data)
@@ -150,99 +143,40 @@ func main() {
 				Links: []*models.ImageLink{},
 				Image: "",
 			}
+			data.Store.Images = append(data.Store.Images, image)
 
-			children := graph.Children(root.ID())
-			f := func(rootID string)
+			subgraph := graph.Subgraph(root.ID())
 
-			origins := graph.Origins(ref)
-			for _, origin := range origins {
-				// TODO: Build actual graph. We don't handle duplicates right now...
-				root := &models.GraphNode{
-					Domain: "oci",
-					Type:   "image",
-					Name:   imageName,
-				}
+			edges := subgraph.Edges()
+			nodes := subgraph.Nodes()
 
-				origin := origin.(*kubernetes.Origin)
-
-				container := &models.GraphNode{
-					Domain: "kubernetes",
-					Type:   "core/v1/container",
-					Name:   origin.Container.Name,
-				}
-				root.Parents = []*models.GraphNode{container}
-
-				pod := &models.GraphNode{
-					Domain: "kubernetes",
-					Type:   "core/v1/pod",
-					Name:   origin.Container.Pod.Name,
-				}
-				if pod.Name == "" && origin.Container.Pod.IsTemplate {
-					pod.Name = "(template)"
-				}
-				container.Parents = []*models.GraphNode{pod}
-
-				tag := "pod"
-				currentNode := pod
-				currentParent := origin.Container.Pod.Parent
-				for currentParent != nil {
-					node := &models.GraphNode{
-						Domain:  "kubernetes",
-						Type:    string(currentParent.ResourceKind),
-						Name:    currentParent.Name,
-						Parents: make([]*models.GraphNode, 0),
+			mappedNodes := make(map[string]models.GraphNode)
+			for _, node := range nodes {
+				switch n := node.(type) {
+				case kubernetes.Resource:
+					mappedNodes[node.ID()] = models.GraphNode{
+						Domain: "kubernetes",
+						Type:   string(n.Kind()),
+						Name:   n.Name(),
 					}
-					currentNode.Parents = []*models.GraphNode{node}
-
-					switch currentParent.ResourceKind {
-					case kubernetes.ResourceKindAppsV1Deployment:
-						tag = "deployment"
-					case kubernetes.ResourceKindAppsV1DaemonSet:
-						tag = "daemon set"
-					case kubernetes.ResourceKindAppsV1ReplicaSet:
-						tag = "replica set"
-					case kubernetes.ResourceKindBatchV1CronJob:
-						tag = "cron job"
-					case kubernetes.ResourceKindBatchV1Job:
-						tag = "job"
-					case kubernetes.ResourceKindAppsV1StatefulSet:
-						tag = "stateful set"
+				case platform.ImageNode:
+					mappedNodes[node.ID()] = models.GraphNode{
+						Domain: "oci",
+						Type:   "image",
+						Name:   ref.String(),
 					}
-
-					currentNode = node
-					currentParent = currentParent.Parent
+				default:
+					panic(fmt.Sprintf("unimplemented node type: %s", node.Type()))
 				}
-
-				image.Tags = append(image.Tags, tag)
-
-				// Namespace is implicit
-				currentNode.Parents = []*models.GraphNode{{
-					Domain:  "kubernetes",
-					Type:    "core/v1/namespace",
-					Name:    origin.Container.Namespace,
-					Parents: make([]*models.GraphNode, 0),
-				}}
-
-				graph := &models.Graph{
-					Root: root,
-				}
-
-				// TODO: Can overwrite. The graph should be shared among all ways the
-				// image is used
-				_, ok := graphs[ref.String()]
-				if !ok {
-					g := make([]*models.Graph, 0)
-					graphs[ref.String()] = g
-				}
-
-				graphs[ref.String()] = append(graphs[ref.String()], graph)
 			}
 
-			images = append(images, image)
-		}
+			mappedGraph := models.Graph{
+				Edges: edges,
+				Nodes: mappedNodes,
+			}
 
-		store.Images = images
-		store.Graphs = graphs
+			data.Store.Graphs[ref.String()] = mappedGraph
+		}
 
 		// pipeline := pipeline.New(cache, jobs.DefaultJobs())
 		// TODO: How will deduplication work with this when we invoke just one image

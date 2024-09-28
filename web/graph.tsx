@@ -8,7 +8,7 @@ import type {
 import { useEdgesState, useNodesState } from '@xyflow/react'
 import { type ReactNode, useEffect } from 'react'
 
-import type { Graph, GraphNode, Result } from './api'
+import type { Graph, GraphNode } from './api'
 import { CustomGraphNode } from './components/CustomGraphNode'
 import { SimpleIconsKubernetes } from './components/icons/simple-icons-kubernetes'
 import { SimpleIconsOci } from './components/icons/simple-icons-oci'
@@ -50,15 +50,15 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
 function extractBranches(root: GraphNode): GraphNode[][] {
   const branches: GraphNode[][] = []
 
-  for (let i = 0; i < root.parents.length; i++) {
-    const branch: GraphNode[] = []
-    let current = root.parents[i]
-    while (current) {
-      branch.push(current)
-      current = current.parents[0]
-    }
-    branches.push(branch)
-  }
+  // for (let i = 0; i < root.parents.length; i++) {
+  //   const branch: GraphNode[] = []
+  //   let current = root.parents[i]
+  //   while (current) {
+  //     branch.push(current)
+  //     current = current.parents[0]
+  //   }
+  //   branches.push(branch)
+  // }
 
   return branches
 }
@@ -86,33 +86,24 @@ function formatNode(id: string, node: GraphNode): NodeType {
   }
 }
 
-function formatGraph(root: GraphNode): [NodeType[], EdgeType[]] {
-  const branches = extractBranches(root)
-
-  const rootNode = formatNode('root', root)
-  const nodes: NodeType[] = [rootNode]
+function formatGraph(graph: Graph): [NodeType[], EdgeType[]] {
+  const nodes: NodeType[] = []
   const edges: EdgeType[] = []
 
-  const offsetX =
-    -(branches.length * 150 + Math.max(branches.length - 1, 0) * 100) / 2 + 75
-  const offsetY = -100
-  for (let i = 0; i < branches.length; i++) {
-    let previous = rootNode
-    for (let j = 0; j < branches[i].length; j++) {
-      const x = offsetX + i * 150 + i * 100
-      const y = offsetY - j * 100
+  for (const [id, node] of Object.entries(graph.nodes)) {
+    nodes.push(formatNode(id, node))
 
-      const node = formatNode(`$${i}$${y}$`, branches[i][j])
-      node.position = { x, y }
-      nodes.push(node)
-
-      edges.push({
-        id: `${node.id} -> ${previous.id}`,
-        source: node.id,
-        target: previous.id,
-      })
-
-      previous = node
+    for (const [to, isParent] of Object.entries(graph.edges[id])) {
+      if (isParent) {
+        edges.push({
+          id: `${id}->${to}`,
+          // NOTE: The graph / tree is built with images as roots, but in the UI
+          // we wish to map them with the root at the bottom, i.e. invert the
+          // tree
+          source: to,
+          target: id,
+        })
+      }
     }
   }
 
@@ -129,7 +120,7 @@ export function useNodesAndEdges(
   const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeType>([])
 
   useEffect(() => {
-    const [nodes, edges] = formatGraph(graph.root)
+    const [nodes, edges] = formatGraph(graph)
     setNodes(nodes)
     setEdges(edges)
   }, [graph])

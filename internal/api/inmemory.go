@@ -136,7 +136,7 @@ func (a *InMemoryAPI) GetImageGraph(ctx context.Context, name string, version st
 		return nil, ErrNotFound
 	}
 
-	return result, nil
+	return &result, nil
 }
 
 func filter[T any](values []T, filterFunc func(T) bool) []T {

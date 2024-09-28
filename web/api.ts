@@ -53,14 +53,14 @@ export interface ImageLink {
 }
 
 export interface Graph {
-  root: GraphNode
+  edges: Record<string, Record<string, boolean>>
+  nodes: Record<string, GraphNode>
 }
 
 export interface GraphNode {
   domain: string
   type: string
   name: string
-  parents: GraphNode[]
 }
 
 export type Result<T> =
