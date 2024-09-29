@@ -9,10 +9,7 @@ import (
 	"os/signal"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
-	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/pipeline"
-	"github.com/AlexGustafsson/cupdate/internal/pipeline/jobs"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"golang.org/x/sync/errgroup"
@@ -32,11 +29,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	cache, err := cache.NewDiskCache("./cache")
-	if err != nil {
-		slog.Error("Failed to serve", slog.Any("error", err))
-		os.Exit(1)
-	}
+	// cache, err := cache.NewDiskCache("./cache")
+	// if err != nil {
+	// 	slog.Error("Failed to serve", slog.Any("error", err))
+	// 	os.Exit(1)
+	// }
 
 	data := &api.InMemoryAPI{
 		Store: &models.Store{
@@ -170,7 +167,7 @@ func main() {
 			processedStore.Graphs[ref.String()] = mappedGraph
 		}
 
-		pipeline := pipeline.New(cache, jobs.DefaultJobs())
+		// pipeline := pipeline.New(cache, jobs.DefaultJobs())
 		for _, root := range roots {
 			imageNode := root.(platform.ImageNode)
 
@@ -181,19 +178,19 @@ func main() {
 			var releaseNotes *models.ImageReleaseNotes
 			links := make([]models.ImageLink, 0)
 
-			_, err := pipeline.Run(ctx, jobs.ImageData{
-				ImageReference: imageNode.Reference,
-				Image:          &image,
-				LatestVersion:  &latestVersion,
-				Tags:           &tags,
-				Description:    &description,
-				ReleaseNotes:   &releaseNotes,
-				Links:          &links,
-			})
-			if err != nil {
-				slog.Error("Failed to run pipeline for image", slog.Any("error", err))
-				continue
-			}
+			// _, err := pipeline.Run(ctx, jobs.ImageData{
+			// 	ImageReference: imageNode.Reference,
+			// 	Image:          &image,
+			// 	LatestVersion:  &latestVersion,
+			// 	Tags:           &tags,
+			// 	Description:    &description,
+			// 	ReleaseNotes:   &releaseNotes,
+			// 	Links:          &links,
+			// })
+			// if err != nil {
+			// 	slog.Error("Failed to run pipeline for image", slog.Any("error", err))
+			// 	continue
+			// }
 
 			processedStore.Images = append(processedStore.Images, &models.Image{
 				Name: imageNode.Reference.Name(),

@@ -89,6 +89,7 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
         draggable={true}
         panOnDrag={true}
         elementsSelectable={false}
+        minZoom={0.001}
       >
         <Controls />
       </ReactFlow>

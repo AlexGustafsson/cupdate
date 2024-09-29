@@ -1,25 +1,28 @@
 import { Handle, NodeProps, Position } from '@xyflow/react'
 import { type ReactNode } from 'react'
 
-export function CustomGraphNode({
-  data,
-}: NodeProps & {
-  data: {
-    subtitle: string
-    title: string
-    label: ReactNode
+export function CustomGraphNode(
+  node: NodeProps & {
+    data: {
+      subtitle: string
+      title: string
+      label: ReactNode
+    }
+    type: 'custom'
   }
-  type: 'custom'
-}): JSX.Element {
+): JSX.Element {
   return (
-    <div className="px-4 py-2 shadow-md rounded-md bg-white border-2 border-stone-400">
+    <div
+      className="px-4 py-2 shadow-md rounded-md bg-white border-2 border-stone-400"
+      style={{ width: node.width, height: node.height }}
+    >
       <div className="flex">
-        <div className="rounded-full w-12 h-12 flex justify-center items-center bg-gray-100">
-          {data.label}
+        <div className="rounded-full w-12 h-12 flex justify-center items-center bg-gray-100 shrink-0">
+          {node.data.label}
         </div>
-        <div className="ml-2">
-          <div className="text-lg font-bold">{data.title}</div>
-          <div className="text-gray-500">{data.subtitle}</div>
+        <div className="ml-2 grow min-w-0">
+          <div className="text-lg font-bold truncate">{node.data.title}</div>
+          <div className="text-gray-500 truncate">{node.data.subtitle}</div>
         </div>
       </div>
 

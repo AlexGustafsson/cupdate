@@ -5,7 +5,8 @@ import type {
   OnEdgesChange,
   OnNodesChange,
 } from '@xyflow/react'
-import { useEdgesState, useNodesState } from '@xyflow/react'
+import { getNodesBounds, useEdgesState, useNodesState } from '@xyflow/react'
+import ELK from 'elkjs/lib/elk.bundled'
 import { type ReactNode, useEffect } from 'react'
 
 import type { Graph, GraphNode } from './api'
@@ -43,26 +44,6 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
   },
 }
 
-// For now, let's assume that the all nodes under the root (its parents) have
-// at most one parent node and that all nodes are unique. This enables us to
-// render the graph more easily than taking care of cycles, references and
-// layout solves
-function extractBranches(root: GraphNode): GraphNode[][] {
-  const branches: GraphNode[][] = []
-
-  // for (let i = 0; i < root.parents.length; i++) {
-  //   const branch: GraphNode[] = []
-  //   let current = root.parents[i]
-  //   while (current) {
-  //     branch.push(current)
-  //     current = current.parents[0]
-  //   }
-  //   branches.push(branch)
-  // }
-
-  return branches
-}
-
 function formatNode(id: string, node: GraphNode): NodeType {
   let label: ReactNode
   switch (node.domain) {
@@ -86,25 +67,50 @@ function formatNode(id: string, node: GraphNode): NodeType {
   }
 }
 
-function formatGraph(graph: Graph): [NodeType[], EdgeType[]] {
+async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
   const nodes: NodeType[] = []
   const edges: EdgeType[] = []
 
-  for (const [id, node] of Object.entries(graph.nodes)) {
-    nodes.push(formatNode(id, node))
+  const elk = new ELK()
 
-    for (const [to, isParent] of Object.entries(graph.edges[id])) {
-      if (isParent) {
-        edges.push({
-          id: `${id}->${to}`,
-          // NOTE: The graph / tree is built with images as roots, but in the UI
-          // we wish to map them with the root at the bottom, i.e. invert the
-          // tree
-          source: to,
-          target: id,
-        })
-      }
-    }
+  const root = await elk.layout({
+    id: 'root',
+    layoutOptions: { 'elk.algorithm': 'mrtree' },
+    children: Object.entries(graph.nodes).map(([id, node]) => ({
+      id,
+      width: 250,
+      height: 75,
+    })),
+    edges: Object.entries(graph.edges)
+      .map(([from, adjacent]) =>
+        Object.entries(adjacent)
+          .filter(([_, isParent]) => isParent)
+          .map(([to, _]) => ({
+            id: `${from}->${to}`,
+            sources: [to],
+            targets: [from],
+          }))
+      )
+      .flat(2),
+  })
+
+  console.log(root.children?.map((x) => x.width))
+
+  for (const node of root.children || []) {
+    const formatted = formatNode(node.id, graph.nodes[node.id])
+    formatted.position.x = (node.x || 0) - (node.width || 0) / 2
+    formatted.position.y = node.y || 0
+    formatted.width = node.width
+    formatted.height = node.height
+    nodes.push(formatted)
+  }
+
+  for (const edge of root.edges || []) {
+    edges.push({
+      id: edge.id,
+      source: edge.sources[0],
+      target: edge.targets[0],
+    })
   }
 
   return [nodes, edges]
@@ -120,9 +126,10 @@ export function useNodesAndEdges(
   const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeType>([])
 
   useEffect(() => {
-    const [nodes, edges] = formatGraph(graph)
-    setNodes(nodes)
-    setEdges(edges)
+    formatGraph(graph).then(([nodes, edges]) => {
+      setNodes(nodes)
+      setEdges(edges)
+    })
   }, [graph])
 
   return [
