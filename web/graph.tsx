@@ -94,8 +94,6 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
       .flat(2),
   })
 
-  console.log(root.children?.map((x) => x.width))
-
   for (const node of root.children || []) {
     const formatted = formatNode(node.id, graph.nodes[node.id])
     formatted.position.x = (node.x || 0) - (node.width || 0) / 2
@@ -103,6 +101,19 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
     formatted.width = node.width
     formatted.height = node.height
     nodes.push(formatted)
+  }
+
+  const bounds = getNodesBounds(nodes)
+
+  // The node for the image is (should be) on a "row" of its own. Always center
+  // the image node on that row
+  for (const node of nodes) {
+    if (
+      graph.nodes[node.id].domain === 'oci' &&
+      graph.nodes[node.id].type === 'image'
+    ) {
+      node.position.x = bounds.width / 2 - (node.width || 0)
+    }
   }
 
   for (const edge of root.edges || []) {
