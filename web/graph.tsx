@@ -75,7 +75,7 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
 
   const root = await elk.layout({
     id: 'root',
-    layoutOptions: { 'elk.algorithm': 'mrtree' },
+    layoutOptions: { 'elk.algorithm': 'mrtree', 'elk.spacing.nodeNode': '50' },
     children: Object.entries(graph.nodes).map(([id, node]) => ({
       id,
       width: 250,
