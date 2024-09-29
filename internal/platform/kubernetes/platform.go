@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
@@ -242,7 +243,7 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 						if len(o.OwnerReferences) > 0 {
 							parent = resource{
 								id:   fmt.Sprintf("kubernetes/%s", o.UID),
-								kind: ResourceKind(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind),
+								kind: ResourceKind(strings.ToLower(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind)),
 								name: o.OwnerReferences[0].Name,
 							}
 						}
