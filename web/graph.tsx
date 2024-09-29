@@ -116,6 +116,17 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
     }
   }
 
+  // Pod nodes without names are typically templates, mark these as such
+  for (const node of nodes) {
+    if (
+      graph.nodes[node.id].domain === 'kubernetes' &&
+      graph.nodes[node.id].type === 'core/v1/pod' &&
+      node.data.subtitle === ''
+    ) {
+      node.data.subtitle = '<template>'
+    }
+  }
+
   for (const edge of root.edges || []) {
     edges.push({
       id: edge.id,
