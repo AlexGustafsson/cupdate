@@ -140,7 +140,11 @@ export function ImagePage(): JSX.Element {
     <div className="flex flex-col items-center w-full py-[40px] px-[20px]">
       {/* Header */}
       {image.value.image ? (
-        <img className="w-16 h-16 rounded" src={image.value.image} />
+        <img
+          className="w-16 h-16 rounded"
+          src={image.value.image}
+          no-referrer
+        />
       ) : (
         <div className="w-16 h-16 rounded bg-blue-500 flex items-center justify-center">
           <SimpleIconsOci className="text-white" />

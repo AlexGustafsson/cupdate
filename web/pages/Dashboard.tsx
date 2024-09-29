@@ -161,7 +161,11 @@ export function Dashboard(): JSX.Element {
                   >
                     <td>
                       {image.image ? (
-                        <img className="w-10 h-10 rounded" src={image.image} />
+                        <img
+                          className="w-10 h-10 rounded"
+                          src={image.image}
+                          referrerPolicy="no-referrer"
+                        />
                       ) : (
                         <div className="w-10 h-10 rounded bg-blue-500 flex items-center justify-center">
                           <SimpleIconsOci className="text-white" />
