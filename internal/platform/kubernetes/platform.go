@@ -242,7 +242,7 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 						var parent Resource
 						if len(o.OwnerReferences) > 0 {
 							parent = resource{
-								id:   fmt.Sprintf("kubernetes/%s", o.UID),
+								id:   fmt.Sprintf("kubernetes/%s", o.OwnerReferences[0].UID),
 								kind: ResourceKind(strings.ToLower(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind)),
 								name: o.OwnerReferences[0].Name,
 							}
