@@ -28,6 +28,9 @@ func GetDockerHubRepositoryOwner(repository string) *GetDockerHubRepositoryOwner
 }
 
 func (j GetDockerHubRepositoryOwnerJob) Execute(ctx pipeline.Context[ImageData]) error {
+	ctx.Lock()
+	defer ctx.Unlock()
+
 	log := slog.With(slog.String("imageReference", ctx.Data.ImageReference.String()))
 	var repository *docker.Repository
 	if !ctx.GetOutput(j.repository, &repository) {

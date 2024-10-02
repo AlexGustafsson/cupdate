@@ -26,6 +26,9 @@ func GetDockerHubLatestVersion() *GetDockerHubLatestVersionJob {
 }
 
 func (j GetDockerHubLatestVersionJob) Execute(ctx pipeline.Context[ImageData]) error {
+	ctx.Lock()
+	defer ctx.Unlock()
+
 	log := slog.With(slog.String("imageReference", ctx.Data.ImageReference.String()))
 
 	if !ctx.Data.ImageReference.HasTag {

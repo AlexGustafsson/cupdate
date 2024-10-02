@@ -30,13 +30,14 @@ func DefaultJobs() pipeline.Job[ImageData] {
 				getManifests,
 				// Add link to SVC
 				pipeline.JobFunc[ImageData](func(ctx pipeline.Context[ImageData]) error {
+					ctx.Lock()
+					defer ctx.Unlock()
+
 					var manifests []oci.Manifest
 					if ok := ctx.GetOutput(getManifests.Output.Manifests, &manifests); !ok {
 						return nil
 					}
 
-					ctx.Lock()
-					defer ctx.Unlock()
 					for _, manifest := range manifests {
 						source := manifest.SourceAnnotation()
 						if source != "" {
@@ -61,6 +62,9 @@ func DefaultJobs() pipeline.Job[ImageData] {
 					getDockerHubLatestVersion,
 					// Set description
 					pipeline.JobFunc[ImageData](func(ctx pipeline.Context[ImageData]) error {
+						ctx.Lock()
+						defer ctx.Unlock()
+
 						var repository *docker.Repository
 						if ok := ctx.GetOutput(getDockerHubRepository.Output.Repository, &repository); !ok {
 							return nil
@@ -85,6 +89,9 @@ func DefaultJobs() pipeline.Job[ImageData] {
 					}),
 					// Add link to Docker Hub
 					pipeline.JobFunc[ImageData](func(ctx pipeline.Context[ImageData]) error {
+						ctx.Lock()
+						defer ctx.Unlock()
+
 						var repository *docker.Repository
 						if ok := ctx.GetOutput(getDockerHubRepository.Output.Repository, &repository); !ok {
 							return nil
@@ -106,6 +113,9 @@ func DefaultJobs() pipeline.Job[ImageData] {
 					}),
 					// Set latest version
 					pipeline.JobFunc[ImageData](func(ctx pipeline.Context[ImageData]) error {
+						ctx.Lock()
+						defer ctx.Unlock()
+
 						var image *registry.Image
 						if ok := ctx.GetOutput(getDockerHubLatestVersion.Output.Image, &image); !ok {
 							return nil
@@ -123,6 +133,9 @@ func DefaultJobs() pipeline.Job[ImageData] {
 		getGitHubRelease,
 		// Set release notes
 		pipeline.JobFunc[ImageData](func(ctx pipeline.Context[ImageData]) error {
+			ctx.Lock()
+			defer ctx.Unlock()
+
 			var release *github.Release
 			if ok := ctx.GetOutput(getGitHubRelease.Output.Release, &release); !ok {
 				return nil

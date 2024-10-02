@@ -25,6 +25,9 @@ func GetDockerHubRepository() *GetDockerHubRepositoryJob {
 }
 
 func (j GetDockerHubRepositoryJob) Execute(ctx pipeline.Context[ImageData]) error {
+	ctx.Lock()
+	defer ctx.Unlock()
+
 	log := slog.With(slog.String("imageReference", ctx.Data.ImageReference.String()))
 
 	cacheKey := "pipeline/get-docker-hub-repository-v1/" + ctx.Data.ImageReference.Name()

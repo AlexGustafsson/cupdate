@@ -29,6 +29,9 @@ func GetImageManifests(client string) *GetImageManifestsJob {
 }
 
 func (j GetImageManifestsJob) Execute(ctx pipeline.Context[ImageData]) error {
+	ctx.Lock()
+	defer ctx.Unlock()
+
 	var client registry.Client
 	ctx.MustGetOutput(j.client, &client)
 

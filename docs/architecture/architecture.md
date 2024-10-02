@@ -107,11 +107,6 @@ For each reference:
 - Identify a GitHub release for the latest version
   - Set release notes
 
-Next, the identified properties are deduplicated:
-
-- Deduplicate tags
-- Deduplicate links
-
 Note that not all steps are always valid, such as fetching info about a GHCR
 image from Docker Hub. Likewise, an image without references to GitHub won't
 have information gathered from GitHub.

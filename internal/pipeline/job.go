@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"errors"
+	"log/slog"
 	"sync"
 )
 
@@ -19,7 +20,12 @@ type Series[T any] []Job[T]
 
 func (j Series[T]) Execute(ctx Context[T]) error {
 	for _, job := range j {
-		if err := job.Execute(ctx); err != nil {
+		slog.Debug("Running sequential job")
+		err := job.Execute(ctx)
+		if err == nil {
+			slog.Debug("Sequential job completed successfully")
+		} else {
+			slog.Debug("Sequential job failed", slog.Any("error", err))
 			return err
 		}
 	}
@@ -29,6 +35,7 @@ func (j Series[T]) Execute(ctx Context[T]) error {
 type Parallel[T any] []Job[T]
 
 func (j Parallel[T]) Execute(ctx Context[T]) error {
+	var mutex sync.Mutex
 	errs := make([]error, len(j))
 	for i, job := range j {
 		errs[i] = job.Execute(ctx)
@@ -39,7 +46,16 @@ func (j Parallel[T]) Execute(ctx Context[T]) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			errs[i] = job.Execute(ctx)
+			slog.Debug("Running parallel job")
+			err := job.Execute(ctx)
+			if err == nil {
+				slog.Debug("Parallel job completed successfully")
+			} else {
+				slog.Debug("Parallel job failed", slog.Any("error", err))
+			}
+			mutex.Lock()
+			errs[i] = err
+			defer mutex.Unlock()
 		}()
 	}
 

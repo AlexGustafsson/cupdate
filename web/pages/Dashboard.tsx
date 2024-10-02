@@ -178,10 +178,14 @@ export function Dashboard(): JSX.Element {
                         <p className="text-xs">{image.description}</p>
                       )}
                     </td>
-                    <td className="text-end pr-[24px]">
+                    <td
+                      className={`text-end pr-[24px] ${image.latestVersion === image.currentVersion ? '' : 'text-red-400'}`}
+                    >
                       {image.currentVersion}
                     </td>
-                    <td className="text-end pr-[24px]">
+                    <td
+                      className={`text-end pr-[24px] ${image.latestVersion === image.currentVersion ? '' : 'text-green-400'}`}
+                    >
                       {image.latestVersion}
                     </td>
                     <td className="flex flex-wrap">

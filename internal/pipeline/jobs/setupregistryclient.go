@@ -24,8 +24,8 @@ func SetupRegistryClient() SetupRegistryClientJob {
 }
 
 func (j SetupRegistryClientJob) Execute(ctx pipeline.Context[ImageData]) error {
-	ctx.RLock()
-	defer ctx.RUnlock()
+	ctx.Lock()
+	defer ctx.Unlock()
 
 	// TODO: Support other registries
 	if ctx.Data.ImageReference.Domain != "docker.io" {
