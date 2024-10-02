@@ -5,12 +5,23 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func InsertLinks(data *Data, f func(ctx workflow.Context) []models.ImageLink) workflow.Step {
-	return workflow.StepFunc("", "Insert links", func(ctx workflow.Context) (map[string]any, error) {
-		data.Lock()
-		defer data.Unlock()
+func InsertLink() workflow.Step {
+	return workflow.Step{
+		Name: "Insert link",
+		Main: func(ctx workflow.Context) (workflow.Command, error) {
+			link, err := workflow.GetInput[models.ImageLink](ctx, "link", true)
+			if err != nil {
+				return nil, err
+			}
 
-		for _, link := range f(ctx) {
+			data, err := workflow.GetInput[*Data](ctx, "data", true)
+			if err != nil {
+				return nil, err
+			}
+
+			data.Lock()
+			defer data.Unlock()
+
 			exists := false
 			for _, other := range data.Links {
 				if link.Type == other.Type && link.URL == other.URL {
@@ -22,8 +33,7 @@ func InsertLinks(data *Data, f func(ctx workflow.Context) []models.ImageLink) wo
 			if !exists {
 				data.Links = append(data.Links, link)
 			}
-		}
-
-		return nil, nil
-	})
+			return nil, nil
+		},
+	}
 }

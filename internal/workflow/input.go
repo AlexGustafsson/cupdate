@@ -1,0 +1,59 @@
+package workflow
+
+import (
+	"fmt"
+)
+
+// Input is an input value to a step.
+// A value can be either a [Ref], or any verbatim value.
+type Input = any
+
+// GetInput returns a value or output in the ctx.
+// If a value does not exist, the type's zero value is returned, with a nil
+// error unless required is true.
+func GetInput[T any](ctx Context, name string, required bool) (T, error) {
+	var ret T
+	v, err := GetAnyInput(ctx, name, required)
+	if err != nil {
+		return ret, err
+	}
+
+	var ok bool
+	ret, ok = v.(T)
+	if !ok {
+		return ret, fmt.Errorf("invalid value")
+	}
+
+	return ret, nil
+}
+
+// GetAnyInput returns a value or output in the ctx.
+// If a value does not exist, nil is returned, with a nil error unless required
+// is true.
+func GetAnyInput(ctx Context, name string, required bool) (any, error) {
+	v, ok := ctx.Step.Inputs[name]
+	if !ok {
+		if required {
+			return nil, fmt.Errorf("missing required input: %s", name)
+		}
+		return nil, nil
+	}
+
+	switch v := v.(type) {
+	case Ref:
+		ret, ok := GetAnyValue(ctx, string(v))
+		if !ok {
+			if required {
+				return nil, fmt.Errorf("missing required input: %s", name)
+			}
+			return nil, nil
+		}
+
+		return ret, nil
+	}
+
+	return nil, nil
+}
+
+// Ref is an [Input] that refers to a value retrievable by [GetValue].
+type Ref string

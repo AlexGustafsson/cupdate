@@ -2,17 +2,31 @@ package imageworkflow
 
 import (
 	"github.com/AlexGustafsson/cupdate/internal/registry"
+	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
 func GetManifests() workflow.Step {
-	return workflow.StepFunc("", "Get manifests", func(ctx workflow.Context) (map[string]any, error) {
-		clientValue, err := ctx.Input("client")
-		if err != nil {
-			return nil, err
-		}
+	return workflow.Step{
+		Name: "Get manifests",
 
-		client := clientValue.(registry.Client)
-		client.GetManifests(ctx)
-	})
+		Main: func(ctx workflow.Context) (workflow.Command, error) {
+			client, err := workflow.GetInput[registry.Client](ctx, "client", true)
+			if err != nil {
+				return nil, err
+			}
+
+			image, err := workflow.GetInput[oci.Reference](ctx, "reference", true)
+			if err != nil {
+				return nil, err
+			}
+
+			manifests, err := client.GetManifests(ctx, image)
+			if err != nil {
+				return nil, err
+			}
+
+			return workflow.SetOutput("manifests", manifests), nil
+		},
+	}
 }

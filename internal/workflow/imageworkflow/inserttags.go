@@ -6,17 +6,27 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func InsertTags(data *Data, f func(ctx workflow.Context) []string) workflow.Step {
-	return workflow.StepFunc("", "Insert tags", func(ctx workflow.Context) (map[string]any, error) {
-		data.Lock()
-		defer data.Unlock()
+func InsertTag() workflow.Step {
+	return workflow.Step{
+		Name: "Insert tag",
+		Main: func(ctx workflow.Context) (workflow.Command, error) {
+			tag, err := workflow.GetInput[string](ctx, "tag", true)
+			if err != nil {
+				return nil, err
+			}
 
-		for _, tag := range f(ctx) {
+			data, err := workflow.GetInput[*Data](ctx, "data", true)
+			if err != nil {
+				return nil, err
+			}
+
+			data.Lock()
+			defer data.Unlock()
+
 			if !slices.Contains(data.Tags, tag) {
 				data.Tags = append(data.Tags, tag)
 			}
-		}
-
-		return nil, nil
-	})
+			return nil, nil
+		},
+	}
 }

@@ -5,13 +5,25 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func InsertLatestVersion(data *Data, f func(ctx workflow.Context) *oci.Reference) workflow.Step {
-	return workflow.StepFunc("", "Insert latest version", func(ctx workflow.Context) (map[string]any, error) {
-		data.Lock()
-		defer data.Unlock()
+func InsertLatestVersion() workflow.Step {
+	return workflow.Step{
+		Name: "Insert latest version",
+		Main: func(ctx workflow.Context) (workflow.Command, error) {
+			reference, err := workflow.GetInput[*oci.Reference](ctx, "reference", true)
+			if err != nil {
+				return nil, err
+			}
 
-		data.LatestVersion = f(ctx)
+			data, err := workflow.GetInput[*Data](ctx, "data", true)
+			if err != nil {
+				return nil, err
+			}
 
-		return nil, nil
-	})
+			data.Lock()
+			defer data.Unlock()
+
+			data.LatestVersion = reference
+			return nil, nil
+		},
+	}
 }

@@ -62,11 +62,10 @@ func (w Workflow) Run(ctx context.Context) error {
 			ctx := Context{
 				Context: ctx,
 
-				Workflow: w.Name,
-				Job:      job.Name,
+				Workflow: w,
+				Job:      job,
 
 				Outputs: outputs,
-				Inputs:  make(map[string]string),
 			}
 			jobOutputs, err := job.Run(ctx)
 
@@ -84,3 +83,8 @@ func (w Workflow) Run(ctx context.Context) error {
 	wg.Wait()
 	return errors.Join(errs...)
 }
+
+// TODO: Build a "dot" graph for debugging / visualization?
+// func (w Workflow) Describe() string {
+//
+// }

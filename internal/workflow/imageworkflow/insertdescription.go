@@ -5,13 +5,25 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func InsertDescription(data *Data, f func(ctx workflow.Context) *models.ImageDescription) workflow.Step {
-	return workflow.StepFunc("", "Insert description", func(ctx workflow.Context) (map[string]any, error) {
-		data.Lock()
-		defer data.Unlock()
+func InsertDescription() workflow.Step {
+	return workflow.Step{
+		Name: "Insert description",
+		Main: func(ctx workflow.Context) (workflow.Command, error) {
+			description, err := workflow.GetInput[*models.ImageDescription](ctx, "description", true)
+			if err != nil {
+				return nil, err
+			}
 
-		data.Description = f(ctx)
+			data, err := workflow.GetInput[*Data](ctx, "data", true)
+			if err != nil {
+				return nil, err
+			}
 
-		return nil, nil
-	})
+			data.Lock()
+			defer data.Unlock()
+
+			data.Description = description
+			return nil, nil
+		},
+	}
 }
