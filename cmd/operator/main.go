@@ -170,7 +170,7 @@ func main() {
 				Nodes: mappedNodes,
 			}
 
-			processedStore.Graphs[ref.String()] = mappedGraph
+			processedStore.Graphs[ref.Name()+":"+ref.Version()] = mappedGraph
 		}
 
 		for _, root := range roots {
@@ -195,8 +195,8 @@ func main() {
 			processedStore.Images = append(processedStore.Images, &models.Image{
 				Name: imageNode.Reference.Name(),
 				// TODO: Handle digests, not just tags
-				CurrentVersion: imageNode.Reference.Tag,
-				LatestVersion:  data.LatestVersion.Tag,
+				CurrentVersion: imageNode.Reference.Version(),
+				LatestVersion:  data.LatestVersion.Version(),
 				// TODO: Tags should include pod, job, cron job, deployment set etc.
 				// Everything's a pod, so try to use the topmost descriptor
 				Tags:  data.Tags,
@@ -205,10 +205,10 @@ func main() {
 			})
 
 			if data.Description != nil {
-				processedStore.Descriptions[imageNode.Reference.String()] = data.Description
+				processedStore.Descriptions[imageNode.Reference.Name()+":"+imageNode.Reference.Version()] = data.Description
 			}
 			if data.ReleaseNotes != nil {
-				processedStore.ReleaseNotes[imageNode.Reference.String()] = data.ReleaseNotes
+				processedStore.ReleaseNotes[imageNode.Reference.Name()+":"+imageNode.Reference.Version()] = data.ReleaseNotes
 			}
 		}
 

@@ -59,6 +59,18 @@ func (r Reference) Name() string {
 	return reference.FamiliarName(r.raw)
 }
 
+// Version is the familiar version of the reference, such as its tag, digest or
+// "latest", if no tag or digest is specified.
+func (r Reference) Version() string {
+	if r.HasTag {
+		return r.Tag
+	} else if r.HasDigest {
+		return r.Digest
+	} else {
+		return "latest"
+	}
+}
+
 func (r Reference) String() string {
 	return reference.FamiliarString(r.raw)
 }
