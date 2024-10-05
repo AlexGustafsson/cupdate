@@ -183,7 +183,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("release").
 						With("httpClient", httpClient).
 						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
-						With("reference", data.ImageReference),
+						With("reference", data.LatestVersion),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
 						if err != nil {

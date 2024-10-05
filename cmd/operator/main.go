@@ -180,7 +180,7 @@ func main() {
 			data := &imageworkflow.Data{
 				ImageReference: imageNode.Reference,
 				Image:          "",
-				LatestVersion:  nil,
+				LatestVersion:  &imageNode.Reference,
 				Tags:           make([]string, 0),
 				Description:    nil,
 				ReleaseNotes:   nil,
@@ -190,7 +190,6 @@ func main() {
 
 			if err := workflow.Run(ctx); err != nil {
 				slog.Error("Failed to run pipeline for image", slog.Any("error", err))
-				continue
 			}
 
 			processedStore.Images = append(processedStore.Images, &models.Image{
