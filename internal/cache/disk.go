@@ -67,6 +67,7 @@ func (c *DiskCache) Get(ctx context.Context, key string) (Entry, error) {
 
 	fileInfo, err := file.Stat()
 	if err != nil {
+		file.Close()
 		return nil, ErrNotExist
 	}
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// ParseURL returns the endpoint, owner, repository and path for GitHub URLs.
 func ParseURL(u string) (string, string, string, string, bool) {
 	url, err := url.Parse(u)
 	if err != nil {

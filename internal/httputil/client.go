@@ -62,7 +62,6 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	// Try to read from cache, only return on successful cache reads
 	entry, err := c.Cache.Get(ctx, key)
 	if err == nil {
-		defer entry.Close()
 		log.Debug("HTTP request cache hit")
 
 		modTime := time.Time{}
@@ -73,14 +72,21 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 		outdated := !modTime.IsZero() && c.CacheMaxAge > 0 && time.Since(modTime) > c.CacheMaxAge
 		if outdated {
 			slog.Debug("HTTP request cache miss (entry found, but was outdated)")
+			if err := entry.Close(); err != nil {
+				slog.Warn("Failed to close HTTP response cache entry", slog.Any("error", err))
+			}
 		} else {
 			slog.Debug("Reading cached response")
 			res, err := http.ReadResponse(bufio.NewReader(entry), req)
 			if err == nil {
 				slog.Debug("HTTP response successfully read from cache")
+				// TODO: is entry ever closed in this branch?
 				return res, nil
 			} else {
 				slog.Warn("HTTP request cache read failure", slog.Any("error", err))
+				if err := entry.Close(); err != nil {
+					slog.Warn("Failed to close HTTP response cache entry", slog.Any("error", err))
+				}
 			}
 		}
 	} else if errors.Is(err, cache.ErrNotExist) {

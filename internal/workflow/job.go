@@ -32,6 +32,10 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 	}
 
 	outputs := make(map[string]any)
+	for k, v := range ctx.Outputs {
+		outputs[k] = v
+	}
+
 	var jobErr error
 
 	log.Debug("Running job steps")

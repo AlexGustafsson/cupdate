@@ -1,8 +1,14 @@
 package imageworkflow
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/AlexGustafsson/cupdate/internal/github"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
+	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
+	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -32,59 +38,145 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("manifests").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference),
-					// TODO:
 					InsertLink().
 						With("data", data).
-						With("link", models.ImageLink{}),
+						With("link", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
+							domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
+							if err != nil {
+								return nil, err
+							}
+
+							return models.ImageLink{
+								Type: "oci-registry",
+								URL:  domain,
+							}, nil
+						}}),
 				},
 			},
 			{
 				ID:        "docker",
 				Name:      "Get Docker Hub information",
 				DependsOn: []string{"oci"},
+				// Only run for Docker images
 				If: func(ctx workflow.Context) (bool, error) {
-					// TODO: Is docker registry
-					return true, nil
+					domain, err := workflow.GetValue[string](ctx, "job.oci.step.registry.domain")
+					if err != nil {
+						return false, err
+					}
+
+					return domain == "docker.io", nil
 				},
 				Steps: []workflow.Step{
 					GetDockerHubRepository().
 						WithID("repository").
 						With("httpClient", httpClient).
-						With("reference", data.Image),
+						With("reference", data.ImageReference),
+					GetDockerHubOwner().
+						WithID("owner").
+						With("httpClient", httpClient).
+						With("reference", data.ImageReference),
 					InsertDescription().
 						With("data", data).
-						With("description", models.ImageDescription{ /*TODO*/ }),
+						With("description", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
+							repository, err := workflow.GetValue[*docker.Repository](ctx, "step.repository.repository")
+							if err != nil {
+								return nil, err
+							}
+
+							return &models.ImageDescription{
+								Markdown: repository.FullDescription,
+							}, nil
+						}}),
 					InsertLink().
 						With("data", data).
-						With("link", models.ImageLink{ /*TODO*/ }),
-					GetDockerHubTags().
-						WithID("tags").
-						WithCondition("step.tagsCache.miss").
+						With("link", models.ImageLink{
+							Type: "docker",
+							URL:  docker.RepositoryPath(data.ImageReference),
+						}),
+					GetDockerHubLatestVersion().
+						WithID("latest").
 						With("reference", data.ImageReference).
 						With("httpClient", httpClient),
-					// TODO:
 					InsertLatestVersion().
 						With("data", data).
-						With("reference", nil),
+						With("reference", workflow.Ref{Key: "step.latest.reference"}),
 				},
 			},
 			{
 				ID:   "github",
-				Name: "Get release from GitHub",
+				Name: "Get GitHub information",
 				// Depend on whatever provides us with the latest image version
 				DependsOn: []string{"oci", "docker"},
+				// Only run for images with a reference to GitHub
 				If: func(ctx workflow.Context) (bool, error) {
-					// TODO: Has GitHub link
-					return true, nil
+					manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
+					if err != nil {
+						return false, err
+					}
+
+					if manifests == nil {
+						return false, nil
+					}
+
+					for _, manifest := range manifests {
+						if strings.Contains(manifest.SourceAnnotation(), "github.com") {
+							fmt.Println(manifest.SourceAnnotation())
+							return true, nil
+						}
+					}
+
+					return false, nil
 				},
 				Steps: []workflow.Step{
+					InsertTag().
+						With("data", data).
+						With("tag", "github"),
+					InsertLinks().
+						With("data", data).
+						With("links", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
+							manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
+							if err != nil {
+								return []models.ImageLink{}, nil
+							}
+
+							if manifests == nil {
+								return []models.ImageLink{}, nil
+							}
+
+							links := make([]models.ImageLink, 0)
+							for _, manifest := range manifests {
+								if strings.Contains(manifest.SourceAnnotation(), "github.com") {
+									links = append(links, models.ImageLink{
+										Type: "github",
+										URL:  manifest.SourceAnnotation(),
+									})
+								}
+							}
+
+							return links, nil
+						}}),
 					GetGitHubRelease().
-						WithCondition("step.releaseCache.miss").
 						WithID("release").
-						With("httpClient", httpClient),
+						With("httpClient", httpClient).
+						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
+						With("reference", data.ImageReference),
 					InsertReleaseNotes().
 						With("data", data).
-						With("releaseNotes", models.ImageReleaseNotes{ /*TODO*/ }),
+						With("releaseNotes", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
+							release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
+							if err != nil {
+								return nil, err
+							}
+
+							if release == nil {
+								return (*models.ImageReleaseNotes)(nil), nil
+							}
+
+							return &models.ImageReleaseNotes{
+								Title: release.Title,
+								HTML:  release.Description,
+							}, nil
+						}}),
 				},
 			},
 		},

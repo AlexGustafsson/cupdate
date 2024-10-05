@@ -8,7 +8,7 @@ import "fmt"
 type Condition = any
 
 // Conditio
-type ConditionFunc func(ctx Context) (bool, error)
+type ConditionFunc = func(ctx Context) (bool, error)
 
 // Always will always run.
 func Always(ctx Context) (bool, error) {
@@ -27,6 +27,6 @@ func testCondition(ctx Context, condition Condition) (bool, error) {
 		// The condition was a reference to a
 		return GetValue[bool](ctx, cond)
 	default:
-		return false, fmt.Errorf("invalid condition type %T expected", condition)
+		return false, fmt.Errorf("invalid condition type %T expected string or %T", condition, conditionFunc)
 	}
 }

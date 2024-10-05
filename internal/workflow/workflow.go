@@ -81,7 +81,7 @@ func (w Workflow) Run(ctx context.Context) error {
 			errs[i] = err
 			if job.ID != "" {
 				for k, v := range jobOutputs {
-					outputs["jobs."+job.ID+"."+k] = v
+					outputs["job."+job.ID+"."+k] = v
 				}
 			}
 			mutex.Unlock()
