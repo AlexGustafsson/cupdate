@@ -52,7 +52,7 @@ func GetValue[T any](ctx Context, name string) (T, error) {
 
 	ret, ok = v.(T)
 	if !ok {
-		return ret, fmt.Errorf("invalid value")
+		return ret, fmt.Errorf("invalid type %T for value %s of type %T", v, name, ret)
 	}
 
 	return ret, nil

@@ -25,6 +25,9 @@ func (s Step) WithCondition(condition Condition) Step {
 }
 
 func (s Step) With(key string, input Input) Step {
+	if s.Inputs == nil {
+		s.Inputs = make(map[string]any)
+	}
 	s.Inputs[key] = input
 	return s
 }

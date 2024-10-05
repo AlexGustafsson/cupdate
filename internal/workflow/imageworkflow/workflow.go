@@ -1,40 +1,37 @@
 package imageworkflow
 
 import (
-	"time"
-
-	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func New(cache cache.Cache, data *Data) error {
-	w := workflow.Workflow{
+// TODO: Let each step take an optional cache value instead. If it exists,
+// perform request caching of all 200 responses instead - more like is stated
+// in the cache code. That way we naturally always parse the values and don't
+// have to care about special types in the same way. The cache is always just
+// bytes - no need to cache JSON (yay!). Learning: Typed caches suck. Cache
+// repsonses instead.
+
+func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
+	return workflow.Workflow{
 		Name: "Process image",
 		Jobs: []workflow.Job{
 			{
 				ID:   "oci",
 				Name: "Get OCI information",
 				Steps: []workflow.Step{
-					SetupRegistryClient().WithID("registry"),
+					SetupRegistryClient().
+						WithID("registry").
+						With("httpClient", httpClient).
+						With("reference", data.ImageReference),
 					InsertTag().
 						With("data", data).
-						With("tag", workflow.Ref("steps.registry.domain")),
-					workflow.Cache[[]oci.Manifest]().
-						WithID("manifestsCache").
-						With("cache", cache).
-						With("cacheKey", "abcd").
-						With("valueKey", "manifests"),
+						With("tag", workflow.Ref{Key: "step.registry.domain"}),
 					GetManifests().
 						WithID("manifests").
-						WithCondition("step.manifestsCache.miss").
-						With("registry", workflow.Ref("steps.registry.client")).
+						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference),
-					workflow.StoreValue().
-						With("name", "manifests").
-						With("value", workflow.Ref("steps.manifests.manifests")),
 					// TODO:
 					InsertLink().
 						With("data", data).
@@ -50,30 +47,21 @@ func New(cache cache.Cache, data *Data) error {
 					return true, nil
 				},
 				Steps: []workflow.Step{
-					workflow.Cache(cache, "abcd", "repository", 24*time.Hour).
-						WithID("repositoryCache"),
 					GetDockerHubRepository().
-						InsertDescription(data, func(ctx workflow.Context) *models.ImageDescription {
-							return nil
-						}),
-					// TODO:
+						WithID("repository").
+						With("httpClient", httpClient).
+						With("reference", data.Image),
+					InsertDescription().
+						With("data", data).
+						With("description", models.ImageDescription{ /*TODO*/ }),
 					InsertLink().
 						With("data", data).
-						With("link", models.ImageLink{}),
-					workflow.Cache[[]docker.Tag]().
-						WithID("tagsCache").
-						With("cache", cache).
-						With("cacheKey", "abcd").
-						With("valueKey", "tags"),
-					workflow.Cache(cache, "abcd", "tags", 24*time.Hour).
-						WithID("tagsCache"),
+						With("link", models.ImageLink{ /*TODO*/ }),
 					GetDockerHubTags().
 						WithID("tags").
-						WithCondition("steps.tagsCache.miss").
-						With("reference", data.ImageReference),
-					workflow.StoreValue().
-						With("name", "tags").
-						With("value", workflow.Ref("step.tags.tags")),
+						WithCondition("step.tagsCache.miss").
+						With("reference", data.ImageReference).
+						With("httpClient", httpClient),
 					// TODO:
 					InsertLatestVersion().
 						With("data", data).
@@ -90,14 +78,13 @@ func New(cache cache.Cache, data *Data) error {
 					return true, nil
 				},
 				Steps: []workflow.Step{
-					workflow.Cache(cache, "abcd", "release", 24*time.Hour).
-						WithID("releaseCache"),
 					GetGitHubRelease().
 						WithCondition("step.releaseCache.miss").
-						WithID("release"),
-					InsertReleaseNotes(data, func(ctx workflow.Context) *models.ImageReleaseNotes {
-						return nil
-					}),
+						WithID("release").
+						With("httpClient", httpClient),
+					InsertReleaseNotes().
+						With("data", data).
+						With("releaseNotes", models.ImageReleaseNotes{ /*TODO*/ }),
 				},
 			},
 		},

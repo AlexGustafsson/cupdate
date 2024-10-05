@@ -21,7 +21,7 @@ func GetInput[T any](ctx Context, name string, required bool) (T, error) {
 	var ok bool
 	ret, ok = v.(T)
 	if !ok {
-		return ret, fmt.Errorf("invalid value")
+		return ret, fmt.Errorf("invalid type %T for input %s of type %T", v, name, ret)
 	}
 
 	return ret, nil
@@ -31,6 +31,13 @@ func GetInput[T any](ctx Context, name string, required bool) (T, error) {
 // If a value does not exist, nil is returned, with a nil error unless required
 // is true.
 func GetAnyInput(ctx Context, name string, required bool) (any, error) {
+	if ctx.Step.Inputs == nil {
+		if required {
+			return nil, fmt.Errorf("missing required input: %s", name)
+		}
+		return nil, nil
+	}
+
 	v, ok := ctx.Step.Inputs[name]
 	if !ok {
 		if required {
@@ -41,7 +48,7 @@ func GetAnyInput(ctx Context, name string, required bool) (any, error) {
 
 	switch v := v.(type) {
 	case Ref:
-		ret, ok := GetAnyValue(ctx, string(v))
+		ret, ok := GetAnyValue(ctx, v.Key)
 		if !ok {
 			if required {
 				return nil, fmt.Errorf("missing required input: %s", name)
@@ -50,10 +57,12 @@ func GetAnyInput(ctx Context, name string, required bool) (any, error) {
 		}
 
 		return ret, nil
+	default:
+		return v, nil
 	}
-
-	return nil, nil
 }
 
 // Ref is an [Input] that refers to a value retrievable by [GetValue].
-type Ref string
+type Ref struct {
+	Key string
+}

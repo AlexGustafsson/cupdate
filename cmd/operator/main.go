@@ -7,14 +7,15 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/pipeline"
-	"github.com/AlexGustafsson/cupdate/internal/pipeline/jobs"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
+	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
 )
@@ -37,6 +38,8 @@ func main() {
 		slog.Error("Failed to serve", slog.Any("error", err))
 		os.Exit(1)
 	}
+
+	client := httputil.NewClient(cache, 24*time.Hour)
 
 	data := &api.InMemoryAPI{
 		Store: &models.Store{
@@ -170,28 +173,22 @@ func main() {
 			processedStore.Graphs[ref.String()] = mappedGraph
 		}
 
-		pipeline := pipeline.New(cache, jobs.DefaultJobs())
 		for _, root := range roots {
 			imageNode := root.(platform.ImageNode)
 
-			var image string
-			latestVersion := imageNode.Reference
-			tags := make([]string, 0)
-			var description *models.ImageDescription
-			var releaseNotes *models.ImageReleaseNotes
-			links := make([]models.ImageLink, 0)
-
-			slog.Debug("Running pipeline", slog.String("image", imageNode.Reference.String()))
-			_, err := pipeline.Run(ctx, jobs.ImageData{
+			slog.Debug("Running workflow", slog.String("image", imageNode.Reference.String()))
+			data := &imageworkflow.Data{
 				ImageReference: imageNode.Reference,
-				Image:          &image,
-				LatestVersion:  &latestVersion,
-				Tags:           &tags,
-				Description:    &description,
-				ReleaseNotes:   &releaseNotes,
-				Links:          &links,
-			})
-			if err != nil {
+				Image:          "",
+				LatestVersion:  nil,
+				Tags:           make([]string, 0),
+				Description:    nil,
+				ReleaseNotes:   nil,
+				Links:          make([]models.ImageLink, 0),
+			}
+			workflow := imageworkflow.New(client, data)
+
+			if err := workflow.Run(ctx); err != nil {
 				slog.Error("Failed to run pipeline for image", slog.Any("error", err))
 				continue
 			}
@@ -200,19 +197,19 @@ func main() {
 				Name: imageNode.Reference.Name(),
 				// TODO: Handle digests, not just tags
 				CurrentVersion: imageNode.Reference.Tag,
-				LatestVersion:  latestVersion.Tag,
+				LatestVersion:  data.LatestVersion.Tag,
 				// TODO: Tags should include pod, job, cron job, deployment set etc.
 				// Everything's a pod, so try to use the topmost descriptor
-				Tags:  tags,
-				Image: image,
-				Links: links,
+				Tags:  data.Tags,
+				Image: data.Image,
+				Links: data.Links,
 			})
 
-			if description != nil {
-				processedStore.Descriptions[imageNode.Reference.String()] = description
+			if data.Description != nil {
+				processedStore.Descriptions[imageNode.Reference.String()] = data.Description
 			}
-			if releaseNotes != nil {
-				processedStore.ReleaseNotes[imageNode.Reference.String()] = releaseNotes
+			if data.ReleaseNotes != nil {
+				processedStore.ReleaseNotes[imageNode.Reference.String()] = data.ReleaseNotes
 			}
 		}
 

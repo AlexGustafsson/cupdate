@@ -27,6 +27,6 @@ func testCondition(ctx Context, condition Condition) (bool, error) {
 		// The condition was a reference to a
 		return GetValue[bool](ctx, cond)
 	default:
-		return false, fmt.Errorf("invalid condition")
+		return false, fmt.Errorf("invalid condition type %T expected", condition)
 	}
 }

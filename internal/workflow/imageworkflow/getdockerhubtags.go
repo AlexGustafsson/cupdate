@@ -7,9 +7,9 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func GetGitHubRelease() workflow.Step {
+func GetDockerHubTags() workflow.Step {
 	return workflow.Step{
-		Name: "Get GitHub release",
+		Name: "Get Docker Hub tags",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
 			manifests, err := workflow.GetInput[[]oci.Manifest](ctx, "manifests", true)
 			if err != nil {

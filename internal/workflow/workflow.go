@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 )
@@ -37,10 +38,10 @@ func (w Workflow) Run(ctx context.Context) error {
 
 			if len(job.DependsOn) > 0 {
 				log.Debug("Waiting for dependencies to complete before starting job")
-				for _, dependant := range job.DependsOn {
+				for _, dependency := range job.DependsOn {
 					index := -1
 					for i := 0; i < len(w.Jobs); i++ {
-						if w.Jobs[i].ID == dependant {
+						if w.Jobs[i].ID == dependency {
 							index = i
 							break
 						}
@@ -53,6 +54,11 @@ func (w Workflow) Run(ctx context.Context) error {
 							errs[i] = ctx.Err()
 							mutex.Unlock()
 						case <-done[index]:
+							if errs[index] != nil {
+								log.Warn("Skipping job as dependent job failed", slog.String("dependency", dependency))
+								errs[i] = fmt.Errorf("failed to run job - dependent job failed: %w", errs[index])
+								return
+							}
 							// Do nothing
 						}
 					}
@@ -67,6 +73,7 @@ func (w Workflow) Run(ctx context.Context) error {
 
 				Outputs: outputs,
 			}
+
 			jobOutputs, err := job.Run(ctx)
 
 			mutex.Lock()

@@ -15,6 +15,7 @@ type Job struct {
 
 func (j Job) Run(ctx Context) (map[string]any, error) {
 	log := slog.With(slog.String("workflow", ctx.Workflow.Name), slog.String("job", ctx.Job.Name))
+	log.Debug("Running job")
 
 	if j.If != nil {
 		shouldRun, err := testCondition(ctx, j.If)

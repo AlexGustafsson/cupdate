@@ -11,7 +11,7 @@ func GetManifests() workflow.Step {
 		Name: "Get manifests",
 
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
-			client, err := workflow.GetInput[registry.Client](ctx, "client", true)
+			registryClient, err := workflow.GetInput[registry.Client](ctx, "registryClient", true)
 			if err != nil {
 				return nil, err
 			}
@@ -21,7 +21,7 @@ func GetManifests() workflow.Step {
 				return nil, err
 			}
 
-			manifests, err := client.GetManifests(ctx, image)
+			manifests, err := registryClient.GetManifests(ctx, image)
 			if err != nil {
 				return nil, err
 			}
