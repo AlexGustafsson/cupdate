@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 )
 
@@ -91,7 +92,30 @@ func (w Workflow) Run(ctx context.Context) error {
 	return errors.Join(errs...)
 }
 
-// TODO: Build a "dot" graph for debugging / visualization?
-// func (w Workflow) Describe() string {
-//
-// }
+func (w Workflow) Describe() string {
+	var builder strings.Builder
+
+	fmt.Fprintf(&builder, `---
+title: %s
+---
+flowchart LR
+`, w.Name)
+
+	fmt.Fprintf(&builder, "start[Start] --> job.0\n")
+	fmt.Fprintf(&builder, "job.%d --> stop[Stop]\n", len(w.Jobs)-1)
+
+	for i, job := range w.Jobs {
+		builder.WriteString(job.Describe(fmt.Sprintf("job.%d", i)))
+
+		for _, dependency := range job.DependsOn {
+			for j, job := range w.Jobs {
+				if job.ID == dependency {
+					fmt.Fprintf(&builder, "job.%d -- depends on --> job.%d\n", i, j)
+					break
+				}
+			}
+		}
+	}
+
+	return builder.String()
+}

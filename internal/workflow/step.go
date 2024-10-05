@@ -1,5 +1,10 @@
 package workflow
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Step struct {
 	ID   string
 	Name string
@@ -30,4 +35,12 @@ func (s Step) With(key string, input Input) Step {
 	}
 	s.Inputs[key] = input
 	return s
+}
+
+func (s Step) Describe(namespace string) string {
+	var builder strings.Builder
+
+	fmt.Fprintf(&builder, "%s[%s]\n", namespace, s.Name)
+
+	return builder.String()
 }

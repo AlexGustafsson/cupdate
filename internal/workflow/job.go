@@ -3,6 +3,7 @@ package workflow
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 )
 
 type Job struct {
@@ -107,4 +108,22 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 	}
 
 	return outputs, nil
+}
+
+func (j Job) Describe(namespace string) string {
+	var builder strings.Builder
+
+	fmt.Fprintf(&builder, "subgraph %s [%s]\n", namespace, j.Name)
+
+	for i, step := range j.Steps {
+		builder.WriteString(step.Describe(fmt.Sprintf("%s.step.%d", namespace, i)))
+	}
+
+	for i := 1; i < len(j.Steps); i++ {
+		fmt.Fprintf(&builder, "%s.step.%d --> %s.step.%d\n", namespace, i-1, namespace, i)
+	}
+
+	fmt.Fprintf(&builder, "end\n")
+
+	return builder.String()
 }

@@ -3,6 +3,7 @@ package imageworkflow
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"os"
 	"testing"
@@ -41,4 +42,9 @@ func TestWorkflow(t *testing.T) {
 	require.NoError(t, workflow.Run(context.TODO()))
 
 	json.NewEncoder(os.Stderr).Encode(data)
+}
+
+func TestWorkflowDescribe(t *testing.T) {
+	workflow := New(nil, &Data{})
+	fmt.Println(workflow.Describe())
 }
