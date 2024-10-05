@@ -2,16 +2,26 @@ package cache
 
 import (
 	"context"
+	"errors"
+	"io"
 	"time"
 )
 
-type Cache interface {
-	Has(ctx context.Context, key string, maxAge time.Duration) (bool, error)
-	Get(ctx context.Context, key string, maxAge time.Duration) ([]byte, error)
-	Set(ctx context.Context, key string, content []byte) error
+// Entry is an io.ReadCloser.
+// Entries may also confirm to [EntryInfo] if the data is available.
+type Entry = io.ReadCloser
 
-	// TODO: Just implement a generic request cache instead. Cache 200 responses?
-	// That way new versions can add fields without invalidating cache.
-	GetJSON(ctx context.Context, key string, v any, maxAge time.Duration) error
-	SetJSON(ctx context.Context, key string, v any) error
+type EntryInfo interface {
+	ModTime() time.Time
+}
+
+var (
+	ErrNotExist = errors.New("entry does not exist")
+)
+
+type Cache interface {
+	Stat(ctx context.Context, key string) (EntryInfo, bool, error)
+	Get(ctx context.Context, key string) (Entry, error)
+	Set(ctx context.Context, key string, reader io.Reader) error
+	Unset(ctx context.Context, key string) error
 }

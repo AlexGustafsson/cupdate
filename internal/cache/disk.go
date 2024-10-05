@@ -4,12 +4,25 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
+	"io"
+	"io/fs"
 	"os"
 	"path"
 	"time"
 )
+
+var _ Entry = (*diskEntry)(nil)
+var _ EntryInfo = (*diskEntry)(nil)
+
+type diskEntry struct {
+	io.ReadCloser
+	fileInfo fs.FileInfo
+}
+
+func (e diskEntry) ModTime() time.Time {
+	return e.fileInfo.ModTime()
+}
 
 var _ Cache = (*DiskCache)(nil)
 
@@ -27,73 +40,66 @@ func NewDiskCache(directory string) (*DiskCache, error) {
 	}, nil
 }
 
-func (c *DiskCache) Has(ctx context.Context, key string, maxAge time.Duration) (bool, error) {
+func (c *DiskCache) Stat(ctx context.Context, key string) (EntryInfo, bool, error) {
 	path := path.Join(c.directory, c.formatKey(key))
-	stat, err := os.Stat(path)
+	fileInfo, err := os.Stat(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return false, nil
+		return nil, false, nil
 	} else if err != nil {
-		return false, err
+		return nil, false, err
 	}
 
-	if stat.IsDir() {
-		return false, nil
+	if fileInfo.IsDir() {
+		return nil, false, nil
 	}
 
-	if maxAge > 0 && time.Since(stat.ModTime()) > maxAge {
-		return false, nil
-	}
-
-	return !stat.IsDir(), nil
+	return fileInfo, true, nil
 }
 
-func (c *DiskCache) Get(ctx context.Context, key string, maxAge time.Duration) ([]byte, error) {
-	exists, err := c.Has(ctx, key, maxAge)
-	if err != nil {
+func (c *DiskCache) Get(ctx context.Context, key string) (Entry, error) {
+	path := path.Join(c.directory, c.formatKey(key))
+	file, err := os.Open(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, ErrNotExist
+	} else if err != nil {
 		return nil, err
 	}
-	if !exists {
-		return nil, nil
-	}
 
-	path := path.Join(c.directory, c.formatKey(key))
-	content, err := os.ReadFile(path)
+	fileInfo, err := file.Stat()
 	if err != nil {
-		return nil, err
+		return nil, ErrNotExist
 	}
-	return content, nil
+
+	return diskEntry{
+		ReadCloser: file,
+		fileInfo:   fileInfo,
+	}, nil
 }
 
-func (c *DiskCache) Set(ctx context.Context, key string, data []byte) error {
+func (c *DiskCache) Set(ctx context.Context, key string, reader io.Reader) error {
 	path := path.Join(c.directory, c.formatKey(key))
-	return os.WriteFile(path, data, 0600)
-}
-
-func (c *DiskCache) GetJSON(ctx context.Context, key string, v any, maxAge time.Duration) error {
-	data, err := c.Get(ctx, key, maxAge)
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		return err
 	}
 
-	if data == nil {
-		return nil
-	}
-
-	return json.Unmarshal(data, v)
-}
-
-func (c *DiskCache) SetJSON(ctx context.Context, key string, v any) error {
-	if v == nil {
-		// TODO: Remove instead?
-		return nil
-	}
-
-	data, err := json.Marshal(v)
-	if err != nil {
+	if _, err := io.Copy(file, reader); err != nil {
 		return err
 	}
 
-	return c.Set(ctx, key, data)
+	return nil
+}
+
+func (c *DiskCache) Unset(ctx context.Context, key string) error {
+	path := path.Join(c.directory, c.formatKey(key))
+	err := os.Remove(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *DiskCache) formatKey(key string) string {
