@@ -57,8 +57,6 @@ func GetAnyInput(ctx Context, name string, required bool) (any, error) {
 		}
 
 		return ret, nil
-	case Func:
-		return v.Func(ctx)
 	default:
 		return v, nil
 	}
@@ -67,9 +65,4 @@ func GetAnyInput(ctx Context, name string, required bool) (any, error) {
 // Ref is an [Input] that refers to a value retrievable by [GetValue].
 type Ref struct {
 	Key string
-}
-
-// Func is an [Input] that is invoked to get a value.
-type Func struct {
-	Func func(ctx Context) (any, error)
 }

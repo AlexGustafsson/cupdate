@@ -31,26 +31,31 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("registry").
 						With("httpClient", httpClient).
 						With("reference", data.ImageReference),
-					InsertTag().
-						With("data", data).
-						With("tag", workflow.Ref{Key: "step.registry.domain"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
+						if err != nil {
+							return nil, err
+						}
+
+						data.InsertTag(domain)
+						return nil, nil
+					}),
 					GetManifests().
 						WithID("manifests").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference),
-					InsertLink().
-						With("data", data).
-						With("link", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
-							domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
-							if err != nil {
-								return nil, err
-							}
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
+						if err != nil {
+							return nil, err
+						}
 
-							return models.ImageLink{
-								Type: "oci-registry",
-								URL:  domain,
-							}, nil
-						}}),
+						data.InsertLink(models.ImageLink{
+							Type: "oci-registry",
+							URL:  domain,
+						})
+						return nil, nil
+					}),
 				},
 			},
 			{
@@ -71,35 +76,54 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("repository").
 						With("httpClient", httpClient).
 						With("reference", data.ImageReference),
-					GetDockerHubOwner().
+					GetDockerHubRepositoryOwner().
 						WithID("owner").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference),
-					InsertDescription().
-						With("data", data).
-						With("description", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
-							repository, err := workflow.GetValue[*docker.Repository](ctx, "step.repository.repository")
-							if err != nil {
-								return nil, err
-							}
+						With("repository", workflow.Ref{Key: "step.repository.repository"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						repository, err := workflow.GetValue[*docker.Repository](ctx, "step.repository.repository")
+						if err != nil {
+							return nil, err
+						}
 
-							return &models.ImageDescription{
-								Markdown: repository.FullDescription,
-							}, nil
-						}}),
-					InsertLink().
-						With("data", data).
-						With("link", models.ImageLink{
+						data.Description = &models.ImageDescription{
+							Markdown: repository.FullDescription,
+						}
+						return nil, nil
+					}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						owner, err := workflow.GetValue[*docker.Entity](ctx, "step.owner.owner")
+						if err != nil {
+							return nil, err
+						}
+
+						data.Image = owner.GravatarURL
+						return nil, nil
+					}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						data.InsertLink(models.ImageLink{
 							Type: "docker",
 							URL:  docker.RepositoryPath(data.ImageReference),
-						}),
+						})
+						return nil, nil
+					}),
 					GetDockerHubLatestVersion().
 						WithID("latest").
 						With("reference", data.ImageReference).
 						With("httpClient", httpClient),
-					InsertLatestVersion().
-						With("data", data).
-						With("reference", workflow.Ref{Key: "step.latest.reference"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
+						if err != nil {
+							return nil, err
+						}
+
+						if reference == nil {
+							return nil, nil
+						}
+
+						data.LatestVersion = reference
+						return nil, nil
+					}),
 				},
 			},
 			{
@@ -128,55 +152,54 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					return false, nil
 				},
 				Steps: []workflow.Step{
-					InsertTag().
-						With("data", data).
-						With("tag", "github"),
-					InsertLinks().
-						With("data", data).
-						With("links", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
-							manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
-							if err != nil {
-								return []models.ImageLink{}, nil
-							}
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						data.InsertTag("github")
+						return nil, nil
+					}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
+						if err != nil {
+							return nil, nil
+						}
 
-							if manifests == nil {
-								return []models.ImageLink{}, nil
-							}
+						if manifests == nil {
+							return nil, nil
+						}
 
-							links := make([]models.ImageLink, 0)
-							for _, manifest := range manifests {
-								if strings.Contains(manifest.SourceAnnotation(), "github.com") {
-									links = append(links, models.ImageLink{
-										Type: "github",
-										URL:  manifest.SourceAnnotation(),
-									})
-								}
+						links := make([]models.ImageLink, 0)
+						for _, manifest := range manifests {
+							if strings.Contains(manifest.SourceAnnotation(), "github.com") {
+								links = append(links, models.ImageLink{
+									Type: "github",
+									URL:  manifest.SourceAnnotation(),
+								})
 							}
+						}
 
-							return links, nil
-						}}),
+						data.InsertLinks(links)
+						return nil, nil
+					}),
 					GetGitHubRelease().
 						WithID("release").
 						With("httpClient", httpClient).
 						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
 						With("reference", data.ImageReference),
-					InsertReleaseNotes().
-						With("data", data).
-						With("releaseNotes", workflow.Func{Func: func(ctx workflow.Context) (any, error) {
-							release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
-							if err != nil {
-								return nil, err
-							}
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
+						if err != nil {
+							return nil, err
+						}
 
-							if release == nil {
-								return (*models.ImageReleaseNotes)(nil), nil
-							}
+						if release == nil {
+							return nil, nil
+						}
 
-							return &models.ImageReleaseNotes{
-								Title: release.Title,
-								HTML:  release.Description,
-							}, nil
-						}}),
+						data.ReleaseNotes = &models.ImageReleaseNotes{
+							Title: release.Title,
+							HTML:  release.Description,
+						}
+						return nil, nil
+					}),
 				},
 			},
 		},

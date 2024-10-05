@@ -44,3 +44,11 @@ func (s Step) Describe(namespace string) string {
 
 	return builder.String()
 }
+
+type StepFunc func(ctx Context) (Command, error)
+
+func Run(f StepFunc) Step {
+	return Step{
+		Main: f,
+	}
+}

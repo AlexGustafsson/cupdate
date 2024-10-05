@@ -6,7 +6,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func GetDockerHubOwner() workflow.Step {
+func GetDockerHubRepositoryOwner() workflow.Step {
 	return workflow.Step{
 		Name: "Get Docker Hub owner",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {

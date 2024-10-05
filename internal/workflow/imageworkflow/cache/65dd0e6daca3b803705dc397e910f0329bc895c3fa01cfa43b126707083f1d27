@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Content-Length: 506
+Content-Type: application/json
+Date: Sat, 05 Oct 2024 14:40:08 GMT
+Strict-Transport-Security: max-age=31536000
+X-Content-Type-Options: nosniff
+X-Frame-Options: deny
+X-Ratelimit-Ip: 213.66.82.227
+X-Ratelimit-Limit: 180
+X-Ratelimit-Remaining: 180
+X-Ratelimit-Reset: 1728139268
+X-Trace-Id: 6b7ac0d968be9a40757173f2b5ff814a
+X-Xss-Protection: 1; mode=block
+
+{"id":"33ef574274c011e4bea40242ac11001b","uuid":"33ef5742-74c0-11e4-bea4-0242ac11001b","orgname":"library","full_name":"Docker Official Images","location":"","company":"Docker, Inc.","profile_url":"https://github.com/docker-library/official-images#readme","date_joined":"2013-03-24T00:40:48Z","gravatar_url":"https://www.gravatar.com/avatar/7510e100f7ebeca4a0b8c3c617349295?s=80\u0026r=g\u0026d=mm","gravatar_email":"tianon+hub-library@dockerproject.org","type":"Organization","badge":"","is_active":true}
