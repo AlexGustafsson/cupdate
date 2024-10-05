@@ -144,7 +144,7 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 }
 
 func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repository, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, RepositoryPath(image), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://hub.docker.com/v2/repositories/"+url.PathEscape(image.Path), nil)
 	if err != nil {
 		return nil, err
 	}

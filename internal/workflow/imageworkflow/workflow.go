@@ -103,7 +103,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						data.InsertLink(models.ImageLink{
 							Type: "docker",
-							URL:  docker.RepositoryPath(data.ImageReference),
+							URL:  docker.RepositoryUIPath(data.ImageReference),
 						})
 						return nil, nil
 					}),

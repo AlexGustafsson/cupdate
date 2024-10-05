@@ -2,10 +2,16 @@ package docker
 
 import (
 	"net/url"
+	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
-func RepositoryPath(image oci.Reference) string {
-	return "https://hub.docker.com/v2/repositories/" + url.PathEscape(image.Path)
+func RepositoryUIPath(image oci.Reference) string {
+	owner, name, _ := strings.Cut(image.Path, "/")
+	if owner == "library" {
+		return "https://hub.docker.com/_/" + url.PathEscape(name)
+	}
+
+	return "https://hub.docker.com/r/" + url.PathEscape(owner) + "/" + url.PathEscape(name)
 }
