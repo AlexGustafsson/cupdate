@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"golang.org/x/net/html"
 )
 
@@ -16,7 +17,7 @@ type Client struct {
 	// Endpoint is the GitHub endpoint. Useful for using an enterprise instance,
 	// for example. Defaults to "https://github.com".
 	Endpoint string
-	Client   *http.Client
+	Client   *httputil.Client
 }
 
 func (c *Client) GetRelease(ctx context.Context, owner string, repository string, tag string) (*Release, error) {
@@ -31,12 +32,7 @@ func (c *Client) GetRelease(ctx context.Context, owner string, repository string
 		return nil, err
 	}
 
-	client := c.Client
-	if client == nil {
-		client = http.DefaultClient
-	}
-
-	res, err := client.Do(req)
+	res, err := c.Client.DoCached(req)
 	if err != nil {
 		return nil, err
 	}

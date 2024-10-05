@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 )
 
 type Authorizer interface {
@@ -28,7 +30,7 @@ func (s AuthorizerToken) Authorize(ctx context.Context, req *http.Request) error
 }
 
 type Client struct {
-	Client     *http.Client
+	Client     *httputil.Client
 	Authorizer Authorizer
 }
 
@@ -63,11 +65,7 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 		}
 	}
 
-	client := c.Client
-	if client == nil {
-		client = http.DefaultClient
-	}
-	res, err := client.Do(req)
+	res, err := c.Client.DoCached(req)
 	if err != nil {
 		return nil, err
 	}

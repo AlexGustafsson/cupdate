@@ -8,12 +8,13 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
 type Client struct {
-	Client *http.Client
+	Client *httputil.Client
 }
 
 func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (string, error) {
@@ -33,12 +34,7 @@ func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (str
 		return "", err
 	}
 
-	client := c.Client
-	if client == nil {
-		client = http.DefaultClient
-	}
-
-	res, err := client.Do(req)
+	res, err := c.Client.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -101,12 +97,7 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, err
 	}
 
-	client := c.Client
-	if client == nil {
-		client = http.DefaultClient
-	}
-
-	res, err := client.Do(req)
+	res, err := c.Client.DoCached(req)
 	if err != nil {
 		return nil, err
 	}
@@ -158,12 +149,7 @@ func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repos
 		return nil, err
 	}
 
-	client := c.Client
-	if client == nil {
-		client = http.DefaultClient
-	}
-
-	res, err := client.Do(req)
+	res, err := c.Client.DoCached(req)
 	if err != nil {
 		return nil, err
 	}
@@ -188,12 +174,7 @@ func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser s
 		return nil, err
 	}
 
-	client := c.Client
-	if client == nil {
-		client = http.DefaultClient
-	}
-
-	res, err := client.Do(req)
+	res, err := c.Client.DoCached(req)
 	if err != nil {
 		return nil, err
 	}
