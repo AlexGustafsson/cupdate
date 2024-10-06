@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Tag struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -7,15 +9,15 @@ type Tag struct {
 }
 
 type ImagePage struct {
-	Images     []*Image            `json:"images"`
-	Summary    *ImagePageSummary   `json:"summary"`
-	Pagination *PaginationMetadata `json:"pagination"`
+	Images     []Image            `json:"images"`
+	Summary    ImagePageSummary   `json:"summary"`
+	Pagination PaginationMetadata `json:"pagination"`
 }
 
 type ImagePageSummary struct {
-	Images   int `json:"images,omitempty"`
-	Outdated int `json:"outdated,omitempty"`
-	Pods     int `json:"pods,omitempty"`
+	Images   int `json:"images"`
+	Outdated int `json:"outdated"`
+	Pods     int `json:"pods"`
 }
 
 type PaginationMetadata struct {
@@ -27,13 +29,13 @@ type PaginationMetadata struct {
 }
 
 type Image struct {
-	Name           string      `json:"name"`
-	Description    string      `json:"description,omitempty"`
-	CurrentVersion string      `json:"currentVersion"`
-	LatestVersion  string      `json:"latestVersion"`
-	Tags           []string    `json:"tags"`
-	Links          []ImageLink `json:"links"`
-	Image          string      `json:"image,omitempty"`
+	Reference       string      `json:"reference"`
+	LatestReference string      `json:"latestReference"`
+	Description     string      `json:"description,omitempty"`
+	Tags            []string    `json:"tags"`
+	Links           []ImageLink `json:"links"`
+	LastModified    time.Time   `json:"lastModified"`
+	Image           string      `json:"image,omitempty"`
 }
 
 type ImageDescription struct {
@@ -42,9 +44,10 @@ type ImageDescription struct {
 }
 
 type ImageReleaseNotes struct {
-	Title    string `json:"title"`
-	HTML     string `json:"html,omitempty"`
-	Released string `json:"released,omitempty"`
+	Title    string    `json:"title"`
+	HTML     string    `json:"html,omitempty"`
+	Markdown string    `json:"markdown,omitempty"`
+	Released time.Time `json:"released,omitempty"`
 }
 
 type ImageLink struct {

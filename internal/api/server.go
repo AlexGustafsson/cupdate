@@ -34,6 +34,10 @@ func NewServer(api API) *Server {
 		})
 
 		sort := query.Get("sort")
+		if sort != "" && sort != "reference" {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
 
 		order := query.Get("order")
 		if order != "" && order != "desc" && order != "asc" {
@@ -42,7 +46,7 @@ func NewServer(api API) *Server {
 		}
 
 		pageString := query.Get("page")
-		var page int64 = 1
+		var page int64 = 0
 		if pageString != "" {
 			var err error
 			page, err = strconv.ParseInt(pageString, 10, 64)
@@ -53,7 +57,7 @@ func NewServer(api API) *Server {
 		}
 
 		limitString := query.Get("limit")
-		var limit int64 = 1
+		var limit int64 = 30
 		if limitString != "" {
 			var err error
 			limit, err = strconv.ParseInt(limitString, 10, 64)
@@ -63,51 +67,43 @@ func NewServer(api API) *Server {
 			}
 		}
 
-		response, err := api.GetImages(r.Context(), tags, sort, order, page, limit)
+		response, err := api.ListImages(r.Context(), tags, order, int(page), int(limit))
 		s.handleJSONResponse(w, r, response, err)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
-		name := query.Get("name")
+		reference := query.Get("reference")
 
-		version := query.Get("version")
-
-		response, err := api.GetImage(r.Context(), name, version)
+		response, err := api.GetImage(r.Context(), reference)
 		s.handleJSONResponse(w, r, response, err)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image/description", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
-		name := query.Get("name")
+		reference := query.Get("reference")
 
-		version := query.Get("version")
-
-		response, err := api.GetImageDescription(r.Context(), name, version)
+		response, err := api.GetImageDescription(r.Context(), reference)
 		s.handleJSONResponse(w, r, response, err)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image/release-notes", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
-		name := query.Get("name")
+		reference := query.Get("reference")
 
-		version := query.Get("version")
-
-		response, err := api.GetImageReleaseNotes(r.Context(), name, version)
+		response, err := api.GetImageReleaseNotes(r.Context(), reference)
 		s.handleJSONResponse(w, r, response, err)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image/graph", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
-		name := query.Get("name")
+		reference := query.Get("reference")
 
-		version := query.Get("version")
-
-		response, err := api.GetImageGraph(r.Context(), name, version)
+		response, err := api.GetImageGraph(r.Context(), reference)
 		s.handleJSONResponse(w, r, response, err)
 	})
 

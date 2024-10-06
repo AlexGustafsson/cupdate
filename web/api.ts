@@ -13,9 +13,9 @@ export interface ImagePage {
 }
 
 export interface ImagePageSummary {
-  images?: number
-  outdated?: number
-  pods?: number
+  images: number
+  outdated: number
+  pods: number
 }
 
 export interface PaginationMetadata {
@@ -27,13 +27,13 @@ export interface PaginationMetadata {
 }
 
 export interface Image {
-  name: string
+  reference: string
+  latestReference: string
   description?: string
-  currentVersion: string
-  latestVersion: string
   tags: string[]
   links: ImageLink[]
   image?: string
+  lastModified: string
 }
 
 export interface ImageDescription {
@@ -89,6 +89,9 @@ export function useTags(): Result<Tag[]> {
 
 interface UseImagesProps {
   tags?: string[]
+  // Technically only "reference" | undefined, but let's be lax for now as we
+  // otherwise would have to parse whatever query parameter we got and handle
+  // errors
   sort?: string
   order?: 'asc' | 'desc'
   page?: number
@@ -138,11 +141,11 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
 }
 
 // TODO: Add query parameters
-export function useImage(name: string, version: string): Result<Image | null> {
+export function useImage(reference: string): Result<Image | null> {
   const [result, setResult] = useState<Result<Image | null>>({ status: 'idle' })
 
   useEffect(() => {
-    const query = new URLSearchParams({ name, version })
+    const query = new URLSearchParams({ reference })
     fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image?${query.toString()}`)
       .then((res) => {
         if (res.status === 404) {
@@ -155,22 +158,21 @@ export function useImage(name: string, version: string): Result<Image | null> {
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [name, version])
+  }, [reference])
 
   return result
 }
 
 // TODO: Add query parameters
 export function useImageDescription(
-  name: string,
-  version: string
+  reference: string
 ): Result<ImageDescription | null> {
   const [result, setResult] = useState<Result<ImageDescription | null>>({
     status: 'idle',
   })
 
   useEffect(() => {
-    const query = new URLSearchParams({ name, version })
+    const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env['VITE_API_ENDPOINT']}/image/description?${query.toString()}`
     )
@@ -185,22 +187,21 @@ export function useImageDescription(
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [name, version])
+  }, [reference])
 
   return result
 }
 
 // TODO: Add query parameters
 export function useImageReleaseNotes(
-  name: string,
-  version: string
+  reference: string
 ): Result<ImageReleaseNotes | null> {
   const [result, setResult] = useState<Result<ImageReleaseNotes | null>>({
     status: 'idle',
   })
 
   useEffect(() => {
-    const query = new URLSearchParams({ name, version })
+    const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env['VITE_API_ENDPOINT']}/image/release-notes?${query.toString()}`
     )
@@ -215,22 +216,19 @@ export function useImageReleaseNotes(
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [name, version])
+  }, [reference])
 
   return result
 }
 
 // TODO: Add query parameters
-export function useImageGraph(
-  name: string,
-  version: string
-): Result<Graph | null> {
+export function useImageGraph(reference: string): Result<Graph | null> {
   const [result, setResult] = useState<Result<Graph | null>>({
     status: 'idle',
   })
 
   useEffect(() => {
-    const query = new URLSearchParams({ name, version })
+    const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env['VITE_API_ENDPOINT']}/image/graph?${query.toString()}`
     )
@@ -245,7 +243,7 @@ export function useImageGraph(
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [name, version])
+  }, [reference])
 
   return result
 }

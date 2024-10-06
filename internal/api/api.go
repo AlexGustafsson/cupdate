@@ -13,10 +13,10 @@ var (
 )
 
 type API interface {
-	GetTags(ctx context.Context) ([]*models.Tag, error)
-	GetImages(ctx context.Context, tags []string, sort string, order string, page int64, limit int64) (*models.ImagePage, error)
-	GetImage(ctx context.Context, name string, version string) (*models.Image, error)
-	GetImageDescription(ctx context.Context, name string, version string) (*models.ImageDescription, error)
-	GetImageReleaseNotes(ctx context.Context, name string, version string) (*models.ImageReleaseNotes, error)
-	GetImageGraph(ctx context.Context, name string, version string) (*models.Graph, error)
+	GetTags(ctx context.Context) ([]models.Tag, error)
+	ListImages(ctx context.Context, tags []string, order string, page int, limit int) (*models.ImagePage, error)
+	GetImage(ctx context.Context, reference string) (*models.Image, error)
+	GetImageDescription(ctx context.Context, reference string) (*models.ImageDescription, error)
+	GetImageReleaseNotes(ctx context.Context, reference string) (*models.ImageReleaseNotes, error)
+	GetImageGraph(ctx context.Context, reference string) (*models.Graph, error)
 }

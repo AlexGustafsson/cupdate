@@ -38,6 +38,7 @@ paths:
           description: Property to sort by.
           schema:
             type: string
+            enum: ['reference']
           required: false
         - in: query
           name: order
@@ -70,12 +71,7 @@ paths:
       summary: Returns an image.
       parameters:
         - in: query
-          name: name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
+          name: reference
           schema:
             type: string
           required: true
@@ -92,12 +88,7 @@ paths:
       summary: Returns an image's description.
       parameters:
         - in: query
-          name: name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
+          name: reference
           schema:
             type: string
           required: true
@@ -116,12 +107,7 @@ paths:
       summary: Returns an image's release notes.
       parameters:
         - in: query
-          name: name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
+          name: reference
           schema:
             type: string
           required: true
@@ -140,12 +126,7 @@ paths:
       summary: Returns an image's graph
       parameters:
         - in: query
-          name: name
-          schema:
-            type: string
-          required: true
-        - in: query
-          name: version
+          name: reference
           schema:
             type: string
           required: true
@@ -177,15 +158,21 @@ components:
           items:
             $ref: '#/components/schemas/Image'
         summary:
-          images:
-            description: Total number of images
-            type: number
-          outdated:
-            description: Total number of outdated images
-            type: number
-          pods:
-            description: Total number of pods
-            type: number
+          type: object
+          properties:
+            images:
+              description: Total number of images
+              type: number
+            outdated:
+              description: Total number of outdated images
+              type: number
+            pods:
+              description: Total number of pods
+              type: number
+          required:
+            - images
+            - outdated
+            - pods
         pagination:
           $ref: '#/components/schemas/PaginationMetadata'
       required:
@@ -214,13 +201,11 @@ components:
     Image:
       type: object
       properties:
-        name:
+        reference:
           type: string
         description:
           type: string
-        currentVersion:
-          type: string
-        latestVersion:
+        lasestReference:
           type: string
           description: The latest available version on the same track
         tags:
@@ -231,16 +216,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ImageLink'
+        lastModified:
+          type: string
+          format: datetime
+          description: When the image's information was last updated
         image:
           type: string
           format: url
           description: URL to an image
       required:
-        - name
-        - currentVersion
-        - latestVersion
+        - reference
+        - latestReference
         - tags
         - links
+        - lastModified
 
     ImageDescription:
       type: object
@@ -256,6 +245,8 @@ components:
         title:
           type: string
         html:
+          type: string
+        markdown:
           type: string
         released:
           type: string

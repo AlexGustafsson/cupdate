@@ -28,13 +28,13 @@ func TestWorkflow(t *testing.T) {
 	require.NoError(t, err)
 
 	data := &Data{
-		ImageReference: reference,
-		Image:          "",
-		LatestVersion:  &reference,
-		Tags:           make([]string, 0),
-		Description:    nil,
-		ReleaseNotes:   nil,
-		Links:          make([]models.ImageLink, 0),
+		ImageReference:  reference,
+		Image:           "",
+		LatestReference: reference,
+		Tags:            make([]string, 0),
+		Description:     nil,
+		ReleaseNotes:    nil,
+		Links:           make([]models.ImageLink, 0),
 	}
 
 	workflow := New(httpClient, data)

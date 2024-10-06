@@ -10,13 +10,13 @@ import (
 
 type Data struct {
 	sync.Mutex
-	ImageReference oci.Reference
-	Image          string
-	LatestVersion  *oci.Reference
-	Tags           []string
-	Description    *models.ImageDescription
-	ReleaseNotes   *models.ImageReleaseNotes
-	Links          []models.ImageLink
+	ImageReference  oci.Reference
+	Image           string
+	LatestReference oci.Reference
+	Tags            []string
+	Description     *models.ImageDescription
+	ReleaseNotes    *models.ImageReleaseNotes
+	Links           []models.ImageLink
 }
 
 func (d *Data) InsertTag(tag string) {

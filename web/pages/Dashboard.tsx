@@ -8,6 +8,7 @@ import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arr
 import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
 import { useFilter, useSort } from '../hooks'
+import { name, version } from '../oci'
 
 export function Dashboard(): JSX.Element {
   const [filter, setFilter] = useFilter()
@@ -68,23 +69,23 @@ export function Dashboard(): JSX.Element {
       <div className="flex flex-col items-center w-full py-[40px] px-[20px]">
         {/* Header with summary */}
         <div className="p-3 flex space-x-5">
-          {images.value.summary.images !== undefined && (
+          {
             <div className="p-5 w-32 h-32 bg-blue-100 rounded-lg">
               <p className="text-md font-medium">Images</p>
               <p className="text-3xl font-bold">
                 {images.value.summary.images}
               </p>
             </div>
-          )}
-          {images.value.summary.outdated !== undefined && (
+          }
+          {
             <div className="p-5 w-32 h-32 bg-orange-100 rounded-lg">
               <p className="text-md font-medium">Outdated</p>
               <p className="text-3xl font-bold">
                 {images.value.summary.outdated}
               </p>
             </div>
-          )}
-          {images.value.summary.pods !== undefined && (
+          }
+          {images.value.summary.pods !== 0 && (
             <div className="p-5 w-32 h-32 bg-purple-100 rounded-lg">
               <p className="text-md font-medium">Pods</p>
               <p className="text-3xl font-bold">{images.value.summary.pods}</p>
@@ -102,50 +103,23 @@ export function Dashboard(): JSX.Element {
                     scope="col"
                     colSpan={2}
                     className="text-nowrap text-center cursor-pointer pr-[24px]"
-                    onClick={() => toggleSort('imageName')}
+                    onClick={() => toggleSort('reference')}
                   >
                     Image
                     <div className="inline-block relative py-[9px]">
-                      {sortProperty === 'imageName' && sortOrder === 'asc' && (
+                      {sortProperty === 'reference' && sortOrder === 'asc' && (
                         <FluentArrowSortUp24Filled className="absolute top-0" />
                       )}
-                      {sortProperty === 'imageName' && sortOrder === 'desc' && (
+                      {sortProperty === 'reference' && sortOrder === 'desc' && (
                         <FluentArrowSortDown24Filled className="absolute top-0" />
                       )}
                     </div>
                   </th>
-                  <th
-                    scope="col"
-                    className="text-nowrap text-center cursor-pointer pr-[24px]"
-                    onClick={() => toggleSort('currentVersion')}
-                  >
+                  <th scope="col" className="text-nowrap text-center pr-[24px]">
                     Version
-                    <div className="inline-block relative py-[9px]">
-                      {sortProperty === 'currentVersion' &&
-                        sortOrder === 'asc' && (
-                          <FluentArrowSortUp24Filled className="absolute top-0" />
-                        )}
-                      {sortProperty === 'currentVersion' &&
-                        sortOrder === 'desc' && (
-                          <FluentArrowSortDown24Filled className="absolute top-0" />
-                        )}
-                    </div>
                   </th>
-                  <th
-                    scope="col"
-                    className="text-nowrap text-center cursor-pointer pr-[24px]"
-                    onClick={() => toggleSort('newVersion')}
-                  >
+                  <th scope="col" className="text-nowrap text-center pr-[24px]">
                     New version
-                    <div className="inline-block relative py-[9px]">
-                      {sortProperty === 'newVersion' && sortOrder === 'asc' && (
-                        <FluentArrowSortUp24Filled className="absolute top-0" />
-                      )}
-                      {sortProperty === 'newVersion' &&
-                        sortOrder === 'desc' && (
-                          <FluentArrowSortDown24Filled className="absolute top-0" />
-                        )}
-                    </div>
                   </th>
                   <th scope="col" className="text-nowrap text-center">
                     Tags
@@ -155,10 +129,7 @@ export function Dashboard(): JSX.Element {
               </thead>
               <tbody>
                 {images.value.images.map((image) => (
-                  <tr
-                    key={image.name + ':' + image.currentVersion}
-                    className=""
-                  >
+                  <tr key={image.reference} className="">
                     <td>
                       {image.image ? (
                         <img
@@ -173,20 +144,20 @@ export function Dashboard(): JSX.Element {
                       )}
                     </td>
                     <td className="pr-[24px]">
-                      <p>{image.name} </p>
+                      <p>{name(image.reference)} </p>
                       {image.description && (
                         <p className="text-xs">{image.description}</p>
                       )}
                     </td>
                     <td
-                      className={`text-end pr-[24px] ${image.latestVersion === image.currentVersion ? '' : 'text-red-400'}`}
+                      className={`text-end pr-[24px] ${image.reference === image.latestReference ? '' : 'text-red-400'}`}
                     >
-                      {image.currentVersion}
+                      {version(image.latestReference)}
                     </td>
                     <td
-                      className={`text-end pr-[24px] ${image.latestVersion === image.currentVersion ? '' : 'text-green-400'}`}
+                      className={`text-end pr-[24px] ${image.reference === image.latestReference ? '' : 'text-green-400'}`}
                     >
-                      {image.latestVersion}
+                      {version(image.reference)}
                     </td>
                     <td className="flex flex-wrap">
                       {tags.value
@@ -203,7 +174,7 @@ export function Dashboard(): JSX.Element {
                     </td>
                     <td>
                       <NavLink
-                        to={`/image?name=${image.name}&version=${image.currentVersion}`}
+                        to={`/image?reference=${encodeURIComponent(image.reference)}`}
                       >
                         <FluentChevronRight24Regular />
                       </NavLink>

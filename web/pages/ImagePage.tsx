@@ -23,6 +23,7 @@ import { SimpleIconsGithub } from '../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
 import { nodeTypes, useNodesAndEdges } from '../graph'
+import { name, version } from '../oci'
 
 const titles: Record<string, string | undefined> = {
   github: "Project's page on GitHub",
@@ -100,14 +101,13 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
 export function ImagePage(): JSX.Element {
   const [params, _] = useSearchParams()
 
-  const imageName = params.get('name')!
-  const imageVersion = params.get('version')!
+  const reference = params.get('reference')!
 
   const tags = useTags()
-  const image = useImage(imageName, imageVersion)
-  const description = useImageDescription(imageName, imageVersion)
-  const releaseNotes = useImageReleaseNotes(imageName, imageVersion)
-  const graph = useImageGraph(imageName, imageVersion)
+  const image = useImage(reference)
+  const description = useImageDescription(reference)
+  const releaseNotes = useImageReleaseNotes(reference)
+  const graph = useImageGraph(reference)
 
   if (
     tags.status === 'idle' ||
@@ -151,19 +151,19 @@ export function ImagePage(): JSX.Element {
         </div>
       )}
       {/* Image name */}
-      <h1 className="text-2xl font-medium">{image.value.name}</h1>
+      <h1 className="text-2xl font-medium">{name(image.value.reference)}</h1>
       {/* Image version */}
       <div className="flex items-center">
-        {image.value.currentVersion === image.value.latestVersion ? (
-          <p className="font-medium">{image.value.currentVersion}</p>
+        {image.value.reference === image.value.latestReference ? (
+          <p className="font-medium">{version(image.value.reference)}</p>
         ) : (
           <>
             <FluentChevronDown20Regular className="text-red-500" />
             <p className="font-medium text-red-500">
-              {image.value.currentVersion}
+              {version(image.value.reference)}
             </p>
             <p className="font-medium ml-4 text-green-500">
-              {image.value.latestVersion}
+              {version(image.value.latestReference)}
             </p>
             <FluentChevronUp20Regular className="text-green-500" />
           </>

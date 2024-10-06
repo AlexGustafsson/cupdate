@@ -31,15 +31,6 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("registry").
 						With("httpClient", httpClient).
 						With("reference", data.ImageReference),
-					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
-						if err != nil {
-							return nil, err
-						}
-
-						data.InsertTag(domain)
-						return nil, nil
-					}),
 					GetManifests().
 						WithID("manifests").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
@@ -121,7 +112,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							return nil, nil
 						}
 
-						data.LatestVersion = reference
+						data.LatestReference = *reference
 						return nil, nil
 					}),
 				},
@@ -183,7 +174,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("release").
 						With("httpClient", httpClient).
 						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
-						With("reference", data.LatestVersion),
+						With("reference", data.LatestReference),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
 						if err != nil {

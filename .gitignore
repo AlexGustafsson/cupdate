@@ -6,3 +6,4 @@
 /.eslintcache
 /build
 /cache
+/*.sqlite*
