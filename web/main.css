@@ -59,4 +59,8 @@
   .markdown-body li {
     list-style-type: disc;
   }
+
+  .markdown-body img {
+    display: initial;
+  }
 }
