@@ -184,10 +184,13 @@ components:
       type: object
       properties:
         total:
+          description: Total entries.
           type: integer
         page:
+          description: Page index.
           type: integer
         size:
+          description: Requested page size.
           type: integer
         next:
           type: string

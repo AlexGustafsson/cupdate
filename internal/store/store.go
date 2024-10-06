@@ -547,7 +547,7 @@ func (s *Store) ListImages(ctx context.Context, tags []string, order string, pag
 		return nil, err
 	}
 
-	result.Pagination.Size = len(result.Images)
+	result.Pagination.Size = limit
 	result.Pagination.Page = int(page)
 
 	for i := range result.Images {

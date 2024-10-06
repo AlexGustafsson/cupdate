@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useSearchParams } from 'react-router-dom'
 
-import { useImages, useTags } from '../api'
+import { useImages, usePagination, useTags } from '../api'
 import { Badge } from '../components/Badge'
 import { FluentChevronRight24Regular } from '../components/icons/fluent-chevron-right-24-regular'
 import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
@@ -15,11 +15,20 @@ export function Dashboard(): JSX.Element {
 
   const [sortProperty, setSortProperty, sortOrder, setSortOrder] = useSort()
 
+  const [searchParams, _] = useSearchParams()
+
   const images = useImages({
     tags: filter,
     sort: sortProperty,
     order: sortOrder,
+    page: searchParams.get('page') ? Number(searchParams.get('page')) : 0,
+    limit: 30,
   })
+
+  const pages = usePagination(
+    images.status === 'resolved' ? images.value : undefined
+  )
+
   const tags = useTags()
 
   // // If the filter excludes all tags, default to show all tags again
@@ -186,8 +195,23 @@ export function Dashboard(): JSX.Element {
 
             {/* Pagination footer */}
             <div className="mt-4">
+              <div className="flex items-center justify-center text-sm">
+                {pages.map(({ index, label, current }) =>
+                  index === undefined ? (
+                    <p className="m-1 cursor-default">{label}</p>
+                  ) : (
+                    <NavLink
+                      // TODO
+                      to={`/?page=${index}`}
+                      className={`m-1 w-6 h-6 text-center leading-6 rounded ${current ? 'bg-blue-400' : 'hover:bg-blue-400'}`}
+                    >
+                      <p>{label}</p>
+                    </NavLink>
+                  )
+                )}
+              </div>
               <p className="text-sm">
-                Showing {images.value.pagination.size} of{' '}
+                Showing {images.value.images.length} of{' '}
                 {images.value.pagination.total} entries
               </p>
             </div>

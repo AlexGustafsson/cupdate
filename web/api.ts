@@ -1,4 +1,12 @@
-import { useEffect, useState } from 'react'
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 export interface Tag {
   name: string
@@ -246,4 +254,63 @@ export function useImageGraph(reference: string): Result<Graph | null> {
   }, [reference])
 
   return result
+}
+
+export function usePagination<T extends { pagination: PaginationMetadata }>(
+  page: T | undefined
+): { index: number | undefined; label: string; current: boolean }[] {
+  const [_, setSearchParams] = useSearchParams()
+
+  const pages = useMemo(() => {
+    if (!page) {
+      return []
+    }
+
+    const totalPages = Math.ceil(page.pagination.total / page.pagination.size)
+
+    // Try to keep 9 pages displayed at all times, with 4 pages allocated
+    // for previous pages and 5 for next pages
+    let rangeStart = Math.max(0, page.pagination.page - 4)
+    const rangeEnd = Math.min(
+      totalPages,
+      page.pagination.page + 9 - (page.pagination.page - rangeStart)
+    )
+    rangeStart = Math.max(
+      0,
+      page.pagination.page - 9 - (page.pagination.page - rangeEnd)
+    )
+    const range = rangeEnd - rangeStart
+
+    const pages: {
+      index: number | undefined
+      label: string
+      current: boolean
+    }[] = new Array(range).fill('').map((_, i) => ({
+      index: rangeStart + i,
+      label: (rangeStart + i + 1).toString(),
+      current: rangeStart + i === page.pagination.page,
+    }))
+
+    if (pages[8]?.index && pages[8].index < totalPages - 2) {
+      pages[7] = { index: undefined, label: '...', current: false }
+      pages[8] = {
+        index: totalPages - 1,
+        label: totalPages.toString(),
+        current: false,
+      }
+    }
+
+    if (pages[0]?.index && pages[0].index > 0) {
+      pages[1] = { index: undefined, label: '...', current: false }
+      pages[0] = {
+        index: 0,
+        label: '1',
+        current: false,
+      }
+    }
+
+    return pages
+  }, [page])
+
+  return pages
 }
