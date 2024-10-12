@@ -19,7 +19,7 @@ type Store struct {
 // TODO: For single rows use QueryRowContext instead of QueryContext
 
 func New(uri string) (*Store, error) {
-	db, err := sql.Open("sqlite", uri+"?_pragma=foreign_keys(1)&_time_format=sqlite")
+	db, err := sql.Open("sqlite", uri+"?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_time_format=sqlite")
 	if err != nil {
 		return nil, err
 	}
