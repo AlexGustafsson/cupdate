@@ -11,7 +11,7 @@ import (
 )
 
 func TestStoreInsertImage(t *testing.T) {
-	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
 	expected := &models.Image{
@@ -45,7 +45,7 @@ func TestStoreInsertImage(t *testing.T) {
 }
 
 func TestStoreTags(t *testing.T) {
-	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
 	expected := models.Tag{
@@ -63,7 +63,7 @@ func TestStoreTags(t *testing.T) {
 }
 
 func TestStoreImageDescription(t *testing.T) {
-	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
 	expected := models.ImageDescription{
@@ -84,7 +84,7 @@ func TestStoreImageDescription(t *testing.T) {
 }
 
 func TestStoreImageReleaseNotes(t *testing.T) {
-	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
 	expected := models.ImageReleaseNotes{
@@ -107,7 +107,7 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 }
 
 func TestStoreImageGraph(t *testing.T) {
-	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
 	expected := models.Graph{
@@ -144,7 +144,7 @@ func TestStoreImageGraph(t *testing.T) {
 }
 
 func TestListImages(t *testing.T) {
-	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
 	err = store.InsertTag(context.TODO(), &models.Tag{
@@ -233,7 +233,7 @@ func TestListImages(t *testing.T) {
 }
 
 func TestStoreDeleteNonPresent(t *testing.T) {
-	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
 	images := []*models.Image{

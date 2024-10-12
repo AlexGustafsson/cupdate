@@ -34,25 +34,6 @@ func (w *Worker) ProcessOldReferences(ctx context.Context, minAge time.Duration)
 		return err
 	}
 
-	// Should we just do one image table with just references and then keep
-	// details elsewhere?
-	// The issue is that we'll have event-driven pushes (inserts / upserts) to
-	// something with incomplete data from k8s. Fields like description will be
-	// empty. The only fields that are well defined are tags and graphs?
-	// Instead, perhaps maintain a table that the platform populates with
-	// whatever data it has (such as the graph, reference and tags). Then, every
-	// now and then, run this worker which takes data from the unprocessed "source
-	// of truth" tables and pushes it to the enriched tables that currently exist.
-
-	// This works for now, because we only read data once and this likely runs
-	// after that.
-
-	// This is also a sign of that we need to change how the data is stored;
-	// we get all information about the images here, but we just wanted to loop
-	// over outdated references...
-
-	// Perhaps let each platform own the "platform" table (can be shared, it's not
-	// likely that we at ever point will support k8s+docker simultaneously).
 	for _, image := range page.Images {
 		reference, err := oci.ParseReference(image.Reference)
 		if err != nil {

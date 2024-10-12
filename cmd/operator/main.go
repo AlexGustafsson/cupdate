@@ -41,14 +41,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	client := httputil.NewClient(cache, 24*time.Hour)
-
 	cwd, err := os.Getwd()
 	if err != nil {
 		slog.Error("Failed to identify working directory", slog.Any("error", err))
 		os.Exit(1)
 	}
-	store, err := store.New("file://" + path.Join(cwd, "dbv1.sqlite"))
+
+	readStore, err := store.New("file://"+path.Join(cwd, "dbv1.sqlite"), true)
+	if err != nil {
+		slog.Error("Failed to load database", slog.Any("error", err))
+		os.Exit(1)
+	}
+	writeStore, err := store.New("file://"+path.Join(cwd, "dbv1.sqlite"), false)
 	if err != nil {
 		slog.Error("Failed to load database", slog.Any("error", err))
 		os.Exit(1)
@@ -113,13 +117,13 @@ func main() {
 		},
 	}
 	for _, tag := range defaultTags {
-		if err := store.InsertTag(context.Background(), &tag); err != nil {
+		if err := writeStore.InsertTag(context.Background(), &tag); err != nil {
 			slog.Error("Failed to insert default tags", slog.Any("error", err))
 			os.Exit(1)
 		}
 	}
 
-	apiServer := api.NewServer(store)
+	apiServer := api.NewServer(readStore)
 
 	mux := http.NewServeMux()
 
@@ -130,7 +134,7 @@ func main() {
 
 	wg.Go(func() error {
 		httpClient := httputil.NewClient(cache, 24*time.Hour)
-		worker := worker.New(httpClient, store)
+		worker := worker.New(httpClient, writeStore)
 
 		for {
 			select {
@@ -186,15 +190,29 @@ func main() {
 				}
 			}
 
+			// TODO: platform-discovered tags
+			tags := []string{}
+
 			mappedGraph := models.Graph{
 				Edges: edges,
 				Nodes: mappedNodes,
 			}
 
-			if err := store.InsertImageGraph(context.TODO(), imageNode.Reference.String(), &mappedGraph); err != nil {
-				slog.Error("Failed to insert image graph", slog.Any("error", err))
+			// TODO: Do this inside of the worker as well?
+			if err := writeStore.InsertRawImage(context.TODO(), imageNode.Reference.String(), tags, mappedGraph); err != nil {
+				slog.Error("Failed to insert raw image", slog.Any("error", err))
 				return err
 			}
+		}
+
+		allReferences := make([]string, 0)
+		for _, root := range roots {
+			imageNode := root.(platform.ImageNode)
+			allReferences = append(allReferences, imageNode.Reference.String())
+		}
+		if err := writeStore.DeleteNonPresent(context.TODO(), allReferences); err != nil {
+			slog.Error("Failed to clean up removed images", slog.Any("error", err))
+			return err
 		}
 
 		return nil

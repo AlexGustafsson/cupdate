@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	_ "modernc.org/sqlite"
@@ -16,19 +17,34 @@ type Store struct {
 
 // TODO: For single rows use QueryRowContext instead of QueryContext
 
-func New(uri string) (*Store, error) {
-	db, err := sql.Open("sqlite", uri+"?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(1000)&_time_format=sqlite")
+func New(uri string, readonly bool) (*Store, error) {
+	uri += "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(1000)&_time_format=sqlite"
+	if readonly {
+		uri += "&_pragma=query_only(true)"
+	}
+
+	db, err := sql.Open("sqlite", uri)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = db.Exec(`
+	if !readonly {
+		// SEE: docs/architecture/database.md
+		_, err = db.Exec(`
+	CREATE TABLE IF NOT EXISTS raw_images (
+		reference TEXT PRIMARY KEY NOT NULL,
+		tags BLOB,
+		graph BLOB
+	)
+
 	CREATE TABLE IF NOT EXISTS images (
 		reference TEXT PRIMARY KEY NOT NULL,
 		latestReference TEXT NOT NULL,
 		description TEXT NOT NULL,
 		lastModified DATETIME NOT NULL,
-		image TEXT NOT NULL
+		imageUrl TEXT NOT NULL
+		FOREIGN KEY(reference) REFERENCES raw_images(reference)
+		ON DELETE CASCADE
 	);
 
 	CREATE TABLE IF NOT EXISTS tags (
@@ -83,12 +99,73 @@ func New(uri string) (*Store, error) {
 		ON DELETE CASCADE
 	);
 	`)
-	if err != nil {
-		db.Close()
-		return nil, err
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
 	}
 
 	return &Store{db: db}, nil
+}
+
+func (s *Store) InsertRawImage(ctx context.Context, reference string, tags []string, graph models.Graph) error {
+	statement, err := s.db.PrepareContext(ctx, `INSERT OR REPLACE INTO raw_images
+		(reference, tags, graph)
+		VALUES
+		(?, ?, ?);`)
+	if err != nil {
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, tags, graph)
+	statement.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO: Get all raw images that haven't been updated since ...
+func (s *Store) GetRawImages(ctx context.Context, lastModified time.Duration) (*models.Image, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT
+	reference, latestReference, description, image, lastModified
+	FROM images WHERE reference = ?;`)
+	if err != nil {
+		return nil, err
+	}
+
+	var image models.Image
+
+	// TODO: Implement the scan interface for models
+	res, err := statement.QueryContext(ctx, reference)
+	statement.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		res.Close()
+		return nil, res.Err()
+	}
+
+	err = res.Scan(&image.Reference, &image.LatestReference, &image.Description, &image.Image, &image.LastModified)
+	res.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	image.Tags, err = s.GetImagesTags(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	image.Links, err = s.GetImagesLinks(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	return &image, nil
 }
 
 func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
@@ -626,7 +703,7 @@ func (s *Store) DeleteNonPresent(ctx context.Context, references []string) error
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, "DELETE FROM images WHERE reference NOT IN (SELECT reference FROM temp.present_references);")
+	_, err = tx.ExecContext(ctx, "DELETE FROM raw_images WHERE reference NOT IN (SELECT reference FROM temp.present_references);")
 	if err != nil {
 		tx.Rollback()
 		return err
