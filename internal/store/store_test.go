@@ -231,3 +231,71 @@ func TestListImages(t *testing.T) {
 	assert.Equal(t, expectedPage, actualPage)
 
 }
+
+func TestStoreDeleteNonPresent(t *testing.T) {
+	store, err := New("file://" + t.TempDir() + "/sqlite.db")
+	require.NoError(t, err)
+
+	images := []*models.Image{
+		{
+			Reference:       "mongo:1",
+			LatestReference: "mongo:1",
+			Tags:            []string{},
+			Links:           []models.ImageLink{},
+			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		},
+		{
+			Reference:       "mongo:2",
+			LatestReference: "mongo:2",
+			Tags:            []string{},
+			Links:           []models.ImageLink{},
+			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		},
+		{
+			Reference:       "mongo:3",
+			LatestReference: "mongo:3",
+			Tags:            []string{},
+			Links:           []models.ImageLink{},
+			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		},
+		{
+			Reference:       "mongo:4",
+			LatestReference: "mongo:4",
+			Tags:            []string{},
+			Links:           []models.ImageLink{},
+			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		},
+	}
+
+	expected := &models.ImagePage{
+		Images: []models.Image{
+			{
+				Reference:       "mongo:4",
+				LatestReference: "mongo:4",
+				Tags:            []string{},
+				Links:           []models.ImageLink{},
+				LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+			},
+		},
+		Summary: models.ImagePageSummary{
+			Images: 1,
+		},
+		Pagination: models.PaginationMetadata{
+			Total: 1,
+			Page:  0,
+			Size:  30,
+		},
+	}
+
+	for _, image := range images {
+		err := store.InsertImage(context.TODO(), image)
+		require.NoError(t, err)
+	}
+
+	err = store.DeleteNonPresent(context.TODO(), []string{"mongo:4"})
+	require.NoError(t, err)
+
+	actual, err := store.ListImages(context.TODO(), nil, "asc", 0, 30)
+	require.NoError(t, err)
+	assert.EqualValues(t, expected, actual)
+}

@@ -543,3 +543,52 @@ func (s *Store) ListImages(ctx context.Context, tags []string, order string, pag
 
 	return &result, nil
 }
+
+// DeleteNonPresent deletes all images that are not referenced.
+func (s *Store) DeleteNonPresent(ctx context.Context, references []string) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	// Create a temperate table that is kept throughout the transaction. This in
+	// order to be able to handle any number of references, without limitation
+	_, err = tx.ExecContext(ctx, "CREATE TABLE temp.present_references (reference TEXT);")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	statement, err := tx.PrepareContext(ctx, "INSERT INTO temp.present_references (reference) VALUES (?);")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	for _, reference := range references {
+		_, err := statement.ExecContext(ctx, reference)
+		if err != nil {
+			_ = statement.Close()
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	if err := statement.Close(); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "DELETE FROM images WHERE reference NOT IN (SELECT reference FROM temp.present_references);")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, "DROP TABLE temp.present_references;")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit()
+}
