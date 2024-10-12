@@ -24,53 +24,40 @@ func New(uri string) (*Store, error) {
 		return nil, err
 	}
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS images (
+	_, err = db.Exec(`
+	CREATE TABLE IF NOT EXISTS images (
 		reference TEXT PRIMARY KEY NOT NULL,
 		latestReference TEXT NOT NULL,
 		description TEXT NOT NULL,
 		lastModified DATETIME NOT NULL,
 		image TEXT NOT NULL
-	);`)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
+	);
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS tags (
+	CREATE TABLE IF NOT EXISTS tags (
 		name TEXT PRIMARY KEY NOT NULL,
 		color TEXT NOT NULL,
 		description TEXT NOT NULL
-	);`)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
+	);
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS images_tags (
+	CREATE TABLE IF NOT EXISTS images_tags (
 		reference TEXT NOT NULL,
 		tag TEXT NOT NULL,
 		PRIMARY KEY (reference, tag),
 		FOREIGN KEY(reference) REFERENCES images(reference)
 		FOREIGN KEY(tag) REFERENCES tags(name)
-	);`)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
+		ON DELETE CASCADE
+	);
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS images_links (
+	CREATE TABLE IF NOT EXISTS images_links (
 		reference TEXT NOT NULL,
 		url TEXT NOT NULL,
 		type TEXT NOT NULL,
 		PRIMARY KEY (reference, url),
 		FOREIGN KEY(reference) REFERENCES images(reference)
-	);`)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
+		ON DELETE CASCADE
+	);
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS images_release_notes (
+	CREATE TABLE IF NOT EXISTS images_release_notes (
 		reference TEXT NOT NULL,
 		title TEXT NOT NULL,
 		html TEXT NOT NULL,
@@ -78,30 +65,26 @@ func New(uri string) (*Store, error) {
 		released DATETIME NOT NULL,
 		PRIMARY KEY (reference),
 		FOREIGN KEY(reference) REFERENCES images(reference)
-	);`)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
+		ON DELETE CASCADE
+	);
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS images_descriptions (
+	CREATE TABLE IF NOT EXISTS images_descriptions (
 		reference TEXT NOT NULL,
 		html TEXT NOT NULL,
 		markdown TEXT NOT NULL,
 		PRIMARY KEY (reference),
 		FOREIGN KEY(reference) REFERENCES images(reference)
-	);`)
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
+		ON DELETE CASCADE
+	);
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS images_graphs (
+	CREATE TABLE IF NOT EXISTS images_graphs (
 		reference TEXT NOT NULL,
 		graph BLOB NOT NULL,
 		PRIMARY KEY (reference),
 		FOREIGN KEY(reference) REFERENCES images(reference)
-	);`)
+		ON DELETE CASCADE
+	);
+	`)
 	if err != nil {
 		db.Close()
 		return nil, err
