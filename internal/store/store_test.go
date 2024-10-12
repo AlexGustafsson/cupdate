@@ -206,7 +206,7 @@ func TestListImages(t *testing.T) {
 			Previous: "",
 		},
 	}
-	actualPage, err := store.ListImages(context.TODO(), nil, "asc", 0, 1)
+	actualPage, err := store.ListImages(context.TODO(), &ListImageOptions{Page: 0, Limit: 1})
 	require.NoError(t, err)
 	assert.Equal(t, expectedPage, actualPage)
 
@@ -226,7 +226,7 @@ func TestListImages(t *testing.T) {
 			Previous: "",
 		},
 	}
-	actualPage, err = store.ListImages(context.TODO(), nil, "asc", 1, 1)
+	actualPage, err = store.ListImages(context.TODO(), &ListImageOptions{Page: 0, Limit: 1})
 	require.NoError(t, err)
 	assert.Equal(t, expectedPage, actualPage)
 
@@ -295,7 +295,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 	err = store.DeleteNonPresent(context.TODO(), []string{"mongo:4"})
 	require.NoError(t, err)
 
-	actual, err := store.ListImages(context.TODO(), nil, "asc", 0, 30)
+	actual, err := store.ListImages(context.TODO(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, expected, actual)
 }

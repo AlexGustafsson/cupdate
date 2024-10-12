@@ -2,20 +2,27 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/AlexGustafsson/cupdate/internal/store"
 	"k8s.io/utils/strings/slices"
 )
 
+var (
+	ErrNotFound   = errors.New("not found")
+	ErrBadRequest = errors.New("bad request")
+)
+
 type Server struct {
-	api API
+	api *store.Store
 	mux *http.ServeMux
 }
 
-func NewServer(api API) *Server {
+func NewServer(api *store.Store) *Server {
 	s := &Server{
 		api: api,
 		mux: http.NewServeMux(),
@@ -67,7 +74,14 @@ func NewServer(api API) *Server {
 			}
 		}
 
-		response, err := api.ListImages(r.Context(), tags, order, int(page), int(limit))
+		listOptions := &store.ListImageOptions{
+			Tags:         tags,
+			Order:        store.Order(order),
+			Page:         int(page),
+			Limit:        int(limit),
+			SortProperty: store.SortProperty(sort),
+		}
+		response, err := api.ListImages(r.Context(), listOptions)
 		s.handleJSONResponse(w, r, response, err)
 	})
 

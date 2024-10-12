@@ -4,13 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 
-	"github.com/AlexGustafsson/cupdate/internal/api"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	_ "modernc.org/sqlite"
 )
-
-var _ api.API = (*Store)(nil)
 
 type Store struct {
 	db *sql.DB
@@ -19,7 +17,7 @@ type Store struct {
 // TODO: For single rows use QueryRowContext instead of QueryContext
 
 func New(uri string) (*Store, error) {
-	db, err := sql.Open("sqlite", uri+"?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_time_format=sqlite")
+	db, err := sql.Open("sqlite", uri+"?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(1000)&_time_format=sqlite")
 	if err != nil {
 		return nil, err
 	}
@@ -428,18 +426,68 @@ func (s *Store) GetImageGraph(ctx context.Context, reference string) (*models.Gr
 	return graph, nil
 }
 
-func (s *Store) ListImages(ctx context.Context, tags []string, order string, page int, limit int) (*models.ImagePage, error) {
-	limit = min(limit, 30)
-	page = max(page, 0)
-	offset := page * limit
+type Order string
 
-	if order == "asc" {
-		order = "ASC"
-	} else if order == "desc" {
-		order = "DESC"
-	} else {
-		order = "ASC"
+const (
+	OrderAcending   Order = "ASC"
+	OrderDescending Order = "DESC"
+)
+
+type SortProperty string
+
+const (
+	SortPropertyReference    SortProperty = "reference"
+	SortPropertyLastModified SortProperty = "last_modified"
+)
+
+type ListImageOptions struct {
+	// Tags defaults to nil (don't filter by tags).
+	Tags []string
+	// Order defaults to OrderAscending.
+	Order Order
+	// Page defaults to 0.
+	Page int
+	// Limit defaults to 30.
+	Limit int
+	// SortProperty defaults to SortPropertyReference.
+	SortProperty SortProperty
+}
+
+func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*models.ImagePage, error) {
+	if options == nil {
+		options = &ListImageOptions{}
 	}
+
+	limit := 30
+	if options.Limit > 0 {
+		limit = min(options.Limit, 30)
+	}
+
+	// NOTE: This mapping is done to hard code strings used in SQL queries to
+	// prevent injection attacks
+	sortProperty, ok := map[SortProperty]string{
+		"":                       "reference",
+		SortPropertyReference:    "reference",
+		SortPropertyLastModified: "lastModified",
+	}[options.SortProperty]
+	if !ok {
+		return nil, fmt.Errorf("invalid sort property")
+	}
+
+	// NOTE: This mapping is done to hard code strings used in SQL queries to
+	// prevent injection attacks
+	order, ok := map[Order]string{
+		"":              "ASC",
+		OrderAcending:   "ASC",
+		OrderDescending: "DESC",
+	}[options.Order]
+	if !ok {
+		return nil, fmt.Errorf("invalid sort property")
+	}
+
+	page := max(options.Page, 0)
+
+	offset := page * limit
 
 	// Total images
 	res, err := s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images;`)
@@ -482,7 +530,7 @@ func (s *Store) ListImages(ctx context.Context, tags []string, order string, pag
 	// TODO:
 	// result.Summary.Pods
 
-	orderClause := "ORDER BY reference " + order
+	orderClause := "ORDER BY " + sortProperty + " " + order
 
 	limitClause := "LIMIT ? OFFSET ?"
 
@@ -510,7 +558,7 @@ func (s *Store) ListImages(ctx context.Context, tags []string, order string, pag
 		return nil, err
 	}
 
-	res, err = statement.QueryContext(ctx, limit, offset)
+	res, err = statement.QueryContext(ctx, options.Limit, offset)
 	statement.Close()
 	if err != nil {
 		return nil, err
@@ -530,8 +578,8 @@ func (s *Store) ListImages(ctx context.Context, tags []string, order string, pag
 		return nil, err
 	}
 
-	result.Pagination.Size = limit
-	result.Pagination.Page = int(page)
+	result.Pagination.Size = options.Limit
+	result.Pagination.Page = options.Page
 
 	for i := range result.Images {
 		image, err := s.GetImage(ctx, result.Images[i].Reference)

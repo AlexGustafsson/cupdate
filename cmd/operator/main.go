@@ -17,7 +17,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/store"
-	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"
+	"github.com/AlexGustafsson/cupdate/internal/worker"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
 )
@@ -129,6 +129,24 @@ func main() {
 	var wg errgroup.Group
 
 	wg.Go(func() error {
+		httpClient := httputil.NewClient(cache, 24*time.Hour)
+		worker := worker.New(httpClient, store)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				// TODO: Time
+				err := worker.ProcessOldReferences(ctx, 5*time.Second)
+				if err != nil {
+					slog.Error("Failed to process old references", slog.Any("error", err))
+				}
+			}
+		}
+	})
+
+	wg.Go(func() error {
 		// TODO: Listen on events and react on them once running, rather than just
 		// check once or poll
 
@@ -142,53 +160,6 @@ func main() {
 
 		for _, root := range roots {
 			imageNode := root.(platform.ImageNode)
-
-			slog.Debug("Running workflow", slog.String("image", imageNode.Reference.String()))
-			data := &imageworkflow.Data{
-				ImageReference:  imageNode.Reference,
-				Image:           "",
-				LatestReference: imageNode.Reference,
-				Tags:            make([]string, 0),
-				Description:     nil,
-				ReleaseNotes:    nil,
-				Links:           make([]models.ImageLink, 0),
-			}
-			workflow := imageworkflow.New(client, data)
-
-			if err := workflow.Run(ctx); err != nil {
-				slog.Error("Failed to run pipeline for image", slog.Any("error", err))
-				// Fallthrough - insert what we have
-			}
-
-			if err := store.InsertImage(context.TODO(), &models.Image{
-				Reference:       data.ImageReference.String(),
-				LatestReference: data.LatestReference.String(),
-				// TODO:
-				Description: "",
-				// TODO: Tags should include pod, job, cron job, deployment set etc.
-				// Everything's a pod, so try to use the topmost descriptor
-				Tags:         data.Tags,
-				Image:        data.Image,
-				Links:        data.Links,
-				LastModified: time.Now(),
-			}); err != nil {
-				slog.Error("Failed to insert image graph", slog.Any("error", err))
-				// Fallthrough - insert what we have
-			}
-
-			if data.Description != nil {
-				if err := store.InsertImageDescription(context.TODO(), imageNode.Reference.String(), data.Description); err != nil {
-					slog.Error("Failed to insert image description", slog.Any("error", err))
-					// Fallthrough - insert what we have
-				}
-			}
-
-			if data.ReleaseNotes != nil {
-				if err := store.InsertImageReleaseNotes(context.TODO(), imageNode.Reference.String(), data.ReleaseNotes); err != nil {
-					slog.Error("Failed to insert image description", slog.Any("error", err))
-					// Fallthrough - insert what we have
-				}
-			}
 
 			subgraph := graph.Subgraph(root.ID())
 
