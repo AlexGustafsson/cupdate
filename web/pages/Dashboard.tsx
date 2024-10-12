@@ -103,9 +103,9 @@ export function Dashboard(): JSX.Element {
         </div>
 
         {/* Table card */}
-        <div className="relative mt-6">
+        <div className="relative mt-6 w-[800px]">
           <div className="rounded-lg bg-white px-4 py-2 shadow">
-            <table>
+            <table className="break-words">
               <thead>
                 <tr>
                   <th
@@ -138,7 +138,7 @@ export function Dashboard(): JSX.Element {
               </thead>
               <tbody>
                 {images.value.images.map((image) => (
-                  <tr key={image.reference} className="">
+                  <tr key={image.reference} className="w-full">
                     <td>
                       {image.image ? (
                         <img
@@ -152,23 +152,23 @@ export function Dashboard(): JSX.Element {
                         </div>
                       )}
                     </td>
-                    <td className="pr-[24px]">
-                      <p>{name(image.reference)} </p>
+                    <td className="pr-[24px] max-w-[300px]">
+                      <p className="truncate">{name(image.reference)} </p>
                       {image.description && (
                         <p className="text-xs">{image.description}</p>
                       )}
                     </td>
                     <td
-                      className={`text-end pr-[24px] ${image.reference === image.latestReference ? '' : 'text-red-400'}`}
+                      className={`text-end pr-[24px] max-w-[120px] ${image.reference === image.latestReference ? '' : 'text-red-400'}`}
                     >
                       {version(image.latestReference)}
                     </td>
                     <td
-                      className={`text-end pr-[24px] ${image.reference === image.latestReference ? '' : 'text-green-400'}`}
+                      className={`text-end pr-[24px] max-w-[120px] ${image.reference === image.latestReference ? '' : 'text-green-400'}`}
                     >
                       {version(image.reference)}
                     </td>
-                    <td className="flex flex-wrap">
+                    <td className="flex flex-wrap max-w-[120px]">
                       {tags.value
                         .filter((tag) => image.tags.includes(tag.name))
                         .map((tag) => (
