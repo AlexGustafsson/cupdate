@@ -2,6 +2,7 @@ package graph
 
 import (
 	"strings"
+	"sync"
 )
 
 type Node interface {
@@ -23,6 +24,7 @@ type Graph[T Node] struct {
 	edges map[string]map[string]bool
 	// nodes holds a set of nodes, mapped by their ids.
 	nodes map[string]T
+	mutex sync.Mutex
 }
 
 func New[T Node]() *Graph[T] {
@@ -34,6 +36,9 @@ func New[T Node]() *Graph[T] {
 
 // InsertTree inserts nodes of a tree, ordered root first, leaf last.
 func (g *Graph[T]) InsertTree(nodes ...T) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
 	for i := 0; i < len(nodes); i++ {
 		g.insertNode(nodes[i])
 		if i > 0 {
@@ -45,6 +50,9 @@ func (g *Graph[T]) InsertTree(nodes ...T) {
 
 // InsertGraph merges other into g.
 func (g *Graph[T]) InsertGraph(other *Graph[T]) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
 	for from, edges := range other.edges {
 		for to, direction := range edges {
 			g.insertEdge(from, to, direction)
@@ -70,6 +78,9 @@ func (g *Graph[T]) insertEdge(a string, b string, direction bool) {
 }
 
 func (g *Graph[T]) Roots() []T {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
 	roots := make([]T, 0)
 	for nodeID, node := range g.nodes {
 		parents := 0
@@ -87,6 +98,9 @@ func (g *Graph[T]) Roots() []T {
 }
 
 func (g *Graph[T]) String() string {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
 	var result strings.Builder
 
 	roots := g.Roots()
@@ -135,6 +149,9 @@ func (g *Graph[T]) children(nodeID string) []string {
 }
 
 func (g *Graph[T]) Subgraph(rootID string) *Graph[T] {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
 	subgraph := New[T]()
 
 	visited := make(map[string]struct{})
@@ -162,6 +179,9 @@ func (g *Graph[T]) Edges() map[string]map[string]bool {
 }
 
 func (g *Graph[T]) Nodes() []T {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
 	nodes := make([]T, 0)
 	for _, node := range g.nodes {
 		nodes = append(nodes, node)
