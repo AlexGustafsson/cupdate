@@ -28,6 +28,7 @@ import { name, version } from '../oci'
 
 const titles: Record<string, string | undefined> = {
   github: "Project's page on GitHub",
+  ghcr: "Project's package page on GHCR",
   gitlab: "Project's page on GitLab",
   docker: "Project's page on Docker Hub",
   quay: "Project's page on Quay.io",
@@ -46,6 +47,7 @@ export function ImageLink({
   let icon: ReactNode
   switch (type) {
     case 'github':
+    case 'ghcr':
       icon = <SimpleIconsGithub className="text-black" />
       break
     case 'gitlab':

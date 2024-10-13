@@ -2,6 +2,7 @@ package imageworkflow
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/github"
@@ -140,10 +141,11 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 				// Depend on whatever provides us with the latest image version
 				DependsOn: []string{"oci", "docker", "ghcr"},
 				// Only run for images with a reference to GitHub
-				// TODO: From GCHR, we know the link to GitHub - use that fact instead
-				// of manifests? Or just, if domain is GHCR - don't use manifest info,
-				// format the URL by ourselves?
 				If: func(ctx workflow.Context) (bool, error) {
+					if data.ImageReference.Domain == "ghcr.io" {
+						return true, nil
+					}
+
 					manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
 					if err != nil {
 						return false, err
@@ -155,7 +157,6 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 
 					for _, manifest := range manifests {
 						if strings.Contains(manifest.SourceAnnotation(), "github.com") {
-							fmt.Println(manifest.SourceAnnotation())
 							return true, nil
 						}
 					}
@@ -167,34 +168,41 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						data.InsertTag("github")
 						return nil, nil
 					}),
+					GetGitHubRepsitory().
+						WithID("repository").
+						With("httpClient", httpClient).
+						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
+						With("reference", data.LatestReference),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
+						endpoint, err := workflow.GetValue[string](ctx, "step.repository.endpoint")
 						if err != nil {
-							return nil, nil
+							return nil, err
 						}
 
-						if manifests == nil {
-							return nil, nil
+						owner, err := workflow.GetValue[string](ctx, "step.repository.owner")
+						if err != nil {
+							return nil, err
 						}
 
-						links := make([]models.ImageLink, 0)
-						for _, manifest := range manifests {
-							if strings.Contains(manifest.SourceAnnotation(), "github.com") {
-								links = append(links, models.ImageLink{
-									Type: "github",
-									URL:  manifest.SourceAnnotation(),
-								})
-							}
+						repository, err := workflow.GetValue[string](ctx, "step.repository.name")
+						if err != nil {
+							return nil, err
 						}
 
-						data.InsertLinks(links)
+						data.InsertLink(models.ImageLink{
+							Type: "github",
+							URL:  fmt.Sprintf("%s/%s/%s", endpoint, url.PathEscape(owner), url.PathEscape(repository)),
+						})
 						return nil, nil
 					}),
+					// TODO: Get latest version based on github instead if possible
 					// TODO: Set short description from repository if not already exists
 					GetGitHubRelease().
 						WithID("release").
 						With("httpClient", httpClient).
-						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
+						With("endpoint", workflow.Ref{Key: "step.repository.endpoint"}).
+						With("owner", workflow.Ref{Key: "step.repository.owner"}).
+						With("repository", workflow.Ref{Key: "step.repository.name"}).
 						With("reference", data.LatestReference),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")

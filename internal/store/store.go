@@ -182,6 +182,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		return err
 	}
 
+	// TODO: Removed tags are not removed from db
 	for _, tag := range image.Tags {
 		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_tags
 		(reference, tag)
@@ -202,6 +203,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		}
 	}
 
+	// TODO: Removed links are not removed from db
 	for _, link := range image.Links {
 		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_links
 		(reference, type, url)

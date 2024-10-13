@@ -102,7 +102,17 @@ func main() {
 		},
 		{
 			Name:        "docker",
-			Description: "A docker container",
+			Description: "A docker image",
+			Color:       "#FEE2E2",
+		},
+		{
+			Name:        "ghcr",
+			Description: "A ghcr image",
+			Color:       "#FEE2E2",
+		},
+		{
+			Name:        "github",
+			Description: "A github project",
 			Color:       "#FEE2E2",
 		},
 		{
