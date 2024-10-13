@@ -25,6 +25,7 @@ func TestReference(t *testing.T) {
 			ExpectedString: "mongo",
 			ExpectedDomain: "docker.io",
 			ExpectedPath:   "library/mongo",
+			ExpectedTag:    "latest",
 		},
 		{
 			Reference: "mongo:4",
@@ -60,6 +61,7 @@ func TestReference(t *testing.T) {
 			ExpectedString: "ghcr.io/mongo/mongo",
 			ExpectedDomain: "ghcr.io",
 			ExpectedPath:   "mongo/mongo",
+			ExpectedTag:    "latest",
 		},
 		{
 			Reference: "ghcr.io/mongo/mongo:4",
@@ -117,4 +119,19 @@ func TestReference(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestReferenceCanonical(t *testing.T) {
+	ref := Reference{
+		Path: "mongo",
+	}
+
+	canonical := Reference{
+		Domain: "docker.io",
+		Path:   "library/mongo",
+		HasTag: true,
+		Tag:    "latest",
+	}
+
+	assert.Equal(t, canonical, ref.Canonical())
 }

@@ -18,6 +18,16 @@ type Reference struct {
 	Digest    string
 }
 
+func (r Reference) Canonical() Reference {
+	// ParseReference always canonicalizes the reference, reuse it
+	ref, err := ParseReference(r.String())
+	if err != nil {
+		panic(err)
+	}
+
+	return ref
+}
+
 func ParseReference(v string) (Reference, error) {
 	ref, err := reference.ParseNormalizedNamed(v)
 	if err != nil {
@@ -38,6 +48,11 @@ func ParseReference(v string) (Reference, error) {
 		digest = digested.Digest().String()
 	}
 
+	if !hasTag && !hasDigest {
+		hasTag = true
+		tag = "latest"
+	}
+
 	return Reference{
 		Domain:    reference.Domain(ref),
 		Path:      reference.Path(ref),
@@ -53,6 +68,8 @@ func (r Reference) Name() string {
 
 	if r.Domain == "docker.io" {
 		r.Path = strings.TrimPrefix(r.Path, "library/")
+		builder.WriteString(r.Path)
+	} else if r.Domain == "" {
 		builder.WriteString(r.Path)
 	} else {
 		builder.WriteString(r.Domain)
