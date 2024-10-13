@@ -161,12 +161,12 @@ export function Dashboard(): JSX.Element {
                     <td
                       className={`text-end pr-[24px] max-w-[120px] ${image.reference === image.latestReference ? '' : 'text-red-400'}`}
                     >
-                      {version(image.latestReference)}
+                      {version(image.reference)}
                     </td>
                     <td
                       className={`text-end pr-[24px] max-w-[120px] ${image.reference === image.latestReference ? '' : 'text-green-400'}`}
                     >
-                      {version(image.reference)}
+                      {version(image.latestReference)}
                     </td>
                     <td className="flex flex-wrap max-w-[120px]">
                       {tags.value
