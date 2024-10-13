@@ -17,6 +17,7 @@ erDiagram
     TEXT reference PK "OCI reference"
     BLOB graph "JSON-encoded graph"
     BLOB tags "JSON-encoded list of tags"
+    DATETIME lastProcessed "When the entry was last processed"
   }
 
   images ||--|| raw_images : maps
