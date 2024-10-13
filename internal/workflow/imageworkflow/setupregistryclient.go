@@ -42,7 +42,7 @@ func SetupRegistryClient() workflow.Step {
 
 			return workflow.Batch(
 				workflow.SetOutput("client", client),
-				workflow.SetOutput("domain", "https://"+image.Domain),
+				workflow.SetOutput("domain", image.Domain),
 			), nil
 		},
 	}

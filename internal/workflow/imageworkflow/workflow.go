@@ -44,7 +44,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 
 						data.InsertLink(models.ImageLink{
 							Type: "oci-registry",
-							URL:  domain,
+							URL:  "https://" + domain,
 						})
 						return nil, nil
 					}),
