@@ -118,11 +118,31 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 				},
 			},
 			{
+				ID:        "ghcr",
+				Name:      "Get GHCR information",
+				DependsOn: []string{"oci"},
+				// Only run for GHCR images
+				If: func(ctx workflow.Context) (bool, error) {
+					domain, err := workflow.GetValue[string](ctx, "job.oci.step.registry.domain")
+					if err != nil {
+						return false, err
+					}
+
+					return domain == "ghcr.io", nil
+				},
+				Steps: []workflow.Step{
+					// TODO
+				},
+			},
+			{
 				ID:   "github",
 				Name: "Get GitHub information",
 				// Depend on whatever provides us with the latest image version
-				DependsOn: []string{"oci", "docker"},
+				DependsOn: []string{"oci", "docker", "ghcr"},
 				// Only run for images with a reference to GitHub
+				// TODO: From GCHR, we know the link to GitHub - use that fact instead
+				// of manifests? Or just, if domain is GHCR - don't use manifest info,
+				// format the URL by ourselves?
 				If: func(ctx workflow.Context) (bool, error) {
 					manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
 					if err != nil {
@@ -170,6 +190,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						data.InsertLinks(links)
 						return nil, nil
 					}),
+					// TODO: Set short description from repository if not already exists
 					GetGitHubRelease().
 						WithID("release").
 						With("httpClient", httpClient).

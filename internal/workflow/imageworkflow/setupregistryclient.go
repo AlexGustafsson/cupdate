@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
+	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
+	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -24,15 +26,22 @@ func SetupRegistryClient() workflow.Step {
 			}
 
 			// TODO: Support other registries
-			if image.Domain != "docker.io" {
+			var client registry.Client
+			switch image.Domain {
+			case "docker.io":
+				client = &docker.Client{
+					Client: httpClient,
+				}
+			case "ghcr.io":
+				client = &ghcr.Client{
+					Client: httpClient,
+				}
+			default:
 				return nil, fmt.Errorf("unsupported registry domain: %s", image.Domain)
-			}
-			dockerClient := &docker.Client{
-				Client: httpClient,
 			}
 
 			return workflow.Batch(
-				workflow.SetOutput("client", dockerClient),
+				workflow.SetOutput("client", client),
 				workflow.SetOutput("domain", image.Domain),
 			), nil
 		},

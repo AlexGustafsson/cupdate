@@ -45,8 +45,8 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 	} else {
 		return nil, fmt.Errorf("unsupported reference type: must be tagged or digested")
 	}
-	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io/v2", 1)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/%s/manifests/%s", domain, image.Path, url.PathEscape(id)), nil)
+	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/manifests/%s", domain, image.Path, url.PathEscape(id)), nil)
 	if err != nil {
 		return nil, err
 	}
