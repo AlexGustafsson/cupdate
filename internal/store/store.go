@@ -7,9 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	_ "embed" // Embed SQL files
+
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	_ "modernc.org/sqlite"
 )
+
+//go:embed createTablesIfNotExist.sql
+var createTablesIfNotExist string
 
 type Store struct {
 	db *sql.DB
@@ -30,75 +35,7 @@ func New(uri string, readonly bool) (*Store, error) {
 
 	if !readonly {
 		// SEE: docs/architecture/database.md
-		_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS raw_images (
-		reference TEXT PRIMARY KEY NOT NULL,
-		tags BLOB,
-		graph BLOB
-	)
-
-	CREATE TABLE IF NOT EXISTS images (
-		reference TEXT PRIMARY KEY NOT NULL,
-		latestReference TEXT NOT NULL,
-		description TEXT NOT NULL,
-		lastModified DATETIME NOT NULL,
-		imageUrl TEXT NOT NULL
-		FOREIGN KEY(reference) REFERENCES raw_images(reference)
-		ON DELETE CASCADE
-	);
-
-	CREATE TABLE IF NOT EXISTS tags (
-		name TEXT PRIMARY KEY NOT NULL,
-		color TEXT NOT NULL,
-		description TEXT NOT NULL
-	);
-
-	CREATE TABLE IF NOT EXISTS images_tags (
-		reference TEXT NOT NULL,
-		tag TEXT NOT NULL,
-		PRIMARY KEY (reference, tag),
-		FOREIGN KEY(reference) REFERENCES images(reference)
-		FOREIGN KEY(tag) REFERENCES tags(name)
-		ON DELETE CASCADE
-	);
-
-	CREATE TABLE IF NOT EXISTS images_links (
-		reference TEXT NOT NULL,
-		url TEXT NOT NULL,
-		type TEXT NOT NULL,
-		PRIMARY KEY (reference, url),
-		FOREIGN KEY(reference) REFERENCES images(reference)
-		ON DELETE CASCADE
-	);
-
-	CREATE TABLE IF NOT EXISTS images_release_notes (
-		reference TEXT NOT NULL,
-		title TEXT NOT NULL,
-		html TEXT NOT NULL,
-		markdown TEXT NOT NULL,
-		released DATETIME NOT NULL,
-		PRIMARY KEY (reference),
-		FOREIGN KEY(reference) REFERENCES images(reference)
-		ON DELETE CASCADE
-	);
-
-	CREATE TABLE IF NOT EXISTS images_descriptions (
-		reference TEXT NOT NULL,
-		html TEXT NOT NULL,
-		markdown TEXT NOT NULL,
-		PRIMARY KEY (reference),
-		FOREIGN KEY(reference) REFERENCES images(reference)
-		ON DELETE CASCADE
-	);
-
-	CREATE TABLE IF NOT EXISTS images_graphs (
-		reference TEXT NOT NULL,
-		graph BLOB NOT NULL,
-		PRIMARY KEY (reference),
-		FOREIGN KEY(reference) REFERENCES images(reference)
-		ON DELETE CASCADE
-	);
-	`)
+		_, err = db.Exec(createTablesIfNotExist)
 		if err != nil {
 			db.Close()
 			return nil, err
@@ -108,16 +45,36 @@ func New(uri string, readonly bool) (*Store, error) {
 	return &Store{db: db}, nil
 }
 
-func (s *Store) InsertRawImage(ctx context.Context, reference string, tags []string, graph models.Graph) error {
-	statement, err := s.db.PrepareContext(ctx, `INSERT OR REPLACE INTO raw_images
-		(reference, tags, graph)
-		VALUES
-		(?, ?, ?);`)
+func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) error {
+	tags, err := json.Marshal(image.Tags)
 	if err != nil {
 		return err
 	}
 
-	_, err = statement.ExecContext(ctx, tags, graph)
+	graph, err := json.Marshal(image.Graph)
+	if err != nil {
+		return err
+	}
+
+	var lastProcessed *time.Time
+	if !image.LastProcessed.IsZero() {
+		lastProcessed = &image.LastProcessed
+	}
+
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO raw_images
+		(reference, tags, graph, lastProcessed)
+		VALUES
+		(?, ?, ?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			tags=excluded.tags,
+			graph=excluded.graph,
+			lastProcessed=coalesce(lastProcessed, excluded.lastProcessed)
+		;`)
+	if err != nil {
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, image.Reference, tags, graph, lastProcessed)
 	statement.Close()
 	if err != nil {
 		return err
@@ -126,46 +83,69 @@ func (s *Store) InsertRawImage(ctx context.Context, reference string, tags []str
 	return nil
 }
 
-// TODO: Get all raw images that haven't been updated since ...
-func (s *Store) GetRawImages(ctx context.Context, lastModified time.Duration) (*models.Image, error) {
+type ListRawImagesOptions struct {
+	NotUpdatedSince time.Time
+	Limit           int
+}
+
+func (s *Store) ListRawImages(ctx context.Context, options *ListRawImagesOptions) ([]models.RawImage, error) {
+	if options == nil {
+		options = &ListRawImagesOptions{}
+	}
+
+	limit := 30
+	if options.Limit > 0 {
+		limit = min(options.Limit, 30)
+	}
+
 	statement, err := s.db.PrepareContext(ctx, `SELECT
-	reference, latestReference, description, image, lastModified
-	FROM images WHERE reference = ?;`)
+	reference, tags, graph, lastProcessed
+	FROM raw_images WHERE lastProcessed IS NULL OR lastProcessed > ? ORDER BY lastProcessed ASC LIMIT ?;`)
 	if err != nil {
 		return nil, err
 	}
 
-	var image models.Image
-
 	// TODO: Implement the scan interface for models
-	res, err := statement.QueryContext(ctx, reference)
+	res, err := statement.QueryContext(ctx, options.NotUpdatedSince, limit)
 	statement.Close()
 	if err != nil {
 		return nil, err
 	}
 
-	if !res.Next() {
-		res.Close()
-		return nil, res.Err()
-	}
+	rawImages := make([]models.RawImage, 0)
+	for res.Next() {
+		var rawImage models.RawImage
+		var tags []byte
+		var graph []byte
+		var lastProcessed *time.Time
+		err := res.Scan(&rawImage.Reference, &tags, &graph, &lastProcessed)
+		if err != nil {
+			res.Close()
+			return nil, err
+		}
 
-	err = res.Scan(&image.Reference, &image.LatestReference, &image.Description, &image.Image, &image.LastModified)
+		if err := json.Unmarshal(tags, &rawImage.Tags); err != nil {
+			res.Close()
+			return nil, err
+		}
+
+		if err := json.Unmarshal(graph, &rawImage.Graph); err != nil {
+			res.Close()
+			return nil, err
+		}
+
+		if lastProcessed != nil {
+			rawImage.LastProcessed = *lastProcessed
+		}
+
+		rawImages = append(rawImages, rawImage)
+	}
 	res.Close()
-	if err != nil {
+	if err := res.Err(); err != nil {
 		return nil, err
 	}
 
-	image.Tags, err = s.GetImagesTags(ctx, reference)
-	if err != nil {
-		return nil, err
-	}
-
-	image.Links, err = s.GetImagesLinks(ctx, reference)
-	if err != nil {
-		return nil, err
-	}
-
-	return &image, nil
+	return rawImages, nil
 }
 
 func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
@@ -174,11 +154,18 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		return err
 	}
 
-	statement, err := tx.PrepareContext(ctx, `INSERT OR REPLACE INTO images
-	(reference, latestReference, description, lastModified, image)
+	statement, err := tx.PrepareContext(ctx, `INSERT INTO images
+	(reference, latestReference, description, lastModified, imageUrl)
 	VALUES
-	(?, ?, ?, ?, ?);`)
+	(?, ?, ?, ?, ?)
+	ON CONFLICT(reference) DO UPDATE SET
+		latestReference=excluded.latestReference,
+		description=excluded.description,
+		lastModified=excluded.lastModified,
+		imageUrl=excluded.imageUrl
+	;`)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
@@ -186,37 +173,47 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	_, err = statement.ExecContext(ctx, image.Reference, image.LatestReference, image.Description, image.LastModified, image.Image)
 	statement.Close()
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	for _, tag := range image.Tags {
-		statement, err := tx.PrepareContext(ctx, `INSERT OR REPLACE INTO images_tags
+		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_tags
 		(reference, tag)
 		VALUES
-		(?, ?);`)
+		(?, ?)
+		ON CONFLICT(reference, tag) DO NOTHING
+		;`)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 
 		_, err = statement.ExecContext(ctx, image.Reference, tag)
 		statement.Close()
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
 
 	for _, link := range image.Links {
-		statement, err := tx.PrepareContext(ctx, `INSERT OR REPLACE INTO images_links
+		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_links
 		(reference, type, url)
 		VALUES
-		(?, ?, ?);`)
+		(?, ?, ?)
+		ON CONFLICT(reference, url) DO UPDATE SET
+			type=excluded.type
+		;`)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 
 		_, err = statement.ExecContext(ctx, image.Reference, link.Type, link.URL)
 		statement.Close()
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
@@ -225,10 +222,14 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 }
 
 func (s *Store) InsertTag(ctx context.Context, tag *models.Tag) error {
-	statement, err := s.db.PrepareContext(ctx, `INSERT OR REPLACE INTO tags
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO tags
 		(name, color, description)
 		VALUES
-		(?, ?, ?);`)
+		(?, ?, ?)
+		ON CONFLICT(name) DO UPDATE SET
+			color=excluded.color,
+			description=excluded.description
+		;`)
 	if err != nil {
 		return err
 	}
@@ -240,7 +241,7 @@ func (s *Store) InsertTag(ctx context.Context, tag *models.Tag) error {
 
 func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, error) {
 	statement, err := s.db.PrepareContext(ctx, `SELECT
-	reference, latestReference, description, image, lastModified
+	reference, latestReference, description, imageUrl, lastModified
 	FROM images WHERE reference = ?;`)
 	if err != nil {
 		return nil, err
@@ -370,10 +371,14 @@ func (s *Store) GetTags(ctx context.Context) ([]models.Tag, error) {
 }
 
 func (s *Store) InsertImageDescription(ctx context.Context, reference string, description *models.ImageDescription) error {
-	statement, err := s.db.PrepareContext(ctx, `INSERT OR REPLACE INTO images_descriptions
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_descriptions
 		(reference, html, markdown)
 		VALUES
-		(?, ?, ?);`)
+		(?, ?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			html=excluded.html,
+			markdown=excluded.markdown
+		;`)
 	if err != nil {
 		return err
 	}
@@ -411,10 +416,16 @@ func (s *Store) GetImageDescription(ctx context.Context, reference string) (*mod
 }
 
 func (s *Store) InsertImageReleaseNotes(ctx context.Context, reference string, releaseNotes *models.ImageReleaseNotes) error {
-	statement, err := s.db.PrepareContext(ctx, `INSERT OR REPLACE INTO images_release_notes
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_release_notes
 		(reference, title, html, markdown, released)
 		VALUES
-		(?, ?, ?, ?, ?);`)
+		(?, ?, ?, ?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			title=excluded.title,
+			html=excluded.html,
+			markdown=excluded.markdown,
+			released=excluded.released
+		;`)
 	if err != nil {
 		return err
 	}
@@ -452,10 +463,13 @@ func (s *Store) GetImageReleaseNotes(ctx context.Context, reference string) (*mo
 }
 
 func (s *Store) InsertImageGraph(ctx context.Context, reference string, graph *models.Graph) error {
-	statement, err := s.db.PrepareContext(ctx, `INSERT OR REPLACE INTO images_graphs
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_graphs
 		(reference, graph)
 		VALUES
-		(?, ?);`)
+		(?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			graph=excluded.graph
+		;`)
 	if err != nil {
 		return err
 	}
@@ -670,10 +684,11 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 }
 
 // DeleteNonPresent deletes all images that are not referenced.
-func (s *Store) DeleteNonPresent(ctx context.Context, references []string) error {
+// Returns the number of affected rows.
+func (s *Store) DeleteNonPresent(ctx context.Context, references []string) (int64, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Create a temperate table that is kept throughout the transaction. This in
@@ -681,13 +696,13 @@ func (s *Store) DeleteNonPresent(ctx context.Context, references []string) error
 	_, err = tx.ExecContext(ctx, "CREATE TABLE temp.present_references (reference TEXT);")
 	if err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
 	}
 
 	statement, err := tx.PrepareContext(ctx, "INSERT INTO temp.present_references (reference) VALUES (?);")
 	if err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
 	}
 
 	for _, reference := range references {
@@ -695,25 +710,39 @@ func (s *Store) DeleteNonPresent(ctx context.Context, references []string) error
 		if err != nil {
 			_ = statement.Close()
 			_ = tx.Rollback()
-			return err
+			return 0, err
 		}
 	}
 	if err := statement.Close(); err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
 	}
 
-	_, err = tx.ExecContext(ctx, "DELETE FROM raw_images WHERE reference NOT IN (SELECT reference FROM temp.present_references);")
+	res, err := tx.ExecContext(ctx, "DELETE FROM raw_images WHERE reference NOT IN (SELECT reference FROM temp.present_references);")
 	if err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return 0, err
 	}
 
 	_, err = tx.ExecContext(ctx, "DROP TABLE temp.present_references;")
 	if err != nil {
 		tx.Rollback()
-		return err
+		return 0, err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+
+	return rowsAffected, nil
+}
+
+func (s *Store) Close() error {
+	return s.db.Close()
 }

@@ -292,8 +292,9 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	err = store.DeleteNonPresent(context.TODO(), []string{"mongo:4"})
+	removed, err := store.DeleteNonPresent(context.TODO(), []string{"mongo:4"})
 	require.NoError(t, err)
+	assert.Equal(t, int64(1), removed)
 
 	actual, err := store.ListImages(context.TODO(), nil)
 	require.NoError(t, err)
