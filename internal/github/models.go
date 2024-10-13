@@ -11,3 +11,14 @@ type Release struct {
 	Description string
 	URL         string
 }
+
+type Package struct {
+	Owner      string
+	Repository string
+	Tags       []PackageTag
+}
+
+type PackageTag struct {
+	Name   string
+	Latest bool
+}

@@ -25,16 +25,3 @@ func TestClientGetManifest(t *testing.T) {
 
 	assert.Equal(t, expected, actual)
 }
-
-func TestClientGetRepositoryName(t *testing.T) {
-	client := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
-	}
-	ref, err := oci.ParseReference("ghcr.io/jmbannon/ytdl-sub:2024.10.09")
-	require.NoError(t, err)
-	owner, repository, err := client.GetRepositoryName(context.TODO(), ref)
-	require.NoError(t, err)
-
-	assert.Equal(t, "jmbannon", owner)
-	assert.Equal(t, "ytdl-sub", repository)
-}

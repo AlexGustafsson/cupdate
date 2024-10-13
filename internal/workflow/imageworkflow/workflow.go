@@ -9,6 +9,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
+	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -133,9 +134,46 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					return domain == "ghcr.io", nil
 				},
 				Steps: []workflow.Step{
-					// TODO
+					GetGithubPackage().
+						WithID("package").
+						With("httpClient", httpClient).
+						With("reference", data.LatestReference),
+					GetGitHubDescription().
+						WithID("description").
+						With("httpClient", httpClient).
+						With("owner", workflow.Ref{Key: "step.package.owner"}).
+						With("repository", workflow.Ref{Key: "step.package.repository"}),
+					// TODO: Use tags from GetGithubPackage to get latest tag
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						pkg, err := workflow.GetValue[*github.Package](ctx, "step.package.package")
+						if err != nil {
+							return nil, err
+						}
+
+						description, err := workflow.GetValue[string](ctx, "step.description.description")
+						if err != nil {
+							return nil, err
+						}
+
+						data.InsertLink(models.ImageLink{
+							Type: "github",
+							URL:  fmt.Sprintf("%s/%s/%s", "https://github.com", url.PathEscape(pkg.Owner), url.PathEscape(pkg.Repository)),
+						})
+
+						data.InsertLink(models.ImageLink{
+							Type: "ghcr",
+							URL:  ghcr.PackagePath(data.ImageReference),
+						})
+						data.Description = description
+						// TODO: Full description?
+						// https://github.com/users/jmbannon/packages/container/ytdl-sub/286268926/readme?is_package_page=true
+						return nil, nil
+					}),
 				},
 			},
+			// TODO: Improve this to work well for adding information for both docker,
+			// and ghcr. For now, basically no docker image supports the required
+			// annotations, so this might not be worth it?
 			{
 				ID:   "github",
 				Name: "Get GitHub information",
@@ -165,62 +203,61 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					return false, nil
 				},
 				Steps: []workflow.Step{
-					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						data.InsertTag("github")
-						return nil, nil
-					}),
-					GetGitHubRepsitory().
-						WithID("repository").
-						With("httpClient", httpClient).
-						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
-						With("reference", data.LatestReference),
-					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						endpoint, err := workflow.GetValue[string](ctx, "step.repository.endpoint")
-						if err != nil {
-							return nil, err
-						}
+					// workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+					// 	data.InsertTag("github")
+					// 	return nil, nil
+					// }),
+					// // TODO: Now this only works for manifest-based images
+					// GetGitHubRepsitory().
+					// 	With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
+					// 	With("reference", data.LatestReference),
+					// workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+					// 	endpoint, err := workflow.GetValue[string](ctx, "step.repository.endpoint")
+					// 	if err != nil {
+					// 		return nil, err
+					// 	}
 
-						owner, err := workflow.GetValue[string](ctx, "step.repository.owner")
-						if err != nil {
-							return nil, err
-						}
+					// 	owner, err := workflow.GetValue[string](ctx, "step.repository.owner")
+					// 	if err != nil {
+					// 		return nil, err
+					// 	}
 
-						repository, err := workflow.GetValue[string](ctx, "step.repository.name")
-						if err != nil {
-							return nil, err
-						}
+					// 	repository, err := workflow.GetValue[string](ctx, "step.repository.name")
+					// 	if err != nil {
+					// 		return nil, err
+					// 	}
 
-						data.InsertLink(models.ImageLink{
-							Type: "github",
-							URL:  fmt.Sprintf("%s/%s/%s", endpoint, url.PathEscape(owner), url.PathEscape(repository)),
-						})
-						return nil, nil
-					}),
-					// TODO: Get latest version based on github instead if possible
-					// TODO: Set short description from repository if not already exists
-					GetGitHubRelease().
-						WithID("release").
-						With("httpClient", httpClient).
-						With("endpoint", workflow.Ref{Key: "step.repository.endpoint"}).
-						With("owner", workflow.Ref{Key: "step.repository.owner"}).
-						With("repository", workflow.Ref{Key: "step.repository.name"}).
-						With("reference", data.LatestReference),
-					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
-						if err != nil {
-							return nil, err
-						}
+					// 	data.InsertLink(models.ImageLink{
+					// 		Type: "github",
+					// 		URL:  fmt.Sprintf("%s/%s/%s", endpoint, url.PathEscape(owner), url.PathEscape(repository)),
+					// 	})
+					// 	return nil, nil
+					// }),
+					// // TODO: Get latest version based on github instead if possible
+					// // TODO: Get description if not found
+					// GetGitHubRelease().
+					// 	WithID("release").
+					// 	With("httpClient", httpClient).
+					// 	With("endpoint", workflow.Ref{Key: "step.repository.endpoint"}).
+					// 	With("owner", workflow.Ref{Key: "step.repository.owner"}).
+					// 	With("repository", workflow.Ref{Key: "step.repository.name"}).
+					// 	With("reference", data.LatestReference),
+					// workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+					// 	release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
+					// 	if err != nil {
+					// 		return nil, err
+					// 	}
 
-						if release == nil {
-							return nil, nil
-						}
+					// 	if release == nil {
+					// 		return nil, nil
+					// 	}
 
-						data.ReleaseNotes = &models.ImageReleaseNotes{
-							Title: release.Title,
-							HTML:  release.Description,
-						}
-						return nil, nil
-					}),
+					// 	data.ReleaseNotes = &models.ImageReleaseNotes{
+					// 		Title: release.Title,
+					// 		HTML:  release.Description,
+					// 	}
+					// 	return nil, nil
+					// }),
 				},
 			},
 		},

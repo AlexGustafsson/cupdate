@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
@@ -65,32 +64,4 @@ func (c *Client) GetManifests(ctx context.Context, image oci.Reference) ([]oci.M
 	}
 
 	return ociClient.GetManifests(ctx, image)
-}
-
-// GetRepositoryName resolves the repository name of a GHCR image.
-// Returns "", "", nil if not found.
-func (c *Client) GetRepositoryName(ctx context.Context, image oci.Reference) (string, string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodHead, PackagePath(image), nil)
-	if err != nil {
-		return "", "", err
-	}
-
-	res, err := c.Client.DoCached(req)
-	if err != nil {
-		return "", "", err
-	}
-
-	if res.StatusCode == 404 {
-		return "", "", nil
-	} else if res.StatusCode != 200 {
-		return "", "", fmt.Errorf("unexpected status code: %d", res.StatusCode)
-	}
-
-	owner, path, ok := strings.Cut(strings.Trim(res.Request.URL.Path, "/"), "/")
-	if !ok {
-		return "", "", nil
-	}
-	name, _, _ := strings.Cut(path, "/")
-
-	return owner, name, nil
 }

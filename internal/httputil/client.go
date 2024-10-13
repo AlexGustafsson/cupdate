@@ -49,6 +49,9 @@ func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 // its response is cached if the response code is 2xx.
 // It is the caller's responsibility to ensure that caching the request is
 // sensible (i.e. only for GET requests).
+// NOTE: Cached responses for URLs that were redirected will not have the
+// correct request URL for the response - it will be the original request rather
+// than the request to the final resource.
 func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	if c.Cache == nil {
 		panic("no cache configured")
@@ -164,5 +167,5 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 }
 
 func (c *Client) CacheKey(req *http.Request) string {
-	return fmt.Sprintf("httputil/v1/%s" + req.URL.String())
+	return fmt.Sprintf("httputil/v1/%s/%s", req.Method, req.URL.String())
 }
