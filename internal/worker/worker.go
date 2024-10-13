@@ -24,23 +24,24 @@ func New(httpClient *httputil.Client, store *store.Store) *Worker {
 	}
 }
 
-func (w *Worker) ProcessOldReferences(ctx context.Context, minAge time.Duration) error {
-	page, err := w.store.ListImages(ctx, &store.ListImageOptions{
-		SortProperty: store.SortPropertyLastModified,
-		Limit:        1,
-		Page:         0,
+func (w *Worker) ProcessOldReferences(ctx context.Context, n int, notUpdatedSince time.Time) error {
+	slog.Debug("Identifying old references to process")
+	images, err := w.store.ListRawImages(ctx, &store.ListRawImagesOptions{
+		NotUpdatedSince: notUpdatedSince,
+		Limit:           n,
 	})
 	if err != nil {
 		return err
 	}
 
-	for _, image := range page.Images {
-		reference, err := oci.ParseReference(image.Reference)
-		if err != nil {
-			return err
-		}
+	if len(images) == 0 {
+		slog.Debug("Found no old references, skipping run")
+		return nil
+	}
 
-		if err := w.ProcessReference(ctx, reference); err != nil {
+	slog.Debug("Processing old references", slog.Int("n", len(images)))
+	for _, image := range images {
+		if err := w.ProcessRawImage(ctx, image); err != nil {
 			return err
 		}
 	}
@@ -48,8 +49,30 @@ func (w *Worker) ProcessOldReferences(ctx context.Context, minAge time.Duration)
 	return nil
 }
 
-func (w *Worker) ProcessReference(ctx context.Context, reference oci.Reference) error {
-	slog.Debug("Running workflow", slog.String("image", reference.String()))
+func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) error {
+	reference, err := oci.ParseReference(image.Reference)
+	if err != nil {
+		return err
+	}
+
+	log := slog.With(slog.String("reference", reference.String()))
+	log.Debug("Processing reference")
+
+	// Try to update the image's process time
+	// NOTE: There's a race here if the entry has been modified or removed since
+	// it was loaded from the store. It will eventually be corrent and consistent,
+	// though. And it's unlikely to happen. So let's not keep a transaction during
+	// processing for now. If it becomes important, we could keep an "etag" /
+	// generation id in the document and throw an error if the expectation fails.
+	// NOTE: Always update immediately as a failure to process or update the image
+	// could be a reoccuring issue, so try to process other images before retrying
+	// the failing image.
+	image.LastProcessed = time.Now()
+	if err := w.store.InsertRawImage(ctx, &image); err != nil {
+		return err
+	}
+
+	log.Debug("Running workflow")
 	data := &imageworkflow.Data{
 		ImageReference:  reference,
 		Image:           "",
@@ -58,11 +81,17 @@ func (w *Worker) ProcessReference(ctx context.Context, reference oci.Reference) 
 		Description:     nil,
 		ReleaseNotes:    nil,
 		Links:           make([]models.ImageLink, 0),
+		Graph:           image.Graph,
 	}
+
+	for _, tag := range image.Tags {
+		data.InsertTag(tag)
+	}
+
 	workflow := imageworkflow.New(w.httpClient, data)
 
 	if err := workflow.Run(ctx); err != nil {
-		slog.Error("Failed to run pipeline for image", slog.Any("error", err))
+		log.Error("Failed to run pipeline for image", slog.Any("error", err))
 		// Fallthrough - insert what we have
 	}
 
@@ -78,23 +107,29 @@ func (w *Worker) ProcessReference(ctx context.Context, reference oci.Reference) 
 		Links:        data.Links,
 		LastModified: time.Now(),
 	}); err != nil {
-		slog.Error("Failed to insert image graph", slog.Any("error", err))
-		// Fallthrough - insert what we have
+		log.Error("Failed to insert image", slog.Any("error", err))
+		// Fallthrough - try to insert what we have
 	}
 
 	if data.Description != nil {
-		if err := w.store.InsertImageDescription(context.TODO(), reference.String(), data.Description); err != nil {
-			slog.Error("Failed to insert image description", slog.Any("error", err))
-			// Fallthrough - insert what we have
+		if err := w.store.InsertImageDescription(ctx, reference.String(), data.Description); err != nil {
+			log.Error("Failed to insert image description", slog.Any("error", err))
+			// Fallthrough - try to insert what we have
 		}
 	}
 
 	if data.ReleaseNotes != nil {
-		if err := w.store.InsertImageReleaseNotes(context.TODO(), reference.String(), data.ReleaseNotes); err != nil {
-			slog.Error("Failed to insert image description", slog.Any("error", err))
-			// Fallthrough - insert what we have
+		if err := w.store.InsertImageReleaseNotes(ctx, reference.String(), data.ReleaseNotes); err != nil {
+			log.Error("Failed to insert image description", slog.Any("error", err))
+			// Fallthrough - try to insert what we have
 		}
 	}
 
+	if err := w.store.InsertImageGraph(ctx, reference.String(), &data.Graph); err != nil {
+		log.Error("Failed to insert image description", slog.Any("error", err))
+		// Fallthrough - try to insert what we have
+	}
+
+	log.Debug("Updated data")
 	return nil
 }

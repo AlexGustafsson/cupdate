@@ -135,14 +135,17 @@ func main() {
 	wg.Go(func() error {
 		httpClient := httputil.NewClient(cache, 24*time.Hour)
 		worker := worker.New(httpClient, writeStore)
+		// TODO: Temp interval for now
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
 
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			default:
-				// TODO: Time
-				err := worker.ProcessOldReferences(ctx, 5*time.Second)
+			case <-ticker.C:
+				// TODO: Temp time for now
+				err := worker.ProcessOldReferences(ctx, 1, time.Now().Add(-2*time.Minute))
 				if err != nil {
 					slog.Error("Failed to process old references", slog.Any("error", err))
 				}
@@ -198,8 +201,15 @@ func main() {
 				Nodes: mappedNodes,
 			}
 
+			rawImage := &models.RawImage{
+				Reference: imageNode.Reference.String(),
+				Tags:      tags,
+				Graph:     mappedGraph,
+			}
+
 			// TODO: Do this inside of the worker as well?
-			if err := writeStore.InsertRawImage(context.TODO(), imageNode.Reference.String(), tags, mappedGraph); err != nil {
+			slog.Debug("Inserting raw image", slog.String("reference", rawImage.Reference))
+			if err := writeStore.InsertRawImage(context.TODO(), rawImage); err != nil {
 				slog.Error("Failed to insert raw image", slog.Any("error", err))
 				return err
 			}
@@ -210,21 +220,31 @@ func main() {
 			imageNode := root.(platform.ImageNode)
 			allReferences = append(allReferences, imageNode.Reference.String())
 		}
-		if err := writeStore.DeleteNonPresent(context.TODO(), allReferences); err != nil {
+
+		slog.Debug("Cleaning up removed images")
+		removed, err := writeStore.DeleteNonPresent(context.TODO(), allReferences)
+		if err != nil {
 			slog.Error("Failed to clean up removed images", slog.Any("error", err))
 			return err
 		}
+		slog.Debug("Cleaned up removed images successfully", slog.Int64("removed", removed))
 
 		return nil
 	})
 
+	httpServer := &http.Server{
+		Addr:    ":8080",
+		Handler: apiServer,
+	}
+
 	wg.Go(func() error {
 		slog.Info("Starting HTTP server")
-		err := http.ListenAndServe(":8080", apiServer)
-		if err != nil && err != ctx.Err() {
+		err := httpServer.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
 			slog.Error("Failed to serve", slog.Any("error", err))
+			return err
 		}
-		return err
+		return nil
 	})
 
 	signals := make(chan os.Signal, 1)
@@ -236,6 +256,15 @@ func main() {
 			if caught == 1 {
 				slog.Info("Caught signal, exiting gracefully")
 				cancel()
+				httpServer.Close()
+				if err := readStore.Close(); err != nil {
+					slog.Error("Failed to close read store", slog.Any("error", err))
+					// Fallthrough
+				}
+				if err := writeStore.Close(); err != nil {
+					slog.Error("Failed to close write store", slog.Any("error", err))
+					// Fallthrough
+				}
 			} else {
 				slog.Info("Caught signal, exiting now")
 				os.Exit(1)
@@ -243,7 +272,7 @@ func main() {
 		}
 	}()
 
-	if err := wg.Wait(); err != nil {
+	if err := wg.Wait(); err != nil && err != ctx.Err() {
 		slog.Error("Failed to run", slog.Any("error", err))
 		os.Exit(1)
 	}

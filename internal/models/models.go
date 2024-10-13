@@ -38,6 +38,13 @@ type Image struct {
 	Image           string      `json:"image,omitempty"`
 }
 
+type RawImage struct {
+	Reference     string    `json:"reference"`
+	Tags          []string  `json:"tags"`
+	Graph         Graph     `json:"graph"`
+	LastProcessed time.Time `json:"lastProcessed,omitempty"`
+}
+
 type ImageDescription struct {
 	HTML     string `json:"html,omitempty"`
 	Markdown string `json:"markdown,omitempty"`

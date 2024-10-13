@@ -17,6 +17,7 @@ type Data struct {
 	Description     *models.ImageDescription
 	ReleaseNotes    *models.ImageReleaseNotes
 	Links           []models.ImageLink
+	Graph           models.Graph
 }
 
 func (d *Data) InsertTag(tag string) {
