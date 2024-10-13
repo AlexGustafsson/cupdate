@@ -68,7 +68,7 @@ func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) erro
 		ON CONFLICT(reference) DO UPDATE SET
 			tags=excluded.tags,
 			graph=excluded.graph,
-			lastProcessed=coalesce(lastProcessed, excluded.lastProcessed)
+			lastProcessed=coalesce(excluded.lastProcessed, lastProcessed)
 		;`)
 	if err != nil {
 		return err
@@ -98,15 +98,20 @@ func (s *Store) ListRawImages(ctx context.Context, options *ListRawImagesOptions
 		limit = min(options.Limit, 30)
 	}
 
+	notUpdatedSince := time.Now()
+	if !options.NotUpdatedSince.IsZero() {
+		notUpdatedSince = options.NotUpdatedSince
+	}
+
 	statement, err := s.db.PrepareContext(ctx, `SELECT
 	reference, tags, graph, lastProcessed
-	FROM raw_images WHERE lastProcessed IS NULL OR lastProcessed > ? ORDER BY lastProcessed ASC LIMIT ?;`)
+	FROM raw_images WHERE lastProcessed IS NULL OR lastProcessed < ? ORDER BY lastProcessed ASC LIMIT ?;`)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: Implement the scan interface for models
-	res, err := statement.QueryContext(ctx, options.NotUpdatedSince, limit)
+	res, err := statement.QueryContext(ctx, notUpdatedSince, limit)
 	statement.Close()
 	if err != nil {
 		return nil, err
