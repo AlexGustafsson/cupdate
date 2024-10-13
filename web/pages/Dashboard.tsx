@@ -211,8 +211,11 @@ export function Dashboard(): JSX.Element {
                 )}
               </div>
               <p className="text-sm">
-                Showing {images.value.images.length} of{' '}
-                {images.value.pagination.total} entries
+                Showing{' '}
+                {images.value.pagination.page * images.value.pagination.size}-
+                {images.value.pagination.page * images.value.pagination.size +
+                  images.value.images.length}{' '}
+                of {images.value.pagination.total} entries
               </p>
             </div>
           </div>
