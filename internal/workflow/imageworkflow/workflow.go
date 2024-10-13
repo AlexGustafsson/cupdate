@@ -78,7 +78,8 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
-						data.Description = &models.ImageDescription{
+						data.Description = repository.Description
+						data.FullDescription = &models.ImageDescription{
 							Markdown: repository.FullDescription,
 						}
 						return nil, nil

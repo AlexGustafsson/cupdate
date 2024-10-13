@@ -14,7 +14,8 @@ type Data struct {
 	Image           string
 	LatestReference oci.Reference
 	Tags            []string
-	Description     *models.ImageDescription
+	Description     string
+	FullDescription *models.ImageDescription
 	ReleaseNotes    *models.ImageReleaseNotes
 	Links           []models.ImageLink
 	Graph           models.Graph

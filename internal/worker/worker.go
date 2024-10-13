@@ -78,7 +78,8 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 		Image:           "",
 		LatestReference: reference,
 		Tags:            make([]string, 0),
-		Description:     nil,
+		Description:     "",
+		FullDescription: nil,
 		ReleaseNotes:    nil,
 		Links:           make([]models.ImageLink, 0),
 		Graph:           image.Graph,
@@ -89,7 +90,6 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 	}
 
 	workflow := imageworkflow.New(w.httpClient, data)
-
 	if err := workflow.Run(ctx); err != nil {
 		log.Error("Failed to run pipeline for image", slog.Any("error", err))
 		// Fallthrough - insert what we have
@@ -98,8 +98,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 	if err := w.store.InsertImage(context.TODO(), &models.Image{
 		Reference:       data.ImageReference.String(),
 		LatestReference: data.LatestReference.String(),
-		// TODO:
-		Description: "",
+		Description:     data.Description,
 		// TODO: Tags should include pod, job, cron job, deployment set etc.
 		// Everything's a pod, so try to use the topmost descriptor
 		Tags:         data.Tags,
@@ -111,8 +110,8 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 		// Fallthrough - try to insert what we have
 	}
 
-	if data.Description != nil {
-		if err := w.store.InsertImageDescription(ctx, reference.String(), data.Description); err != nil {
+	if data.FullDescription != nil {
+		if err := w.store.InsertImageDescription(ctx, reference.String(), data.FullDescription); err != nil {
 			log.Error("Failed to insert image description", slog.Any("error", err))
 			// Fallthrough - try to insert what we have
 		}

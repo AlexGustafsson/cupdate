@@ -146,7 +146,7 @@ func main() {
 		httpClient := httputil.NewClient(cache, 24*time.Hour)
 		worker := worker.New(httpClient, writeStore)
 		// TODO: Temp interval for now
-		ticker := time.NewTicker(1 * time.Minute)
+		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
 		for {

@@ -32,7 +32,7 @@ func TestWorkflow(t *testing.T) {
 		Image:           "",
 		LatestReference: reference,
 		Tags:            make([]string, 0),
-		Description:     nil,
+		FullDescription: nil,
 		ReleaseNotes:    nil,
 		Links:           make([]models.ImageLink, 0),
 	}
