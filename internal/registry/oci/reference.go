@@ -2,6 +2,7 @@ package oci
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/distribution/reference"
 )
@@ -15,8 +16,6 @@ type Reference struct {
 
 	HasDigest bool
 	Digest    string
-
-	raw reference.Named
 }
 
 func ParseReference(v string) (Reference, error) {
@@ -46,17 +45,22 @@ func ParseReference(v string) (Reference, error) {
 		Tag:       tag,
 		HasDigest: hasDigest,
 		Digest:    digest,
-
-		raw: ref,
 	}, nil
 }
 
-func (r Reference) Reference() reference.Named {
-	return r.raw
-}
-
 func (r Reference) Name() string {
-	return reference.FamiliarName(r.raw)
+	var builder strings.Builder
+
+	if r.Domain == "docker.io" {
+		r.Path = strings.TrimPrefix(r.Path, "library/")
+		builder.WriteString(r.Path)
+	} else {
+		builder.WriteString(r.Domain)
+		builder.WriteString("/")
+		builder.WriteString(r.Path)
+	}
+
+	return builder.String()
 }
 
 // Version is the familiar version of the reference, such as its tag, digest or
@@ -72,7 +76,21 @@ func (r Reference) Version() string {
 }
 
 func (r Reference) String() string {
-	return reference.FamiliarString(r.raw)
+	var builder strings.Builder
+
+	builder.WriteString(r.Name())
+
+	if r.HasTag {
+		if r.Tag != "latest" {
+			builder.WriteString(":")
+			builder.WriteString(r.Tag)
+		}
+	} else if r.HasDigest {
+		builder.WriteString("@")
+		builder.WriteString(r.Digest)
+	}
+
+	return builder.String()
 }
 
 func (r Reference) MarshalJSON() ([]byte, error) {
