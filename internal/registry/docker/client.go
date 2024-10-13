@@ -75,9 +75,16 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, nil
 	}
 
+	// There's not going to be any latest version
+	if image.Tag == "latest" {
+		return nil, nil
+	}
+
 	currentVersion, err := oci.ParseVersion(image.Tag)
-	if err != nil || currentVersion == nil {
-		return nil, fmt.Errorf("unsupported version: %s", err)
+	if err != nil {
+		return nil, fmt.Errorf("unsupported version: %w", err)
+	} else if currentVersion == nil {
+		return nil, fmt.Errorf("unsupported version")
 	}
 
 	u, err := url.Parse(fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/tags", image.Path))
