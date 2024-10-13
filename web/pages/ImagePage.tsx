@@ -16,6 +16,7 @@ import { HTML } from '../components/HTML'
 import { Markdown } from '../components/Markdown'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
+import { FluentLink24Filled } from '../components/icons/fluent-link-24-filled'
 import { Quay } from '../components/icons/quay'
 import { SimpleIconsDocker } from '../components/icons/simple-icons-docker'
 import { SimpleIconsGit } from '../components/icons/simple-icons-git'
@@ -31,6 +32,7 @@ const titles: Record<string, string | undefined> = {
   docker: "Project's page on Docker Hub",
   quay: "Project's page on Quay.io",
   git: "Project's git page",
+  'oci-registry': "Project's OCI registry",
 }
 
 export function ImageLink({
@@ -58,6 +60,8 @@ export function ImageLink({
     case 'git':
       icon = <SimpleIconsGit className="text-orange-500" />
       break
+    default:
+      icon = <FluentLink24Filled />
   }
 
   return (
