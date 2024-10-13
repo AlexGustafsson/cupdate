@@ -198,10 +198,13 @@ export function Dashboard(): JSX.Element {
               <div className="flex items-center justify-center text-sm">
                 {pages.map(({ index, label, current }) =>
                   index === undefined ? (
-                    <p className="m-1 cursor-default">{label}</p>
+                    <p key={index} className="m-1 cursor-default">
+                      {label}
+                    </p>
                   ) : (
                     <NavLink
                       // TODO
+                      key={index}
                       to={`/?page=${index}`}
                       className={`m-1 w-6 h-6 text-center leading-6 rounded ${current ? 'bg-blue-400' : 'hover:bg-blue-400'}`}
                     >
