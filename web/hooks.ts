@@ -6,7 +6,7 @@ export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
 
   const filter = useMemo(() => {
     return (searchParams.get('tags') || '')
-      .split(',')
+      .split(' ')
       .filter((x) => x.length > 0)
   }, [searchParams])
 
@@ -16,14 +16,14 @@ export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
         if (typeof s === 'function') {
           s = s(
             (searchParams.get('tags') || '')
-              .split(',')
+              .split(' ')
               .filter((x) => x.length > 0)
           )
         }
         if (!s) {
           current.delete('tags')
         } else {
-          current.set('tags', s.join(','))
+          current.set('tags', s.join(' '))
         }
         return current
       })

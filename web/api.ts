@@ -112,7 +112,7 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
   useEffect(() => {
     const query = new URLSearchParams()
     if (options?.tags !== undefined) {
-      query.set('tags', options.tags.join(','))
+      query.set('tags', options.tags.join(' '))
     }
     if (options?.sort !== undefined) {
       query.set('sort', options.sort)

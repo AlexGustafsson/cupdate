@@ -36,7 +36,7 @@ func NewServer(api *store.Store) *Server {
 	s.mux.HandleFunc("GET /api/v1/images", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
-		tags := slices.Filter(nil, strings.Split(query.Get("tags"), ","), func(s string) bool {
+		tags := slices.Filter(nil, strings.Split(query.Get("tags"), " "), func(s string) bool {
 			return s != ""
 		})
 
