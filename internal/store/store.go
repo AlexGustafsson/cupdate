@@ -635,15 +635,17 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 
 	whereClause := ""
 	if len(options.Tags) > 0 {
-		whereClause = fmt.Sprintf("WHERE images_tags.tag IN (%s) GROUP BY images.reference", "?"+strings.Repeat(", ?", len(options.Tags)-1))
+		whereClause = fmt.Sprintf("WHERE images_tags.tag IN (%s)", "?"+strings.Repeat(", ?", len(options.Tags)-1))
 	}
+
+	groupByClause := "GROUP BY images.reference"
 
 	havingClause := ""
 	if len(options.Tags) > 0 {
 		havingClause = "HAVING COUNT(*) = ?"
 	}
 
-	statement, err := s.db.PrepareContext(ctx, `SELECT COUNT(1) FROM images LEFT OUTER JOIN images_tags ON images_tags.reference = images.reference `+whereClause+" "+havingClause+";")
+	statement, err := s.db.PrepareContext(ctx, `SELECT COUNT(1) OVER () FROM images LEFT OUTER JOIN images_tags ON images_tags.reference = images.reference `+whereClause+" "+groupByClause+" "+havingClause+";")
 	if err != nil {
 		return nil, err
 	}
@@ -678,7 +680,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	res.Close()
 	result.Pagination.Total = totalMatches
 
-	statement, err = s.db.PrepareContext(ctx, `SELECT images.reference FROM images LEFT OUTER JOIN images_tags ON images_tags.reference = images.reference `+whereClause+" "+havingClause+" "+orderClause+" "+limitClause+";")
+	statement, err = s.db.PrepareContext(ctx, `SELECT images.reference FROM images LEFT OUTER JOIN images_tags ON images_tags.reference = images.reference `+whereClause+" "+groupByClause+" "+havingClause+" "+orderClause+" "+limitClause+";")
 	if err != nil {
 		return nil, err
 	}
