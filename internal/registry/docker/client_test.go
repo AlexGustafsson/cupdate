@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/cachetest"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ func TestClientGetManifest(t *testing.T) {
 	expected := &oci.Manifest{}
 
 	client := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 	ref, err := oci.ParseReference("postgres:12-alpine")
 	require.NoError(t, err)
@@ -31,7 +31,7 @@ func TestClientGetManifest(t *testing.T) {
 
 func TestClientGetLatestVersion(t *testing.T) {
 	client := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 	ref, err := oci.ParseReference("renovate/renovate:38.70.2")
 	require.NoError(t, err)
@@ -43,7 +43,7 @@ func TestClientGetLatestVersion(t *testing.T) {
 
 func TestClientGetRepository(t *testing.T) {
 	client := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 	ref, err := oci.ParseReference("mongo")
 	require.NoError(t, err)

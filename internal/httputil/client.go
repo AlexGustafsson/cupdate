@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -12,15 +13,6 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
 )
-
-type callbackCloser struct {
-	io.Reader
-	callback func() error
-}
-
-func (c callbackCloser) Close() error {
-	return c.callback()
-}
 
 type Client struct {
 	http.Client
@@ -65,32 +57,14 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	// Try to read from cache, only return on successful cache reads
 	entry, err := c.Cache.Get(ctx, key)
 	if err == nil {
-		log.Debug("HTTP request cache hit")
-
-		modTime := time.Time{}
-		if entryInfo, ok := entry.(cache.EntryInfo); ok {
-			modTime = entryInfo.ModTime()
-		}
-
-		outdated := !modTime.IsZero() && c.CacheMaxAge > 0 && time.Since(modTime) > c.CacheMaxAge
-		if outdated {
-			slog.Debug("HTTP request cache miss (entry found, but was outdated)")
-			if err := entry.Close(); err != nil {
-				slog.Warn("Failed to close HTTP response cache entry", slog.Any("error", err))
-			}
+		slog.Debug("Reading cached response")
+		res, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(entry)), req)
+		if err == nil {
+			slog.Debug("HTTP response successfully read from cache")
+			// TODO: is entry ever closed in this branch?
+			return res, nil
 		} else {
-			slog.Debug("Reading cached response")
-			res, err := http.ReadResponse(bufio.NewReader(entry), req)
-			if err == nil {
-				slog.Debug("HTTP response successfully read from cache")
-				// TODO: is entry ever closed in this branch?
-				return res, nil
-			} else {
-				slog.Warn("HTTP request cache read failure", slog.Any("error", err))
-				if err := entry.Close(); err != nil {
-					slog.Warn("Failed to close HTTP response cache entry", slog.Any("error", err))
-				}
-			}
+			slog.Warn("HTTP request cache parse failure", slog.Any("error", err))
 		}
 	} else if errors.Is(err, cache.ErrNotExist) {
 		log.Debug("HTTP request cache miss")
@@ -106,59 +80,34 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 
 	// Cache 2xx
 	if res.StatusCode >= 200 && res.StatusCode <= 299 {
-		// Create a pipe, writing to cache as the body is read by the caller as to
-		// not read the entire body into memory just for the sake of the cache
-		originalBody := res.Body
-		r, w := io.Pipe()
-		wait := make(chan struct{})
-		res.Body = callbackCloser{
-			Reader: io.TeeReader(originalBody, w),
-			callback: func() error {
-				err := originalBody.Close()
-				w.Close()
-				select {
-				case <-wait:
-				case <-ctx.Done():
-					return ctx.Err()
-				}
-				return err
-			},
+		log.Debug("Caching HTTP response")
+
+		// Let's try to not be smart about streaming the result to / from cache,
+		// something that was previously done. Just read the body to memory and
+		// cache the response as a blob. The requests that are cached in cupdate's
+		// use cases are small enough that it shouldn't be an issue
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+		if err := res.Body.Close(); err != nil {
+			return nil, err
 		}
 
-		log.Debug("Storing HTTP cache entry once body is read")
-		go func() {
-			resCopy := http.Response{
-				StatusCode:       res.StatusCode,
-				ProtoMajor:       res.ProtoMajor,
-				ProtoMinor:       res.ProtoMinor,
-				Request:          res.Request,
-				TransferEncoding: res.TransferEncoding,
-				Trailer:          res.Trailer,
-				Body:             io.NopCloser(r),
-				ContentLength:    res.ContentLength,
-				Header:           res.Header,
-			}
+		// Serialize the response
+		var buffer bytes.Buffer
+		res.Body = io.NopCloser(bytes.NewReader(body))
+		res.Write(&buffer)
 
-			resReader, resWriter := io.Pipe()
+		// Restore the response body
+		res.Body = io.NopCloser(bytes.NewReader(body))
 
-			go func() {
-				err := c.Cache.Set(ctx, key, resReader)
-				if err == nil {
-					log.Debug("HTTP request was cached successfully")
-				} else {
-					log.Warn("HTTP response cache failure", slog.Any("error", err))
-				}
-				close(wait)
-			}()
-
-			err := resCopy.Write(resWriter)
-			resWriter.Close()
-			if err == nil {
-				log.Debug("HTTP response was successfully serialized")
-			} else {
-				log.Warn("HTTP response serialization failure", slog.Any("error", err))
-			}
-		}()
+		err = c.Cache.Set(ctx, key, buffer.Bytes(), &cache.SetEntryOptions{Expires: time.Now().Add(c.CacheMaxAge)})
+		if err == nil {
+			log.Debug("HTTP request was cached successfully")
+		} else {
+			log.Warn("HTTP response cache failure", slog.Any("error", err))
+		}
 	} else {
 		log.Debug("Skipping HTTP response cache as status code was not 2xx", slog.Int("statusCode", res.StatusCode))
 	}

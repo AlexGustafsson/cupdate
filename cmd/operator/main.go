@@ -35,9 +35,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	cache, err := cache.NewDiskCache("./cache")
+	cache, err := cache.NewDiskCache("./cachev1.boltdb")
 	if err != nil {
-		slog.Error("Failed to serve", slog.Any("error", err))
+		slog.Error("Failed to create disk cache", slog.Any("error", err))
 		os.Exit(1)
 	}
 
@@ -266,7 +266,14 @@ func main() {
 			if caught == 1 {
 				slog.Info("Caught signal, exiting gracefully")
 				cancel()
-				httpServer.Close()
+				if err := httpServer.Close(); err != nil {
+					slog.Error("Failed t oclose server", slog.Any("error", err))
+					// Fallthrough
+				}
+				if err := cache.Close(); err != nil {
+					slog.Error("Failed to close cache", slog.Any("error", err))
+					// Fallthrough
+				}
 				if err := readStore.Close(); err != nil {
 					slog.Error("Failed to close read store", slog.Any("error", err))
 					// Fallthrough

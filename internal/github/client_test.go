@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/cachetest"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/stretchr/testify/require"
@@ -14,7 +14,7 @@ import (
 
 func TestClientGetRelease(t *testing.T) {
 	c := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
 	release, err := c.GetRelease(context.TODO(), "renovatebot", "renovate", "38.80.0")
@@ -25,7 +25,7 @@ func TestClientGetRelease(t *testing.T) {
 
 func TestClientGetDescription(t *testing.T) {
 	c := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
 	release, err := c.GetDescription(context.TODO(), "renovatebot", "renovate")
@@ -36,7 +36,7 @@ func TestClientGetDescription(t *testing.T) {
 
 func TestClientGetPackage(t *testing.T) {
 	c := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
 	ref, err := oci.ParseReference("ghcr.io/jmbannon/ytdl-sub")

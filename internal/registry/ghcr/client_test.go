@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/cachetest"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ func TestClientGetManifest(t *testing.T) {
 	expected := &oci.Manifest{}
 
 	client := &Client{
-		Client: httputil.NewClient(cache.NewInMemoryCache(), 24*time.Hour),
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 	ref, err := oci.ParseReference("ghcr.io/jmbannon/ytdl-sub:2024.10.09")
 	require.NoError(t, err)

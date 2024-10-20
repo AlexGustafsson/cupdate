@@ -5,5 +5,5 @@
 /coverage
 /.eslintcache
 /build
-/cache
 /*.sqlite*
+/*.boltdb

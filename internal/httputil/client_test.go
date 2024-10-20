@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/cachetest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,8 +31,8 @@ func TestClientDoCachedHappyPath(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cache := cache.NewInMemoryCache()
-	client := NewClient(cache, 5*time.Second)
+	testCache := cachetest.NewCache(t)
+	client := NewClient(testCache, 5*time.Second)
 
 	// Perform a request with the response not yet cached
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
@@ -54,9 +55,8 @@ func TestClientDoCachedHappyPath(t *testing.T) {
 	assert.Equal(t, []byte("bar"), body)
 
 	// Expect the response to be cached
-	_, hit, err := cache.Stat(context.TODO(), client.CacheKey(req))
+	_, err = testCache.Get(context.TODO(), client.CacheKey(req))
 	require.NoError(t, err)
-	assert.True(t, hit, "expect cache hit")
 
 	// Perform the request again, expecting the server to not be hit
 	req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
@@ -93,8 +93,8 @@ func TestClientDoCachedServerError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cache := cache.NewInMemoryCache()
-	client := NewClient(cache, 5*time.Second)
+	testCache := cachetest.NewCache(t)
+	client := NewClient(testCache, 5*time.Second)
 
 	// Perform a request
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
@@ -117,9 +117,8 @@ func TestClientDoCachedServerError(t *testing.T) {
 	assert.Equal(t, []byte("bar"), body)
 
 	// Expect the response to not be cached
-	_, hit, err := cache.Stat(context.TODO(), client.CacheKey(req))
-	require.NoError(t, err)
-	assert.False(t, hit, "expect cache miss")
+	_, err = testCache.Get(context.TODO(), client.CacheKey(req))
+	require.Equal(t, cache.ErrNotExist, err)
 
 	// Perform the request again, expecting the server to be hit again
 	req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
@@ -156,7 +155,7 @@ func TestClientDoCachedOutdatedEntry(t *testing.T) {
 	}))
 	defer server.Close()
 
-	cache := cache.NewInMemoryCache()
+	cache := cachetest.NewCache(t)
 	client := NewClient(cache, 1*time.Second)
 
 	// Perform a request with the response not yet cached
@@ -180,9 +179,8 @@ func TestClientDoCachedOutdatedEntry(t *testing.T) {
 	assert.Equal(t, []byte("bar"), body)
 
 	// Expect the response to be cached
-	_, hit, err := cache.Stat(context.TODO(), client.CacheKey(req))
+	_, err = cache.Get(context.TODO(), client.CacheKey(req))
 	require.NoError(t, err)
-	assert.True(t, hit, "expect cache hit")
 
 	<-time.After(1 * time.Second)
 
