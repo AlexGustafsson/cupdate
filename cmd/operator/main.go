@@ -265,7 +265,6 @@ func main() {
 			caught++
 			if caught == 1 {
 				slog.Info("Caught signal, exiting gracefully")
-				cancel()
 				if err := httpServer.Close(); err != nil {
 					slog.Error("Failed t oclose server", slog.Any("error", err))
 					// Fallthrough
@@ -282,6 +281,9 @@ func main() {
 					slog.Error("Failed to close write store", slog.Any("error", err))
 					// Fallthrough
 				}
+				// Cancel goroutines started in main last as to block on all of the
+				// above calls
+				cancel()
 			} else {
 				slog.Info("Caught signal, exiting now")
 				os.Exit(1)
