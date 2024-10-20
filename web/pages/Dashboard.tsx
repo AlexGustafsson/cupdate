@@ -1,5 +1,5 @@
-import { useCallback } from 'react'
-import { NavLink, useSearchParams } from 'react-router-dom'
+import { useCallback, useEffect } from 'react'
+import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useImages, usePagination, useTags } from '../api'
 import { Badge } from '../components/Badge'
@@ -17,6 +17,8 @@ export function Dashboard(): JSX.Element {
 
   const [searchParams, _] = useSearchParams()
 
+  const navigate = useNavigate()
+
   const images = useImages({
     tags: filter,
     sort: sortProperty,
@@ -29,7 +31,28 @@ export function Dashboard(): JSX.Element {
     images.status === 'resolved' ? images.value : undefined
   )
 
+  // Go to the first page if the current page exceeds the available number of
+  // pages
+  useEffect(() => {
+    if (images.status !== 'resolved') {
+      return
+    }
+
+    const totalPages = Math.ceil(
+      images.value.pagination.total / images.value.pagination.size
+    )
+    if (images.value.pagination.page >= totalPages) {
+      searchParams.delete('page')
+      navigate('/?' + searchParams.toString())
+    }
+  }, [images])
+
   const tags = useTags()
+
+  // Go to the first page whenever the set of tags are changed
+  useEffect(() => {
+    navigate('/?' + searchParams.toString())
+  }, [tags])
 
   // // If the filter excludes all tags, default to show all tags again
   // useEffect(() => {
