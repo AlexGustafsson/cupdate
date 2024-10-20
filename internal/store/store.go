@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	_ "embed" // Embed SQL files
@@ -564,9 +565,9 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	// NOTE: This mapping is done to hard code strings used in SQL queries to
 	// prevent injection attacks
 	sortProperty, ok := map[SortProperty]string{
-		"":                       "reference",
-		SortPropertyReference:    "reference",
-		SortPropertyLastModified: "lastModified",
+		"":                       "images.reference",
+		SortPropertyReference:    "images.reference",
+		SortPropertyLastModified: "images.lastModified",
 	}[options.SortProperty]
 	if !ok {
 		return nil, fmt.Errorf("invalid sort property")
@@ -632,31 +633,66 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 
 	limitClause := "LIMIT ? OFFSET ?"
 
-	// TODO: Support tag filter
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images;`)
+	whereClause := ""
+	if len(options.Tags) > 0 {
+		whereClause = fmt.Sprintf("WHERE images_tags.tag IN (%s) GROUP BY images.reference", "?"+strings.Repeat(", ?", len(options.Tags)-1))
+	}
+
+	havingClause := ""
+	if len(options.Tags) > 0 {
+		havingClause = "HAVING COUNT(*) = ?"
+	}
+
+	statement, err := s.db.PrepareContext(ctx, `SELECT COUNT(1) FROM images LEFT OUTER JOIN images_tags ON images_tags.reference = images.reference `+whereClause+" "+havingClause+";")
 	if err != nil {
 		return nil, err
 	}
 
-	if !res.Next() {
-		return nil, res.Err()
+	args := make([]any, 0)
+	if len(options.Tags) > 0 {
+		for _, tag := range options.Tags {
+			args = append(args, tag)
+		}
+		args = append(args, len(options.Tags))
+	}
+	res, err = statement.QueryContext(ctx, args...)
+	statement.Close()
+	if err != nil {
+		return nil, err
 	}
 
 	var totalMatches int
-	if err := res.Scan(&totalMatches); err != nil {
-		res.Close()
-		return nil, err
+	if res.Next() {
+		if err := res.Scan(&totalMatches); err != nil {
+			res.Close()
+			return nil, err
+		}
+	} else {
+		if err := res.Err(); err != nil {
+			res.Close()
+			return nil, err
+		}
+
+		totalMatches = 0
 	}
 	res.Close()
 	result.Pagination.Total = totalMatches
 
-	// TODO: Support tag filter
-	statement, err := s.db.PrepareContext(ctx, `SELECT reference FROM images `+orderClause+" "+limitClause+";")
+	statement, err = s.db.PrepareContext(ctx, `SELECT images.reference FROM images LEFT OUTER JOIN images_tags ON images_tags.reference = images.reference `+whereClause+" "+havingClause+" "+orderClause+" "+limitClause+";")
 	if err != nil {
 		return nil, err
 	}
 
-	res, err = statement.QueryContext(ctx, options.Limit, offset)
+	args = make([]any, 0)
+	if len(options.Tags) > 0 {
+		for _, tag := range options.Tags {
+			args = append(args, tag)
+		}
+		args = append(args, len(options.Tags))
+	}
+	args = append(args, options.Limit)
+	args = append(args, offset)
+	res, err = statement.QueryContext(ctx, args...)
 	statement.Close()
 	if err != nil {
 		return nil, err
