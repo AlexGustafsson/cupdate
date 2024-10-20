@@ -219,6 +219,12 @@ export function ImagePage(): JSX.Element {
 
         {/* Graph */}
         {graph.value && <GraphCard graph={graph.value} />}
+
+        <div className="flex justify-center">
+          <p>
+            Last updated {new Date(image.value?.lastModified).toLocaleString()}
+          </p>
+        </div>
       </main>
     </div>
   )
