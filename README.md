@@ -1,3 +1,7 @@
+<p align="center">
+  <img src=".github/logo.png" alt="Logo">
+</p>
+
 # Cupdate
 
 Cupdate is a WIP, zero-config service that helps you keep your container images
