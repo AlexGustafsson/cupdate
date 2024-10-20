@@ -259,8 +259,6 @@ export function useImageGraph(reference: string): Result<Graph | null> {
 export function usePagination<T extends { pagination: PaginationMetadata }>(
   page: T | undefined
 ): { index: number | undefined; label: string; current: boolean }[] {
-  const [_, setSearchParams] = useSearchParams()
-
   const pages = useMemo(() => {
     if (!page) {
       return []
