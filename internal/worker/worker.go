@@ -95,6 +95,13 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 		// Fallthrough - insert what we have
 	}
 
+	// Add some basic tags
+	if data.ImageReference == data.LatestReference {
+		data.Tags = append(data.Tags, "up-to-date")
+	} else {
+		data.Tags = append(data.Tags, "outdated")
+	}
+
 	if err := w.store.InsertImage(context.TODO(), &models.Image{
 		Reference:       data.ImageReference.String(),
 		LatestReference: data.LatestReference.String(),
