@@ -35,8 +35,6 @@ type Client struct {
 }
 
 func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest, error) {
-	// NOTE: It's rather unclear why we need to do this dance manually and why
-	// docker.io simply doesn't just redirect us
 	id := ""
 	if image.HasTag {
 		id = image.Tag
@@ -45,6 +43,9 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 	} else {
 		return nil, fmt.Errorf("unsupported reference type: must be tagged or digested")
 	}
+
+	// NOTE: It's rather unclear why we need to do this dance manually and why
+	// docker.io simply doesn't just redirect us
 	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/manifests/%s", domain, image.Path, url.PathEscape(id)), nil)
 	if err != nil {

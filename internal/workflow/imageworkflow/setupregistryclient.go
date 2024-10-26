@@ -32,8 +32,12 @@ func SetupRegistryClient() workflow.Step {
 				client = &docker.Client{
 					Client: httpClient,
 				}
-			case "ghcr.io":
+			case "ghcr.io", "lscr.io":
 				client = &ghcr.Client{
+					Client: httpClient,
+				}
+			case "k8s.gcr.io", "quay.io", "registry.k8s.io":
+				client = &oci.Client{
 					Client: httpClient,
 				}
 			default:
