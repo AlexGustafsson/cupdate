@@ -6,10 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/store"
-	"k8s.io/utils/strings/slices"
 )
 
 var (
@@ -36,9 +34,10 @@ func NewServer(api *store.Store) *Server {
 	s.mux.HandleFunc("GET /api/v1/images", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
-		tags := slices.Filter(nil, strings.Split(query.Get("tags"), " "), func(s string) bool {
-			return s != ""
-		})
+		tags, ok := query["tag"]
+		if !ok {
+			tags = make([]string, 0)
+		}
 
 		sort := query.Get("sort")
 		if sort != "" && sort != "reference" {

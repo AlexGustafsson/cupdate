@@ -106,12 +106,10 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 		Reference:       data.ImageReference.String(),
 		LatestReference: data.LatestReference.String(),
 		Description:     data.Description,
-		// TODO: Tags should include pod, job, cron job, deployment set etc.
-		// Everything's a pod, so try to use the topmost descriptor
-		Tags:         data.Tags,
-		Image:        data.Image,
-		Links:        data.Links,
-		LastModified: time.Now(),
+		Tags:            data.Tags,
+		Image:           data.Image,
+		Links:           data.Links,
+		LastModified:    time.Now(),
 	}); err != nil {
 		log.Error("Failed to insert image", slog.Any("error", err))
 		// Fallthrough - try to insert what we have

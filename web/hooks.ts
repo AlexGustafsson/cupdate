@@ -5,30 +5,25 @@ export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const filter = useMemo(() => {
-    return (searchParams.get('tags') || '')
-      .split(' ')
-      .filter((x) => x.length > 0)
+    return searchParams.getAll('tag')
   }, [searchParams])
 
   const setFilter = useCallback(
     (s: string[] | ((current: string[]) => string[])) => {
       setSearchParams((current) => {
         if (typeof s === 'function') {
-          s = s(
-            (searchParams.get('tags') || '')
-              .split(' ')
-              .filter((x) => x.length > 0)
-          )
+          s = s(searchParams.getAll('tag'))
         }
-        if (!s) {
-          current.delete('tags')
-        } else {
-          current.set('tags', s.join(' '))
+        current.delete('tag')
+        if (s) {
+          for (const tag of s) {
+            current.append('tag', tag)
+          }
         }
         return current
       })
     },
-    [setSearchParams]
+    [searchParams, setSearchParams]
   )
 
   return [filter, setFilter]

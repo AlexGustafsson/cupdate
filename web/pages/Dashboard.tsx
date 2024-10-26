@@ -54,20 +54,16 @@ export function Dashboard(): JSX.Element {
     navigate('/?' + searchParams.toString())
   }, [tags])
 
-  // // If the filter excludes all tags, default to show all tags again
-  // useEffect(() => {
-  //   if (filter.length === 0) {
-  //     setFilter(tags.map((x) => x.label))
-  //   }
-  // }, [filter, setFilter])
-
   const toggleTag = useCallback(
     (tag: string) => {
       setFilter((previous) => {
         // If all are selected, only select the clicked tag
-        // if (previous.length === tags.length) {
-        //   return [tag]
-        // }
+        if (
+          tags.status === 'resolved' &&
+          previous.length === tags.value.length
+        ) {
+          return [tag]
+        }
 
         // Filter the selection
         const selection = previous.includes(tag)

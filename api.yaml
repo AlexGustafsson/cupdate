@@ -26,8 +26,8 @@ paths:
       summary: Returns a paginated list of images.
       parameters:
         - in: query
-          name: tags
-          description: Space-separated list of tags to include.
+          name: tag
+          description: Tag to filter by. May occur more than once.
           schema:
             type: string
           required: false

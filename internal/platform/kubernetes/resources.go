@@ -52,3 +52,28 @@ func (r resource) Name() string {
 func (r resource) String() string {
 	return fmt.Sprintf("%s<%s>", r.kind, r.name)
 }
+
+func TagName(kind ResourceKind) string {
+	switch kind {
+	case ResourceKindAppsV1Deployment:
+		return "deployment"
+	case ResourceKindAppsV1DaemonSet:
+		return "daemon set"
+	case ResourceKindAppsV1ReplicaSet:
+		return "replica set"
+	case ResourceKindAppsV1StatefulSet:
+		return "stateful set"
+	case ResourceKindBatchV1CronJob:
+		return "cron job"
+	case ResourceKindBatchV1Job:
+		return "job"
+	case ResourceKindCoreV1Namespace:
+		return "namespace"
+	case ResourceKindCoreV1Pod:
+		return "pod"
+	case ResourceKindCoreV1Container:
+		return "container"
+	default:
+		panic("tag for resource kind not implemented")
+	}
+}
