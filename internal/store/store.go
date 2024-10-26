@@ -528,8 +528,8 @@ func (s *Store) GetImageGraph(ctx context.Context, reference string) (*models.Gr
 type Order string
 
 const (
-	OrderAcending   Order = "ASC"
-	OrderDescending Order = "DESC"
+	OrderAcending   Order = "asc"
+	OrderDescending Order = "desc"
 )
 
 type SortProperty string
@@ -581,7 +581,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		OrderDescending: "DESC",
 	}[options.Order]
 	if !ok {
-		return nil, fmt.Errorf("invalid sort property")
+		return nil, fmt.Errorf("invalid order property")
 	}
 
 	page := max(options.Page, 0)
