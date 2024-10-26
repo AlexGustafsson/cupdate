@@ -106,7 +106,10 @@ export function Dashboard(): JSX.Element {
             </div>
           }
           {
-            <div className="p-5 w-32 h-32 bg-orange-100 rounded-lg">
+            <div
+              className="p-5 w-32 h-32 bg-[#F87171] rounded-lg cursor-pointer"
+              onClick={() => toggleTag('outdated')}
+            >
               <p className="text-md font-medium">Outdated</p>
               <p className="text-3xl font-bold">
                 {images.value.summary.outdated}
