@@ -23,7 +23,7 @@ export interface ImagePage {
 export interface ImagePageSummary {
   images: number
   outdated: number
-  pods: number
+  processing: number
 }
 
 export interface PaginationMetadata {

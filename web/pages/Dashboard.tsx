@@ -113,10 +113,12 @@ export function Dashboard(): JSX.Element {
               </p>
             </div>
           }
-          {images.value.summary.pods !== 0 && (
+          {images.value.summary.processing !== 0 && (
             <div className="p-5 w-32 h-32 bg-purple-100 rounded-lg">
-              <p className="text-md font-medium">Pods</p>
-              <p className="text-3xl font-bold">{images.value.summary.pods}</p>
+              <p className="text-md font-medium">Processing</p>
+              <p className="text-3xl font-bold">
+                {images.value.summary.processing}
+              </p>
             </div>
           )}
         </div>

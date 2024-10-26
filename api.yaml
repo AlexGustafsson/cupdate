@@ -164,8 +164,8 @@ components:
             outdated:
               description: Total number of outdated images
               type: number
-            pods:
-              description: Total number of pods
+            processing:
+              description: Total number of unprocessed images
               type: number
           required:
             - images

@@ -622,12 +622,28 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	}
 	res.Close()
 
+	// Total raw images
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM raw_images;`)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, res.Err()
+	}
+
+	var totalRawImages int
+	if err := res.Scan(&totalRawImages); err != nil {
+		res.Close()
+		return nil, err
+	}
+	res.Close()
+
 	var result models.ImagePage
 	result.Images = make([]models.Image, 0)
 	result.Summary.Images = totalImages
 	result.Summary.Outdated = totalOutdatedImages
-	// TODO:
-	// result.Summary.Pods
+	result.Summary.Processing = totalRawImages - totalImages
 
 	orderClause := "ORDER BY " + sortProperty + " " + order
 

@@ -15,9 +15,9 @@ type ImagePage struct {
 }
 
 type ImagePageSummary struct {
-	Images   int `json:"images"`
-	Outdated int `json:"outdated"`
-	Pods     int `json:"pods"`
+	Images     int `json:"images"`
+	Outdated   int `json:"outdated"`
+	Processing int `json:"processing"`
 }
 
 type PaginationMetadata struct {
