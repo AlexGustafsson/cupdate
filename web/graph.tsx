@@ -76,7 +76,7 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
   const root = await elk.layout({
     id: 'root',
     layoutOptions: { 'elk.algorithm': 'mrtree', 'elk.spacing.nodeNode': '50' },
-    children: Object.entries(graph.nodes).map(([id, node]) => ({
+    children: Object.entries(graph.nodes).map(([id, _node]) => ({
       id,
       width: 250,
       height: 75,
@@ -112,7 +112,12 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
       graph.nodes[node.id].domain === 'oci' &&
       graph.nodes[node.id].type === 'image'
     ) {
-      node.position.x = bounds.width / 2 - (node.width || 0)
+      // 42 is a magic number - an offset that makes centering look nice. I
+      // think that there's something going on with the layout engine - that the
+      // center of the graph isn't always the center of the image.
+      // TODO: There are other good reasons to just write a simple viewer, this
+      // is another reason why
+      node.position.x = bounds.width / 2 - (node.width ?? 0) + 42
     }
   }
 
