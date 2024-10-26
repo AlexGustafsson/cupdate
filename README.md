@@ -27,6 +27,20 @@ Features:
 - Subscribe to updates via an RSS feed
 - Graphs image version's dependants explaining why it's in use
 
+Supported registries:
+
+- docker.io
+- ghcr.io
+- quay.io
+- lscr.io
+- registry.k8s.io, k8s.gcr.io
+
+Supported data sources:
+
+- Docker Hub
+- GitHub, GitHub Container Registry
+- Quay
+
 ## Screenshots
 
 ![Dashboard screenshot](docs/screenshots/dashboard.png)
