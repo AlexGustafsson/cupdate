@@ -94,6 +94,11 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
+							resource{
+								kind: ResourceKindCoreV1Namespace,
+								id:   fmt.Sprintf("kubernetes/%s", o.Namespace),
+								name: o.Namespace,
+							},
 						)
 					}
 				case *appsv1.DaemonSet:
@@ -121,6 +126,11 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 								kind: ResourceKindAppsV1DaemonSet,
 								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Namespace,
+								id:   fmt.Sprintf("kubernetes/%s", o.Namespace),
+								name: o.Namespace,
 							},
 						)
 					}
@@ -150,6 +160,11 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
+							resource{
+								kind: ResourceKindCoreV1Namespace,
+								id:   fmt.Sprintf("kubernetes/%s", o.Namespace),
+								name: o.Namespace,
+							},
 						)
 					}
 				case *appsv1.StatefulSet:
@@ -177,6 +192,11 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 								kind: ResourceKindAppsV1StatefulSet,
 								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Namespace,
+								id:   fmt.Sprintf("kubernetes/%s", o.Namespace),
+								name: o.Namespace,
 							},
 						)
 					}
@@ -206,6 +226,11 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
 							},
+							resource{
+								kind: ResourceKindCoreV1Namespace,
+								id:   fmt.Sprintf("kubernetes/%s", o.Namespace),
+								name: o.Namespace,
+							},
 						)
 					}
 				case *batchv1.Job:
@@ -233,6 +258,11 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 								kind: ResourceKindBatchV1Job,
 								id:   fmt.Sprintf("kubernetes/%s", o.UID),
 								name: o.Name,
+							},
+							resource{
+								kind: ResourceKindCoreV1Namespace,
+								id:   fmt.Sprintf("kubernetes/%s", o.Namespace),
+								name: o.Namespace,
 							},
 						)
 					}
@@ -272,6 +302,12 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 						if parent != nil {
 							tree = append(tree, parent)
 						}
+
+						tree = append(tree, resource{
+							kind: ResourceKindCoreV1Namespace,
+							id:   fmt.Sprintf("kubernetes/%s", o.Namespace),
+							name: o.Namespace,
+						})
 
 						graph.InsertTree(tree...)
 					}

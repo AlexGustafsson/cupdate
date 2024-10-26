@@ -15,6 +15,7 @@ const (
 	ResourceKindAppsV1StatefulSet = "apps/v1/statefulset"
 	ResourceKindBatchV1CronJob    = "batch/v1/cronjob"
 	ResourceKindBatchV1Job        = "batch/v1/job"
+	ResourceKindCoreV1Namespace   = "core/v1/namespace"
 	ResourceKindCoreV1Pod         = "core/v1/pod"
 	ResourceKindCoreV1Container   = "core/v1/container"
 )
