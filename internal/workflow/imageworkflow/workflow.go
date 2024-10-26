@@ -171,6 +171,39 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					}),
 				},
 			},
+			{
+				ID:        "quay",
+				Name:      "Get Quay information",
+				DependsOn: []string{"oci"},
+				// Only run for quay images
+				If: func(ctx workflow.Context) (bool, error) {
+					domain, err := workflow.GetValue[string](ctx, "job.oci.step.registry.domain")
+					if err != nil {
+						return false, err
+					}
+
+					return domain == "quay.io", nil
+				},
+				Steps: []workflow.Step{
+					GetQuayLatestVersion().
+						WithID("latest").
+						With("reference", data.ImageReference).
+						With("httpClient", httpClient),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
+						if err != nil {
+							return nil, err
+						}
+
+						if reference == nil {
+							return nil, nil
+						}
+
+						data.LatestReference = *reference
+						return nil, nil
+					}),
+				},
+			},
 			// TODO: Improve this to work well for adding information for both docker,
 			// and ghcr. For now, basically no docker image supports the required
 			// annotations, so this might not be worth it?
