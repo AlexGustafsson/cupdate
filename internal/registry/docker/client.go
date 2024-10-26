@@ -137,6 +137,8 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		}
 
 		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
+			image.Tag = tag.Name
+
 			return &registry.Image{
 				Name:      image,
 				Published: tag.TagLastPushed,
