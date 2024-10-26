@@ -29,7 +29,7 @@ func GetDockerHubLatestVersion() workflow.Step {
 			}
 
 			if image == nil {
-				return workflow.SetOutput("reference", &reference), nil
+				return workflow.SetOutput("reference", (*oci.Reference)(nil)), nil
 			}
 
 			return workflow.SetOutput("reference", &image.Name), nil

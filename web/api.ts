@@ -1,12 +1,4 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
 
 export interface Tag {
   name: string
@@ -36,7 +28,7 @@ export interface PaginationMetadata {
 
 export interface Image {
   reference: string
-  latestReference: string
+  latestReference?: string
   description?: string
   tags: string[]
   links: ImageLink[]

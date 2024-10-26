@@ -176,7 +176,11 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	}
 
 	// TODO: Implement the scan interface for models
-	_, err = statement.ExecContext(ctx, image.Reference, image.LatestReference, image.Description, image.LastModified, image.Image)
+	var latestReference *string
+	if image.LatestReference != "" {
+		latestReference = &image.LatestReference
+	}
+	_, err = statement.ExecContext(ctx, image.Reference, latestReference, image.Description, image.LastModified, image.Image)
 	statement.Close()
 	if err != nil {
 		tx.Rollback()
@@ -269,10 +273,15 @@ func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, 
 		return nil, res.Err()
 	}
 
-	err = res.Scan(&image.Reference, &image.LatestReference, &image.Description, &image.Image, &image.LastModified)
+	var latestReference *string
+	err = res.Scan(&image.Reference, &latestReference, &image.Description, &image.Image, &image.LastModified)
 	res.Close()
 	if err != nil {
 		return nil, err
+	}
+
+	if latestReference != nil {
+		image.LatestReference = *latestReference
 	}
 
 	image.Tags, err = s.GetImagesTags(ctx, reference)
@@ -606,7 +615,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	res.Close()
 
 	// Total outdated images
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images WHERE reference != latestReference;`)
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images WHERE latestReference IS NOT NULL AND reference != latestReference;`)
 	if err != nil {
 		return nil, err
 	}

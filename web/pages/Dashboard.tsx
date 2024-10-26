@@ -149,7 +149,7 @@ export function Dashboard(): JSX.Element {
                     Version
                   </th>
                   <th scope="col" className="text-nowrap text-center pr-[24px]">
-                    New version
+                    Latest version
                   </th>
                   <th scope="col" className="text-nowrap text-center">
                     Tags
@@ -180,14 +180,16 @@ export function Dashboard(): JSX.Element {
                       )}
                     </td>
                     <td
-                      className={`text-end pr-[24px] max-w-[120px] ${image.reference === image.latestReference ? '' : 'text-red-400'}`}
+                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
                     >
                       {version(image.reference)}
                     </td>
                     <td
-                      className={`text-end pr-[24px] max-w-[120px] ${image.reference === image.latestReference ? '' : 'text-green-400'}`}
+                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
                     >
-                      {version(image.latestReference)}
+                      {image.latestReference
+                        ? version(image.latestReference)
+                        : 'unknown'}
                     </td>
                     <td className="flex flex-wrap max-w-[120px]">
                       {tags.value

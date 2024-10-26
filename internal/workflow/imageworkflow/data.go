@@ -12,7 +12,7 @@ type Data struct {
 	sync.Mutex
 	ImageReference  oci.Reference
 	Image           string
-	LatestReference oci.Reference
+	LatestReference *oci.Reference
 	Tags            []string
 	Description     string
 	FullDescription *models.ImageDescription

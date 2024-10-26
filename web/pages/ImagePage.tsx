@@ -160,7 +160,8 @@ export function ImagePage(): JSX.Element {
       <h1 className="text-2xl font-medium">{name(image.value.reference)}</h1>
       {/* Image version */}
       <div className="flex items-center">
-        {image.value.reference === image.value.latestReference ? (
+        {!image.value.latestReference ||
+        image.value.reference === image.value.latestReference ? (
           <p className="font-medium">{version(image.value.reference)}</p>
         ) : (
           <>
@@ -169,7 +170,9 @@ export function ImagePage(): JSX.Element {
               {version(image.value.reference)}
             </p>
             <p className="font-medium ml-4 text-green-500">
-              {version(image.value.latestReference)}
+              {image.value.latestReference
+                ? version(image.value.latestReference)
+                : 'unknown'}
             </p>
             <FluentChevronUp20Regular className="text-green-500" />
           </>

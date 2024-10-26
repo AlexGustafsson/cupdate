@@ -111,11 +111,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
-						if reference == nil {
-							return nil, nil
-						}
-
-						data.LatestReference = *reference
+						data.LatestReference = reference
 						return nil, nil
 					}),
 				},
@@ -195,11 +191,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
-						if reference == nil {
-							return nil, nil
-						}
-
-						data.LatestReference = *reference
+						data.LatestReference = reference
 						return nil, nil
 					}),
 				},

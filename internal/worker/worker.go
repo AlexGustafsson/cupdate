@@ -76,7 +76,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 	data := &imageworkflow.Data{
 		ImageReference:  reference,
 		Image:           "",
-		LatestReference: reference,
+		LatestReference: nil,
 		Tags:            make([]string, 0),
 		Description:     "",
 		FullDescription: nil,
@@ -96,21 +96,27 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 	}
 
 	// Add some basic tags
-	if data.ImageReference == data.LatestReference {
-		data.Tags = append(data.Tags, "up-to-date")
-	} else {
-		data.Tags = append(data.Tags, "outdated")
+	if data.LatestReference != nil {
+		if data.ImageReference.String() == data.LatestReference.String() {
+			data.Tags = append(data.Tags, "up-to-date")
+		} else {
+			data.Tags = append(data.Tags, "outdated")
+		}
 	}
 
-	if err := w.store.InsertImage(context.TODO(), &models.Image{
+	result := models.Image{
 		Reference:       data.ImageReference.String(),
-		LatestReference: data.LatestReference.String(),
+		LatestReference: "",
 		Description:     data.Description,
 		Tags:            data.Tags,
 		Image:           data.Image,
 		Links:           data.Links,
 		LastModified:    time.Now(),
-	}); err != nil {
+	}
+	if data.LatestReference != nil {
+		result.LatestReference = data.LatestReference.String()
+	}
+	if err := w.store.InsertImage(context.TODO(), &result); err != nil {
 		log.Error("Failed to insert image", slog.Any("error", err))
 		// Fallthrough - try to insert what we have
 	}

@@ -34,7 +34,7 @@ func GetQuayLatestVersion() workflow.Step {
 			fmt.Println(image)
 
 			if image == nil {
-				return workflow.SetOutput("reference", &reference), nil
+				return workflow.SetOutput("reference", (*oci.Reference)(nil)), nil
 			}
 
 			return workflow.SetOutput("reference", &image.Name), nil

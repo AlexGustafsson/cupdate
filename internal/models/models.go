@@ -30,7 +30,7 @@ type PaginationMetadata struct {
 
 type Image struct {
 	Reference       string      `json:"reference"`
-	LatestReference string      `json:"latestReference"`
+	LatestReference string      `json:"latestReference,omitempty"`
 	Description     string      `json:"description,omitempty"`
 	Tags            []string    `json:"tags"`
 	Links           []ImageLink `json:"links"`

@@ -30,7 +30,7 @@ func TestWorkflow(t *testing.T) {
 	data := &Data{
 		ImageReference:  reference,
 		Image:           "",
-		LatestReference: reference,
+		LatestReference: &reference,
 		Tags:            make([]string, 0),
 		FullDescription: nil,
 		ReleaseNotes:    nil,
