@@ -137,7 +137,7 @@ func (s *Server) handleGenericResponse(w http.ResponseWriter, r *http.Request, e
 			return false
 		}
 
-		slog.Error("Failed to handle request", slog.Any("error", err), slog.String("path", "/tags"))
+		slog.Error("Failed to handle request", slog.Any("error", err), slog.String("path", r.URL.Path))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return false
 	}
