@@ -122,7 +122,7 @@ export function ImagePage(): JSX.Element {
     releaseNotes.status === 'idle' ||
     graph.status === 'idle'
   ) {
-    return <p>Loading</p>
+    return <></>
   }
 
   if (

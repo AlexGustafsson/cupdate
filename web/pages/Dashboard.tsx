@@ -89,7 +89,7 @@ export function Dashboard(): JSX.Element {
   )
 
   if (images.status !== 'resolved' || tags.status !== 'resolved') {
-    return <p>Loading</p>
+    return <></>
   }
 
   return (
