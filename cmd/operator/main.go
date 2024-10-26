@@ -61,11 +61,6 @@ func main() {
 	// Insert default tags
 	defaultTags := []models.Tag{
 		{
-			Name:        "k8s",
-			Description: "Kubernetes",
-			Color:       "#DBEAFE",
-		},
-		{
 			Name:        "pod",
 			Description: "A kubernetes pod",
 			Color:       "#FFEDD5",
@@ -183,6 +178,8 @@ func main() {
 			edges := subgraph.Edges()
 			nodes := subgraph.Nodes()
 
+			var namespaceNode *platform.Node
+
 			mappedNodes := make(map[string]models.GraphNode)
 			for _, node := range nodes {
 				switch n := node.(type) {
@@ -191,6 +188,9 @@ func main() {
 						Domain: "kubernetes",
 						Type:   string(n.Kind()),
 						Name:   n.Name(),
+					}
+					if node.Type() == "kubernetes/"+kubernetes.ResourceKindCoreV1Namespace {
+						namespaceNode = &node
 					}
 				case platform.ImageNode:
 					mappedNodes[node.ID()] = models.GraphNode{
@@ -203,8 +203,29 @@ func main() {
 				}
 			}
 
-			// TODO: platform-discovered tags
 			tags := []string{}
+			if namespaceNode != nil {
+				children := edges[(*namespaceNode).ID()]
+				for childID, isParent := range children {
+					if isParent {
+						continue
+					}
+
+					var childNode *platform.Node
+					for _, node := range nodes {
+						var n = node
+						if node.ID() == childID {
+							childNode = &n
+							break
+						}
+					}
+
+					if childNode != nil {
+						resource := (*childNode).(kubernetes.Resource)
+						tags = append(tags, kubernetes.TagName(resource.Kind()))
+					}
+				}
+			}
 
 			mappedGraph := models.Graph{
 				Edges: edges,
