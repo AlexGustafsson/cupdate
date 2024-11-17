@@ -14,13 +14,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-// TODO: Let each step take an optional cache value instead. If it exists,
-// perform request caching of all 200 responses instead - more like is stated
-// in the cache code. That way we naturally always parse the values and don't
-// have to care about special types in the same way. The cache is always just
-// bytes - no need to cache JSON (yay!). Learning: Typed caches suck. Cache
-// repsonses instead.
-
 func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 	return workflow.Workflow{
 		Name: "Process image",
