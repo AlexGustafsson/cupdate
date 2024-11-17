@@ -126,7 +126,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					GetGithubPackage().
 						WithID("package").
 						With("httpClient", httpClient).
-						With("reference", data.LatestReference),
+						With("reference", latestOrCurrentReference(data)),
 					GetGitHubDescription().
 						WithID("description").
 						With("httpClient", httpClient).
@@ -280,4 +280,14 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 			},
 		},
 	}
+}
+
+// latestOrCurrentReference returns the latest reference contained in data if it
+// is set, or the base reference if a latest reference is not (yet) found.
+func latestOrCurrentReference(data *Data) oci.Reference {
+	if data.LatestReference != nil {
+		return *data.LatestReference
+	}
+
+	return data.ImageReference
 }
