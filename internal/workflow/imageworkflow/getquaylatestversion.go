@@ -1,8 +1,6 @@
 package imageworkflow
 
 import (
-	"fmt"
-
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/registry/quay"
@@ -29,9 +27,6 @@ func GetQuayLatestVersion() workflow.Step {
 			if err != nil {
 				return nil, err
 			}
-
-			fmt.Println(image)
-			fmt.Println(image)
 
 			if image == nil {
 				return workflow.SetOutput("reference", (*oci.Reference)(nil)), nil
