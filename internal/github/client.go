@@ -109,6 +109,32 @@ func (c *Client) GetPackage(ctx context.Context, reference oci.Reference) (*Pack
 	return parsePackage(res.Body, owner)
 }
 
+func (c *Client) GetREADME(ctx context.Context, url string) (string, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+	// NOTE: This is important! Without it we're redirected to GitHub's start page
+	req.Header.Set("X-Requested-With", "XMLHttpRequest")
+
+	res, err := c.Client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code when getting GitHub README: %d", res.StatusCode)
+	}
+
+	readme, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(readme), nil
+}
+
 func parsePackage(r io.Reader, owner string) (*Package, error) {
 	node, err := html.Parse(r)
 	if err != nil {
@@ -172,10 +198,20 @@ func parsePackage(r io.Reader, owner string) (*Package, error) {
 		tags = append(tags, PackageTag{Name: tag, Latest: isLatest})
 	}
 
+	readmeFragment := match(node, func(node *html.Node) bool {
+		return node.Data == "include-fragment" && strings.HasSuffix(attr(node, "src"), "readme?is_package_page=true")
+	})
+
+	var readmeURL string
+	if readmeFragment != nil {
+		readmeURL = "https://github.com" + attr(readmeFragment, "src")
+	}
+
 	return &Package{
 		Owner:      owner,
 		Repository: repository,
 		Tags:       tags,
+		ReadmeURL:  readmeURL,
 	}, nil
 }
 

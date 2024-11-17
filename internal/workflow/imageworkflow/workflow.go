@@ -132,6 +132,10 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						With("httpClient", httpClient).
 						With("owner", workflow.Ref{Key: "step.package.owner"}).
 						With("repository", workflow.Ref{Key: "step.package.repository"}),
+					GetGithubPackageREADME().
+						WithID("readme").
+						With("httpClient", httpClient).
+						With("package", workflow.Ref{Key: "step.package.package"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						pkg, err := workflow.GetValue[*github.Package](ctx, "step.package.package")
 						if err != nil {
@@ -174,8 +178,14 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							URL:  ghcr.PackagePath(data.ImageReference),
 						})
 						data.Description = description
-						// TODO: Full description?
-						// https://github.com/users/jmbannon/packages/container/ytdl-sub/286268926/readme?is_package_page=true
+
+						readme, err := workflow.GetValue[string](ctx, "step.readme.readme")
+						if err == nil {
+							data.FullDescription = &models.ImageDescription{
+								HTML: readme,
+							}
+						}
+
 						return nil, nil
 					}),
 				},

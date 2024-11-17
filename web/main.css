@@ -63,4 +63,14 @@
   .markdown-body img {
     display: initial;
   }
+
+  /* Hide GitHub README's heading anchor */
+  .markdown-body .markdown-heading .anchor {
+    display: none;
+  }
+
+  /* Hide GitHub README's box header */
+  .markdown-body .Box-header {
+    display: none;
+  }
 }

@@ -47,3 +47,14 @@ func TestClientGetPackage(t *testing.T) {
 
 	fmt.Printf("%+v\n", release)
 }
+
+func TestClientGetREADME(t *testing.T) {
+	c := &Client{
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+	}
+
+	readme, err := c.GetREADME(context.TODO(), "https://github.com/users/AlexGustafsson/packages/container/srdl/307129679/readme?is_package_page=true")
+	require.NoError(t, err)
+
+	fmt.Printf("%s\n", readme)
+}

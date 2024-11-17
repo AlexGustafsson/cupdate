@@ -16,6 +16,7 @@ type Package struct {
 	Owner      string
 	Repository string
 	Tags       []PackageTag
+	ReadmeURL  string
 }
 
 type PackageTag struct {
