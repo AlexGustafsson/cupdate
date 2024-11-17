@@ -61,7 +61,6 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 		res, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(entry)), req)
 		if err == nil {
 			slog.Debug("HTTP response successfully read from cache")
-			// TODO: is entry ever closed in this branch?
 			return res, nil
 		} else {
 			slog.Warn("HTTP request cache parse failure", slog.Any("error", err))
