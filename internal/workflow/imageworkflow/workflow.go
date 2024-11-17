@@ -132,11 +132,31 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						With("httpClient", httpClient).
 						With("owner", workflow.Ref{Key: "step.package.owner"}).
 						With("repository", workflow.Ref{Key: "step.package.repository"}),
-					// TODO: Use tags from GetGithubPackage to get latest tag
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						pkg, err := workflow.GetValue[*github.Package](ctx, "step.package.package")
 						if err != nil {
 							return nil, err
+						}
+
+						currentVersion, err := oci.ParseVersion(data.ImageReference.Tag)
+						if err == nil && currentVersion != nil {
+							for _, tag := range pkg.Tags {
+								if tag.Name == "" {
+									continue
+								}
+
+								newVersion, err := oci.ParseVersion(tag.Name)
+								if err != nil || newVersion == nil {
+									continue
+								}
+
+								if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
+									ref := data.ImageReference
+									ref.Tag = tag.Name
+									data.LatestReference = &ref
+									break
+								}
+							}
 						}
 
 						description, err := workflow.GetValue[string](ctx, "step.description.description")
