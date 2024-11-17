@@ -183,12 +183,12 @@ export function Dashboard(): JSX.Element {
                       )}
                     </td>
                     <td
-                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
+                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
                     >
                       {version(image.reference)}
                     </td>
                     <td
-                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
+                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
                     >
                       {image.latestReference
                         ? version(image.latestReference)
