@@ -31,6 +31,10 @@ func GetGithubPackage() workflow.Step {
 				return nil, err
 			}
 
+			if pkg == nil {
+				return nil, nil
+			}
+
 			return workflow.Batch(
 				workflow.SetOutput("package", pkg),
 				workflow.SetOutput("owner", pkg.Owner),
