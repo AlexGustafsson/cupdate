@@ -25,7 +25,7 @@ func SetupRegistryClient() workflow.Step {
 				return nil, err
 			}
 
-			// TODO: Support other registries
+			// TODO: Support other registries (gitlab etc.)
 			var client registry.Client
 			switch image.Domain {
 			case "docker.io":
