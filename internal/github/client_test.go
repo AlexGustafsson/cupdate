@@ -39,7 +39,7 @@ func TestClientGetPackage(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	ref, err := oci.ParseReference("ghcr.io/jmbannon/ytdl-sub")
+	ref, err := oci.ParseReference("ghcr.io/alexgustafsson/srdl")
 	require.NoError(t, err)
 
 	release, err := c.GetPackage(context.TODO(), ref)

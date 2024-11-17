@@ -116,7 +116,7 @@ func parsePackage(r io.Reader, owner string) (*Package, error) {
 	}
 
 	repositoryRef := match(node, func(node *html.Node) bool {
-		return node.Data == "a" && strings.HasPrefix(attr(node, "href"), fmt.Sprintf("https://github.com/%s/", owner))
+		return node.Data == "a" && strings.HasPrefix(strings.ToLower(attr(node, "href")), fmt.Sprintf("https://github.com/%s/", strings.ToLower(owner)))
 	})
 	if repositoryRef == nil {
 		return nil, nil
