@@ -55,8 +55,8 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 	req.Header.Set("Accept", strings.Join([]string{
 		"application/vnd.docker.distribution.manifest.list.v2+json",
 		"application/vnd.oci.image.index.v1+json",
-		// These two formats never occur?
-		// "application/vnd.docker.distribution.manifest.v2+json",
+		"application/vnd.docker.distribution.manifest.v2+json",
+		// This format never occur?
 		// "application/vnd.oci.image.manifest.v1+json",
 	}, ", "))
 
@@ -111,6 +111,21 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 		return manifests, nil
 	}
 
+	if result.MediaType == "application/vnd.docker.distribution.manifest.v2+json" && result.SchemaVersion == 2 {
+		var manifest DockerDistributionManifestV2
+		if err := json.Unmarshal(body, &result); err != nil {
+			return nil, err
+		}
+
+		return []Manifest{
+			{
+				SchemaVersion: manifest.SchemaVersion,
+				MediaType:     manifest.MediaType,
+				Annotations:   make(map[string]string),
+			},
+		}, nil
+	}
+
 	if result.MediaType == "application/vnd.oci.image.index.v1+json" && result.SchemaVersion == 2 {
 		var result OCIImageIndexV1
 		if err := json.Unmarshal(body, &result); err != nil {
@@ -138,5 +153,5 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 		return make([]Manifest, 0), nil
 	}
 
-	return nil, fmt.Errorf("unsupported manifest type: %s (%s ,%d)", res.Header["Content-Type"], result.MediaType, result.SchemaVersion)
+	return nil, fmt.Errorf("unsupported manifest type: %s (%s, %d)", res.Header["Content-Type"], result.MediaType, result.SchemaVersion)
 }
