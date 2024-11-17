@@ -125,7 +125,16 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 	// current version is 1.0.0, there have been a lot of nightlies or other types
 	// of tags, so that the page contains only fix 1.0.1, but in reality 2.0.0 was
 	// released a while ago and would be on the next page, would we be greedy.
-	// Look at any large image with LTS, such as postgres, node.
+	// Look at any large image with LTS, such as postgres, node, calico/node.
+	// We could try to take care of "common" edge cases such as calico/node's
+	// v3.29.0-arm64, v3.29.0-amd64 etc where v3.29.0 is the tagged version and
+	// the suffix is only the platform. If we were to trim those before comparing,
+	// we would potentially find a (probable) latest version faster, but we could
+	// also end up including "different" tags, if for example the user was using
+	// a tag with an actual suffix, then the suffix was important. Could probably
+	// be handled by only checking if there is a suffix in the user's image. Over
+	// time, if the project is very active, I guess we should hit a correct
+	// version eventually, if cupdate checks often enough
 	for _, tag := range result.Results {
 		if tag.Name == "" {
 			continue
