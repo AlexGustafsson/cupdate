@@ -75,10 +75,6 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
 	} else if res.StatusCode != http.StatusOK {
-		fmt.Println(res.Header)
-		x, _ := io.ReadAll(res.Body)
-		fmt.Printf("%s\n", x)
-		fmt.Printf("%s\n", res.Request.URL.String())
 		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
 	}
 
