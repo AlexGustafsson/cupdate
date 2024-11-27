@@ -233,24 +233,6 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	return tx.Commit()
 }
 
-func (s *Store) InsertTag(ctx context.Context, tag *models.Tag) error {
-	statement, err := s.db.PrepareContext(ctx, `INSERT INTO tags
-		(name, color, description)
-		VALUES
-		(?, ?, ?)
-		ON CONFLICT(name) DO UPDATE SET
-			color=excluded.color,
-			description=excluded.description
-		;`)
-	if err != nil {
-		return err
-	}
-
-	_, err = statement.ExecContext(ctx, tag.Name, tag.Color, tag.Description)
-	statement.Close()
-	return err
-}
-
 func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, error) {
 	statement, err := s.db.PrepareContext(ctx, `SELECT
 	reference, latestReference, description, imageUrl, lastModified
@@ -357,8 +339,8 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 	return links, nil
 }
 
-func (s *Store) GetTags(ctx context.Context) ([]models.Tag, error) {
-	statement, err := s.db.PrepareContext(ctx, `SELECT name, color, description FROM tags;`)
+func (s *Store) GetTags(ctx context.Context) ([]string, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT DISTINCT tag FROM images_tags;`)
 	if err != nil {
 		return nil, err
 	}
@@ -369,10 +351,10 @@ func (s *Store) GetTags(ctx context.Context) ([]models.Tag, error) {
 		return nil, err
 	}
 
-	tags := make([]models.Tag, 0)
+	tags := make([]string, 0)
 	for res.Next() {
-		var tag models.Tag
-		err := res.Scan(&tag.Name, &tag.Color, &tag.Description)
+		var tag string
+		err := res.Scan(&tag)
 		if err != nil {
 			res.Close()
 			return nil, err

@@ -1,10 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-export interface Tag {
-  name: string
-  description: string
-  color: string
-}
+import { Tag, TagsByName } from './tags'
 
 export interface ImagePage {
   images: Image[]
@@ -80,7 +76,12 @@ export function useTags(): Result<Tag[]> {
 
         return res.json()
       })
-      .then((value) => setResult({ status: 'resolved', value }))
+      .then((value: string[]) =>
+        setResult({
+          status: 'resolved',
+          value: value.map((x) => TagsByName[x] || { name: x }),
+        })
+      )
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [])
 

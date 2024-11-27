@@ -19,7 +19,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/Tag'
+                type: string
 
   /images:
     get:
@@ -138,16 +138,6 @@ paths:
 
 components:
   schemas:
-    Tag:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        color:
-          type: string
-
     ImagePage:
       type: object
       properties:

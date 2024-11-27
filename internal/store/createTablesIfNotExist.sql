@@ -14,21 +14,10 @@ CREATE TABLE IF NOT EXISTS images (
   FOREIGN KEY(reference) REFERENCES raw_images(reference) ON DELETE CASCADE
 );
 
--- Remove? I don't see the point in having strict tags any more. Useful for
--- renaming, perhaps, but not great for extensibility. Also, it's weird to
--- define colors in the backend, just let the UI have a mapping
-CREATE TABLE IF NOT EXISTS tags (
-  name TEXT PRIMARY KEY NOT NULL,
-  color TEXT NOT NULL,
-  description TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS images_tags (
   reference TEXT NOT NULL,
   tag TEXT NOT NULL,
-  PRIMARY KEY (reference, tag),
-  FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
-  FOREIGN KEY(tag) REFERENCES tags(name) ON DELETE CASCADE
+  PRIMARY KEY (reference, tag)
 );
 
 CREATE TABLE IF NOT EXISTS images_links (

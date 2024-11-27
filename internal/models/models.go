@@ -2,12 +2,6 @@ package models
 
 import "time"
 
-type Tag struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Color       string `json:"color"`
-}
-
 type ImagePage struct {
 	Images     []Image            `json:"images"`
 	Summary    ImagePageSummary   `json:"summary"`

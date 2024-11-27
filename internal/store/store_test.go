@@ -51,13 +51,6 @@ func TestStoreInsertImage(t *testing.T) {
 		Image:        "https://example.com/logo.png",
 	}
 
-	err = store.InsertTag(context.TODO(), &models.Tag{
-		Name:        "docker",
-		Description: "Docker",
-		Color:       "#0000ff",
-	})
-	require.NoError(t, err)
-
 	err = store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: expected.Reference,
 	})
@@ -75,18 +68,20 @@ func TestStoreTags(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
-	expected := models.Tag{
-		Name:        "docker",
-		Description: "Docker",
-		Color:       "#0000ff",
-	}
+	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: "mongo:4",
+	})
+	require.NoError(t, err)
 
-	err = store.InsertTag(context.TODO(), &expected)
+	err = store.InsertImage(context.TODO(), &models.Image{
+		Reference: "mongo:4",
+		Tags:      []string{"docker"},
+	})
 	require.NoError(t, err)
 
 	actual, err := store.GetTags(context.TODO())
 	require.NoError(t, err)
-	assert.Equal(t, []models.Tag{expected}, actual)
+	assert.Equal(t, []string{"docker"}, actual)
 }
 
 func TestStoreImageDescription(t *testing.T) {
@@ -187,13 +182,6 @@ func TestStoreImageGraph(t *testing.T) {
 
 func TestListImages(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
-
-	err = store.InsertTag(context.TODO(), &models.Tag{
-		Name:        "docker",
-		Description: "Docker",
-		Color:       "#0000ff",
-	})
 	require.NoError(t, err)
 
 	expectedImages := []models.Image{
