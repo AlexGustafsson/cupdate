@@ -98,7 +98,7 @@ export function Dashboard(): JSX.Element {
         {/* Header with summary */}
         <div className="p-3 flex space-x-5">
           {
-            <div className="p-5 w-32 h-32 bg-blue-100 rounded-lg">
+            <div className="p-5 w-32 h-32 bg-blue-100 dark:bg-blue-800 rounded-lg">
               <p className="text-md font-medium">Images</p>
               <p className="text-3xl font-bold">
                 {images.value.summary.images}
@@ -107,7 +107,7 @@ export function Dashboard(): JSX.Element {
           }
           {
             <div
-              className="p-5 w-32 h-32 bg-[#F87171] rounded-lg cursor-pointer"
+              className="p-5 w-32 h-32 bg-red-100 dark:bg-red-800 rounded-lg cursor-pointer"
               onClick={() => toggleTag('outdated')}
             >
               <p className="text-md font-medium">Outdated</p>
@@ -117,7 +117,7 @@ export function Dashboard(): JSX.Element {
             </div>
           }
           {images.value.summary.processing !== 0 && (
-            <div className="p-5 w-32 h-32 bg-purple-100 rounded-lg">
+            <div className="p-5 w-32 h-32 bg-purple-100 dark:bg-purple-800 rounded-lg">
               <p className="text-md font-medium">Processing</p>
               <p className="text-3xl font-bold">
                 {images.value.summary.processing}
@@ -128,7 +128,7 @@ export function Dashboard(): JSX.Element {
 
         {/* Table card */}
         <div className="relative mt-6 w-[800px]">
-          <div className="rounded-lg bg-white px-4 py-2 shadow">
+          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-2 shadow">
             <table className="break-words">
               <thead>
                 <tr>
@@ -232,7 +232,7 @@ export function Dashboard(): JSX.Element {
                       // TODO
                       key={index}
                       to={`/?page=${index}`}
-                      className={`m-1 w-6 h-6 text-center leading-6 rounded ${current ? 'bg-blue-400' : 'hover:bg-blue-400'}`}
+                      className={`m-1 w-6 h-6 text-center leading-6 rounded ${current ? 'bg-blue-400 dark:bg-blue-800' : 'hover:bg-blue-400 hover:dark:bg-blue-800'}`}
                     >
                       <p>{label}</p>
                     </NavLink>
@@ -251,7 +251,7 @@ export function Dashboard(): JSX.Element {
 
           {/* Side menu with tag filters */}
           <div className="absolute left-full top-0 px-2">
-            <div className="rounded-lg bg-white p-4 w-64 shadow">
+            <div className="rounded-lg bg-white dark:bg-[#121212] p-4 w-64 shadow">
               <p>Tags</p>
               <div className="flex flex-wrap mt-2">
                 {tags.value.map((tag) => (

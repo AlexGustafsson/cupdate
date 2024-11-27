@@ -82,7 +82,7 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
     useNodesAndEdges(graph)
 
   return (
-    <div className="rounded-lg bg-white px-4 py-2 shadow h-[480px]">
+    <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-2 shadow h-[480px]">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -200,7 +200,7 @@ export function ImagePage(): JSX.Element {
       <main className="min-w-[200px] max-w-[980px] w-full box-border space-y-6 mt-6">
         {/* Release notes */}
         {releaseNotes.value?.html && (
-          <div className="rounded-lg bg-white px-4 py-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-6 shadow">
             <div className="markdown-body">
               <h1>{releaseNotes.value?.title}</h1>
               <HTML>{releaseNotes.value?.html}</HTML>
@@ -210,7 +210,7 @@ export function ImagePage(): JSX.Element {
 
         {/* Description */}
         {(description.value?.html || description.value?.markdown) && (
-          <div className="rounded-lg bg-white px-4 py-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-6 shadow">
             <div className="markdown-body">
               {description.value.html && <HTML>{description.value.html}</HTML>}
               {description.value.markdown && (

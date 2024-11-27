@@ -1,11 +1,4 @@
-import {
-  NavLink,
-  Route,
-  Routes,
-  useHref,
-  useLocation,
-  useNavigation,
-} from 'react-router-dom'
+import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
 import { SimpleIconsRss } from './components/icons/simple-icons-rss'
@@ -17,7 +10,7 @@ export function App(): JSX.Element {
 
   return (
     <>
-      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow bg-white z-50">
+      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow bg-white dark:bg-[#121212] z-50">
         <div className="justify-self-start ml-5">
           {location.pathname != '/' && (
             <NavLink to="/">

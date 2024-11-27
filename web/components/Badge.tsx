@@ -2,7 +2,7 @@ import { HTMLAttributes } from 'react'
 
 export type BadgeProps = {
   label: string
-  color: string
+  color?: string | { light: string; dark: string }
   disabled?: boolean
 }
 
@@ -12,15 +12,22 @@ export function Badge({
   disabled,
   className,
   ...rest
-}: HTMLAttributes<HTMLSpanElement> & BadgeProps): JSX.Element {
+}: Omit<HTMLAttributes<HTMLSpanElement>, 'color'> & BadgeProps): JSX.Element {
+  let backgroundColor = '#CC5889'
+  if (typeof color === 'string') {
+    backgroundColor = color
+  } else if (color !== undefined) {
+    backgroundColor = `light-dark(${color.light}, ${color.dark})`
+  }
+
   return (
     <span
       {...rest}
       className={
-        `rounded-full px-2 py-1 text-xs text-nowrap ${disabled ? 'opacity-50' : ''} m-1 ` +
+        `rounded-full px-2 py-1 text-xs text-nowrap text-white ${disabled ? 'opacity-50' : ''} m-1 ` +
         className
       }
-      style={{ backgroundColor: color }}
+      style={{ backgroundColor }}
     >
       {label}
     </span>

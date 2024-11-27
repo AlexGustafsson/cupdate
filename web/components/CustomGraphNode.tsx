@@ -13,11 +13,11 @@ export function CustomGraphNode(
 ): JSX.Element {
   return (
     <div
-      className="px-4 py-2 shadow-md rounded-md bg-white border-2 border-stone-400"
+      className="px-4 py-2 shadow-md rounded-md bg-white dark:bg-[#121212] border-2 border-[#ebebeb] dark:border-[#262626]"
       style={{ width: node.width, height: node.height }}
     >
       <div className="flex">
-        <div className="rounded-full w-12 h-12 flex justify-center items-center bg-gray-100 shrink-0">
+        <div className="rounded-full w-12 h-12 flex justify-center items-center bg-gray-100 dark:bg-[#363a3a] shrink-0">
           {node.data.label}
         </div>
         <div className="ml-2 grow min-w-0">

@@ -22,8 +22,13 @@
       sans-serif;
   }
 
+  :root {
+    color-scheme: light dark;
+  }
+
   body {
-    background-color: #fafafa;
+    color: light-dark(#000000, #ffffff);
+    background-color: light-dark(#fafafa, #1e1e1e);
   }
 
   table {
@@ -32,7 +37,7 @@
   }
 
   thead tr {
-    border-bottom: 1px solid #ebebeb;
+    border-bottom: 1px solid light-dark(#ebebeb, #262626);
   }
 
   th {
@@ -45,11 +50,15 @@
   }
 
   tbody tr {
-    border-bottom: 1px solid #f3f3f3;
+    border-bottom: 1px solid light-dark(#f3f3f3, #262626);
   }
 }
 
 @layer components {
+  .markdown-body {
+    --bgColor-default: light-dark(#ffffff, #121212);
+  }
+
   @media (max-width: 767px) {
     .markdown-body {
       padding: 15px;
