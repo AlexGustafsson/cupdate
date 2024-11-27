@@ -717,7 +717,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		}
 		args = append(args, len(options.Tags))
 	}
-	args = append(args, options.Limit)
+	args = append(args, limit)
 	args = append(args, offset)
 	res, err = statement.QueryContext(ctx, args...)
 	statement.Close()
@@ -739,8 +739,8 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		return nil, err
 	}
 
-	result.Pagination.Size = options.Limit
-	result.Pagination.Page = options.Page
+	result.Pagination.Size = limit
+	result.Pagination.Page = page
 
 	for i := range result.Images {
 		image, err := s.GetImage(ctx, result.Images[i].Reference)

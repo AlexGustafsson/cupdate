@@ -10,6 +10,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestStoreInsertRawImage(t *testing.T) {
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
+	require.NoError(t, err)
+
+	expected := models.RawImage{
+		Reference: "mongo:4",
+		Tags:      []string{"docker"},
+		Graph: models.Graph{
+			Edges: map[string]map[string]bool{},
+			Nodes: map[string]models.GraphNode{},
+		},
+		LastProcessed: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+	}
+
+	err = store.InsertRawImage(context.TODO(), &expected)
+	require.NoError(t, err)
+
+	actual, err := store.ListRawImages(context.TODO(), nil)
+	require.NoError(t, err)
+	assert.EqualValues(t, expected, actual[0])
+}
+
 func TestStoreInsertImage(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
@@ -33,6 +55,11 @@ func TestStoreInsertImage(t *testing.T) {
 		Name:        "docker",
 		Description: "Docker",
 		Color:       "#0000ff",
+	})
+	require.NoError(t, err)
+
+	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: expected.Reference,
 	})
 	require.NoError(t, err)
 
@@ -70,6 +97,11 @@ func TestStoreImageDescription(t *testing.T) {
 		Markdown: "# Release",
 	}
 
+	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: "mongo:4",
+	})
+	require.NoError(t, err)
+
 	err = store.InsertImage(context.TODO(), &models.Image{
 		Reference: "mongo:4",
 	})
@@ -92,6 +124,11 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 		Markdown: "# Release",
 		Released: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
+
+	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: "mongo:4",
+	})
+	require.NoError(t, err)
 
 	err = store.InsertImage(context.TODO(), &models.Image{
 		Reference: "mongo:4",
@@ -129,6 +166,11 @@ func TestStoreImageGraph(t *testing.T) {
 			},
 		},
 	}
+
+	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: "mongo:4",
+	})
+	require.NoError(t, err)
 
 	err = store.InsertImage(context.TODO(), &models.Image{
 		Reference: "mongo:4",
@@ -186,6 +228,11 @@ func TestListImages(t *testing.T) {
 	}
 
 	for _, image := range expectedImages {
+		err := store.InsertRawImage(context.TODO(), &models.RawImage{
+			Reference: image.Reference,
+		})
+		require.NoError(t, err)
+
 		err = store.InsertImage(context.TODO(), &image)
 		require.NoError(t, err)
 	}
@@ -226,7 +273,7 @@ func TestListImages(t *testing.T) {
 			Previous: "",
 		},
 	}
-	actualPage, err = store.ListImages(context.TODO(), &ListImageOptions{Page: 0, Limit: 1})
+	actualPage, err = store.ListImages(context.TODO(), &ListImageOptions{Page: 1, Limit: 1})
 	require.NoError(t, err)
 	assert.Equal(t, expectedPage, actualPage)
 
@@ -288,13 +335,18 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 	}
 
 	for _, image := range images {
-		err := store.InsertImage(context.TODO(), image)
+		err := store.InsertRawImage(context.TODO(), &models.RawImage{
+			Reference: image.Reference,
+		})
+		require.NoError(t, err)
+
+		err = store.InsertImage(context.TODO(), image)
 		require.NoError(t, err)
 	}
 
 	removed, err := store.DeleteNonPresent(context.TODO(), []string{"mongo:4"})
 	require.NoError(t, err)
-	assert.Equal(t, int64(1), removed)
+	assert.Equal(t, int64(3), removed)
 
 	actual, err := store.ListImages(context.TODO(), nil)
 	require.NoError(t, err)
