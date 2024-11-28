@@ -81,6 +81,10 @@ func (g *Graph[T]) Roots() []T {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
+	return g.roots()
+}
+
+func (g *Graph[T]) roots() []T {
 	roots := make([]T, 0)
 	for nodeID, node := range g.nodes {
 		parents := 0
@@ -103,7 +107,7 @@ func (g *Graph[T]) String() string {
 
 	var result strings.Builder
 
-	roots := g.Roots()
+	roots := g.roots()
 	for i := 0; i < len(roots); i++ {
 		result.WriteString(g.describeFromRoot(roots[i].ID()))
 		if i < len(roots)-1 {
