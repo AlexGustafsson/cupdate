@@ -17,6 +17,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/store"
+	"github.com/AlexGustafsson/cupdate/internal/web"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
 	"github.com/caarlos0/env/v10"
 	"golang.org/x/sync/errgroup"
@@ -32,6 +33,10 @@ type Config struct {
 		Address string `env:"ADDRESS" envDefault:"localhost"`
 		Port    uint16 `env:"PORT" envDefault:"8080"`
 	} `envPrefix:"API_"`
+
+	Web struct {
+		Disabled bool `env:"DISABLED"`
+	} `envPrefix:"WEB_"`
 
 	Cache struct {
 		Path   string        `env:"PATH" envDefault:"cachev1.boltdb"`
@@ -125,12 +130,6 @@ func main() {
 		slog.Error("Failed to load database", slog.Any("error", err))
 		os.Exit(1)
 	}
-
-	apiServer := api.NewServer(readStore)
-
-	mux := http.NewServeMux()
-
-	mux.Handle("/api/v1/", apiServer)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg errgroup.Group
@@ -259,9 +258,18 @@ func main() {
 		return nil
 	})
 
+	mux := http.NewServeMux()
+
+	apiServer := api.NewServer(readStore)
+	mux.Handle("/api/v1/", apiServer)
+
+	if !config.Web.Disabled {
+		mux.Handle("/", web.MustNewServer())
+	}
+
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", config.API.Address, config.API.Port),
-		Handler: apiServer,
+		Handler: mux,
 	}
 
 	wg.Go(func() error {

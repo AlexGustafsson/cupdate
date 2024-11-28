@@ -8,7 +8,7 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
     if (mode === 'development') {
       process.env['VITE_API_ENDPOINT'] = 'http://localhost:8080/api/v1'
     } else {
-      process.env['VITE_API_ENDPOINT'] = ''
+      process.env['VITE_API_ENDPOINT'] = '/api/v1'
     }
   }
 
@@ -17,7 +17,7 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
     root: 'web',
     base: process.env['VITE_BASE_PATH'],
     build: {
-      outDir: '../build/web',
+      outDir: '../internal/web/public',
       emptyOutDir: true,
       sourcemap: true,
     },
