@@ -76,10 +76,10 @@ source .env
 export (cat .env | xargs -L 1)
 ```
 
-Start the operator.
+Start cupdate.
 
 ```shell
-go run cmd/operator/*.go
+go run cmd/cupdate/*.go
 ```
 
 Start the web server.
