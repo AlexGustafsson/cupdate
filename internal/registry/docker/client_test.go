@@ -16,6 +16,10 @@ import (
 )
 
 func TestClientGetManifest(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	expected := &oci.Manifest{}
 
 	client := &Client{
@@ -30,6 +34,10 @@ func TestClientGetManifest(t *testing.T) {
 }
 
 func TestClientGetLatestVersion(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	client := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
@@ -42,6 +50,10 @@ func TestClientGetLatestVersion(t *testing.T) {
 }
 
 func TestClientGetRepository(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	client := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}

@@ -13,6 +13,10 @@ import (
 )
 
 func TestClientGetManifest(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	expected := &oci.Manifest{}
 
 	client := &Client{

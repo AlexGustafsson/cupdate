@@ -13,6 +13,10 @@ import (
 )
 
 func TestClientGetLatestVersion(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	client := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}

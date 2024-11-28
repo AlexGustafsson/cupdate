@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -17,9 +18,13 @@ import (
 )
 
 func TestWorkflow(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})))
 
-	cache, err := cache.NewDiskCache("cache")
+	cache, err := cache.NewDiskCache(filepath.Join(t.TempDir(), "cache.boltdb"))
 	require.NoError(t, err)
 
 	httpClient := httputil.NewClient(cache, 5*time.Minute)
