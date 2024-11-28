@@ -30,7 +30,7 @@ type Config struct {
 	} `envPrefix:"LOG_"`
 
 	API struct {
-		Address string `env:"ADDRESS" envDefault:"localhost"`
+		Address string `env:"ADDRESS" envDefault:"0.0.0.0"`
 		Port    uint16 `env:"PORT" envDefault:"8080"`
 	} `envPrefix:"API_"`
 
