@@ -3,6 +3,7 @@ module github.com/AlexGustafsson/cupdate
 go 1.23
 
 require (
+	github.com/caarlos0/env/v10 v10.0.0
 	github.com/distribution/reference v0.6.0
 	github.com/stretchr/testify v1.8.4
 	go.etcd.io/bbolt v1.3.11
