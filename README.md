@@ -54,3 +54,36 @@ See [docs/architecture/architecture.md](docs/architecture/architecture.md).
 ## Contributing
 
 Cupdate is still being developed.
+
+### Development
+
+Proxy the API server.
+
+```shell
+kubectl proxy
+```
+
+Source the default dev config.
+
+```shell
+# Inspect
+cat .env
+
+# Bash etc.
+source .env
+
+# Fish
+export (cat .env | xargs -L 1)
+```
+
+Start the operator.
+
+```shell
+go run cmd/operator/*.go
+```
+
+Start the web server.
+
+```shell
+yarn run dev
+```
