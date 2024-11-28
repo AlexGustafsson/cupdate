@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - cmd/**
+      - internal/**
+      - go.*
+      - .github/workflows/build.yaml
+  push:
+    branches:
+      - main
+    paths:
+      - cmd/**
+      - internal/**
+      - go.*
+      - .github/workflows/build.yaml
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: go test -short -v ./...
+
+  build-web:
+    name: Build web
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build web
+        run: yarn build
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: internal/web/public
+
+  build-cupdate:
+    name: Build cupdate
+    runs-on: ubuntu-latest
+    needs: build-web
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: internal/web/public
+
+      - name: Build cupdate
+        run: go build -o cupdate cmd/cupdate/*.go

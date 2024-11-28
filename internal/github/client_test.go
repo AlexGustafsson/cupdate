@@ -13,6 +13,10 @@ import (
 )
 
 func TestClientGetRelease(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	c := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
@@ -24,6 +28,10 @@ func TestClientGetRelease(t *testing.T) {
 }
 
 func TestClientGetDescription(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	c := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
@@ -35,6 +43,10 @@ func TestClientGetDescription(t *testing.T) {
 }
 
 func TestClientGetPackage(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	c := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
@@ -49,6 +61,10 @@ func TestClientGetPackage(t *testing.T) {
 }
 
 func TestClientGetREADME(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
 	c := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
