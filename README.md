@@ -51,6 +51,24 @@ Supported data sources:
 
 See [docs/architecture/architecture.md](docs/architecture/architecture.md).
 
+## Building
+
+Either build using yarn+go, or docker.
+
+```shell
+yarn install
+yarn build
+go build -o cupdate cmd/cupdate/*.go
+```
+
+```shell
+# Build for running the container
+docker build -t ghcr.com/alexgustafsson/cupdate:latest .
+
+# Build inside the container, for running on host
+DOCKER_BUILDKIT=1 docker build --target=export . --output .
+```
+
 ## Contributing
 
 Cupdate is still being developed.
