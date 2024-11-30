@@ -187,7 +187,22 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		return err
 	}
 
-	// TODO: Removed tags are not removed from db
+	// First clear out tags for an easy way of removing those that are no longer
+	// referenced
+	statement, err = tx.PrepareContext(ctx, `DELETE FROM images_links WHERE reference = ?;`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, image.Reference)
+	statement.Close()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Add tags
 	for _, tag := range image.Tags {
 		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_tags
 		(reference, tag)
@@ -208,7 +223,22 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		}
 	}
 
-	// TODO: Removed links are not removed from db
+	// First clear out links for an easy way of removing those that are no longer
+	// referenced
+	statement, err = tx.PrepareContext(ctx, `DELETE FROM images_links WHERE reference = ?;`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, image.Reference)
+	statement.Close()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Add links
 	for _, link := range image.Links {
 		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_links
 		(reference, type, url)
