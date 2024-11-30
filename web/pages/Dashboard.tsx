@@ -96,7 +96,7 @@ export function Dashboard(): JSX.Element {
 
   return (
     <>
-      <div className="flex flex-col items-center w-full py-[40px] px-[20px]">
+      <div className="flex flex-col items-center w-full py-[40px] lg:px-[20px]">
         {/* Header with summary */}
         <div className="p-3 flex space-x-5">
           {
@@ -148,128 +148,132 @@ export function Dashboard(): JSX.Element {
             </div>
           </div>
 
-          {/* Table card */}
-          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-2 shadow">
-            <table className="break-words">
-              <thead>
-                <tr>
-                  <th
-                    scope="col"
-                    colSpan={2}
-                    className="text-nowrap text-sm md:text-base text-center cursor-pointer pr-[24px]"
-                    onClick={() => toggleSort('reference')}
+          {/* Table card. Not a table due to responsiveness and sticky header limitations */}
+          <div className="rounded-lg bg-white dark:bg-[#121212] px-1 lg:px-6 py-2 shadow w-full max-w-[1200px]">
+            <div className="relative break-words grid items-center dashboard-table gap-y-2 md:gap-y-4">
+              {/* Header row */}
+              <>
+                {/* Image column */}
+                <div
+                  className="sticky top-[63px] bg-white dark:bg-[#121212] col-span-2 border-b-[1px] border-[#ebebeb] dark:border-[#262626] text-nowrap text-sm lg:text-base font-bold text-center cursor-pointer py-2"
+                  onClick={() => toggleSort('reference')}
+                >
+                  Image
+                  <div className="inline-block relative py-[9px]">
+                    {sortProperty === 'reference' && sortOrder === 'asc' && (
+                      <FluentArrowSortUp24Filled className="absolute top-0" />
+                    )}
+                    {sortProperty === 'reference' && sortOrder === 'desc' && (
+                      <FluentArrowSortDown24Filled className="absolute top-0" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Version column */}
+                <div className="sticky top-[63px] bg-white dark:bg-[#121212] border-b-[1px] border-[#ebebeb] dark:border-[#262626] text-nowrap text-sm lg:text-base font-bold text-center py-2">
+                  Current
+                </div>
+
+                {/* Latest version column */}
+                <div className="sticky top-[63px] bg-white dark:bg-[#121212] border-b-[1px] border-[#ebebeb] dark:border-[#262626] text-nowrap text-sm lg:text-base font-bold text-center py-2">
+                  Latest
+                </div>
+
+                {/* Tags column */}
+                <div className="sticky col-span-2 top-[64px] bg-white dark:bg-[#121212] border-b-[1px] border-[#ebebeb] dark:border-[#262626] text-nowrap text-sm lg:text-base font-bold text-center py-2">
+                  Tags
+                </div>
+              </>
+
+              {/* Data rows */}
+              {images.value.images.map((image) => (
+                <>
+                  {/* Image column */}
+                  <div>
+                    {image.image ? (
+                      <img
+                        className="w-10 h-10 rounded"
+                        src={image.image}
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-blue-500 dark:dark:bg-blue-800 flex items-center justify-center">
+                        <SimpleIconsOci className="text-white" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Details column */}
+                  <div className="px-2">
+                    <p className="text-xs md:text-base font-semibold md:font-normal">
+                      {name(image.reference)}{' '}
+                    </p>
+                    {image.description && (
+                      <p className="text-xs">{image.description}</p>
+                    )}
+                  </div>
+
+                  {/* Current version column */}
+                  <div
+                    className={`text-end text-xs lg:text-base text-nowrap px-1 ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
                   >
-                    Image
-                    <div className="inline-block relative py-[9px]">
-                      {sortProperty === 'reference' && sortOrder === 'asc' && (
-                        <FluentArrowSortUp24Filled className="absolute top-0" />
+                    <>
+                      {version(image.reference)}
+                      {image.vulnerabilities.length > 0 && (
+                        <InfoTooltip icon={<FluentShieldError16Filled />}>
+                          {image.vulnerabilities.length} vulnerabilities
+                          reported.
+                        </InfoTooltip>
                       )}
-                      {sortProperty === 'reference' && sortOrder === 'desc' && (
-                        <FluentArrowSortDown24Filled className="absolute top-0" />
-                      )}
-                    </div>
-                  </th>
-                  <th
-                    scope="col"
-                    className="text-nowrap text-sm md:text-base text-center lg:pr-[24px]"
+                    </>
+                  </div>
+
+                  {/* Latest version column */}
+                  <div
+                    className={`text-end text-xs lg:text-base text-nowrap px-1 ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
                   >
-                    Version
-                  </th>
-                  <th
-                    scope="col"
-                    className="text-nowrap text-sm md:text-base text-center lg:pr-[24px]"
-                  >
-                    Latest version
-                  </th>
-                  <th
-                    scope="col"
-                    className="text-nowrap text-sm md:text-base text-center"
-                  >
-                    Tags
-                  </th>
-                  <th scope="col"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {images.value.images.map((image) => (
-                  <tr key={image.reference} className="w-full">
-                    <td>
-                      {image.image ? (
-                        <img
-                          className="w-10 h-10 rounded"
-                          src={image.image}
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded bg-blue-500 dark:dark:bg-blue-800 flex items-center justify-center">
-                          <SimpleIconsOci className="text-white" />
-                        </div>
-                      )}
-                    </td>
-                    <td className="lg:pr-[24px] max-w-[100px] lg:max-w-[300px]">
-                      <p className="truncate text-xs md:text-base">
-                        {name(image.reference)}{' '}
-                      </p>
-                      {image.description && (
-                        <p className="text-xs hidden md:block">
-                          {image.description}
-                        </p>
-                      )}
-                    </td>
-                    <td
-                      className={`text-end text-xs md:text-base lg:pr-[24px] max-w-[80px] lg:max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
-                    >
+                    {image.latestReference ? (
+                      version(image.latestReference)
+                    ) : (
                       <>
-                        {version(image.reference)}
-                        {image.vulnerabilities.length > 0 && (
-                          <InfoTooltip icon={<FluentShieldError16Filled />}>
-                            {image.vulnerabilities.length} vulnerabilities
-                            reported.
-                          </InfoTooltip>
-                        )}
+                        unknown{' '}
+                        <InfoTooltip>
+                          The latest version cannot be identified. This could be
+                          due to the image not being available, the registry not
+                          being supported, missing authentication or a temporary
+                          issue.
+                        </InfoTooltip>
                       </>
-                    </td>
-                    <td
-                      className={`text-end text-xs md:text-base lg:pr-[24px] max-w-[80px] lg:max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
+                    )}
+                  </div>
+
+                  {/* Tags column */}
+                  <div className="flex flex-wrap px-2">
+                    {tags.value
+                      .filter((tag) => image.tags.includes(tag.name))
+                      .map((tag) => (
+                        <Badge
+                          key={tag.name}
+                          label={tag.name}
+                          color={tag.color}
+                          className="cursor-pointer"
+                          onClick={() => setFilter([tag.name])}
+                        />
+                      ))}
+                  </div>
+
+                  {/* Chevron column */}
+                  <div className="self-center">
+                    <NavLink
+                      to={`/image?reference=${encodeURIComponent(image.reference)}`}
                     >
-                      {image.latestReference ? (
-                        version(image.latestReference)
-                      ) : (
-                        <>
-                          unknown{' '}
-                          <InfoTooltip>
-                            The latest version cannot be identified. This could
-                            be due to the image not being available, the
-                            registry not being supported, missing authentication
-                            or a temporary issue.
-                          </InfoTooltip>
-                        </>
-                      )}
-                    </td>
-                    <td className="flex flex-wrap max-w-[80px] lg:max-w-[120px]">
-                      {tags.value
-                        .filter((tag) => image.tags.includes(tag.name))
-                        .map((tag) => (
-                          <Badge
-                            key={tag.name}
-                            label={tag.name}
-                            color={tag.color}
-                            className="cursor-pointer"
-                            onClick={() => setFilter([tag.name])}
-                          />
-                        ))}
-                    </td>
-                    <td>
-                      <NavLink
-                        to={`/image?reference=${encodeURIComponent(image.reference)}`}
-                      >
-                        <FluentChevronRight24Regular />
-                      </NavLink>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      <FluentChevronRight24Regular />
+                    </NavLink>
+                  </div>
+                  <hr className="col-span-6 border-b-[1px] border-[#ebebeb] dark:border-[#262626]" />
+                </>
+              ))}
+            </div>
 
             {/* Pagination footer */}
             <div className="mt-4">

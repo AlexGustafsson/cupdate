@@ -30,28 +30,6 @@
     color: light-dark(#000000, #ffffff);
     background-color: light-dark(#fafafa, #1e1e1e);
   }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  thead tr {
-    border-bottom: 1px solid light-dark(#ebebeb, #262626);
-  }
-
-  th {
-    text-align: start;
-    padding: 10px;
-  }
-
-  td {
-    padding: 10px;
-  }
-
-  tbody tr {
-    border-bottom: 1px solid light-dark(#f3f3f3, #262626);
-  }
 }
 
 @layer components {
@@ -81,5 +59,11 @@
   /* Hide GitHub README's box header */
   .markdown-body .Box-header {
     display: none;
+  }
+
+  .dashboard-table {
+    grid-template-columns:
+      40px 1fr minmax(min-content, 80px) minmax(min-content, 80px)
+      minmax(min-content, 200px) 24px;
   }
 }
