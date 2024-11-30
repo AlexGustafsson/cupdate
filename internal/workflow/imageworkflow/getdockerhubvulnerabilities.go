@@ -64,9 +64,9 @@ func GetDockerHubVulnerabilities() workflow.Step {
 			vulnerabilities := make([]models.ImageVulnerability, 0)
 
 			if report != nil {
-				for i := 0; i < report.Criticial; i++ {
+				for i := 0; i < report.Critical; i++ {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "criticial",
+						Severity:  "critical",
 						Authority: "Docker Scout",
 						Link:      docker.TagUIPath(reference, digest),
 					})
