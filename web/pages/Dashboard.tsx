@@ -187,7 +187,7 @@ export function Dashboard(): JSX.Element {
                     <td
                       className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
                     >
-                      <p>
+                      <>
                         {version(image.reference)}
                         {image.vulnerabilities.length > 0 && (
                           <InfoTooltip icon={<FluentShieldError16Filled />}>
@@ -195,7 +195,7 @@ export function Dashboard(): JSX.Element {
                             reported.
                           </InfoTooltip>
                         )}
-                      </p>
+                      </>
                     </td>
                     <td
                       className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
@@ -203,7 +203,7 @@ export function Dashboard(): JSX.Element {
                       {image.latestReference ? (
                         version(image.latestReference)
                       ) : (
-                        <p>
+                        <>
                           unknown{' '}
                           <InfoTooltip>
                             The latest version cannot be identified. This could
@@ -211,7 +211,7 @@ export function Dashboard(): JSX.Element {
                             registry not being supported, missing authentication
                             or a temporary issue.
                           </InfoTooltip>
-                        </p>
+                        </>
                       )}
                     </td>
                     <td className="flex flex-wrap max-w-[120px]">
