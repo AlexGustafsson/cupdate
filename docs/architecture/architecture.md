@@ -1,5 +1,8 @@
 # Architecture
 
+> [!WARNING]
+> WIP
+
 ![A simplified overview of the architecture](overview.excalidraw.png)
 
 Cupdate discovers container images that are in use in a _platform_. Next,

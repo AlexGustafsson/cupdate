@@ -1,5 +1,8 @@
 # Database
 
+> [!WARNING]
+> WIP
+
 Cupdate uses sqlite to persist data.
 
 <!--

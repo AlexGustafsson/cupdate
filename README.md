@@ -7,7 +7,7 @@
 Cupdate is a WIP, zero-config service that helps you keep your container images
 up-to-date. It automatically identifies container images in use in your
 Kubernetes cluster or on your Docker host. Cupdate then identifies the latest
-available version and makes this data and more available to you via a UI or
+available version and makes this data and more available to you via a UI, API or
 through an RSS feed.
 
 Cupdate is for those who like the process of keeping their services up-to-date,
@@ -21,11 +21,13 @@ nor will it ever be.
 Features:
 
 - Zero configuration required
-- Auto-detect container images in Kubernetes and Docker
+- Auto-detect container images in Kubernetes and Docker (planned)
 - Auto-detect the latest available container image versions
 - UI for discovering updates
-- Subscribe to updates via an RSS feed
-- Graphs image version's dependants explaining why it's in use
+- Subscribe to updates via an RSS feed (planned)
+- Graphs image versions' dependants explaining why they're in use
+- Vulnerability scanning
+- APIs for custom integrations
 
 Supported registries:
 
@@ -37,15 +39,21 @@ Supported registries:
 
 Supported data sources:
 
-- Docker Hub
+- Docker Hub, Docker Scout
 - GitHub, GitHub Container Registry
 - Quay
 
 ## Screenshots
 
-![Dashboard screenshot](docs/screenshots/dashboard.png)
+![Light mode dashboard screenshort](docs/screenshots/dashboard-light.png)
 
-![Image details page screenshot](docs/screenshots/image-page.png)
+![Dark mode dashboard screenshort](docs/screenshots/dashboard-dark.png)
+
+![Light mode image page screenshort](docs/screenshots/image-page-light.png)
+
+![Dark mode image page screenshort](docs/screenshots/image-page-dark.png)
+
+![Image details page with vulnerabilities screenshot](docs/screenshots/image-page-vulnerabilities.png)
 
 ## Architecture
 
