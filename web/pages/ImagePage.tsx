@@ -161,7 +161,7 @@ export function ImagePage(): JSX.Element {
         <img
           className="w-16 h-16 rounded"
           src={image.value.image}
-          no-referrer
+          referrerPolicy="no-referrer"
         />
       ) : (
         <div className="w-16 h-16 rounded bg-blue-500 dark:bg-blue-800 flex items-center justify-center">
