@@ -171,7 +171,7 @@ export function Dashboard(): JSX.Element {
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-blue-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded bg-blue-500 dark:dark:bg-blue-800 flex items-center justify-center">
                           <SimpleIconsOci className="text-white" />
                         </div>
                       )}

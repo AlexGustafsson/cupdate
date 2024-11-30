@@ -152,7 +152,7 @@ export function ImagePage(): JSX.Element {
           no-referrer
         />
       ) : (
-        <div className="w-16 h-16 rounded bg-blue-500 flex items-center justify-center">
+        <div className="w-16 h-16 rounded bg-blue-500 dark:bg-blue-800 flex items-center justify-center">
           <SimpleIconsOci className="text-white" />
         </div>
       )}
