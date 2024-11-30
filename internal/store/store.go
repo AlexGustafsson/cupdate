@@ -230,7 +230,22 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		}
 	}
 
-	// TODO: Removed vulnerabilities are not removed from db
+	// First clear out vulnerabilities for the image as they cannot be uniquely
+	// identified (i.e. must be replaced)
+	statement, err = tx.PrepareContext(ctx, `DELETE FROM images_vulnerabilities WHERE reference = ?;`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, image.Reference)
+	statement.Close()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Add vulnerabilities
 	for _, vulnerability := range image.Vulnerabilities {
 		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_vulnerabilities
 		(reference, severity, authority, description, link)
