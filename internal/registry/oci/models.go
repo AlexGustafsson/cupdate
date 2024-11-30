@@ -50,6 +50,7 @@ type Manifest struct {
 	SchemaVersion int               `json:"schemaVersion"`
 	MediaType     string            `json:"mediaType"`
 	Annotations   map[string]string `json:"annotations"`
+	Digest        string            `json:"digest"`
 }
 
 func (m Manifest) SourceAnnotation() string {

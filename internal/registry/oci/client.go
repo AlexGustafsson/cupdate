@@ -105,6 +105,7 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 				SchemaVersion: manifest.SchemaVersion,
 				MediaType:     manifest.MediaType,
 				Annotations:   make(map[string]string),
+				Digest:        manifest.Digest,
 			})
 		}
 
@@ -122,6 +123,7 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 				SchemaVersion: manifest.SchemaVersion,
 				MediaType:     manifest.MediaType,
 				Annotations:   make(map[string]string),
+				Digest:        manifest.Digest,
 			},
 		}, nil
 	}

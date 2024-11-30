@@ -230,6 +230,25 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		}
 	}
 
+	// TODO: Removed vulnerabilities are not removed from db
+	for _, vulnerability := range image.Vulnerabilities {
+		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_vulnerabilities
+		(reference, severity, authority, description, link)
+		VALUES
+		(?, ?, ?, ?, ?);`)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		_, err = statement.ExecContext(ctx, image.Reference, vulnerability.Severity, vulnerability.Authority, vulnerability.Description, vulnerability.Link)
+		statement.Close()
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	return tx.Commit()
 }
 
@@ -272,6 +291,11 @@ func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, 
 	}
 
 	image.Links, err = s.GetImagesLinks(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	image.Vulnerabilities, err = s.GetImageVulnerabilities(ctx, reference)
 	if err != nil {
 		return nil, err
 	}
@@ -337,6 +361,36 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 	}
 
 	return links, nil
+}
+
+func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) ([]models.ImageVulnerability, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT id, severity, authority, description, link FROM images_vulnerabilities WHERE reference = ?;`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	res, err := statement.QueryContext(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	vulnerabilities := make([]models.ImageVulnerability, 0)
+	for res.Next() {
+		var vulnerability models.ImageVulnerability
+		err := res.Scan(&vulnerability.ID, &vulnerability.Severity, &vulnerability.Authority, &vulnerability.Description, &vulnerability.Link)
+		if err != nil {
+			res.Close()
+			return nil, err
+		}
+		vulnerabilities = append(vulnerabilities, vulnerability)
+	}
+	res.Close()
+	if err := res.Err(); err != nil {
+		return nil, err
+	}
+
+	return vulnerabilities, nil
 }
 
 func (s *Store) GetTags(ctx context.Context) ([]string, error) {

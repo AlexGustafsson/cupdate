@@ -207,6 +207,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ImageLink'
+        vulnerabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageVulnerability'
         lastModified:
           type: string
           format: datetime
@@ -256,6 +260,28 @@ components:
       required:
         - type
         - url
+
+    ImageVulnerability:
+      type: object
+      properties:
+        id:
+          type: int
+        severity:
+          type: string
+          example: high
+        authority:
+          type: string
+          example: Docker Scout
+        description:
+          type: string
+          example: CVE-2024-9476
+        link:
+          type: string
+          format: url
+      required:
+        - id
+        - severity
+        - authority
 
     Graph:
       type: object

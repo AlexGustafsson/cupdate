@@ -52,3 +52,13 @@ CREATE TABLE IF NOT EXISTS images_graphs (
   PRIMARY KEY (reference),
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS images_vulnerabilities (
+  id INTEGER PRIMARY KEY,
+  reference TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  authority TEXT NOT NULL,
+  description TEXT NOT NULL,
+  link TEXT NOT NULL,
+  FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
+)

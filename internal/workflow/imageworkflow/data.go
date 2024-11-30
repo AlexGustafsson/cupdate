@@ -18,6 +18,7 @@ type Data struct {
 	FullDescription *models.ImageDescription
 	ReleaseNotes    *models.ImageReleaseNotes
 	Links           []models.ImageLink
+	Vulnerabilities []models.ImageVulnerability
 	Graph           models.Graph
 }
 
@@ -51,4 +52,15 @@ func (d *Data) InsertLinks(links []models.ImageLink) {
 
 func (d *Data) InsertLink(link models.ImageLink) {
 	d.InsertLinks([]models.ImageLink{link})
+}
+
+func (d *Data) InsertVulnerabilities(vulnerabilities []models.ImageVulnerability) {
+	d.Lock()
+	defer d.Unlock()
+
+	d.Vulnerabilities = append(d.Vulnerabilities, vulnerabilities...)
+}
+
+func (d *Data) InsertVulnerability(vulnerability models.ImageVulnerability) {
+	d.InsertVulnerabilities([]models.ImageVulnerability{vulnerability})
 }

@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -209,6 +210,61 @@ func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser s
 	return &result, nil
 }
 
+func (c *Client) GetVulnerabilityReport(ctx context.Context, repo string, digest string) (*VulnerabilityReport, error) {
+	body, err := json.Marshal(map[string]any{
+		"query": "query imageSummariesByDigest($v1:Context!,$v2:[String!]!,$v3:ScRepositoryInput){imageSummariesByDigest(context:$v1,digests:$v2,repository:$v3){digest,sbomState,vulnerabilityReport{critical,high,medium,low,unspecified,total}}}",
+		"variables": map[string]any{
+			"v1": map[string]any{},
+			"v2": []string{
+				digest,
+			},
+			"v3": map[string]any{
+				"hostName": "hub.docker.com",
+				"repoName": repo,
+			},
+		},
+		"operationName": "imageSummariesByDigest",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.dso.docker.com/v1/graphql", bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.Client.DoCached(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
+	} else if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	}
+
+	var result struct {
+		Data struct {
+			ImageSummariesByDigest []struct {
+				Digest              string               `json:"digest"`
+				SBOMStatae          string               `json:"sbomState"`
+				VulnerabilityReport *VulnerabilityReport `json:"vulnerabilityReport"`
+			} `json:"imageSummariesByDigest"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	if len(result.Data.ImageSummariesByDigest) != 1 {
+		return nil, nil
+	}
+
+	return result.Data.ImageSummariesByDigest[0].VulnerabilityReport, nil
+}
+
 type Page[T any] struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
@@ -297,4 +353,13 @@ type Entity struct {
 	GravatarEmail    string    `json:"gravatar_email"`
 	Type             string    `json:"type"`
 	Badge            string    `json:"badge,omitempty"`
+}
+
+type VulnerabilityReport struct {
+	Criticial   int `json:"critical"`
+	High        int `json:"high"`
+	Medium      int `json:"medium"`
+	Low         int `json:"low"`
+	Unspecified int `json:"unspecified"`
+	Total       int `json:"total"`
 }

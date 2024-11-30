@@ -87,6 +87,11 @@ export const Tags: Tag[] = [
     description: 'Outdated images',
     color: palette.red2,
   },
+  {
+    name: 'vulnerable',
+    description: 'Vulnerable images',
+    color: palette.red2,
+  },
 ]
 
 export const TagsByName: Record<string, Tag> = Object.fromEntries(

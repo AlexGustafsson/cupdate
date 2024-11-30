@@ -23,13 +23,14 @@ type PaginationMetadata struct {
 }
 
 type Image struct {
-	Reference       string      `json:"reference"`
-	LatestReference string      `json:"latestReference,omitempty"`
-	Description     string      `json:"description,omitempty"`
-	Tags            []string    `json:"tags"`
-	Links           []ImageLink `json:"links"`
-	LastModified    time.Time   `json:"lastModified"`
-	Image           string      `json:"image,omitempty"`
+	Reference       string               `json:"reference"`
+	LatestReference string               `json:"latestReference,omitempty"`
+	Description     string               `json:"description,omitempty"`
+	Tags            []string             `json:"tags"`
+	Links           []ImageLink          `json:"links"`
+	Vulnerabilities []ImageVulnerability `json:"vulnerabilities"`
+	LastModified    time.Time            `json:"lastModified"`
+	Image           string               `json:"image,omitempty"`
 }
 
 type RawImage struct {
@@ -54,6 +55,14 @@ type ImageReleaseNotes struct {
 type ImageLink struct {
 	Type string `json:"type"`
 	URL  string `json:"url"`
+}
+
+type ImageVulnerability struct {
+	ID          int    `json:"id"`
+	Severity    string `json:"severity"`
+	Authority   string `json:"authority"`
+	Description string `json:"description,omitempty"`
+	Link        string `json:"link,omitempty"`
 }
 
 type Graph struct {

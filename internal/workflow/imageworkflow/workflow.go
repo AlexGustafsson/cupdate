@@ -66,6 +66,11 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("owner").
 						With("httpClient", httpClient).
 						With("repository", workflow.Ref{Key: "step.repository.repository"}),
+					GetDockerHubVulnerabilities().
+						WithID("vulnerabilities").
+						With("httpClient", httpClient).
+						With("reference", data.ImageReference).
+						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						repository, err := workflow.GetValue[*docker.Repository](ctx, "step.repository.repository")
 						if err != nil {
@@ -76,6 +81,17 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						data.FullDescription = &models.ImageDescription{
 							Markdown: repository.FullDescription,
 						}
+
+						vulnerabilities, err := workflow.GetValue[[]models.ImageVulnerability](ctx, "step.vulnerabilities.vulnerabilities")
+						if err != nil {
+							return nil, err
+						}
+
+						if len(vulnerabilities) > 0 {
+							data.InsertVulnerabilities(vulnerabilities)
+							data.InsertTag("vulnerable")
+						}
+
 						return nil, nil
 					}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {

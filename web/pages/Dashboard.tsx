@@ -5,6 +5,7 @@ import { useImages, usePagination, useTags } from '../api'
 import { Badge } from '../components/Badge'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { FluentChevronRight24Regular } from '../components/icons/fluent-chevron-right-24-regular'
+import { FluentShieldError16Filled } from '../components/icons/fluent-shield-error-16-filled'
 import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
 import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
@@ -186,7 +187,15 @@ export function Dashboard(): JSX.Element {
                     <td
                       className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
                     >
-                      {version(image.reference)}
+                      <p>
+                        {version(image.reference)}
+                        {image.vulnerabilities.length > 0 && (
+                          <InfoTooltip icon={<FluentShieldError16Filled />}>
+                            {image.vulnerabilities.length} vulnerabilities
+                            reported.
+                          </InfoTooltip>
+                        )}
+                      </p>
                     </td>
                     <td
                       className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}

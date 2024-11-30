@@ -18,6 +18,7 @@ import { Markdown } from '../components/Markdown'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { FluentLink24Filled } from '../components/icons/fluent-link-24-filled'
+import { FluentShieldError24Filled } from '../components/icons/fluent-shield-error-24-filled'
 import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
 import { Quay } from '../components/icons/quay'
 import { SimpleIconsDocker } from '../components/icons/simple-icons-docker'
@@ -36,6 +37,15 @@ const titles: Record<string, string | undefined> = {
   quay: "Project's page on Quay.io",
   git: "Project's git page",
   'oci-registry': "Project's OCI registry",
+}
+
+function unique<T>(previousValue: T[], currentValue: T): T[] {
+  if (previousValue.includes(currentValue)) {
+    return previousValue
+  }
+
+  previousValue.push(currentValue)
+  return previousValue
 }
 
 export function ImageLink({
@@ -159,7 +169,16 @@ export function ImagePage(): JSX.Element {
         </div>
       )}
       {/* Image name */}
-      <h1 className="text-2xl font-medium">{name(image.value.reference)}</h1>
+      <h1 className="text-2xl font-medium">
+        {name(image.value.reference)}
+        {image.value.vulnerabilities.length > 0 && (
+          <InfoTooltip
+            icon={<FluentShieldError24Filled className="text-red-400" />}
+          >
+            {image.value.vulnerabilities.length} vulnerabilities reported.
+          </InfoTooltip>
+        )}
+      </h1>
       {/* Image version */}
       <div className="flex items-center">
         {!image.value.latestReference ? (
@@ -212,6 +231,80 @@ export function ImagePage(): JSX.Element {
       </div>
 
       <main className="min-w-[200px] max-w-[980px] w-full box-border space-y-6 mt-6">
+        {/* Vulnerability report */}
+        {image.value.vulnerabilities.length > 0 && (
+          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-6 shadow">
+            <div className="markdown-body">
+              <h1>Vulnerabilities</h1>
+              <ul>
+                <li>
+                  Critical:{' '}
+                  {
+                    image.value.vulnerabilities.filter(
+                      (x) => x.severity === 'critical'
+                    ).length
+                  }
+                </li>
+                <li>
+                  High:{' '}
+                  {
+                    image.value.vulnerabilities.filter(
+                      (x) => x.severity === 'high'
+                    ).length
+                  }
+                </li>
+                <li>
+                  Medium:{' '}
+                  {
+                    image.value.vulnerabilities.filter(
+                      (x) => x.severity === 'medium'
+                    ).length
+                  }
+                </li>
+                <li>
+                  Low:{' '}
+                  {
+                    image.value.vulnerabilities.filter(
+                      (x) => x.severity === 'low'
+                    ).length
+                  }
+                </li>
+                <li>
+                  Unspecified:{' '}
+                  {
+                    image.value.vulnerabilities.filter(
+                      (x) => x.severity === 'unspecified'
+                    ).length
+                  }
+                </li>
+              </ul>
+
+              <h2>Authorities</h2>
+              <ul>
+                {image.value.vulnerabilities
+                  .map((x) => x.authority)
+                  .reduce(unique<string>, [])
+                  .map((x) => (
+                    <li key={x}>{x}</li>
+                  ))}
+              </ul>
+
+              <h2>Links</h2>
+              <ul>
+                {image.value.vulnerabilities
+                  .filter((x) => x.link)
+                  .map((x) => x.link!)
+                  .reduce(unique<string>, [])
+                  .map((x) => (
+                    <li key={x}>
+                      <a href={x}>{x}</a>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
         {/* Release notes */}
         {releaseNotes.value?.html && (
           <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-6 shadow">

@@ -82,6 +82,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 		FullDescription: nil,
 		ReleaseNotes:    nil,
 		Links:           make([]models.ImageLink, 0),
+		Vulnerabilities: make([]models.ImageVulnerability, 0),
 		Graph:           image.Graph,
 	}
 
@@ -111,6 +112,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 		Tags:            data.Tags,
 		Image:           data.Image,
 		Links:           data.Links,
+		Vulnerabilities: data.Vulnerabilities,
 		LastModified:    time.Now(),
 	}
 	if data.LatestReference != nil {

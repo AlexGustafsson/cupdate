@@ -28,6 +28,7 @@ export interface Image {
   description?: string
   tags: string[]
   links: ImageLink[]
+  vulnerabilities: ImageVulnerability[]
   image?: string
   lastModified: string
 }
@@ -46,6 +47,14 @@ export interface ImageReleaseNotes {
 export interface ImageLink {
   type: string
   url: string
+}
+
+export interface ImageVulnerability {
+  id: number
+  severity: string
+  authority: string
+  description?: string
+  link?: string
 }
 
 export interface Graph {
