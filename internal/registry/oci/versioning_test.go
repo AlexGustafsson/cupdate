@@ -81,6 +81,11 @@ func TestVersionIsCompatible(t *testing.T) {
 			Range:    "3.7.0-alpine",
 			Expected: false,
 		},
+		{
+			Version:  "0.7.2",
+			Range:    "0.8.5rc51",
+			Expected: true,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -124,6 +129,10 @@ func TestVersionIsStable(t *testing.T) {
 			Version:  "3.8.2",
 			Expected: true,
 		},
+		{
+			Version:  "0.8.5rc51",
+			Expected: false,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -142,10 +151,12 @@ func TestCompareVersionsUnstable(t *testing.T) {
 		"3.7-alpine",
 		"3.7.0b1",
 		"3.7.0b5",
+		"3.8.3rc1",
 		"3.8.0b1-alpine",
 		"3.8.0-alpine",
 		"3.8.2",
 		"3.8.0",
+		"3.8.1rc1",
 	}
 
 	expected := []string{
@@ -156,7 +167,9 @@ func TestCompareVersionsUnstable(t *testing.T) {
 		"3.8.0b1-alpine",
 		"3.8.0-alpine",
 		"3.8.0",
+		"3.8.1rc1",
 		"3.8.2",
+		"3.8.3rc1",
 	}
 
 	slices.SortFunc(versions, func(as, bs string) int {
