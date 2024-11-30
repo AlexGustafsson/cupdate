@@ -47,6 +47,15 @@ func TestStoreInsertImage(t *testing.T) {
 				URL:  "https://docker.com/_/mongo",
 			},
 		},
+		Vulnerabilities: []models.ImageVulnerability{
+			{
+				ID:          1234, // Should not be respected
+				Severity:    "low",
+				Authority:   "test",
+				Description: "Some CVE",
+				Link:        "https://example.com",
+			},
+		},
 		LastModified: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		Image:        "https://example.com/logo.png",
 	}
@@ -58,6 +67,9 @@ func TestStoreInsertImage(t *testing.T) {
 
 	err = store.InsertImage(context.TODO(), expected)
 	require.NoError(t, err)
+
+	// ID should not be respected
+	expected.Vulnerabilities[0].ID = 1
 
 	actual, err := store.GetImage(context.TODO(), "mongo:4")
 	require.NoError(t, err)
@@ -196,8 +208,9 @@ func TestListImages(t *testing.T) {
 					URL:  "https://docker.com/_/mongo",
 				},
 			},
-			LastModified: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
-			Image:        "https://example.com/logo.png",
+			Vulnerabilities: []models.ImageVulnerability{},
+			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+			Image:           "https://example.com/logo.png",
 		},
 		{
 			Reference:       "mongo:4",
@@ -210,8 +223,9 @@ func TestListImages(t *testing.T) {
 					URL:  "https://docker.com/_/mongo",
 				},
 			},
-			LastModified: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
-			Image:        "https://example.com/logo.png",
+			Vulnerabilities: []models.ImageVulnerability{},
+			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+			Image:           "https://example.com/logo.png",
 		},
 	}
 
@@ -277,6 +291,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:1",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
+			Vulnerabilities: []models.ImageVulnerability{},
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 		{
@@ -284,6 +299,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:2",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
+			Vulnerabilities: []models.ImageVulnerability{},
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 		{
@@ -291,6 +307,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:3",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
+			Vulnerabilities: []models.ImageVulnerability{},
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 		{
@@ -298,6 +315,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:4",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
+			Vulnerabilities: []models.ImageVulnerability{},
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 	}
@@ -309,6 +327,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 				LatestReference: "mongo:4",
 				Tags:            []string{},
 				Links:           []models.ImageLink{},
+				Vulnerabilities: []models.ImageVulnerability{},
 				LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 			},
 		},
