@@ -3,6 +3,7 @@ import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useImages, usePagination, useTags } from '../api'
 import { Badge } from '../components/Badge'
+import { InfoTooltip } from '../components/InfoTooltip'
 import { FluentChevronRight24Regular } from '../components/icons/fluent-chevron-right-24-regular'
 import { FluentArrowSortDown24Filled } from '../components/icons/fluent-sort-arrow-down-24-filled'
 import { FluentArrowSortUp24Filled } from '../components/icons/fluent-sort-arrow-up-24-filled'
@@ -190,9 +191,19 @@ export function Dashboard(): JSX.Element {
                     <td
                       className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
                     >
-                      {image.latestReference
-                        ? version(image.latestReference)
-                        : 'unknown'}
+                      {image.latestReference ? (
+                        version(image.latestReference)
+                      ) : (
+                        <p>
+                          unknown{' '}
+                          <InfoTooltip>
+                            The latest version cannot be identified. This could
+                            be due to the image not being available, the
+                            registry not being supported, missing authentication
+                            or a temporary issue.
+                          </InfoTooltip>
+                        </p>
+                      )}
                     </td>
                     <td className="flex flex-wrap max-w-[120px]">
                       {tags.value

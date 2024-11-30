@@ -13,10 +13,12 @@ import {
 } from '../api'
 import { Badge } from '../components/Badge'
 import { HTML } from '../components/HTML'
+import { InfoTooltip } from '../components/InfoTooltip'
 import { Markdown } from '../components/Markdown'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { FluentLink24Filled } from '../components/icons/fluent-link-24-filled'
+import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
 import { Quay } from '../components/icons/quay'
 import { SimpleIconsDocker } from '../components/icons/simple-icons-docker'
 import { SimpleIconsGit } from '../components/icons/simple-icons-git'
@@ -160,8 +162,20 @@ export function ImagePage(): JSX.Element {
       <h1 className="text-2xl font-medium">{name(image.value.reference)}</h1>
       {/* Image version */}
       <div className="flex items-center">
-        {!image.value.latestReference ||
-        image.value.reference === image.value.latestReference ? (
+        {!image.value.latestReference ? (
+          <p className="font-medium">
+            {version(image.value.reference)}{' '}
+            <InfoTooltip
+              icon={
+                <FluentWarning16Filled className="text-yellow-400 dark:text-yellow-600" />
+              }
+            >
+              The latest version cannot be identified. This could be due to the
+              image not being available, the registry not being supported,
+              missing authentication or a temporary issue.
+            </InfoTooltip>
+          </p>
+        ) : image.value.reference === image.value.latestReference ? (
           <p className="font-medium">{version(image.value.reference)}</p>
         ) : (
           <>
