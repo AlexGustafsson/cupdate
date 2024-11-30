@@ -5,22 +5,22 @@ export interface Tag {
 }
 
 const palette: Record<string, string | { light: string; dark: string }> = {
-  // Brands
+  // Brand colors
   kubernetes: { light: '#316ce6', dark: '#1955cc' },
   docker: { light: '#1d63ed', dark: '#104dc6' },
   github: { light: '#8B57E8', dark: '#571ac1' },
   gitlab: { light: '#fc6d26', dark: '#c94503' },
   quay: { light: '#40B4E5', dark: '#177ba6' },
 
-  // Generic
-  // SEE: https://spectrum.adobe.com/page/badge/
+  // Generic colors
+  // Originally based on https://spectrum.adobe.com/page/badge/
   grey: { light: '#6d6d6d', dark: '#545454' },
   purple1: { light: '#893de7', dark: '#6f1ad5' },
   purble2: { light: '#b622b7', dark: '#8e1a8e' },
-  green1: { light: '#318801', dark: '#246501' },
+  green1: { light: '#44cb01', dark: '#339801' },
   green2: { light: '#007772', dark: '#004d49' },
-  red1: { light: '#c82269', dark: '#9d1b53' },
-  red2: { light: '#d31510', dark: '#8e0f0b' },
+  red1: { light: '#de3b82', dark: '#9d1b53' },
+  red2: { light: '#f14741', dark: '#8e0f0b' },
   blue1: { light: '#0265dc', dark: '#024597' },
   blue2: { light: '#5258e4', dark: '#1c21b0' },
   yellow: { light: '#e8c600', dark: '#998200' },
