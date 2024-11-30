@@ -22,9 +22,19 @@ var _ platform.Platform = (*Platform)(nil)
 
 type Platform struct {
 	clientset *kubernetes.Clientset
+
+	includeOldReplicaSets bool
 }
 
-func NewPlatform(config *rest.Config) (*Platform, error) {
+type Options struct {
+	IncludeOldReplicaSets bool
+}
+
+func NewPlatform(config *rest.Config, options *Options) (*Platform, error) {
+	if options == nil {
+		options = &Options{}
+	}
+
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -32,6 +42,8 @@ func NewPlatform(config *rest.Config) (*Platform, error) {
 
 	return &Platform{
 		clientset: clientset,
+
+		includeOldReplicaSets: options.IncludeOldReplicaSets,
 	}, nil
 }
 
@@ -135,6 +147,17 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 						)
 					}
 				case *appsv1.ReplicaSet:
+					// Assume there's one replica
+					replicas := 1
+					if o.Spec.Replicas != nil {
+						replicas = int(*o.Spec.Replicas)
+					}
+
+					if replicas == 0 && !p.includeOldReplicaSets {
+						// Ignore the old replica set
+						return nil
+					}
+
 					for _, container := range o.Spec.Template.Spec.Containers {
 						reference, err := oci.ParseReference(container.Image)
 						if err != nil {

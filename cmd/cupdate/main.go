@@ -54,7 +54,8 @@ type Config struct {
 	} `envPrefix:"PROCESSING_"`
 
 	Kubernetes struct {
-		Host string `env:"HOST"`
+		Host                  string `env:"HOST"`
+		IncludeOldReplicaSets bool   `env:"INCLUDE_OLD_REPLICAS"`
 	} `envPrefix:"K8S_"`
 }
 
@@ -102,7 +103,7 @@ func main() {
 		}
 	}
 
-	kubernetesPlatform, err := kubernetes.NewPlatform(kubernetesConfig)
+	kubernetesPlatform, err := kubernetes.NewPlatform(kubernetesConfig, &kubernetes.Options{IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets})
 	if err != nil {
 		slog.Error("Failed to create kubernetes source", slog.Any("error", err))
 		os.Exit(1)
