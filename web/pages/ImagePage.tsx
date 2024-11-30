@@ -179,16 +179,16 @@ export function ImagePage(): JSX.Element {
           <p className="font-medium">{version(image.value.reference)}</p>
         ) : (
           <>
-            <FluentChevronDown20Regular className="text-red-500" />
-            <p className="font-medium text-red-500">
+            <FluentChevronDown20Regular className="text-red-400" />
+            <p className="font-medium text-red-400">
               {version(image.value.reference)}
             </p>
-            <p className="font-medium ml-4 text-green-500">
+            <p className="font-medium ml-4 text-green-400">
               {image.value.latestReference
                 ? version(image.value.latestReference)
                 : 'unknown'}
             </p>
-            <FluentChevronUp20Regular className="text-green-500" />
+            <FluentChevronUp20Regular className="text-green-400" />
           </>
         )}
       </div>
