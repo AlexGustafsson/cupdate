@@ -128,8 +128,27 @@ export function Dashboard(): JSX.Element {
           )}
         </div>
 
-        {/* Table card */}
-        <div className="relative mt-6 w-[800px]">
+        <main className="relative mt-6">
+          {/* Side menu with tag filters */}
+          <div className="lg:absolute left-full h-full">
+            <div className="sticky top-[80px] lg:ml-4 mb-2 w-full lg:w-64 rounded-lg bg-white dark:bg-[#121212] p-4 w-64 shadow">
+              <p>Tags</p>
+              <div className="flex flex-wrap mt-2">
+                {tags.value.map((tag) => (
+                  <Badge
+                    key={tag.name}
+                    label={tag.name}
+                    color={tag.color}
+                    disabled={!filter.includes(tag.name)}
+                    onClick={() => toggleTag(tag.name)}
+                    className="cursor-pointer"
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Table card */}
           <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-2 shadow">
             <table className="break-words">
               <thead>
@@ -137,7 +156,7 @@ export function Dashboard(): JSX.Element {
                   <th
                     scope="col"
                     colSpan={2}
-                    className="text-nowrap text-center cursor-pointer pr-[24px]"
+                    className="text-nowrap text-sm md:text-base text-center cursor-pointer pr-[24px]"
                     onClick={() => toggleSort('reference')}
                   >
                     Image
@@ -150,13 +169,22 @@ export function Dashboard(): JSX.Element {
                       )}
                     </div>
                   </th>
-                  <th scope="col" className="text-nowrap text-center pr-[24px]">
+                  <th
+                    scope="col"
+                    className="text-nowrap text-sm md:text-base text-center lg:pr-[24px]"
+                  >
                     Version
                   </th>
-                  <th scope="col" className="text-nowrap text-center pr-[24px]">
+                  <th
+                    scope="col"
+                    className="text-nowrap text-sm md:text-base text-center lg:pr-[24px]"
+                  >
                     Latest version
                   </th>
-                  <th scope="col" className="text-nowrap text-center">
+                  <th
+                    scope="col"
+                    className="text-nowrap text-sm md:text-base text-center"
+                  >
                     Tags
                   </th>
                   <th scope="col"></th>
@@ -178,14 +206,18 @@ export function Dashboard(): JSX.Element {
                         </div>
                       )}
                     </td>
-                    <td className="pr-[24px] max-w-[300px]">
-                      <p className="truncate">{name(image.reference)} </p>
+                    <td className="lg:pr-[24px] max-w-[100px] lg:max-w-[300px]">
+                      <p className="truncate text-xs md:text-base">
+                        {name(image.reference)}{' '}
+                      </p>
                       {image.description && (
-                        <p className="text-xs">{image.description}</p>
+                        <p className="text-xs hidden md:block">
+                          {image.description}
+                        </p>
                       )}
                     </td>
                     <td
-                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
+                      className={`text-end text-xs md:text-base lg:pr-[24px] max-w-[80px] lg:max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-red-400' : ''}`}
                     >
                       <>
                         {version(image.reference)}
@@ -198,7 +230,7 @@ export function Dashboard(): JSX.Element {
                       </>
                     </td>
                     <td
-                      className={`text-end pr-[24px] max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
+                      className={`text-end text-xs md:text-base lg:pr-[24px] max-w-[80px] lg:max-w-[120px] ${image.latestReference && image.reference !== image.latestReference ? 'text-green-400' : ''}`}
                     >
                       {image.latestReference ? (
                         version(image.latestReference)
@@ -214,7 +246,7 @@ export function Dashboard(): JSX.Element {
                         </>
                       )}
                     </td>
-                    <td className="flex flex-wrap max-w-[120px]">
+                    <td className="flex flex-wrap max-w-[80px] lg:max-w-[120px]">
                       {tags.value
                         .filter((tag) => image.tags.includes(tag.name))
                         .map((tag) => (
@@ -268,26 +300,7 @@ export function Dashboard(): JSX.Element {
               </p>
             </div>
           </div>
-
-          {/* Side menu with tag filters */}
-          <div className="absolute left-full top-0 px-2">
-            <div className="rounded-lg bg-white dark:bg-[#121212] p-4 w-64 shadow">
-              <p>Tags</p>
-              <div className="flex flex-wrap mt-2">
-                {tags.value.map((tag) => (
-                  <Badge
-                    key={tag.name}
-                    label={tag.name}
-                    color={tag.color}
-                    disabled={!filter.includes(tag.name)}
-                    onClick={() => toggleTag(tag.name)}
-                    className="cursor-pointer"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        </main>
       </div>
     </>
   )
