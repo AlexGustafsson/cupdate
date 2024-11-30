@@ -4,89 +4,88 @@ export interface Tag {
   color?: string | { light: string; dark: string }
 }
 
-// SEE: https://designlibrary.sebgroup.com/patterns/pattern-darkmode
-const palette = [
-  ['#007AC7', '#2C9CD9'],
-  ['#0092E1', '#01ADFF'],
-  ['#40b0ed', '#6d58b8'],
+const palette: Record<string, string | { light: string; dark: string }> = {
+  // Brands
+  kubernetes: { light: '#316ce6', dark: '#1955cc' },
+  docker: { light: '#1d63ed', dark: '#104dc6' },
+  github: { light: '#8B57E8', dark: '#571ac1' },
+  gitlab: { light: '#fc6d26', dark: '#c94503' },
+  quay: { light: '#40B4E5', dark: '#177ba6' },
 
-  ['#318801', '#318801'],
-  ['#45b401', '#75ba49'],
-  ['#61cc18', '#61cc18'],
-
-  ['#3f2587', '#4a328f'],
-  ['#4f2c99', '#7e52cc'],
-  ['#673ab5', '#ac91dc'],
-
-  ['#f7a000', '#ebaa39'],
-  ['#ffb400', '#f0be47'],
-  ['#ffc502', '#ffe1b2'],
-
-  ['#bb010b', '#9e2120'],
-  ['#d81b1b', '#c82929'],
-  ['#f0352a', '#f7706c'],
-]
+  // Generic
+  // SEE: https://spectrum.adobe.com/page/badge/
+  grey: { light: '#6d6d6d', dark: '#545454' },
+  purple1: { light: '#893de7', dark: '#6f1ad5' },
+  purble2: { light: '#b622b7', dark: '#8e1a8e' },
+  green1: { light: '#318801', dark: '#246501' },
+  green2: { light: '#007772', dark: '#004d49' },
+  red1: { light: '#c82269', dark: '#9d1b53' },
+  red2: { light: '#d31510', dark: '#8e0f0b' },
+  blue1: { light: '#0265dc', dark: '#024597' },
+  blue2: { light: '#5258e4', dark: '#1c21b0' },
+  yellow: { light: '#e8c600', dark: '#998200' },
+}
 
 export const Tags: Tag[] = [
   {
     name: 'pod',
     description: 'A kubernetes pod',
-    color: { light: palette[0][0], dark: palette[0][1] },
+    color: palette.kubernetes,
   },
   {
     name: 'job',
     description: 'A kubernetes job',
-    color: { light: palette[1][0], dark: palette[1][1] },
+    color: palette.kubernetes,
   },
   {
     name: 'cron job',
     description: 'A kubernetes cron job',
-    color: { light: palette[2][0], dark: palette[2][1] },
+    color: palette.kubernetes,
   },
   {
     name: 'deployment',
     description: 'A kubernetes deployment',
-    color: { light: palette[7][0], dark: palette[7][1] },
+    color: palette.kubernetes,
   },
   {
     name: 'replica set',
     description: 'A kubernetes replica set',
-    color: { light: palette[8][0], dark: palette[8][1] },
+    color: palette.kubernetes,
   },
   {
     name: 'daemon set',
     description: 'A kubernetes daemon set',
-    color: { light: palette[9][0], dark: palette[9][1] },
+    color: palette.kubernetes,
   },
   {
     name: 'stateful set',
     description: 'A kubernetes stateful set',
-    color: { light: palette[10][0], dark: palette[10][1] },
+    color: palette.kubernetes,
   },
   {
     name: 'docker',
     description: 'A docker image',
-    color: { light: palette[7][0], dark: palette[7][1] },
+    color: palette.docker,
   },
   {
     name: 'ghcr',
     description: 'A ghcr image',
-    color: { light: palette[8][0], dark: palette[8][1] },
+    color: palette.github,
   },
   {
     name: 'github',
     description: 'A github project',
-    color: { light: palette[0][0], dark: palette[0][1] },
+    color: palette.github,
   },
   {
     name: 'up-to-date',
     description: 'Up-to-date images',
-    color: { light: palette[6][0], dark: palette[6][1] },
+    color: palette.green1,
   },
   {
     name: 'outdated',
     description: 'Outdated images',
-    color: { light: palette[13][0], dark: palette[13][1] },
+    color: palette.red2,
   },
 ]
 
