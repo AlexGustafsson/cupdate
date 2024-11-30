@@ -12,7 +12,17 @@ on:
       - cmd/**
       - internal/**
       - go.*
-      - .github/workflows/docker.yaml
+      - .github/workflows/build.yaml
+      - web/**
+      - .yarn
+      - .yarnrc.yml
+      - eslint.config.mjs
+      - package.json
+      - postcss.config.mjs
+      - tailwind.config.js
+      - tsconfig.json
+      - vite.config.ts
+      - yarn.lock
 
 jobs:
   build:
