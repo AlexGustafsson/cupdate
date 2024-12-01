@@ -1,13 +1,15 @@
 package imageworkflow
 
 import (
+	"runtime"
+
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func GetManifests() workflow.Step {
+func GetAnnotations() workflow.Step {
 	return workflow.Step{
-		Name: "Get manifests",
+		Name: "Get annotations",
 
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
 			registryClient, err := workflow.GetInput[*oci.Client](ctx, "registryClient", true)
@@ -20,12 +22,20 @@ func GetManifests() workflow.Step {
 				return nil, err
 			}
 
-			manifests, err := registryClient.GetManifests(ctx, image)
+			manifests, err := workflow.GetInput[[]oci.Manifest](ctx, "manifests", true)
 			if err != nil {
 				return nil, err
 			}
 
-			return workflow.SetOutput("manifests", manifests), nil
+			annotations, err := registryClient.GetAnnotations(ctx, image, &oci.GetAnnotationsOptions{
+				Manifests:    manifests,
+				Architecture: runtime.GOARCH,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			return workflow.SetOutput("annotations", annotations), nil
 		},
 	}
 }

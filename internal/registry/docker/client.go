@@ -56,19 +56,13 @@ func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (str
 	return result.Token, nil
 }
 
-func (c *Client) GetManifests(ctx context.Context, image oci.Reference) ([]oci.Manifest, error) {
+func (c *Client) Authorize(ctx context.Context, image oci.Reference, req *http.Request) error {
 	token, err := c.GetRegistryToken(ctx, image)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	ociClient := &oci.Client{
-		Client: c.Client,
-		// TODO: Cache token
-		Authorizer: oci.AuthorizerToken(token),
-	}
-
-	return ociClient.GetManifests(ctx, image)
+	return oci.AuthorizerToken(token).Authorize(ctx, image, req)
 }
 
 func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*registry.Image, error) {

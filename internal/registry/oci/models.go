@@ -17,6 +17,7 @@ type DockerDistributionManifestV2 struct {
 	Platform  struct {
 		Architecture string `json:"architecture"`
 		OS           string `json:"os"`
+		Variant      string `json:"variant"`
 	} `json:"platform"`
 	Size int `json:"size"`
 }
@@ -35,6 +36,12 @@ type OCIImageManifestV1 struct {
 	// application/vnd.oci.image.manifest.v1+json
 	MediaType   string            `json:"mediaType"`
 	Annotations map[string]string `json:"annotations"`
+	Digest      string            `json:"digest"`
+	Platform    struct {
+		Architecture string `json:"architecture"`
+		OS           string `json:"os"`
+		Variant      string `json:"variant"`
+	} `json:"platform"`
 }
 
 // application/vnd.docker.distribution.manifest.v1+prettyjws
@@ -47,20 +54,33 @@ type DockerDistributionManifestV1 struct {
 }
 
 type Manifest struct {
-	SchemaVersion int               `json:"schemaVersion"`
-	MediaType     string            `json:"mediaType"`
-	Annotations   map[string]string `json:"annotations"`
-	Digest        string            `json:"digest"`
+	SchemaVersion int    `json:"schemaVersion"`
+	MediaType     string `json:"mediaType"`
+	// Annotations contains manifest / image annotations. Nil if none were found.
+	// Note the even if annotations were found at the top level, they might not
+	// match the annotations / label of the image itself.
+	Annotations Annotations `json:"annotations"`
+	Digest      string      `json:"digest"`
+	Platform    *Platform   `json:"platform,omitempty"`
 }
 
-func (m Manifest) SourceAnnotation() string {
-	s := m.Annotations["org.opencontainers.image.source"]
-	if s == "" {
-		s = m.Annotations["org.label-schema.vcs-url"]
+type Platform struct {
+	OS           string `json:"os"`
+	Architecture string `json:"architecture"`
+	Variant      string `json:"variant"`
+}
+
+type Annotations map[string]string
+
+func (a Annotations) Source() string {
+	if a == nil {
+		return ""
 	}
-	return s
-}
 
-func (m Manifest) RevisionAnnotation() string {
-	return m.Annotations["org.opencontainers.image.revision"]
+	s := a["org.opencontainers.image.source"]
+	if s == "" {
+		s = a["org.label-schema.vcs-url"]
+	}
+
+	return s
 }

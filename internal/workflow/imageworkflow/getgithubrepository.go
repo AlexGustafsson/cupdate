@@ -13,27 +13,19 @@ func GetGitHubRepsitory() workflow.Step {
 	return workflow.Step{
 		Name: "Get GitHub repository",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
-			// If not, try to find references to GitHub and go from there
-			manifests, err := workflow.GetInput[[]oci.Manifest](ctx, "manifests", true)
+			annotations, err := workflow.GetValue[oci.Annotations](ctx, "step.annotations.annotations")
 			if err != nil {
 				return nil, err
 			}
 
-			if manifests == nil {
-				return nil, fmt.Errorf("no manifests found")
+			source := annotations.Source()
+			if !strings.Contains(source, "://github.com/") {
+				return nil, fmt.Errorf("no GitHub references found")
 			}
 
 			var endpoint, owner, repository string
-			var ok bool
-			for _, manifest := range manifests {
-				if strings.Contains(manifest.SourceAnnotation(), "github.com") {
-					endpoint, owner, repository, _, ok = github.ParseURL(manifest.SourceAnnotation())
-					// NOTE: Only support github.com for now
-					if ok && endpoint == "https://github.com" {
-						break
-					}
-				}
-			}
+			endpoint, owner, repository, _, ok := github.ParseURL(source)
+			// NOTE: Only support github.com for now
 			if ok {
 				return workflow.Batch(
 					workflow.SetOutput("endpoint", endpoint),

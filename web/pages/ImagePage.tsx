@@ -74,6 +74,15 @@ export function ImageLink({
     case 'git':
       icon = <SimpleIconsGit className="text-orange-500" />
       break
+    case 'svc':
+      if (url.includes('github.com')) {
+        return <ImageLink type="github" url={url} />
+      } else if (url.includes('gitlab')) {
+        return <ImageLink type="gitlab" url={url} />
+      } else {
+        return <ImageLink type="git" url={url} />
+      }
+      break
     default:
       icon = <FluentLink24Filled />
   }

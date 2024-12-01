@@ -30,6 +30,11 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("manifests").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference),
+					GetAnnotations().
+						WithID("annotations").
+						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
+						With("reference", data.ImageReference).
+						With("manifests", workflow.Ref{Key: "step.manifests.manifests"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
 						if err != nil {
@@ -40,6 +45,19 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							Type: "oci-registry",
 							URL:  "https://" + domain,
 						})
+
+						annotations, err := workflow.GetValue[oci.Annotations](ctx, "step.annotations.annotations")
+						if err != nil {
+							return nil, err
+						}
+
+						source := annotations.Source()
+						if source != "" {
+							data.InsertLink(models.ImageLink{
+								Type: "svc",
+								URL:  source,
+							})
+						}
 						return nil, nil
 					}),
 				},
@@ -249,19 +267,14 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						return true, nil
 					}
 
-					manifests, err := workflow.GetValue[[]oci.Manifest](ctx, "job.oci.step.manifests.manifests")
+					annotations, err := workflow.GetValue[oci.Annotations](ctx, "step.annotations.annotations")
 					if err != nil {
 						return false, err
 					}
 
-					if manifests == nil {
-						return false, nil
-					}
-
-					for _, manifest := range manifests {
-						if strings.Contains(manifest.SourceAnnotation(), "github.com") {
-							return true, nil
-						}
+					source := annotations.Source()
+					if strings.HasPrefix(source, "://github.com/") {
+						return true, nil
 					}
 
 					return false, nil

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
 	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
@@ -26,15 +25,21 @@ func SetupRegistryClient() workflow.Step {
 			}
 
 			// TODO: Support other registries (gitlab etc.)
-			var client registry.Client
+			var client *oci.Client
 			switch image.Domain {
 			case "docker.io":
-				client = &docker.Client{
+				client = &oci.Client{
 					Client: httpClient,
+					Authorizer: &docker.Client{
+						Client: httpClient,
+					},
 				}
 			case "ghcr.io", "lscr.io":
-				client = &ghcr.Client{
+				client = &oci.Client{
 					Client: httpClient,
+					Authorizer: &ghcr.Client{
+						Client: httpClient,
+					},
 				}
 			case "k8s.gcr.io", "quay.io", "registry.k8s.io":
 				client = &oci.Client{
