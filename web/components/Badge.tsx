@@ -24,7 +24,7 @@ export function Badge({
     <span
       {...rest}
       className={
-        `rounded-md px-1 lg:px-2 py-1 text-xs text-nowrap text-white h-fit ${disabled ? 'opacity-50 hover:opacity-70' : ''} m-1 ` +
+        `rounded-md px-1 sm:px-2 py-1 text-xs text-nowrap text-white h-fit ${disabled ? 'opacity-50 hover:opacity-70' : ''}` +
         className
       }
       style={{ backgroundColor }}
