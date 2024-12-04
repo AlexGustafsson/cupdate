@@ -6,6 +6,7 @@
 
 @layer base {
   html {
+    -webkit-touch-callout: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
@@ -20,6 +21,13 @@
       'Helvetica Neue',
       'Lucida Grande',
       sans-serif;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus,
+  button:focus {
+    outline: none;
   }
 
   :root {
