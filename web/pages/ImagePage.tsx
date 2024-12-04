@@ -28,6 +28,7 @@ import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
 import { nodeTypes, useNodesAndEdges } from '../graph'
 import { name, version } from '../oci'
+import { formatRelativeTimeTo } from '../time'
 
 const titles: Record<string, string | undefined> = {
   github: "Project's page on GitHub",
@@ -341,7 +342,10 @@ export function ImagePage(): JSX.Element {
 
         <div className="flex justify-center">
           <p>
-            Last updated {new Date(image.value?.lastModified).toLocaleString()}
+            Last updated{' '}
+            <span title={new Date(image.value.lastModified).toLocaleString()}>
+              {formatRelativeTimeTo(new Date(image.value.lastModified))}
+            </span>
           </p>
         </div>
       </main>
