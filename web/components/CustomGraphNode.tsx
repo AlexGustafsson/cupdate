@@ -13,7 +13,7 @@ export function CustomGraphNode(
 ): JSX.Element {
   return (
     <div
-      className="px-4 py-2 shadow-md rounded-md bg-white dark:bg-[#121212] border-2 border-[#ebebeb] dark:border-[#262626]"
+      className="px-4 py-2 shadow-md rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333]"
       style={{ width: node.width, height: node.height }}
     >
       <div className="flex">

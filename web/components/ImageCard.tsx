@@ -30,7 +30,7 @@ export function ImageCard({
 }: ImageCardProps & { className?: string }): JSX.Element {
   return (
     <div
-      className={`flex gap-x-4 p-4 md:p-6 bg-white rounded-lg shadow ${className || ''}`}
+      className={`flex gap-x-4 p-4 md:p-6 bg-white dark:bg-[#1e1e1e] rounded-lg shadow ${className || ''}`}
     >
       <div className="w-[48px] h-[48px]">
         {logo ? (
@@ -40,8 +40,8 @@ export function ImageCard({
             className="w-full h-full rounded"
           />
         ) : (
-          <div className="flex items-center justify-center w-[48px] h-[48px] rounded bg-blue-400">
-            <SimpleIconsOci className="w-2/3 h-2/3 text-white" />
+          <div className="flex items-center justify-center w-[48px] h-[48px] rounded bg-blue-400 dark:bg-blue-700">
+            <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
           </div>
         )}
       </div>
@@ -51,7 +51,7 @@ export function ImageCard({
             <p className="text-sm break-all font-semibold">{name}</p>
             {vulnerabilities > 0 && (
               <InfoTooltip
-                icon={<FluentShieldError24Filled className="text-red-400" />}
+                icon={<FluentShieldError24Filled className="text-red-600" />}
               >
                 {vulnerabilities} vulnerabilities reported.
               </InfoTooltip>
@@ -69,10 +69,10 @@ export function ImageCard({
               )
             ) : (
               <>
-                <p className="text-yellow-500">{currentVersion}</p>
+                <p className="text-yellow-600">{currentVersion}</p>
                 {!latestVersion && (
                   <InfoTooltip
-                    icon={<FluentWarning16Filled className="text-yellow-500" />}
+                    icon={<FluentWarning16Filled className="text-yellow-600" />}
                   >
                     The latest version cannot be identified. This could be due
                     to the image not being available, the registry not being

@@ -22,9 +22,9 @@ export function TagSelect({
       onClick={() => setIsOpen(true)}
       onBlur={() => setIsOpen(false)}
       tabIndex={0}
-      className="relative pl-3 pr-8 py-2 relative border border-gray-200 rounded transition-colors duration-300 ease focus:outline-none focus:border-gray-300 hover:border-gray-300 shadow-sm focus:shadow-md bg-white hover:bg-[#fafafa]"
+      className="pl-3 pr-8 py-2 relative border border-gray-200 dark:border-[#333333] rounded transition-colors focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#333333] dark:hover:border-[#333333] shadow-sm focus:shadow-md bg-white dark:bg-[#1e1e1e] hover:bg-[#fafafa] dark:hover:bg-[#262626] cursor-pointer"
     >
-      <p className="text-sm appearance-none cursor-pointer">
+      <p className="text-sm">
         {filter.length > 0 ? `${filter.length} selected` : 'Tags'}
       </p>
       <svg
@@ -33,7 +33,7 @@ export function TagSelect({
         viewBox="0 0 24 24"
         strokeWidth="1.2"
         stroke="currentColor"
-        className="h-5 w-5 ml-1 absolute top-2.5 right-2.5 text-gray-700 pointer-events-none"
+        className="h-5 w-5 ml-1 absolute top-2.5 right-2.5 pointer-events-none"
       >
         <path
           strokeLinecap="round"
@@ -43,7 +43,7 @@ export function TagSelect({
       </svg>
       {isOpen && (
         <div className="absolute group-hover:visible -top-4 -left-4 p-2 z-50 text-black dark:text-[#dddddd]">
-          <div className="flex flex-col gap-y-2 py-2 px-3 pr-6 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d0d0d0]/95 dark:border-[#454545] rounded-lg w-max shadow">
+          <div className="flex flex-col gap-y-2 py-2 px-3 pr-6 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d0d0d0]/95 dark:border-[#505050] rounded-lg w-max shadow">
             {tags.map((x) => (
               <label className="cursor-pointer">
                 <input

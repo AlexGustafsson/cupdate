@@ -104,7 +104,7 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
     useNodesAndEdges(graph)
 
   return (
-    <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-2 shadow h-[480px]">
+    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-2 shadow h-[480px]">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -174,8 +174,8 @@ export function ImagePage(): JSX.Element {
           referrerPolicy="no-referrer"
         />
       ) : (
-        <div className="w-16 h-16 rounded bg-blue-500 dark:bg-blue-800 flex items-center justify-center">
-          <SimpleIconsOci className="dark:text-[#dddddd]" />
+        <div className="flex items-center justify-center w-16 h-16 rounded bg-blue-400 dark:bg-blue-700">
+          <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
         </div>
       )}
       {/* Image name */}
@@ -195,9 +195,7 @@ export function ImagePage(): JSX.Element {
           <p className="font-medium">
             {version(image.value.reference)}{' '}
             <InfoTooltip
-              icon={
-                <FluentWarning16Filled className="text-yellow-400 dark:text-yellow-600" />
-              }
+              icon={<FluentWarning16Filled className="text-yellow-600" />}
             >
               The latest version cannot be identified. This could be due to the
               image not being available, the registry not being supported,
@@ -208,23 +206,25 @@ export function ImagePage(): JSX.Element {
           <p className="font-medium">{version(image.value.reference)}</p>
         ) : (
           <>
-            <FluentChevronDown20Regular className="text-red-400" />
-            <p className="font-medium text-red-400">
+            <FluentChevronDown20Regular className="text-red-600" />
+            <p className="font-medium text-red-600">
               {version(image.value.reference)}
             </p>
-            <p className="font-medium ml-4 text-green-400">
+            <p className="font-medium ml-4 text-green-600">
               {image.value.latestReference
                 ? version(image.value.latestReference)
                 : 'unknown'}
             </p>
-            <FluentChevronUp20Regular className="text-green-400" />
+            <FluentChevronUp20Regular className="text-green-600" />
           </>
         )}
       </div>
       {/* Image description, if available */}
-      {image.value.description && <p>{image.value.description}</p>}
+      {image.value.description && (
+        <p className="mt-2">{image.value.description}</p>
+      )}
       {/* Image tags */}
-      <div className="flex mt-2 items-center gap-x-2">
+      <div className="flex mt-4 items-center gap-x-2">
         {imageTags.map((x) => (
           <Badge key={x.name} label={x.name} color={x.color} />
         ))}
@@ -243,7 +243,7 @@ export function ImagePage(): JSX.Element {
       <main className="min-w-[200px] max-w-[980px] w-full box-border space-y-6 mt-6">
         {/* Vulnerability report */}
         {image.value.vulnerabilities.length > 0 && (
-          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
             <div className="markdown-body">
               <h1>Vulnerabilities</h1>
               <ul>
@@ -317,7 +317,7 @@ export function ImagePage(): JSX.Element {
 
         {/* Release notes */}
         {releaseNotes.value?.html && (
-          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
             <div className="markdown-body">
               <h1>{releaseNotes.value?.title}</h1>
               <HTML>{releaseNotes.value?.html}</HTML>
@@ -327,7 +327,7 @@ export function ImagePage(): JSX.Element {
 
         {/* Description */}
         {(description.value?.html || description.value?.markdown) && (
-          <div className="rounded-lg bg-white dark:bg-[#121212] px-4 py-6 shadow">
+          <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
             <div className="markdown-body">
               {description.value.html && <HTML>{description.value.html}</HTML>}
               {description.value.markdown && (

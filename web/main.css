@@ -30,19 +30,29 @@
     outline: none;
   }
 
+  input,
+  select {
+    background: none;
+  }
+
   :root {
     color-scheme: light dark;
   }
 
   body {
     color: light-dark(#000000, #dddddd);
-    background-color: light-dark(#fafafa, #1e1e1e);
+    background-color: light-dark(#fafafa, #121212);
+  }
+
+  hr {
+    border-color: light-dark(#e5e5e5, #333333);
   }
 }
 
 @layer components {
   .markdown-body {
-    --bgColor-default: light-dark(#ffffff, #121212);
+    --fgColor-default: light-dark(#000000, #dddddd);
+    --bgColor-default: light-dark(#ffffff, #1e1e1e);
   }
 
   @media (max-width: 767px) {
