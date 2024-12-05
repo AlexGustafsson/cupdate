@@ -96,6 +96,13 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 		// Fallthrough - insert what we have
 	}
 
+	// If no new version was defined and the current version is using the "latest"
+	// convention, the latest available reference is the current reference
+	if reference.Version() == "latest" && data.LatestReference == nil {
+		r := reference
+		data.LatestReference = &r
+	}
+
 	// Add some basic tags
 	if data.LatestReference != nil {
 		if data.ImageReference.String() == data.LatestReference.String() {
