@@ -4,7 +4,7 @@ export function formatRelativeTimeTo(date: Date): string {
   const prefix = diff < 0 ? 'in ' : ''
   const suffix = diff >= 0 ? ' ago' : ''
 
-  diff = Math.floor(Math.abs(diff))
+  diff = Math.floor(Math.abs(diff) / 1000)
 
   const seconds = diff
   if (seconds == 0) {
