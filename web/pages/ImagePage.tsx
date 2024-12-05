@@ -175,7 +175,7 @@ export function ImagePage(): JSX.Element {
         />
       ) : (
         <div className="w-16 h-16 rounded bg-blue-500 dark:bg-blue-800 flex items-center justify-center">
-          <SimpleIconsOci className="text-white" />
+          <SimpleIconsOci className="dark:text-[#dddddd]" />
         </div>
       )}
       {/* Image name */}
