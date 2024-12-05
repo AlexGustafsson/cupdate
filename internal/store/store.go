@@ -189,7 +189,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 
 	// First clear out tags for an easy way of removing those that are no longer
 	// referenced
-	statement, err = tx.PrepareContext(ctx, `DELETE FROM images_links WHERE reference = ?;`)
+	statement, err = tx.PrepareContext(ctx, `DELETE FROM images_tags WHERE reference = ?;`)
 	if err != nil {
 		tx.Rollback()
 		return err
