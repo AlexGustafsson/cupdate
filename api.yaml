@@ -164,7 +164,7 @@ components:
             - images
             - outdated
             - vulnerable
-            - pods
+            - processing
         pagination:
           $ref: '#/components/schemas/PaginationMetadata'
       required:
