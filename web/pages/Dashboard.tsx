@@ -67,8 +67,9 @@ export function Dashboard(): JSX.Element {
         </div>
         <div className="py-2 px-4">
           <p className="text-sm">Vulnerable images</p>
-          {/* TODO */}
-          <p className="text-3xl font-semibold text-red-600">3</p>
+          <p className="text-3xl font-semibold text-red-600">
+            {images.value.summary.vulnerable}
+          </p>
         </div>
         <div className="py-2 px-4">
           <p className="text-sm">Queued images</p>

@@ -11,6 +11,7 @@ type ImagePage struct {
 type ImagePageSummary struct {
 	Images     int `json:"images"`
 	Outdated   int `json:"outdated"`
+	Vulnerable int `json:"vulnerable"`
 	Processing int `json:"processing"`
 }
 

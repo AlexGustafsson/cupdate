@@ -11,6 +11,7 @@ export interface ImagePage {
 export interface ImagePageSummary {
   images: number
   outdated: number
+  vulnerable: number
   processing: number
 }
 

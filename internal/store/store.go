@@ -712,6 +712,23 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	}
 	res.Close()
 
+	// Total vulnerable images
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(DISTINCT reference) FROM images_vulnerabilities;`)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, res.Err()
+	}
+
+	var totalVulnerableImages int
+	if err := res.Scan(&totalVulnerableImages); err != nil {
+		res.Close()
+		return nil, err
+	}
+	res.Close()
+
 	// Total raw images
 	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM raw_images;`)
 	if err != nil {
@@ -733,6 +750,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	result.Images = make([]models.Image, 0)
 	result.Summary.Images = totalImages
 	result.Summary.Outdated = totalOutdatedImages
+	result.Summary.Vulnerable = totalVulnerableImages
 	result.Summary.Processing = totalRawImages - totalImages
 
 	orderClause := "ORDER BY " + sortProperty + " " + order

@@ -154,12 +154,16 @@ components:
             outdated:
               description: Total number of outdated images
               type: number
+            vulnerable:
+              description: Total number of vulnerable images
+              type: number
             processing:
               description: Total number of unprocessed images
               type: number
           required:
             - images
             - outdated
+            - vulnerable
             - pods
         pagination:
           $ref: '#/components/schemas/PaginationMetadata'
