@@ -2,6 +2,7 @@ package imageworkflow
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/github"
@@ -13,14 +14,28 @@ func GetGitHubRepsitory() workflow.Step {
 	return workflow.Step{
 		Name: "Get GitHub repository",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
-			annotations, err := workflow.GetValue[oci.Annotations](ctx, "step.annotations.annotations")
+			annotations, err := workflow.GetInput[oci.Annotations](ctx, "annotations", true)
 			if err != nil {
 				return nil, err
 			}
 
-			source := annotations.Source()
+			pkg, err := workflow.GetInput[*github.Package](ctx, "package", false)
+			if err != nil {
+				return nil, err
+			}
+
+			// Find the repository's URL. Prefer the GHCR package's repository, if set
+			// otherwise try to use the annotations from the image's manifests
+			source := ""
+			if pkg != nil {
+				source = fmt.Sprintf("https://github.com/%s/%s", url.PathEscape(pkg.Owner), url.PathEscape(pkg.Repository))
+			}
+			if source == "" {
+				source = annotations.Source()
+			}
+
 			if !strings.Contains(source, "://github.com/") {
-				return nil, fmt.Errorf("no GitHub references found")
+				return nil, fmt.Errorf("no valid GitHub reference found")
 			}
 
 			var endpoint, owner, repository string

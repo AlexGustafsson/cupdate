@@ -160,7 +160,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					GetGithubPackage().
 						WithID("package").
 						With("httpClient", httpClient).
-						With("reference", latestOrCurrentReference(data)),
+						With("reference", data.ImageReference),
 					GetGitHubDescription().
 						WithID("description").
 						With("httpClient", httpClient).
@@ -201,11 +201,6 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						if err != nil {
 							return nil, err
 						}
-
-						data.InsertLink(models.ImageLink{
-							Type: "github",
-							URL:  fmt.Sprintf("%s/%s/%s", "https://github.com", url.PathEscape(pkg.Owner), url.PathEscape(pkg.Repository)),
-						})
 
 						data.InsertLink(models.ImageLink{
 							Type: "ghcr",
@@ -253,21 +248,18 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					}),
 				},
 			},
-			// TODO: Improve this to work well for adding information for both docker,
-			// and ghcr. For now, basically no docker image supports the required
-			// annotations, so this might not be worth it?
 			{
 				ID:   "github",
 				Name: "Get GitHub information",
 				// Depend on whatever provides us with the latest image version
-				DependsOn: []string{"oci", "docker", "ghcr"},
+				DependsOn: []string{"oci", "docker", "ghcr", "quay"},
 				// Only run for images with a reference to GitHub
 				If: func(ctx workflow.Context) (bool, error) {
 					if data.ImageReference.Domain == "ghcr.io" {
 						return true, nil
 					}
 
-					annotations, err := workflow.GetValue[oci.Annotations](ctx, "step.annotations.annotations")
+					annotations, err := workflow.GetValue[oci.Annotations](ctx, "job.oci.step.annotations.annotations")
 					if err != nil {
 						return false, err
 					}
@@ -280,73 +272,69 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					return false, nil
 				},
 				Steps: []workflow.Step{
-					// workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-					// 	data.InsertTag("github")
-					// 	return nil, nil
-					// }),
-					// // TODO: Now this only works for manifest-based images
-					// GetGitHubRepsitory().
-					// 	With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}).
-					// 	With("reference", data.LatestReference),
-					// workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-					// 	endpoint, err := workflow.GetValue[string](ctx, "step.repository.endpoint")
-					// 	if err != nil {
-					// 		return nil, err
-					// 	}
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						data.InsertTag("github")
 
-					// 	owner, err := workflow.GetValue[string](ctx, "step.repository.owner")
-					// 	if err != nil {
-					// 		return nil, err
-					// 	}
+						reference := data.ImageReference
+						if data.LatestReference != nil {
+							reference = *data.LatestReference
+						}
+						return workflow.SetOutput("reference", reference), nil
+					}).WithID("init"),
+					GetGitHubRepsitory().
+						WithID("repository").
+						With("annotations", workflow.Ref{Key: "job.oci.step.annotations.annotations"}).
+						With("package", workflow.Ref{Key: "job.ghcr.step.package.package"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						endpoint, err := workflow.GetValue[string](ctx, "step.repository.endpoint")
+						if err != nil {
+							return nil, err
+						}
 
-					// 	repository, err := workflow.GetValue[string](ctx, "step.repository.name")
-					// 	if err != nil {
-					// 		return nil, err
-					// 	}
+						owner, err := workflow.GetValue[string](ctx, "step.repository.owner")
+						if err != nil {
+							return nil, err
+						}
 
-					// 	data.InsertLink(models.ImageLink{
-					// 		Type: "github",
-					// 		URL:  fmt.Sprintf("%s/%s/%s", endpoint, url.PathEscape(owner), url.PathEscape(repository)),
-					// 	})
-					// 	return nil, nil
-					// }),
-					// // TODO: Get latest version based on github instead if possible
-					// // TODO: Get description if not found
-					// GetGitHubRelease().
-					// 	WithID("release").
-					// 	With("httpClient", httpClient).
-					// 	With("endpoint", workflow.Ref{Key: "step.repository.endpoint"}).
-					// 	With("owner", workflow.Ref{Key: "step.repository.owner"}).
-					// 	With("repository", workflow.Ref{Key: "step.repository.name"}).
-					// 	With("reference", data.LatestReference),
-					// workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-					// 	release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
-					// 	if err != nil {
-					// 		return nil, err
-					// 	}
+						repository, err := workflow.GetValue[string](ctx, "step.repository.name")
+						if err != nil {
+							return nil, err
+						}
 
-					// 	if release == nil {
-					// 		return nil, nil
-					// 	}
+						data.InsertLink(models.ImageLink{
+							Type: "github",
+							URL:  fmt.Sprintf("%s/%s/%s", endpoint, url.PathEscape(owner), url.PathEscape(repository)),
+						})
 
-					// 	data.ReleaseNotes = &models.ImageReleaseNotes{
-					// 		Title: release.Title,
-					// 		HTML:  release.Description,
-					// 	}
-					// 	return nil, nil
-					// }),
+						return nil, nil
+					}),
+					// TODO: Get latest version based on github instead if possible
+					// TODO: Get description if not found
+					GetGitHubRelease().
+						WithID("release").
+						With("httpClient", httpClient).
+						With("endpoint", workflow.Ref{Key: "step.repository.endpoint"}).
+						With("owner", workflow.Ref{Key: "step.repository.owner"}).
+						With("repository", workflow.Ref{Key: "step.repository.name"}).
+						With("reference", workflow.Ref{Key: "step.init.reference"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						release, err := workflow.GetValue[*github.Release](ctx, "step.release.release")
+						if err != nil {
+							return nil, err
+						}
+
+						if release == nil {
+							return nil, nil
+						}
+
+						data.ReleaseNotes = &models.ImageReleaseNotes{
+							Title: release.Title,
+							HTML:  release.Description,
+						}
+						return nil, nil
+					}),
 				},
 			},
 		},
 	}
-}
-
-// latestOrCurrentReference returns the latest reference contained in data if it
-// is set, or the base reference if a latest reference is not (yet) found.
-func latestOrCurrentReference(data *Data) oci.Reference {
-	if data.LatestReference != nil {
-		return *data.LatestReference
-	}
-
-	return data.ImageReference
 }

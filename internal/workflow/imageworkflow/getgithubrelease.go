@@ -2,6 +2,7 @@ package imageworkflow
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/github"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -50,6 +51,15 @@ func GetGitHubRelease() workflow.Step {
 			release, err := client.GetRelease(ctx, owner, repository, reference.Tag)
 			if err != nil {
 				return nil, err
+			}
+
+			// It's not uncommon for tags / releases to be prefixed with "v". If no
+			// release was found for the verbatim release, also try with a "v" prefix
+			if release == nil && !strings.HasPrefix(reference.Tag, "v") {
+				release, err = client.GetRelease(ctx, owner, repository, "v"+reference.Tag)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			return workflow.SetOutput("release", release), nil
