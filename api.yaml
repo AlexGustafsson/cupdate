@@ -136,6 +136,21 @@ paths:
               schema:
                 $ref: '#/components/schemas/Graph'
 
+  # TODO: This API is rather simplified. Perhaps we should expose more internals
+  # like processing logs, time to process etc.
+  /image/scans:
+    post:
+      summary: Schedule a new scan.
+      parameters:
+        - in: query
+          name: reference
+          schema:
+            type: string
+          required: true
+      responses:
+        '201':
+          description: Accepted
+
 components:
   schemas:
     ImagePage:

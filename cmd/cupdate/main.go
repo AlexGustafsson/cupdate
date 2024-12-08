@@ -16,6 +16,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
+	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/web"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
@@ -51,6 +52,7 @@ type Config struct {
 		Interval time.Duration `env:"INTERVAL" envDefault:"1h"`
 		Items    int           `env:"ITEMS" envDefault:"10"`
 		MinAge   time.Duration `env:"MIN_AGE" envDefault:"72h"`
+		Timeout  time.Duration `env:"TIMEOUT" envDefault:"2m"`
 	} `envPrefix:"PROCESSING_"`
 
 	Kubernetes struct {
@@ -135,23 +137,57 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg errgroup.Group
 
+	// TODO: If the queue is not emptied, the worker reading from the store will
+	// lock...
+	processQueue := make(chan oci.Reference, config.Processing.Items)
+
 	wg.Go(func() error {
-		httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
-		worker := worker.New(httpClient, writeStore)
 		ticker := time.NewTicker(config.Processing.Interval)
 		defer ticker.Stop()
+		defer close(processQueue)
 
 		for {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-ticker.C:
-				err := worker.ProcessOldReferences(ctx, config.Processing.Items, time.Now().Add(-config.Processing.MinAge))
+				slog.Debug("Identifying old references to process")
+				images, err := readStore.ListRawImages(ctx, &store.ListRawImagesOptions{
+					NotUpdatedSince: time.Now().Add(-config.Processing.MinAge),
+					Limit:           config.Processing.Items,
+				})
 				if err != nil {
 					slog.Error("Failed to process old references", slog.Any("error", err))
+					continue
+				}
+
+				for _, image := range images {
+					reference, err := oci.ParseReference(image.Reference)
+					if err != nil {
+						slog.Error("Unexpectedly failed to parse reference from store", slog.Any("error", err))
+						return err
+					}
+
+					processQueue <- reference
 				}
 			}
 		}
+	})
+
+	wg.Go(func() error {
+		httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
+		worker := worker.New(httpClient, writeStore)
+
+		for reference := range processQueue {
+			ctx, cancel := context.WithTimeout(ctx, config.Processing.Timeout)
+			err := worker.ProcessRawImage(ctx, reference)
+			cancel()
+			if err != nil {
+				slog.Error("Failed to process queued raw image", slog.Any("error", err), slog.String("reference", reference.String()))
+			}
+		}
+
+		return nil
 	})
 
 	wg.Go(func() error {
@@ -261,7 +297,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	apiServer := api.NewServer(readStore)
+	apiServer := api.NewServer(readStore, processQueue)
 	mux.Handle("/api/v1/", apiServer)
 
 	if !config.Web.Disabled {

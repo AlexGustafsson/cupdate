@@ -9,12 +9,14 @@ import {
   useImageDescription,
   useImageGraph,
   useImageReleaseNotes,
+  useScheduleScan,
   useTags,
 } from '../api'
 import { Badge } from '../components/Badge'
 import { HTML } from '../components/HTML'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { Markdown } from '../components/Markdown'
+import { FluentArrowSync16Regular } from '../components/icons/fluent-arrow-sync-16-regular'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { FluentLink24Filled } from '../components/icons/fluent-link-24-filled'
@@ -136,6 +138,8 @@ export function ImagePage(): JSX.Element {
   const description = useImageDescription(reference)
   const releaseNotes = useImageReleaseNotes(reference)
   const graph = useImageGraph(reference)
+
+  const scheduleScan = useScheduleScan()
 
   if (
     tags.status === 'idle' ||
@@ -340,13 +344,19 @@ export function ImagePage(): JSX.Element {
         {/* Graph */}
         {graph.value && <GraphCard graph={graph.value} />}
 
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-x-2 items-center">
           <p>
             Last updated{' '}
             <span title={new Date(image.value.lastModified).toLocaleString()}>
               {formatRelativeTimeTo(new Date(image.value.lastModified))}
             </span>
           </p>
+          <button
+            title="Schedule update"
+            onClick={() => scheduleScan(image.value!.reference)}
+          >
+            <FluentArrowSync16Regular />
+          </button>
         </div>
       </main>
     </div>

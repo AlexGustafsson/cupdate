@@ -24,33 +24,8 @@ func New(httpClient *httputil.Client, store *store.Store) *Worker {
 	}
 }
 
-func (w *Worker) ProcessOldReferences(ctx context.Context, n int, notUpdatedSince time.Time) error {
-	slog.Debug("Identifying old references to process")
-	images, err := w.store.ListRawImages(ctx, &store.ListRawImagesOptions{
-		NotUpdatedSince: notUpdatedSince,
-		Limit:           n,
-	})
-	if err != nil {
-		return err
-	}
-
-	if len(images) == 0 {
-		slog.Debug("Found no old references, skipping run")
-		return nil
-	}
-
-	slog.Debug("Processing old references", slog.Int("n", len(images)))
-	for _, image := range images {
-		if err := w.ProcessRawImage(ctx, image); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) error {
-	reference, err := oci.ParseReference(image.Reference)
+func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) error {
+	image, err := w.store.GetRawImage(ctx, reference.String())
 	if err != nil {
 		return err
 	}
@@ -68,7 +43,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, image models.RawImage) err
 	// could be a reoccuring issue, so try to process other images before retrying
 	// the failing image.
 	image.LastProcessed = time.Now()
-	if err := w.store.InsertRawImage(ctx, &image); err != nil {
+	if err := w.store.InsertRawImage(ctx, image); err != nil {
 		return err
 	}
 

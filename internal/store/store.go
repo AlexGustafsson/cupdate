@@ -84,6 +84,51 @@ func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) erro
 	return nil
 }
 
+func (s *Store) GetRawImage(ctx context.Context, reference string) (*models.RawImage, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT
+	reference, tags, graph, lastProcessed
+	FROM raw_images WHERE reference = ?;`)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := statement.QueryContext(ctx, reference)
+	statement.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, fmt.Errorf("raw image not found")
+	}
+
+	var rawImage models.RawImage
+	var tags []byte
+	var graph []byte
+	var lastProcessed *time.Time
+	err = res.Scan(&rawImage.Reference, &tags, &graph, &lastProcessed)
+	if err != nil {
+		res.Close()
+		return nil, err
+	}
+
+	if err := json.Unmarshal(tags, &rawImage.Tags); err != nil {
+		res.Close()
+		return nil, err
+	}
+
+	if err := json.Unmarshal(graph, &rawImage.Graph); err != nil {
+		res.Close()
+		return nil, err
+	}
+
+	if lastProcessed != nil {
+		rawImage.LastProcessed = *lastProcessed
+	}
+
+	return &rawImage, nil
+}
+
 type ListRawImagesOptions struct {
 	NotUpdatedSince time.Time
 	Limit           int

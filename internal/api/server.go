@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 )
 
@@ -20,7 +21,7 @@ type Server struct {
 	mux *http.ServeMux
 }
 
-func NewServer(api *store.Store) *Server {
+func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 	s := &Server{
 		api: api,
 		mux: http.NewServeMux(),
@@ -118,6 +119,20 @@ func NewServer(api *store.Store) *Server {
 
 		response, err := api.GetImageGraph(r.Context(), reference)
 		s.handleJSONResponse(w, r, response, err)
+	})
+
+	s.mux.HandleFunc("POST /api/v1/image/scans", func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+
+		reference, err := oci.ParseReference(query.Get("reference"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		processQueue <- reference
+
+		w.WriteHeader(http.StatusAccepted)
 	})
 
 	return s
