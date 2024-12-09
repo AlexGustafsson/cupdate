@@ -49,6 +49,9 @@ For now, Cupdate targets Kubernetes as its main platform. It's designed to run
 well with minimal required configuration. Please refer to
 [docs/kubernetes/README.md](docs/kubernetes/README.md) for more information.
 
+Cupdate requires zero configuration, but is very configurable. See
+[docs/config.md](docs/config.md) for more information.
+
 ## Screenshots
 
 | Light mode                                                                                            | Dark mode                                                                                           |
