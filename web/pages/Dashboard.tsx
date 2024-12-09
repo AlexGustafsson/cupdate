@@ -58,7 +58,7 @@ export function Dashboard(): JSX.Element {
 
   return (
     <div className="flex flex-col items-center pt-6 pb-10 px-2">
-      <div className="grid grid-cols-2 md:grid-cols-4 divide-x dark:divide-[#333333]">
+      <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x dark:divide-[#333333]">
         <div className="py-2 px-4">
           <p className="text-sm">Outdated images</p>
           <p className="text-3xl font-semibold text-red-600">
