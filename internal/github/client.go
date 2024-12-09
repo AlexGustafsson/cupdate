@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/htmlutil"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
@@ -130,6 +131,11 @@ func (c *Client) GetREADME(ctx context.Context, url string) (string, error) {
 	readme, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
+	}
+
+	cleaned, err := htmlutil.ResolveReferences(string(readme), req.URL)
+	if err == nil {
+		readme = []byte(cleaned)
 	}
 
 	return string(readme), nil
