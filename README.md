@@ -43,6 +43,12 @@ Supported data sources:
 - GitHub, GitHub Container Registry
 - Quay
 
+## Running
+
+For now, Cupdate targets Kubernetes as its main platform. It's designed to run
+well with minimal required configuration. Please refer to
+[docs/kubernetes/README.md](docs/kubernetes/README.md) for more information.
+
 ## Screenshots
 
 | Light mode                                                                                            | Dark mode                                                                                           |
