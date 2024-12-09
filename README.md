@@ -45,15 +45,13 @@ Supported data sources:
 
 ## Screenshots
 
-![Light mode dashboard screenshort](docs/screenshots/dashboard-light.png)
-
-![Dark mode dashboard screenshort](docs/screenshots/dashboard-dark.png)
-
-![Light mode image page screenshort](docs/screenshots/image-page-light.png)
-
-![Dark mode image page screenshort](docs/screenshots/image-page-dark.png)
-
-![Image details page with vulnerabilities screenshot](docs/screenshots/image-page-vulnerabilities.png)
+| Light mode                                                                                            | Dark mode                                                                                           |
+| ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| ![Dashboard screenshot in light mode](./docs/screenshots/dashboard-light.png)                         | ![Dashboard screenshot in dark mode](./docs/screenshots/dashboard-dark.png)                         |
+| ![Dashboard screenshot on small screen in light mode](./docs/screenshots/dashboard-small-light.png)   | ![Dashboard screenshot on small screen in dark mode](./docs/screenshots/dashboard-small-dark.png)   |
+| ![Image page screenshot in light mode](./docs/screenshots/image-page-light.png)                       | ![Image page screenshot in dark mode](./docs/screenshots/image-page-dark.png)                       |
+| ![Full image screenshot page in light mode](./docs/screenshots/image-page-full-light.png)             | ![Full image page screenshot in dark mode](./docs/screenshots/image-page-full-dark.png)             |
+| ![Vulnerable image page screenshot in light mode](./docs/screenshots/image-page-vulnerable-light.png) | ![Vulnerable image page screenshot in dark mode](./docs/screenshots/image-page-vulnerable-dark.png) |
 
 ## Architecture
 
