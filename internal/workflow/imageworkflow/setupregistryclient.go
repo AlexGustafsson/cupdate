@@ -6,6 +6,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
 	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
+	"github.com/AlexGustafsson/cupdate/internal/registry/gitlab"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -38,6 +39,13 @@ func SetupRegistryClient() workflow.Step {
 				client = &oci.Client{
 					Client: httpClient,
 					Authorizer: &ghcr.Client{
+						Client: httpClient,
+					},
+				}
+			case "registry.gitlab.com":
+				client = &oci.Client{
+					Client: httpClient,
+					Authorizer: &gitlab.Client{
 						Client: httpClient,
 					},
 				}

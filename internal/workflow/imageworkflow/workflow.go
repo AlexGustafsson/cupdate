@@ -249,10 +249,39 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 				},
 			},
 			{
+				ID:        "gitlab",
+				Name:      "Get GitLab information",
+				DependsOn: []string{"oci"},
+				// Only run for quay images
+				If: func(ctx workflow.Context) (bool, error) {
+					domain, err := workflow.GetValue[string](ctx, "job.oci.step.registry.domain")
+					if err != nil {
+						return false, err
+					}
+
+					return domain == "registry.gitlab.com", nil
+				},
+				Steps: []workflow.Step{
+					GetGitLabLatestVersion().
+						WithID("latest").
+						With("reference", data.ImageReference).
+						With("httpClient", httpClient),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
+						if err != nil {
+							return nil, err
+						}
+
+						data.LatestReference = reference
+						return nil, nil
+					}),
+				},
+			},
+			{
 				ID:   "github",
 				Name: "Get GitHub information",
 				// Depend on whatever provides us with the latest image version
-				DependsOn: []string{"oci", "docker", "ghcr", "quay"},
+				DependsOn: []string{"oci", "docker", "ghcr", "quay", "gitlab"},
 				// Only run for images with a reference to GitHub
 				If: func(ctx workflow.Context) (bool, error) {
 					if data.ImageReference.Domain == "ghcr.io" {
