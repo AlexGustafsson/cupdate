@@ -36,12 +36,14 @@ Supported registries:
 - quay.io
 - lscr.io
 - registry.k8s.io, k8s.gcr.io
+- registry.gitlab.com
 
 Supported data sources:
 
 - Docker Hub, Docker Scout
 - GitHub, GitHub Container Registry
 - Quay
+- GitLab
 
 ## Running
 

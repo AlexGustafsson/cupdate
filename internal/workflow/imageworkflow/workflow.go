@@ -266,13 +266,58 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("latest").
 						With("reference", data.ImageReference).
 						With("httpClient", httpClient),
+					GetGitLabDescription().
+						WithID("description").
+						With("reference", data.ImageReference).
+						With("httpClient", httpClient),
+					GetGitLabRepositoryREADME().
+						WithID("readme").
+						With("reference", data.ImageReference).
+						With("httpClient", httpClient),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
 						if err != nil {
 							return nil, err
 						}
-
 						data.LatestReference = reference
+
+						data.InsertLink(models.ImageLink{
+							Type: "gitlab",
+							URL:  "https://gitlab.com/" + reference.Path,
+						})
+
+						description, err := workflow.GetValue[string](ctx, "step.description.description")
+						if err != nil {
+							return nil, err
+						}
+						data.Description = description
+
+						readmeMime, err := workflow.GetValue[string](ctx, "step.readme.mime")
+						if err != nil {
+							return nil, err
+						}
+
+						html, err := workflow.GetValue[string](ctx, "step.readme.html")
+						if err != nil {
+							return nil, err
+						}
+
+						raw, err := workflow.GetValue[[]byte](ctx, "step.readme.raw")
+						if err != nil {
+							return nil, err
+						}
+
+						// Prefer markdown over pre-rendered HTML
+						if readmeMime == "text/markdown" && raw != nil {
+							data.FullDescription = &models.ImageDescription{
+								Markdown: string(raw),
+							}
+						} else if html != "" {
+							data.FullDescription = &models.ImageDescription{
+								HTML: html,
+							}
+						}
+
 						return nil, nil
 					}),
 				},
