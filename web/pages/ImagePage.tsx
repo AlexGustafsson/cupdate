@@ -63,7 +63,9 @@ export function ImageLink({
   switch (type) {
     case 'github':
     case 'ghcr':
-      icon = <SimpleIconsGithub className="text-black" />
+      icon = (
+        <SimpleIconsGithub className="text-black dark:dark:text-[#dddddd]" />
+      )
       break
     case 'gitlab':
       icon = <SimpleIconsGitlab className="text-orange-500" />
