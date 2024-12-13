@@ -133,6 +133,7 @@ func (c *Client) GetProjectContainerRepositories(ctx context.Context, fullPath s
 
 	return result.Data.Project.ContainerRepositories.Nodes, nil
 }
+
 func (c *Client) GetProjectContainerRepositoryTags(ctx context.Context, id string) ([]ContainerRepositoryTag, error) {
 	payload, err := json.Marshal(map[string]any{
 		"operationName": "getContainerRepositoryTags",
