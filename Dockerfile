@@ -1,4 +1,4 @@
-FROM node:22 AS web-builder
+FROM node:23 AS web-builder
 
 WORKDIR /src
 
