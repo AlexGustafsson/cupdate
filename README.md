@@ -4,7 +4,7 @@
 
 # Cupdate
 
-Cupdate is a WIP, zero-config service that helps you keep your container images
+Cupdate is a zero-config service that helps you keep your container images
 up-to-date. It automatically identifies container images in use in your
 Kubernetes cluster or on your Docker host. Cupdate then identifies the latest
 available version and makes this data and more available to you via a UI, API or
