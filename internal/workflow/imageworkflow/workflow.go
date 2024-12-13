@@ -252,7 +252,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 				ID:        "gitlab",
 				Name:      "Get GitLab information",
 				DependsOn: []string{"oci"},
-				// Only run for quay images
+				// Only run for GitLab images
 				If: func(ctx workflow.Context) (bool, error) {
 					domain, err := workflow.GetValue[string](ctx, "job.oci.step.registry.domain")
 					if err != nil {
