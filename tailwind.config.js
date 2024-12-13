@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   mode: 'jit',
   content: ['./web/**/*.{html,tsx}'],
   darkMode: 'media',
