@@ -224,3 +224,59 @@ func TestCompareVersionsSemver(t *testing.T) {
 
 	assert.Equal(t, versions, expected)
 }
+
+func TestVersionDiff(t *testing.T) {
+	testCases := []struct {
+		Current  string
+		New      string
+		Expected string
+	}{
+		{
+			Current:  "3.7.0",
+			New:      "3.7.0",
+			Expected: "",
+		},
+		{
+			Current:  "3.7.0b1",
+			New:      "3.7.0b2",
+			Expected: "patch",
+		},
+		{
+			Current:  "3.7-alpine",
+			New:      "3.8-alpine",
+			Expected: "minor",
+		},
+		{
+			Current:  "3.8.0-alpine",
+			New:      "3.8.4-alpine",
+			Expected: "patch",
+		},
+		{
+			Current:  "3.8.0-alpine",
+			New:      "4.0.0-alpine",
+			Expected: "major",
+		},
+		{
+			Current:  "3.8.2",
+			New:      "3.8.3",
+			Expected: "patch",
+		},
+		{
+			Current:  "0.8.5rc51",
+			New:      "0.8.5rc52",
+			Expected: "patch",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(fmt.Sprintf("%s, %s: %v", testCase.Current, testCase.New, testCase.Expected), func(t *testing.T) {
+			v, err := ParseVersion(testCase.Current)
+			require.NoError(t, err)
+
+			r, err := ParseVersion(testCase.New)
+			require.NoError(t, err)
+
+			assert.Equal(t, testCase.Expected, v.Diff(r))
+		})
+	}
+}

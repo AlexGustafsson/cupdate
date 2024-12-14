@@ -85,6 +85,16 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		} else {
 			data.Tags = append(data.Tags, "outdated")
 		}
+
+		// Add tags based on version diff
+		currentVersion, currentVersionErr := oci.ParseVersion(data.ImageReference.Version())
+		newVersion, newVersionErr := oci.ParseVersion(data.LatestReference.Version())
+		if currentVersionErr == nil && newVersionErr == nil {
+			diff := currentVersion.Diff(newVersion)
+			if diff != "" {
+				data.Tags = append(data.Tags, diff)
+			}
+		}
 	}
 
 	result := models.Image{

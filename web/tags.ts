@@ -92,6 +92,21 @@ export const Tags: Tag[] = [
     description: 'Vulnerable images',
     color: palette.red2,
   },
+  {
+    name: 'patch',
+    description: 'Patch update',
+    color: palette.blue1,
+  },
+  {
+    name: 'minor',
+    description: 'Minor update',
+    color: palette.yellow,
+  },
+  {
+    name: 'major',
+    description: 'Major update',
+    color: palette.red1,
+  },
 ]
 
 export const TagsByName: Record<string, Tag> = Object.fromEntries(

@@ -30,6 +30,28 @@ func (v *Version) IsCompatible(other *Version) bool {
 	return v.Suffix == other.Suffix && len(v.Release) == len(other.Release)
 }
 
+func (v *Version) Diff(other *Version) string {
+	length := max(len(v.Release), len(other.Release))
+	for i := 0; i < length; i++ {
+		if other.Release[i] > v.Release[i] {
+			switch i {
+			case 0:
+				return "major"
+			case 1:
+				return "minor"
+			default:
+				return "patch"
+			}
+		}
+	}
+
+	if other.Prerelease != v.Prerelease {
+		return "patch"
+	}
+
+	return ""
+}
+
 func (v *Version) Compare(other *Version) int {
 	length := max(len(v.Release), len(other.Release))
 	for i := 0; i < length; i++ {
