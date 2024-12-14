@@ -7,8 +7,8 @@
     "build": "tsc --noEmit && vite build",
     "dev": "vite",
     "test": "vitest run --coverage.enabled --coverage.all --coverage.reportOnFailure --coverage.reportsDirectory \"$PWD/coverage\" --coverage.reporter html",
-    "lint": "eslint --cache && prettier --check \"**/*.{ts,tsx,js,json,yml,yaml,mjs,md}\"",
-    "format": "prettier --write \"**/*.{ts,tsx,js,json,yml,yaml,mjs,md}\""
+    "lint": "eslint --cache && prettier --check \"**/*.{ts,tsx,js,json,yml,yaml,mjs,md,html}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,yml,yaml,mjs,md,html}\""
   },
   "dependencies": {
     "@xyflow/react": "12.3.6",
