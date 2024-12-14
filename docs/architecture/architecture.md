@@ -68,7 +68,6 @@ flowchart TD
   podD --> namespaceB
 ```
 
-
 ### Kubernetes
 
 ![An overview of how Cupdate uses Kubernetes](kubernetes.excalidraw.png)
