@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
-import { useMemo } from 'react'
+import { type JSX, useMemo } from 'react'
 
 export function Markdown({
   children,

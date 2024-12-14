@@ -16,8 +16,8 @@
     "elkjs": "0.9.3",
     "github-markdown-css": "5.8.1",
     "marked": "15.0.3",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-router-dom": "7.0.2"
   },
   "devDependencies": {
@@ -27,8 +27,8 @@
     "@types/dompurify": "3.2.0",
     "@types/eslint": "9.6.1",
     "@types/node": "22.10.2",
-    "@types/react": "18.3.1",
-    "@types/react-dom": "18.3.1",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.2",
     "@typescript-eslint/parser": "8.18.0",
     "@vitejs/plugin-react": "4.3.4",
     "@vitest/coverage-v8": "2.1.8",

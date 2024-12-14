@@ -1,3 +1,4 @@
+import { type JSX } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'

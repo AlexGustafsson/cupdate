@@ -1,6 +1,6 @@
 import { Controls, ReactFlow } from '@xyflow/react'
 import '@xyflow/react/dist/base.css'
-import { ReactNode } from 'react'
+import { type JSX, ReactNode } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 
 import {

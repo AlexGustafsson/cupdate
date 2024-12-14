@@ -1,4 +1,4 @@
-import { PropsWithChildren, SelectHTMLAttributes } from 'react'
+import { type JSX, PropsWithChildren, SelectHTMLAttributes } from 'react'
 
 export function Select({
   children,

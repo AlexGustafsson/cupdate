@@ -1,4 +1,4 @@
-import { PropsWithChildren, useRef, useState } from 'react'
+import { type JSX, PropsWithChildren, useRef, useState } from 'react'
 
 import { Tag } from '../tags'
 import { Badge } from './Badge'

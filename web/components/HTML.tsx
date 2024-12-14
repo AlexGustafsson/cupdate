@@ -1,4 +1,5 @@
 import DOMPurify from 'dompurify'
+import { type JSX } from 'react'
 
 export function HTML({ children }: React.PropsWithChildren<{}>): JSX.Element {
   if (typeof children !== 'string') {

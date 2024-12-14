@@ -1,3 +1,5 @@
+import { type JSX } from 'react'
+
 import { TagsByName } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'

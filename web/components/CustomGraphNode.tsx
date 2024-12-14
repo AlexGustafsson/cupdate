@@ -1,5 +1,5 @@
 import { Handle, NodeProps, Position } from '@xyflow/react'
-import { type ReactNode } from 'react'
+import { type JSX, type ReactNode } from 'react'
 
 export function CustomGraphNode(
   node: NodeProps & {

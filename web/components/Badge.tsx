@@ -1,4 +1,4 @@
-import { HTMLAttributes } from 'react'
+import { HTMLAttributes, type JSX } from 'react'
 
 export type BadgeProps = {
   label: string

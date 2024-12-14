@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { type JSX, useEffect } from 'react'
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useImages, usePagination, useTags } from '../api'
