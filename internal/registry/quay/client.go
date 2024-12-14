@@ -82,6 +82,10 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 			continue
 		}
 
+		if currentVersion.Prerelease == "" && newVersion.Prerelease != "" {
+			continue
+		}
+
 		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
 			image.Tag = tag.Name
 

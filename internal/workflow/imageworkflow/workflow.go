@@ -188,6 +188,10 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 									continue
 								}
 
+								if currentVersion.Prerelease == "" && newVersion.Prerelease != "" {
+									continue
+								}
+
 								if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
 									ref := data.ImageReference
 									ref.Tag = tag.Name
