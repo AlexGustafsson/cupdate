@@ -19,5 +19,5 @@
     "target": "ESNext",
     "types": ["vite/client"]
   },
-  "exclude": ["node_modules/**"]
+  "exclude": ["node_modules/**", "internal/web/**"]
 }
