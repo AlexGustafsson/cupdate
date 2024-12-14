@@ -11,6 +11,7 @@ import { type ReactNode, useEffect } from 'react'
 
 import type { Graph, GraphNode } from './api'
 import { CustomGraphNode } from './components/CustomGraphNode'
+import { SimpleIconsDocker } from './components/icons/simple-icons-docker'
 import { SimpleIconsKubernetes } from './components/icons/simple-icons-kubernetes'
 import { SimpleIconsOci } from './components/icons/simple-icons-oci'
 
@@ -42,6 +43,9 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     'batch/v1/cronjob': 'Cron job',
     'apps/v1/statefulset': 'Stateful set',
   },
+  docker: {
+    container: 'Container',
+  },
 }
 
 function formatNode(id: string, node: GraphNode): NodeType {
@@ -53,6 +57,8 @@ function formatNode(id: string, node: GraphNode): NodeType {
     case 'kubernetes':
       label = <SimpleIconsKubernetes className="text-blue-400" />
       break
+    case 'docker':
+      label = <SimpleIconsDocker className="text-blue-500" />
   }
 
   return {

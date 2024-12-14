@@ -21,7 +21,7 @@ nor will it ever be.
 Features:
 
 - Zero configuration required
-- Auto-detect container images in Kubernetes and Docker (planned)
+- Auto-detect container images in Kubernetes and Docker
 - Auto-detect the latest available container image versions
 - UI for discovering updates
 - Subscribe to updates via an RSS feed
@@ -47,9 +47,12 @@ Supported data sources:
 
 ## Running
 
-For now, Cupdate targets Kubernetes as its main platform. It's designed to run
-well with minimal required configuration. Please refer to
-[docs/kubernetes/README.md](docs/kubernetes/README.md) for more information.
+Cupdate can be deployed using Kubernetes or Docker. It's designed to run well
+with minimal required configuration. Please refer to the platform-specific
+documentation for more information on how to deploy:
+
+- Kubernetes: [docs/kubernetes/README.md](docs/kubernetes/README.md)
+- Docker: [docs/docker/README.md](docs/docker/README.md)
 
 Cupdate requires zero configuration, but is very configurable. See
 [docs/config.md](docs/config.md) for more information.
@@ -92,30 +95,36 @@ Cupdate is still being developed.
 
 ### Development
 
-Proxy the API server.
+Proxy the Kubernetes API server.
 
 ```shell
 kubectl proxy
 ```
 
-Source the default dev config.
+Link the Docker socket.
 
 ```shell
+ln -s ~/.colima/default/docker.sock docker.sock
+```
+
+Source the default dev config for the target platform.
+
+````shell
 # Inspect
-cat .env
+cat .env-kubernetes
 
 # Bash etc.
-source .env
+source .env-kubernetes
 
 # Fish
-export (cat .env | xargs -L 1)
-```
+export (cat .env-kubernetes | xargs -L 1)
+``
 
 Start cupdate.
 
 ```shell
 go run cmd/cupdate/*.go
-```
+````
 
 Start the web server.
 

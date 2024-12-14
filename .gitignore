@@ -6,3 +6,4 @@
 /.eslintcache
 /*.sqlite*
 /*.boltdb
+/docker.sock

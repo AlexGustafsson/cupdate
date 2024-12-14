@@ -15,6 +15,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
+	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/store"
@@ -60,6 +61,11 @@ type Config struct {
 		Host                  string `env:"HOST"`
 		IncludeOldReplicaSets bool   `env:"INCLUDE_OLD_REPLICAS"`
 	} `envPrefix:"K8S_"`
+
+	Docker struct {
+		Host                 string `env:"HOST"`
+		IncludeAllContainers bool   `env:"INCLUDE_ALL_CONTAINERS"`
+	} `envPrefix:"DOCKER_"`
 }
 
 func main() {
@@ -92,24 +98,37 @@ func main() {
 
 	slog.Debug("Parsed config", slog.Any("config", config))
 
-	var kubernetesConfig *rest.Config
-	if config.Kubernetes.Host == "" {
-		var err error
-		kubernetesConfig, err = rest.InClusterConfig()
+	// Set up the configured platform (Docker if specified, auto discovery of
+	// Kubernetes otherwise)
+	var targetPlatform platform.Platform
+	if config.Docker.Host == "" {
+		var kubernetesConfig *rest.Config
+		if config.Kubernetes.Host == "" {
+			var err error
+			kubernetesConfig, err = rest.InClusterConfig()
+			if err != nil {
+				slog.Error("Failed to configure Kubernetes client", slog.Any("error", err))
+				os.Exit(1)
+			}
+		} else {
+			kubernetesConfig = &rest.Config{
+				Host: config.Kubernetes.Host,
+			}
+		}
+
+		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, &kubernetes.Options{IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets})
 		if err != nil {
-			slog.Error("Failed to configure Kubernetes client", slog.Any("error", err))
+			slog.Error("Failed to create kubernetes source", slog.Any("error", err))
 			os.Exit(1)
 		}
 	} else {
-		kubernetesConfig = &rest.Config{
-			Host: config.Kubernetes.Host,
+		targetPlatform, err = docker.NewPlatform(context.Background(), config.Docker.Host, &docker.Options{
+			IncludeAllContainers: config.Docker.IncludeAllContainers,
+		})
+		if err != nil {
+			slog.Error("Failed to create docker source", slog.Any("error", err))
+			os.Exit(1)
 		}
-	}
-
-	kubernetesPlatform, err := kubernetes.NewPlatform(kubernetesConfig, &kubernetes.Options{IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets})
-	if err != nil {
-		slog.Error("Failed to create kubernetes source", slog.Any("error", err))
-		os.Exit(1)
 	}
 
 	cache, err := cache.NewDiskCache(config.Cache.Path)
@@ -196,8 +215,9 @@ func main() {
 		// check once or poll
 
 		slog.Info("Fetching initial state")
-		graph, err := kubernetesPlatform.Graph(ctx)
+		graph, err := targetPlatform.Graph(ctx)
 		if err != nil {
+			slog.Error("Failed to fetch initial state", slog.Any("error", err))
 			return err
 		}
 
@@ -211,6 +231,7 @@ func main() {
 			edges := subgraph.Edges()
 			nodes := subgraph.Nodes()
 
+			// TODO: Rewrite to be more generic (to include Docker?)
 			var namespaceNode *platform.Node
 
 			mappedNodes := make(map[string]models.GraphNode)
@@ -225,6 +246,12 @@ func main() {
 					if node.Type() == "kubernetes/"+kubernetes.ResourceKindCoreV1Namespace {
 						namespaceNode = &node
 					}
+				case docker.Resource:
+					mappedNodes[node.ID()] = models.GraphNode{
+						Domain: "docker",
+						Type:   string(n.Kind()),
+						Name:   n.Name(),
+					}
 				case platform.ImageNode:
 					mappedNodes[node.ID()] = models.GraphNode{
 						Domain: "oci",
@@ -237,6 +264,8 @@ func main() {
 			}
 
 			tags := []string{}
+			// Set tags for resources
+			// TODO: Handle for docker as well?
 			if namespaceNode != nil {
 				children := edges[(*namespaceNode).ID()]
 				for childID, isParent := range children {
