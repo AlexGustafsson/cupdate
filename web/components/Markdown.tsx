@@ -4,7 +4,7 @@ import { type JSX, useMemo } from 'react'
 
 export function Markdown({
   children,
-}: React.PropsWithChildren<{}>): JSX.Element {
+}: React.PropsWithChildren<Record<never, never>>): JSX.Element {
   if (typeof children !== 'string') {
     throw new Error('invalid HTML')
   }

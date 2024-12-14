@@ -27,6 +27,7 @@ export interface NodeType extends Node {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface EdgeType extends Edge {}
 
 const titles: Record<string, Record<string, string | undefined> | undefined> = {
