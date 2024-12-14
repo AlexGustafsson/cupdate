@@ -131,3 +131,9 @@ Start the web server.
 ```shell
 yarn run dev
 ```
+
+#### Demo
+
+```shell
+node tools/scripts/dump-data-for-demo.js > demo-data.json
+```
