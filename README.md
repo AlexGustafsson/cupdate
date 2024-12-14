@@ -24,7 +24,7 @@ Features:
 - Auto-detect container images in Kubernetes and Docker (planned)
 - Auto-detect the latest available container image versions
 - UI for discovering updates
-- Subscribe to updates via an RSS feed (planned)
+- Subscribe to updates via an RSS feed
 - Graphs image versions' dependants explaining why they're in use
 - Vulnerability scanning
 - APIs for custom integrations

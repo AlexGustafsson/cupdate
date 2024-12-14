@@ -151,6 +151,15 @@ paths:
         '201':
           description: Accepted
 
+  /feed.rss:
+    get:
+      summary: Get an RSS feed of outdated images.
+      respones:
+        '200':
+          description: RSS feed.
+          content:
+            application/rss+xml:
+
 components:
   schemas:
     ImagePage:

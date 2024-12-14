@@ -1,6 +1,7 @@
 import { type JSX } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 
+import { RSSFeedEndpoint } from './api'
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
 import { SimpleIconsRss } from './components/icons/simple-icons-rss'
 import { Dashboard } from './pages/Dashboard'
@@ -25,7 +26,7 @@ export function App(): JSX.Element {
           </NavLink>
         </div>
         <div className="justify-self-end mr-5">
-          <a target="_blank" href="/feed.rss">
+          <a target="_blank" href={RSSFeedEndpoint}>
             <SimpleIconsRss className="text-orange-400" />
           </a>
         </div>

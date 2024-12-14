@@ -36,7 +36,8 @@ type Config struct {
 	} `envPrefix:"API_"`
 
 	Web struct {
-		Disabled bool `env:"DISABLED"`
+		Disabled bool   `env:"DISABLED"`
+		Address  string `env:"ADDRESS"`
 	} `envPrefix:"WEB_"`
 
 	Cache struct {
@@ -298,6 +299,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	apiServer := api.NewServer(readStore, processQueue)
+	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
 
 	if !config.Web.Disabled {

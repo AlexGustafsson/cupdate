@@ -333,3 +333,5 @@ export function useScheduleScan(): (reference: string) => Promise<void> {
     }
   }
 }
+
+export const RSSFeedEndpoint = `${import.meta.env['VITE_API_ENDPOINT']}/feed.rss`

@@ -2,12 +2,17 @@ package api
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/rss"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 )
 
@@ -19,6 +24,8 @@ var (
 type Server struct {
 	api *store.Store
 	mux *http.ServeMux
+
+	WebAddress string
 }
 
 func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
@@ -133,6 +140,77 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 		processQueue <- reference
 
 		w.WriteHeader(http.StatusAccepted)
+	})
+
+	s.mux.HandleFunc("GET /api/v1/feed.rss", func(w http.ResponseWriter, r *http.Request) {
+		var requestURL *url.URL
+		var err error
+		if s.WebAddress == "" {
+			requestURL, err = httputil.ResolveRequestURL(r)
+		} else {
+			requestURL, err = url.Parse(s.WebAddress)
+		}
+		if err != nil {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
+
+		// TODO: When we support other sort properties (like latest release), sort
+		// by that
+		// TODO: We currently use the default count. IIRC, it's good practice in RSS
+		// to return just the latest ~20 items.
+		options := &store.ListImageOptions{
+			Tags: []string{"outdated"},
+		}
+
+		page, err := api.ListImages(r.Context(), options)
+		if err != nil {
+			s.handleGenericResponse(w, r, err)
+			return
+		}
+
+		items := make([]rss.Item, len(page.Images))
+		for i, image := range page.Images {
+			ref, err := oci.ParseReference(image.LatestReference)
+			if err != nil {
+				s.handleGenericResponse(w, r, err)
+				return
+			}
+
+			items[i] = rss.Item{
+				GUID: rss.NewDeterministicGUID(image.Reference),
+				// TODO: Use image update time instead
+				PubDate:     rss.Time(image.LastModified),
+				Title:       fmt.Sprintf("%s updated", ref.Name()),
+				Link:        requestURL.Scheme + "://" + requestURL.Host + "/image?reference=" + url.QueryEscape(image.Reference),
+				Description: fmt.Sprintf("%s updated to %s", ref.Name(), ref.Version()),
+			}
+		}
+
+		feed := rss.Feed{
+			Version: "2.0",
+			Channels: []rss.Channel{
+				{
+					Title:       "Cupdate",
+					Link:        requestURL.Scheme + "://" + requestURL.Host,
+					Description: "Container images discovered by Cupdate",
+					Items:       items,
+				},
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.WriteHeader(http.StatusOK)
+
+		encoder := xml.NewEncoder(w)
+		encoder.Indent("", "\t")
+
+		if _, err := w.Write([]byte(xml.Header)); err != nil {
+			return
+		}
+		if err := encoder.Encode(&feed); err != nil {
+			return
+		}
 	})
 
 	return s
