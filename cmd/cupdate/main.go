@@ -60,7 +60,7 @@ type Config struct {
 	Kubernetes struct {
 		Host                  string `env:"HOST"`
 		IncludeOldReplicaSets bool   `env:"INCLUDE_OLD_REPLICAS"`
-	} `envPrefix:"K8S_"`
+	} `envPrefix:"KUBERNETES_"`
 
 	Docker struct {
 		Host                 string `env:"HOST"`
