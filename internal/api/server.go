@@ -98,6 +98,11 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 		reference := query.Get("reference")
 
 		response, err := api.GetImage(r.Context(), reference)
+		if response == nil && err == nil {
+			s.handleGenericResponse(w, r, ErrNotFound)
+			return
+		}
+
 		s.handleJSONResponse(w, r, response, err)
 	})
 
@@ -107,6 +112,11 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 		reference := query.Get("reference")
 
 		response, err := api.GetImageDescription(r.Context(), reference)
+		if response == nil && err == nil {
+			s.handleGenericResponse(w, r, ErrNotFound)
+			return
+		}
+
 		s.handleJSONResponse(w, r, response, err)
 	})
 
@@ -116,6 +126,11 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 		reference := query.Get("reference")
 
 		response, err := api.GetImageReleaseNotes(r.Context(), reference)
+		if response == nil && err == nil {
+			s.handleGenericResponse(w, r, ErrNotFound)
+			return
+		}
+
 		s.handleJSONResponse(w, r, response, err)
 	})
 
