@@ -34,11 +34,11 @@ export function ImageCard({
     <div
       className={`flex gap-x-4 p-4 md:p-6 bg-white dark:bg-[#1e1e1e] rounded-lg shadow ${className || ''}`}
     >
-      <div className="w-[48px] h-[48px]">
+      <div className="w-[48px] h-[48px] shrink-0">
         {logo ? (
           <img src={logo} className="w-full h-full rounded" />
         ) : (
-          <div className="flex items-center justify-center w-[48px] h-[48px] rounded bg-blue-400 dark:bg-blue-700">
+          <div className="flex items-center justify-center w-full h-full rounded bg-blue-400 dark:bg-blue-700">
             <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
           </div>
         )}
