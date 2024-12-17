@@ -2006,7 +2006,7 @@ __metadata:
     eslint-plugin-unused-imports: "npm:4.1.4"
     github-markdown-css: "npm:5.8.1"
     globals: "npm:15.13.0"
-    marked: "npm:15.0.3"
+    marked: "npm:15.0.4"
     postcss: "npm:8.4.49"
     prettier: "npm:3.4.2"
     react: "npm:19.0.0"
@@ -3306,12 +3306,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:15.0.3":
-  version: 15.0.3
-  resolution: "marked@npm:15.0.3"
+"marked@npm:15.0.4":
+  version: 15.0.4
+  resolution: "marked@npm:15.0.4"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/2e08d50b2ad96509a8ca93a5b57e9c7bf64ea44c8f504392191955dac5b117996ee39ceaafe0330e87a3bd93f7af5942bb87ef9bf55664a8d660012e7a43c3cc
+  checksum: 10c0/e2bfd9178e5242cc814aaf8020f3c2e954c047652c498dac0732f4b711d5e3ab80dbc54b964799d80470d6c515a24905e554c4a40f87b05dedc26e4e36cfdfdb
   languageName: node
   linkType: hard
 
