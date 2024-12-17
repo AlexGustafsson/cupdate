@@ -665,13 +665,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.16.0":
-  version: 9.16.0
-  resolution: "@eslint/js@npm:9.16.0"
-  checksum: 10c0/a55846a4ddade720662d36682f3eaaf38eac06eeee12c83bb837bba2b7d550dadcb3445b104219f0bc1da2e09b4fe5fb5ba123b8338c8c787bcfbd540878df75
-  languageName: node
-  linkType: hard
-
 "@eslint/js@npm:9.17.0":
   version: 9.17.0
   resolution: "@eslint/js@npm:9.17.0"
@@ -1992,7 +1985,7 @@ __metadata:
   resolution: "cupdate@workspace:."
   dependencies:
     "@eslint/compat": "npm:1.2.4"
-    "@eslint/js": "npm:9.16.0"
+    "@eslint/js": "npm:9.17.0"
     "@trivago/prettier-plugin-sort-imports": "npm:5.2.0"
     "@types/dompurify": "npm:3.2.0"
     "@types/eslint": "npm:9.6.1"
