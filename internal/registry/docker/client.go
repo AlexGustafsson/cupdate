@@ -1,12 +1,16 @@
 package docker
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -82,6 +86,95 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, fmt.Errorf("unsupported version")
 	}
 
+	var tags []string
+	if strings.HasPrefix(image.Path, "library/") {
+		// Use the source of truth - the Docker official images git
+		tags, err = c.getOfficialImageTags(ctx, image)
+	} else {
+		tags, err = c.getDockerHubTags(ctx, image)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO:
+	// As we've sorted versions in released time, let's assume the first version
+	// that is higher than ours, is the latest version. Might not be true if the
+	// current version is 1.0.0, there have been a lot of nightlies or other types
+	// of tags, so that the page contains only fix 1.0.1, but in reality 2.0.0 was
+	// released a while ago and would be on the next page, would we be greedy.
+	// Look at any large image with LTS, such as postgres, node, calico/node.
+	// We could try to take care of "common" edge cases such as calico/node's
+	// v3.29.0-arm64, v3.29.0-amd64 etc where v3.29.0 is the tagged version and
+	// the suffix is only the platform. If we were to trim those before comparing,
+	// we would potentially find a (probable) latest version faster, but we could
+	// also end up including "different" tags, if for example the user was using
+	// a tag with an actual suffix, then the suffix was important. Could probably
+	// be handled by only checking if there is a suffix in the user's image. Over
+	// time, if the project is very active, I guess we should hit a correct
+	// version eventually, if cupdate checks often enough
+	for _, tag := range tags {
+		newVersion, err := oci.ParseVersion(tag)
+		if err != nil || newVersion == nil {
+			continue
+		}
+
+		if currentVersion.Prerelease == "" && newVersion.Prerelease != "" {
+			continue
+		}
+
+		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
+			image.Tag = tag
+
+			return &registry.Image{
+				Name: image,
+			}, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func (c *Client) getOfficialImageTags(ctx context.Context, image oci.Reference) ([]string, error) {
+	req, err := http.NewRequest(http.MethodGet, "https://raw.githubusercontent.com/docker-library/official-images/refs/heads/master/library/"+image.Name(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.Client.DoCached(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	tags := make(map[string]struct{})
+
+	// SEE: https://github.com/docker-library/official-images?tab=readme-ov-file#instruction-format
+	scanner := bufio.NewScanner(res.Body)
+	for scanner.Scan() {
+		k, v, ok := strings.Cut(scanner.Text(), ":")
+		if !ok {
+			continue
+		}
+
+		if k != "Tags" && k != "SharedTags" {
+			continue
+		}
+
+		values := strings.Split(strings.TrimSpace(v), ", ")
+		for _, tag := range values {
+			tags[tag] = struct{}{}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return slices.Collect(maps.Keys(tags)), nil
+}
+
+func (c *Client) getDockerHubTags(ctx context.Context, image oci.Reference) ([]string, error) {
 	u, err := url.Parse(fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/tags", image.Path))
 	if err != nil {
 		return nil, err
@@ -114,48 +207,12 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, err
 	}
 
-	// TODO:
-	// As we've sorted versions in released time, let's assume the first version
-	// that is higher than ours, is the latest version. Might not be true if the
-	// current version is 1.0.0, there have been a lot of nightlies or other types
-	// of tags, so that the page contains only fix 1.0.1, but in reality 2.0.0 was
-	// released a while ago and would be on the next page, would we be greedy.
-	// Look at any large image with LTS, such as postgres, node, calico/node.
-	// We could try to take care of "common" edge cases such as calico/node's
-	// v3.29.0-arm64, v3.29.0-amd64 etc where v3.29.0 is the tagged version and
-	// the suffix is only the platform. If we were to trim those before comparing,
-	// we would potentially find a (probable) latest version faster, but we could
-	// also end up including "different" tags, if for example the user was using
-	// a tag with an actual suffix, then the suffix was important. Could probably
-	// be handled by only checking if there is a suffix in the user's image. Over
-	// time, if the project is very active, I guess we should hit a correct
-	// version eventually, if cupdate checks often enough
-	for _, tag := range result.Results {
-		if tag.Name == "" {
-			continue
-		}
-
-		newVersion, err := oci.ParseVersion(tag.Name)
-		if err != nil || newVersion == nil {
-			continue
-		}
-
-		if currentVersion.Prerelease == "" && newVersion.Prerelease != "" {
-			continue
-		}
-
-		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
-			image.Tag = tag.Name
-
-			return &registry.Image{
-				Name:      image,
-				Published: tag.TagLastPushed,
-				Digest:    tag.Digest,
-			}, nil
-		}
+	tags := make([]string, 0)
+	for _, entry := range result.Results {
+		tags = append(tags, entry.Name)
 	}
 
-	return nil, nil
+	return tags, nil
 }
 
 func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repository, error) {

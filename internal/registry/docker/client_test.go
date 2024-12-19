@@ -68,15 +68,31 @@ func TestClientGetLatestVersion(t *testing.T) {
 		t.Skip()
 	}
 
+	testCases := []struct {
+		ref string
+	}{
+		{
+			ref: "renovate/renovate:38.70.2",
+		},
+		{
+			ref: "mongo:8.0.0",
+		},
+	}
 	client := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
-	ref, err := oci.ParseReference("renovate/renovate:38.70.2")
-	require.NoError(t, err)
-	image, err := client.GetLatestVersion(context.TODO(), ref)
-	require.NoError(t, err)
 
-	fmt.Println(image)
+	for _, testCase := range testCases {
+		t.Run(testCase.ref, func(t *testing.T) {
+			ref, err := oci.ParseReference(testCase.ref)
+			require.NoError(t, err)
+
+			image, err := client.GetLatestVersion(context.TODO(), ref)
+			require.NoError(t, err)
+
+			fmt.Println(image)
+		})
+	}
 }
 
 func TestClientGetRepository(t *testing.T) {
@@ -110,4 +126,40 @@ func TestGetVulnerabilityReport(t *testing.T) {
 	require.NoError(t, err)
 
 	json.NewEncoder(os.Stdout).Encode(report)
+}
+
+func TestGetOfficialImageTags(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	client := &Client{
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+	}
+
+	ref, err := oci.ParseReference("mongo")
+	require.NoError(t, err)
+
+	tags, err := client.getOfficialImageTags(context.TODO(), ref)
+	require.NoError(t, err)
+
+	fmt.Println(tags)
+}
+
+func TestGetDockerHubTags(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	client := &Client{
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+	}
+
+	ref, err := oci.ParseReference("mongo")
+	require.NoError(t, err)
+
+	tags, err := client.getDockerHubTags(context.TODO(), ref)
+	require.NoError(t, err)
+
+	fmt.Println(tags)
 }
