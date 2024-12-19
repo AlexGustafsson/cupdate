@@ -18,6 +18,10 @@ func GetInput[T any](ctx Context, name string, required bool) (T, error) {
 		return ret, err
 	}
 
+	if v == nil {
+		return ret, nil
+	}
+
 	var ok bool
 	ret, ok = v.(T)
 	if !ok {

@@ -340,10 +340,12 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					annotations, err := workflow.GetValue[oci.Annotations](ctx, "job.oci.step.annotations.annotations")
 					if err != nil {
 						return false, err
+					} else if annotations == nil {
+						return false, nil
 					}
 
 					source := annotations.Source()
-					if strings.HasPrefix(source, "://github.com/") {
+					if strings.HasPrefix(source, "https://github.com/") {
 						return true, nil
 					}
 
