@@ -59,18 +59,28 @@ export function Dashboard(): JSX.Element {
   return (
     <div className="flex flex-col items-center pt-6 pb-10 px-2">
       <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x dark:divide-[#333333]">
-        <div className="py-2 px-4">
-          <p className="text-sm">Outdated images</p>
-          <p className="text-3xl font-semibold text-red-600">
-            {images.value.summary.outdated}
-          </p>
-        </div>
-        <div className="py-2 px-4">
-          <p className="text-sm">Vulnerable images</p>
-          <p className="text-3xl font-semibold text-red-600">
-            {images.value.summary.vulnerable}
-          </p>
-        </div>
+        <NavLink
+          to="/?tag=outdated"
+          className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+        >
+          <div className="py-2 px-4">
+            <p className="text-sm">Outdated images</p>
+            <p className="text-3xl font-semibold text-red-600">
+              {images.value.summary.outdated}
+            </p>
+          </div>
+        </NavLink>
+        <NavLink
+          to="/?tag=vulnerable"
+          className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+        >
+          <div className="py-2 px-4">
+            <p className="text-sm">Vulnerable images</p>
+            <p className="text-3xl font-semibold text-red-600">
+              {images.value.summary.vulnerable}
+            </p>
+          </div>
+        </NavLink>
         <div className="py-2 px-4">
           <p className="text-sm">Queued images</p>
           <p className="text-3xl font-semibold">
