@@ -122,7 +122,7 @@ export function Dashboard(): JSX.Element {
             to={`image?reference=${encodeURIComponent(x.reference)}`}
           >
             <ImageCard
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              className="hover:shadow-md transition-shadow cursor-pointer dark:transition-colors dark:hover:bg-[#262626]"
               name={name(x.reference)}
               currentVersion={version(x.reference)}
               latestVersion={

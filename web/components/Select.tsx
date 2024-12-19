@@ -5,7 +5,7 @@ export function Select({
   ...rest
 }: PropsWithChildren<SelectHTMLAttributes<HTMLSelectElement>>): JSX.Element {
   return (
-    <div className="relative border border-[#e5e5e5] dark:border-[#333333] rounded transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-md bg-white dark:bg-[#1e1e1e] hover:bg-[#fafafa] dark:hover:bg-[#262626]">
+    <div className="relative border border-[#e5e5e5] dark:border-[#333333] rounded transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626]">
       <select
         {...rest}
         className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none"
