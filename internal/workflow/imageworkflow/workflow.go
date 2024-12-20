@@ -288,7 +288,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 
 						data.InsertLink(models.ImageLink{
 							Type: "gitlab",
-							URL:  "https://gitlab.com/" + reference.Path,
+							URL:  "https://gitlab.com/" + data.ImageReference.Path,
 						})
 
 						description, err := workflow.GetValue[string](ctx, "step.description.description")
