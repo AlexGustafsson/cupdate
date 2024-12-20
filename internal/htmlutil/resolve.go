@@ -2,7 +2,6 @@ package htmlutil
 
 import (
 	"bytes"
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -44,7 +43,6 @@ func ResolveReferences(input string, base *url.URL) (string, error) {
 func resolveReference(ref string, base *url.URL) string {
 	u, err := base.Parse(ref)
 	if err != nil {
-		fmt.Println(ref, err)
 		return ref
 	}
 
