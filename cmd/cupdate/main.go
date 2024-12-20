@@ -100,7 +100,7 @@ func main() {
 
 	// Set up the configured platform (Docker if specified, auto discovery of
 	// Kubernetes otherwise)
-	var targetPlatform platform.Platform
+	var targetPlatform platform.Grapher
 	if config.Docker.Host == "" {
 		var kubernetesConfig *rest.Config
 		if config.Kubernetes.Host == "" {
@@ -211,116 +211,126 @@ func main() {
 	})
 
 	wg.Go(func() error {
-		// TODO: Listen on events and react on them once running, rather than just
-		// check once or poll
+		slog.Info("Starting platform grapher")
 
-		slog.Info("Fetching initial state")
-		graph, err := targetPlatform.Graph(ctx)
+		grapher, ok := targetPlatform.(platform.ContinousGrapher)
+		if !ok {
+			slog.Debug("Platform lacks native continous graphing support. Falling back to polling", slog.Duration("interval", config.Processing.Interval))
+			grapher = &platform.PollGrapher{
+				Grapher:  targetPlatform,
+				Interval: config.Processing.Interval,
+			}
+		}
+
+		graphs, err := grapher.GraphContinously(ctx)
 		if err != nil {
-			slog.Error("Failed to fetch initial state", slog.Any("error", err))
+			slog.Error("Failed to start graphing platform", slog.Any("error", err))
 			return err
 		}
 
-		roots := graph.Roots()
+		for graph := range graphs {
+			slog.Debug("Got updated platform graph")
+			roots := graph.Roots()
 
-		for _, root := range roots {
-			imageNode := root.(platform.ImageNode)
+			for _, root := range roots {
+				imageNode := root.(platform.ImageNode)
 
-			subgraph := graph.Subgraph(root.ID())
+				subgraph := graph.Subgraph(root.ID())
 
-			edges := subgraph.Edges()
-			nodes := subgraph.Nodes()
+				edges := subgraph.Edges()
+				nodes := subgraph.Nodes()
 
-			// TODO: Rewrite to be more generic (to include Docker?)
-			var namespaceNode *platform.Node
+				// TODO: Rewrite to be more generic (to include Docker?)
+				var namespaceNode *platform.Node
 
-			mappedNodes := make(map[string]models.GraphNode)
-			for _, node := range nodes {
-				switch n := node.(type) {
-				case kubernetes.Resource:
-					mappedNodes[node.ID()] = models.GraphNode{
-						Domain: "kubernetes",
-						Type:   string(n.Kind()),
-						Name:   n.Name(),
+				mappedNodes := make(map[string]models.GraphNode)
+				for _, node := range nodes {
+					switch n := node.(type) {
+					case kubernetes.Resource:
+						mappedNodes[node.ID()] = models.GraphNode{
+							Domain: "kubernetes",
+							Type:   string(n.Kind()),
+							Name:   n.Name(),
+						}
+						if node.Type() == "kubernetes/"+kubernetes.ResourceKindCoreV1Namespace {
+							namespaceNode = &node
+						}
+					case docker.Resource:
+						mappedNodes[node.ID()] = models.GraphNode{
+							Domain: "docker",
+							Type:   string(n.Kind()),
+							Name:   n.Name(),
+						}
+					case platform.ImageNode:
+						mappedNodes[node.ID()] = models.GraphNode{
+							Domain: "oci",
+							Type:   "image",
+							Name:   imageNode.Reference.String(),
+						}
+					default:
+						panic(fmt.Sprintf("unimplemented node type: %s", node.Type()))
 					}
-					if node.Type() == "kubernetes/"+kubernetes.ResourceKindCoreV1Namespace {
-						namespaceNode = &node
-					}
-				case docker.Resource:
-					mappedNodes[node.ID()] = models.GraphNode{
-						Domain: "docker",
-						Type:   string(n.Kind()),
-						Name:   n.Name(),
-					}
-				case platform.ImageNode:
-					mappedNodes[node.ID()] = models.GraphNode{
-						Domain: "oci",
-						Type:   "image",
-						Name:   imageNode.Reference.String(),
-					}
-				default:
-					panic(fmt.Sprintf("unimplemented node type: %s", node.Type()))
 				}
-			}
 
-			tags := []string{}
-			// Set tags for resources
-			// TODO: Handle for docker as well?
-			if namespaceNode != nil {
-				children := edges[(*namespaceNode).ID()]
-				for childID, isParent := range children {
-					if isParent {
-						continue
-					}
+				tags := []string{}
+				// Set tags for resources
+				// TODO: Handle for docker as well?
+				if namespaceNode != nil {
+					children := edges[(*namespaceNode).ID()]
+					for childID, isParent := range children {
+						if isParent {
+							continue
+						}
 
-					var childNode *platform.Node
-					for _, node := range nodes {
-						var n = node
-						if node.ID() == childID {
-							childNode = &n
-							break
+						var childNode *platform.Node
+						for _, node := range nodes {
+							var n = node
+							if node.ID() == childID {
+								childNode = &n
+								break
+							}
+						}
+
+						if childNode != nil {
+							resource := (*childNode).(kubernetes.Resource)
+							tags = append(tags, kubernetes.TagName(resource.Kind()))
 						}
 					}
+				}
 
-					if childNode != nil {
-						resource := (*childNode).(kubernetes.Resource)
-						tags = append(tags, kubernetes.TagName(resource.Kind()))
-					}
+				mappedGraph := models.Graph{
+					Edges: edges,
+					Nodes: mappedNodes,
+				}
+
+				rawImage := &models.RawImage{
+					Reference: imageNode.Reference.String(),
+					Tags:      tags,
+					Graph:     mappedGraph,
+				}
+
+				// TODO: Do this inside of the worker as well?
+				slog.Debug("Inserting raw image", slog.String("reference", rawImage.Reference))
+				if err := writeStore.InsertRawImage(context.TODO(), rawImage); err != nil {
+					slog.Error("Failed to insert raw image", slog.Any("error", err))
+					return err
 				}
 			}
 
-			mappedGraph := models.Graph{
-				Edges: edges,
-				Nodes: mappedNodes,
+			allReferences := make([]string, 0)
+			for _, root := range roots {
+				imageNode := root.(platform.ImageNode)
+				allReferences = append(allReferences, imageNode.Reference.String())
 			}
 
-			rawImage := &models.RawImage{
-				Reference: imageNode.Reference.String(),
-				Tags:      tags,
-				Graph:     mappedGraph,
-			}
-
-			// TODO: Do this inside of the worker as well?
-			slog.Debug("Inserting raw image", slog.String("reference", rawImage.Reference))
-			if err := writeStore.InsertRawImage(context.TODO(), rawImage); err != nil {
-				slog.Error("Failed to insert raw image", slog.Any("error", err))
+			slog.Debug("Cleaning up removed images")
+			removed, err := writeStore.DeleteNonPresent(context.TODO(), allReferences)
+			if err != nil {
+				slog.Error("Failed to clean up removed images", slog.Any("error", err))
 				return err
 			}
+			slog.Debug("Cleaned up removed images successfully", slog.Int64("removed", removed))
 		}
-
-		allReferences := make([]string, 0)
-		for _, root := range roots {
-			imageNode := root.(platform.ImageNode)
-			allReferences = append(allReferences, imageNode.Reference.String())
-		}
-
-		slog.Debug("Cleaning up removed images")
-		removed, err := writeStore.DeleteNonPresent(context.TODO(), allReferences)
-		if err != nil {
-			slog.Error("Failed to clean up removed images", slog.Any("error", err))
-			return err
-		}
-		slog.Debug("Cleaned up removed images successfully", slog.Int64("removed", removed))
 
 		return nil
 	})

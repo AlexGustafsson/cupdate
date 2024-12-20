@@ -1,7 +1,9 @@
 # Kubernetes
 
-Cupdate is made to run well in kubernetes. It is intended to be deployed as a
-single node, optionally persisting its state to a persistent volume.
+Cupdate is made to run well in Kubernetes. It is intended to be deployed as a
+single node, optionally persisting its state to a persistent volume. Cupdate
+will automatically react to changes to resources and update its data
+accordingly.
 
 Cupdate is intended to be run using a service account.
 

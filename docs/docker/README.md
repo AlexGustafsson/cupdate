@@ -1,6 +1,7 @@
 # Docker
 
-Cupdate is made to run in Docker by mounting the Docker socket.
+Cupdate is made to run in Docker by mounting the Docker socket. Cupdate will
+poll the socket for changes, reacting on changes made to containers.
 
 ```shell
 docker run --detach --volume /var/run/docker.sock:/var/run/docker.sock ghcr.io/alexgustafsson/cupdate:latest

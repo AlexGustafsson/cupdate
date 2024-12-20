@@ -15,7 +15,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
-var _ platform.Platform = (*Platform)(nil)
+var _ platform.Grapher = (*Platform)(nil)
 
 type Platform struct {
 	client *http.Client
