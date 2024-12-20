@@ -1,7 +1,6 @@
 package imageworkflow
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -39,7 +38,6 @@ func GetDockerHubVulnerabilities() workflow.Step {
 			// TODO: For now, use the first digest of a manifest
 			digest := ""
 			for _, manifest := range manifests {
-				fmt.Printf("%+v\n", manifest)
 				if manifest.Digest != "" {
 					digest = manifest.Digest
 					break
