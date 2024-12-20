@@ -37,7 +37,6 @@ func GetGithubPackageREADME() workflow.Step {
 			if err != nil {
 				return nil, err
 			}
-
 			return workflow.Batch(
 				workflow.SetOutput("readme", string(readme)),
 			), nil

@@ -35,10 +35,16 @@ func GetGithubPackage() workflow.Step {
 				return nil, nil
 			}
 
+			tags := make([]string, 0)
+			for _, tag := range pkg.Tags {
+				tags = append(tags, tag.Name)
+			}
+
 			return workflow.Batch(
 				workflow.SetOutput("package", pkg),
 				workflow.SetOutput("owner", pkg.Owner),
 				workflow.SetOutput("repository", pkg.Repository),
+				workflow.SetOutput("tags", tags),
 			), nil
 		},
 	}

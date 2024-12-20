@@ -11,7 +11,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
 	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -175,36 +174,17 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("readme").
 						With("httpClient", httpClient).
 						With("package", workflow.Ref{Key: "step.package.package"}),
+					GetLatestReference().
+						WithID("latest").
+						With("reference", data.ImageReference).
+						With("tags", workflow.Ref{Key: "step.package.tags"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						pkg, err := workflow.GetValue[*github.Package](ctx, "step.package.package")
+						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
 						if err != nil {
 							return nil, err
 						}
 
-						currentVersion, err := semver.ParseVersion(data.ImageReference.Tag)
-						if err == nil && currentVersion != nil {
-							for _, tag := range pkg.Tags {
-								if tag.Name == "" {
-									continue
-								}
-
-								newVersion, err := semver.ParseVersion(tag.Name)
-								if err != nil || newVersion == nil {
-									continue
-								}
-
-								if currentVersion.Prerelease == "" && newVersion.Prerelease != "" {
-									continue
-								}
-
-								if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
-									ref := data.ImageReference
-									ref.Tag = tag.Name
-									data.LatestReference = &ref
-									break
-								}
-							}
-						}
+						data.LatestReference = reference
 
 						description, err := workflow.GetValue[string](ctx, "step.description.description")
 						if err != nil {
