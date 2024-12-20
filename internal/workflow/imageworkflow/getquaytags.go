@@ -7,9 +7,9 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func GetQuayLatestVersion() workflow.Step {
+func GetQuayTags() workflow.Step {
 	return workflow.Step{
-		Name: "Get latest version from Quay",
+		Name: "Get tags from Quay",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
 			httpClient, err := workflow.GetInput[*httputil.Client](ctx, "httpClient", true)
 			if err != nil {
@@ -23,16 +23,12 @@ func GetQuayLatestVersion() workflow.Step {
 
 			client := &quay.Client{Client: httpClient}
 
-			image, err := client.GetLatestVersion(ctx, reference)
+			tags, err := client.GetTags(ctx, reference)
 			if err != nil {
 				return nil, err
 			}
 
-			if image == nil {
-				return workflow.SetOutput("reference", (*oci.Reference)(nil)), nil
-			}
-
-			return workflow.SetOutput("reference", &image.Name), nil
+			return workflow.SetOutput("tags", tags), nil
 		},
 	}
 }

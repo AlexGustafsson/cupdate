@@ -57,7 +57,7 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	// Try to read from cache, only return on successful cache reads
 	entry, err := c.Cache.Get(ctx, key)
 	if err == nil {
-		slog.Debug("Reading cached response")
+		slog.Debug("HTTP response cache hit")
 		res, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(entry)), req)
 		if err == nil {
 			slog.Debug("HTTP response successfully read from cache")

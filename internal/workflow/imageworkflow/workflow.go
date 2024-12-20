@@ -129,10 +129,14 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						})
 						return nil, nil
 					}),
-					GetDockerHubLatestVersion().
-						WithID("latest").
+					GetDockerHubTags().
+						WithID("tags").
 						With("reference", data.ImageReference).
 						With("httpClient", httpClient),
+					GetLatestReference().
+						WithID("latest").
+						With("reference", data.ImageReference).
+						With("tags", workflow.Ref{Key: "step.tags.tags"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
 						if err != nil {
@@ -238,10 +242,14 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					return domain == "quay.io", nil
 				},
 				Steps: []workflow.Step{
-					GetQuayLatestVersion().
-						WithID("latest").
+					GetQuayTags().
+						WithID("tags").
 						With("reference", data.ImageReference).
 						With("httpClient", httpClient),
+					GetLatestReference().
+						WithID("latest").
+						With("reference", data.ImageReference).
+						With("tags", workflow.Ref{Key: "step.tags.tags"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
 						if err != nil {
@@ -267,10 +275,14 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					return domain == "registry.gitlab.com", nil
 				},
 				Steps: []workflow.Step{
-					GetGitLabLatestVersion().
-						WithID("latest").
+					GetGitLabTags().
+						WithID("tags").
 						With("reference", data.ImageReference).
 						With("httpClient", httpClient),
+					GetLatestReference().
+						WithID("latest").
+						With("reference", data.ImageReference).
+						With("tags", workflow.Ref{Key: "step.tags.tags"}),
 					GetGitLabDescription().
 						WithID("description").
 						With("reference", data.ImageReference).

@@ -42,7 +42,7 @@ func TestGetProjectContainerRepositoryTags(t *testing.T) {
 	fmt.Printf("%+v\n", res)
 }
 
-func TestClientGetLatestVersion(t *testing.T) {
+func TestClientGetTags(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -52,8 +52,8 @@ func TestClientGetLatestVersion(t *testing.T) {
 	}
 	ref, err := oci.ParseReference("registry.gitlab.com/arm-research/smarter/smarter-device-manager:v1.20.10")
 	require.NoError(t, err)
-	actual, err := client.GetLatestVersion(context.TODO(), ref)
+	tags, err := client.GetTags(context.TODO(), ref)
 	require.NoError(t, err)
 
-	fmt.Println(actual)
+	fmt.Println(tags)
 }

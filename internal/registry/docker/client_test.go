@@ -63,7 +63,7 @@ func TestClientGetAnnotations(t *testing.T) {
 	fmt.Println(manifests, manifests == nil)
 }
 
-func TestClientGetLatestVersion(t *testing.T) {
+func TestClientGetTags(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -87,10 +87,10 @@ func TestClientGetLatestVersion(t *testing.T) {
 			ref, err := oci.ParseReference(testCase.ref)
 			require.NoError(t, err)
 
-			image, err := client.GetLatestVersion(context.TODO(), ref)
+			tags, err := client.GetTags(context.TODO(), ref)
 			require.NoError(t, err)
 
-			fmt.Println(image)
+			fmt.Println(tags)
 		})
 	}
 }

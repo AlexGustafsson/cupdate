@@ -5,15 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/AlexGustafsson/cupdate/internal/semver"
 )
 
 type Client struct {
@@ -205,7 +205,7 @@ func (c *Client) GetProjectContainerRepositoryTags(ctx context.Context, id strin
 	return result.Data.ContainerRepository.Tags.Nodes, nil
 }
 
-func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*registry.Image, error) {
+func (c *Client) GetTags(ctx context.Context, image oci.Reference) ([]string, error) {
 	if !image.HasTag {
 		return nil, nil
 	}
@@ -213,13 +213,6 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 	// There's not going to be any latest version
 	if image.Tag == "latest" {
 		return nil, nil
-	}
-
-	currentVersion, err := semver.ParseVersion(image.Tag)
-	if err != nil {
-		return nil, fmt.Errorf("unsupported version: %w", err)
-	} else if currentVersion == nil {
-		return nil, fmt.Errorf("unsupported version")
 	}
 
 	// The repository path is <owner>/<group>/<project>
@@ -247,44 +240,17 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, nil
 	}
 
-	tags, err := c.GetProjectContainerRepositoryTags(ctx, repository.ID)
+	repositoryTags, err := c.GetProjectContainerRepositoryTags(ctx, repository.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO:
-	// As we've sorted versions in released time, let's assume the first version
-	// that is higher than ours, is the latest version. Might not be true if the
-	// current version is 1.0.0, there have been a lot of nightlies or other types
-	// of tags, so that the page contains only fix 1.0.1, but in reality 2.0.0 was
-	// released a while ago and would be on the next page, would we be greedy.
-	// Look at any large image with LTS, such as postgres, node.
-	for _, tag := range tags {
-		if tag.Name == "" {
-			continue
-		}
-
-		newVersion, err := semver.ParseVersion(tag.Name)
-		if err != nil || newVersion == nil {
-			continue
-		}
-
-		if currentVersion.Prerelease == "" && newVersion.Prerelease != "" {
-			continue
-		}
-
-		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
-			image.Tag = tag.Name
-
-			return &registry.Image{
-				Name:      image,
-				Published: tag.PublishedAt,
-				Digest:    tag.Digest,
-			}, nil
-		}
+	tags := make(map[string]struct{})
+	for _, tag := range repositoryTags {
+		tags[tag.Name] = struct{}{}
 	}
 
-	return nil, nil
+	return slices.Collect(maps.Keys(tags)), nil
 }
 
 type ContainerRepository struct {

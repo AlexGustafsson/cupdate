@@ -14,9 +14,7 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/AlexGustafsson/cupdate/internal/semver"
 )
 
 type Client struct {
@@ -70,7 +68,7 @@ func (c *Client) Authorize(ctx context.Context, image oci.Reference, req *http.R
 	return oci.AuthorizerToken(token).Authorize(ctx, image, req)
 }
 
-func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*registry.Image, error) {
+func (c *Client) GetTags(ctx context.Context, image oci.Reference) ([]string, error) {
 	if !image.HasTag {
 		return nil, nil
 	}
@@ -80,14 +78,8 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, nil
 	}
 
-	currentVersion, err := semver.ParseVersion(image.Tag)
-	if err != nil {
-		return nil, fmt.Errorf("unsupported version: %w", err)
-	} else if currentVersion == nil {
-		return nil, fmt.Errorf("unsupported version")
-	}
-
 	var tags []string
+	var err error
 	if strings.HasPrefix(image.Path, "library/") {
 		// Use the source of truth - the Docker official images git
 		tags, err = c.getOfficialImageTags(ctx, image)
@@ -98,42 +90,7 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, err
 	}
 
-	// TODO:
-	// As we've sorted versions in released time, let's assume the first version
-	// that is higher than ours, is the latest version. Might not be true if the
-	// current version is 1.0.0, there have been a lot of nightlies or other types
-	// of tags, so that the page contains only fix 1.0.1, but in reality 2.0.0 was
-	// released a while ago and would be on the next page, would we be greedy.
-	// Look at any large image with LTS, such as postgres, node, calico/node.
-	// We could try to take care of "common" edge cases such as calico/node's
-	// v3.29.0-arm64, v3.29.0-amd64 etc where v3.29.0 is the tagged version and
-	// the suffix is only the platform. If we were to trim those before comparing,
-	// we would potentially find a (probable) latest version faster, but we could
-	// also end up including "different" tags, if for example the user was using
-	// a tag with an actual suffix, then the suffix was important. Could probably
-	// be handled by only checking if there is a suffix in the user's image. Over
-	// time, if the project is very active, I guess we should hit a correct
-	// version eventually, if cupdate checks often enough
-	for _, tag := range tags {
-		newVersion, err := semver.ParseVersion(tag)
-		if err != nil || newVersion == nil {
-			continue
-		}
-
-		if currentVersion.Prerelease == "" && newVersion.Prerelease != "" {
-			continue
-		}
-
-		if newVersion.IsCompatible(currentVersion) && newVersion.Compare(currentVersion) >= 0 {
-			image.Tag = tag
-
-			return &registry.Image{
-				Name: image,
-			}, nil
-		}
-	}
-
-	return nil, nil
+	return tags, nil
 }
 
 func (c *Client) getOfficialImageTags(ctx context.Context, image oci.Reference) ([]string, error) {

@@ -2,14 +2,14 @@ package imageworkflow
 
 import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/gitlab"
+	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func GetGitLabLatestVersion() workflow.Step {
+func GetDockerHubTags() workflow.Step {
 	return workflow.Step{
-		Name: "Get latest version from GitLab",
+		Name: "Get tags from Docker Hub",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
 			httpClient, err := workflow.GetInput[*httputil.Client](ctx, "httpClient", true)
 			if err != nil {
@@ -21,18 +21,14 @@ func GetGitLabLatestVersion() workflow.Step {
 				return nil, err
 			}
 
-			client := &gitlab.Client{Client: httpClient}
+			client := &docker.Client{Client: httpClient}
 
-			image, err := client.GetLatestVersion(ctx, reference)
+			tags, err := client.GetTags(ctx, reference)
 			if err != nil {
 				return nil, err
 			}
 
-			if image == nil {
-				return workflow.SetOutput("reference", (*oci.Reference)(nil)), nil
-			}
-
-			return workflow.SetOutput("reference", &image.Name), nil
+			return workflow.SetOutput("tags", tags), nil
 		},
 	}
 }

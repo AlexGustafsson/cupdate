@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestClientGetLatestVersion(t *testing.T) {
+func TestClientGetTags(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -22,8 +22,8 @@ func TestClientGetLatestVersion(t *testing.T) {
 	}
 	ref, err := oci.ParseReference("quay.io/jetstack/cert-manager-acmesolver:v1.16.0")
 	require.NoError(t, err)
-	actual, err := client.GetLatestVersion(context.TODO(), ref)
+	tags, err := client.GetTags(context.TODO(), ref)
 	require.NoError(t, err)
 
-	fmt.Println(actual)
+	fmt.Println(tags)
 }

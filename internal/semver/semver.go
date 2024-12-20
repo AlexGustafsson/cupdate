@@ -1,5 +1,13 @@
 // Package semver contains methods of working with semantic versions.
-//
+package semver
+
+import (
+	"errors"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
 // NOTE: Parts of this code is translated from Renovate, which is under an
 // AGPL-3.0 license.
 //
@@ -8,22 +16,21 @@
 // SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/generic.ts#L18
 //
 // SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/docker/index.spec.ts
-package semver
-
-import (
-	"regexp"
-	"strconv"
-	"strings"
-)
 
 var versionPattern = regexp.MustCompile(`^(?<version>\d+(?:\.\d+)*)(?<prerelease>\w*)$`)
 var commitHashPattern = regexp.MustCompile(`^[a-f0-9]{7,40}$`)
 var numericPattern = regexp.MustCompile(`^[0-9]+$`)
 
+var (
+	ErrUnsupportedVersionFormat = errors.New("unsupported version format")
+)
+
 type Version struct {
 	Release    []int
 	Suffix     string
 	Prerelease string
+
+	raw string
 }
 
 // IsStable returns whether or not the version is a "stable" version without a
@@ -61,8 +68,9 @@ func (v *Version) Diff(other *Version) string {
 	return ""
 }
 
-// Compare returns 1 if other is newer than v, -1 if v is newer than other and
-// 0 if the two versions are equal.
+// Compare compares two versions.
+// Returns a negative number when v < other, a positive number when v > other
+// and zero when v == other.
 func (v *Version) Compare(other *Version) int {
 	length := max(len(v.Release), len(other.Release))
 	for i := 0; i < length; i++ {
@@ -100,10 +108,16 @@ func (v *Version) Compare(other *Version) int {
 	return strings.Compare(other.Suffix, v.Suffix)
 }
 
+// Equals returns whether or not the two versions are equal.
+func (v *Version) Equals(other *Version) bool {
+	return v.Compare(other) == 0
+}
+
 // ParseVersion parses a [Version].
+// Returns ErrUnsupportedVersionFormat if the version is not parsable.
 func ParseVersion(version string) (*Version, error) {
 	if commitHashPattern.MatchString(version) && !numericPattern.MatchString(version) {
-		return nil, nil
+		return nil, ErrUnsupportedVersionFormat
 	}
 
 	versionPieces := strings.Split(strings.TrimPrefix(version, "v"), "-")
@@ -111,7 +125,7 @@ func ParseVersion(version string) (*Version, error) {
 	suffixPieces := versionPieces[1:]
 	matchGroups := versionPattern.FindStringSubmatch(prefix)
 	if matchGroups == nil {
-		return nil, nil
+		return nil, ErrUnsupportedVersionFormat
 	}
 
 	ver := matchGroups[1]
@@ -130,5 +144,7 @@ func ParseVersion(version string) (*Version, error) {
 		Release:    release,
 		Suffix:     suffix,
 		Prerelease: prerelease,
+
+		raw: version,
 	}, nil
 }

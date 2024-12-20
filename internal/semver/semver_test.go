@@ -187,44 +187,6 @@ func TestCompareVersionsUnstable(t *testing.T) {
 	assert.Equal(t, versions, expected)
 }
 
-func TestCompareVersionsSemver(t *testing.T) {
-	versions := []string{
-		"1.1.1",
-		"1.2.3",
-		"2.0.1",
-		"1.2.3",
-		"1.2.3",
-		"1.3.4",
-		"1.2.3",
-		"0.9.5",
-	}
-
-	expected := []string{
-		"0.9.5",
-		"1.1.1",
-		"1.2.3",
-		"1.2.3",
-		"1.2.3",
-		"1.2.3",
-		"1.3.4",
-		"2.0.1",
-	}
-
-	slices.SortFunc(versions, func(as, bs string) int {
-		// Parse whilst sorting so that we get a nice diff based on the strings
-		// above rather than parsed versions
-		a, err := ParseVersion(as)
-		require.NoError(t, err)
-
-		b, err := ParseVersion(bs)
-		require.NoError(t, err)
-
-		return CompareVersions(a, b)
-	})
-
-	assert.Equal(t, versions, expected)
-}
-
 func TestVersionDiff(t *testing.T) {
 	testCases := []struct {
 		Current  string
