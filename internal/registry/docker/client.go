@@ -16,6 +16,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/registry"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/semver"
 )
 
 type Client struct {
@@ -79,7 +80,7 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 		return nil, nil
 	}
 
-	currentVersion, err := oci.ParseVersion(image.Tag)
+	currentVersion, err := semver.ParseVersion(image.Tag)
 	if err != nil {
 		return nil, fmt.Errorf("unsupported version: %w", err)
 	} else if currentVersion == nil {
@@ -114,7 +115,7 @@ func (c *Client) GetLatestVersion(ctx context.Context, image oci.Reference) (*re
 	// time, if the project is very active, I guess we should hit a correct
 	// version eventually, if cupdate checks often enough
 	for _, tag := range tags {
-		newVersion, err := oci.ParseVersion(tag)
+		newVersion, err := semver.ParseVersion(tag)
 		if err != nil || newVersion == nil {
 			continue
 		}

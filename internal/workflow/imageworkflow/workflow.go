@@ -11,6 +11,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
 	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -176,14 +177,14 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
-						currentVersion, err := oci.ParseVersion(data.ImageReference.Tag)
+						currentVersion, err := semver.ParseVersion(data.ImageReference.Tag)
 						if err == nil && currentVersion != nil {
 							for _, tag := range pkg.Tags {
 								if tag.Name == "" {
 									continue
 								}
 
-								newVersion, err := oci.ParseVersion(tag.Name)
+								newVersion, err := semver.ParseVersion(tag.Name)
 								if err != nil || newVersion == nil {
 									continue
 								}

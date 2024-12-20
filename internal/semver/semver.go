@@ -1,16 +1,20 @@
-package oci
+// Package semver contains methods of working with semantic versions.
+//
+// NOTE: Parts of this code is translated from Renovate, which is under an
+// AGPL-3.0 license.
+//
+// SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/docker/index.ts
+//
+// SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/generic.ts#L18
+//
+// SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/docker/index.spec.ts
+package semver
 
 import (
 	"regexp"
 	"strconv"
 	"strings"
 )
-
-// NOTE: Parts of this code is translated from Renovate, which is under an
-// AGPL-3.0 license.
-// SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/docker/index.ts
-// SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/generic.ts#L18
-// SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/docker/index.spec.ts
 
 var versionPattern = regexp.MustCompile(`^(?<version>\d+(?:\.\d+)*)(?<prerelease>\w*)$`)
 var commitHashPattern = regexp.MustCompile(`^[a-f0-9]{7,40}$`)
@@ -22,14 +26,19 @@ type Version struct {
 	Prerelease string
 }
 
+// IsStable returns whether or not the version is a "stable" version without a
+// pre-release.
 func (v *Version) IsStable() bool {
 	return v.Prerelease == ""
 }
 
+// IsCompatible returns true if v can be compared to other.
 func (v *Version) IsCompatible(other *Version) bool {
 	return v.Suffix == other.Suffix && len(v.Release) == len(other.Release)
 }
 
+// Diff returns the type of bump that differs v to other.
+// Returns an empty string in cases where a bump could not be found.
 func (v *Version) Diff(other *Version) string {
 	length := max(len(v.Release), len(other.Release))
 	for i := 0; i < length; i++ {
@@ -52,6 +61,8 @@ func (v *Version) Diff(other *Version) string {
 	return ""
 }
 
+// Compare returns 1 if other is newer than v, -1 if v is newer than other and
+// 0 if the two versions are equal.
 func (v *Version) Compare(other *Version) int {
 	length := max(len(v.Release), len(other.Release))
 	for i := 0; i < length; i++ {
@@ -89,6 +100,7 @@ func (v *Version) Compare(other *Version) int {
 	return strings.Compare(other.Suffix, v.Suffix)
 }
 
+// ParseVersion parses a [Version].
 func ParseVersion(version string) (*Version, error) {
 	if commitHashPattern.MatchString(version) && !numericPattern.MatchString(version) {
 		return nil, nil
@@ -119,8 +131,4 @@ func ParseVersion(version string) (*Version, error) {
 		Suffix:     suffix,
 		Prerelease: prerelease,
 	}, nil
-}
-
-func CompareVersions(a *Version, b *Version) int {
-	return a.Compare(b)
 }

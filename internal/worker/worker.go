@@ -8,6 +8,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"
 )
@@ -87,8 +88,8 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		}
 
 		// Add tags based on version diff
-		currentVersion, currentVersionErr := oci.ParseVersion(data.ImageReference.Version())
-		newVersion, newVersionErr := oci.ParseVersion(data.LatestReference.Version())
+		currentVersion, currentVersionErr := semver.ParseVersion(data.ImageReference.Version())
+		newVersion, newVersionErr := semver.ParseVersion(data.LatestReference.Version())
 		if currentVersion != nil && currentVersionErr == nil && newVersion != nil && newVersionErr == nil {
 			diff := currentVersion.Diff(newVersion)
 			if diff != "" {
