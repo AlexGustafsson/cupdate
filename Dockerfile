@@ -11,7 +11,7 @@ COPY eslint.config.mjs postcss.config.mjs tailwind.config.js tsconfig.json vite.
 COPY web web
 
 ARG CUPDATE_VERSION="development build"
-RUN VITE_CUPDATE_VERSION=${CUPDATE_VERSION} yarn build
+RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
 FROM golang:1.23 AS builder
 
@@ -27,7 +27,7 @@ COPY internal internal
 COPY --from=web-builder /src/internal/web/public /src/internal/web/public
 
 ARG CUPDATE_VERSION="development build"
-RUN CGO_ENABLED=0 go build -a -ldflags="-s -w -X main.Version=${CUPDATE_VERSION}" -o cupdate cmd/cupdate/*.go
+RUN CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'main.Version=$CUPDATE_VERSION'" -o cupdate cmd/cupdate/*.go
 
 FROM scratch AS export
 
