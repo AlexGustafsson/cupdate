@@ -20,6 +20,8 @@ spec:
   selector:
     matchLabels:
       app: cupdate
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -49,6 +51,18 @@ spec:
               memory: '64Mi'
             limits:
               memory: '128Mi'
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
       volumes:
         - name: data
           emptyDir:
