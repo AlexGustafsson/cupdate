@@ -11,7 +11,7 @@ import { name, version } from '../oci'
 export function Dashboard(): JSX.Element {
   const [filter, setFilter] = useFilter()
 
-  const [sortProperty, setSortProperty, sortOrder, setSortOrder] = useSort()
+  const [sort, setSort, sortOrder, setSortOrder] = useSort()
 
   const [searchParams, _] = useSearchParams()
 
@@ -19,7 +19,7 @@ export function Dashboard(): JSX.Element {
 
   const images = useImages({
     tags: filter,
-    sort: sortProperty,
+    sort: sort,
     order: sortOrder,
     page: searchParams.get('page') ? Number(searchParams.get('page')) : 0,
     limit: 30,
@@ -100,13 +100,14 @@ export function Dashboard(): JSX.Element {
       <div className="flex justify-between items-center w-full max-w-[800px]">
         <div className="flex gap-x-2">
           <Select
-            value={sortProperty}
-            onChange={(e) => setSortProperty(e.target.value)}
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
             defaultValue=""
           >
             <option value="" disabled hidden>
               Sort by
             </option>
+            <option value="bump">Bump</option>
             <option value="reference">Name</option>
           </Select>
           <Select

@@ -22,7 +22,7 @@ export function TagSelect({
       onMouseDown={() => setIsOpen(true)}
       onBlur={() => setIsOpen(false)}
       tabIndex={0}
-      className="pl-3 pr-8 py-2 relative border border-gray-200 dark:border-[#333333] rounded transition-colors focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-sm bg-white dark:bg-[#1e1e1e] focus:bg-[#fafafa] dark:hover:bg-[#262626] cursor-pointer"
+      className="pl-3 pr-8 py-2 relative border border-gray-200 dark:border-[#333333] rounded transition-colors focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-sm bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer"
     >
       <p className="text-sm">
         {filter.length > 0 ? `${filter.length} selected` : 'Tags'}
