@@ -86,12 +86,17 @@ func LatestOpinionatedVersionString(current string, versions []string) (string, 
 // used to diff two versions of the same image. The resulting diff is sortable
 // among with calculated values. Might fall apart if there are many parts, but
 // most of the time, there are only three or four version parts.
+// Note that it is valid to pass a nil [Version], which will be treated as a
+// unknown version.
 func PackInt64(version *Version) uint64 {
-	var packed uint64
+	if version == nil {
+		return 1
+	}
 
-	bitsPerPart := 64 / len(version.Release)
+	var packed uint64
+	bitsPerPart := 63 / len(version.Release)
 	for i, part := range version.Release {
-		packed |= uint64(part) << uint64((len(version.Release)-i-1)*bitsPerPart)
+		packed |= uint64(part) << uint64((len(version.Release)-i-1)*bitsPerPart+1)
 	}
 
 	return packed

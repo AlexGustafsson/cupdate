@@ -99,15 +99,17 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		// Fallthrough - insert what we have
 	}
 
+	versionDiffSortable := semver.PackInt64(nil)
+
 	// If no new version was defined and the current version is using the "latest"
 	// convention, the latest available reference is the current reference
-	if reference.Version() == "latest" && data.LatestReference == nil {
+	if reference.Version() == "latest" {
 		r := reference
 		data.LatestReference = &r
+		versionDiffSortable = 0
 	}
 
 	// Add some basic tags
-	var versionDiffSortable uint64
 	if data.LatestReference != nil {
 		if data.ImageReference.String() == data.LatestReference.String() {
 			data.Tags = append(data.Tags, "up-to-date")
