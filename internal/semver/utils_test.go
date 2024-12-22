@@ -1,6 +1,7 @@
 package semver
 
 import (
+	"math/rand"
 	"slices"
 	"testing"
 
@@ -234,4 +235,37 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 			assert.Equal(t, testCase.OK, ok)
 		})
 	}
+}
+
+func TestPackInt64(t *testing.T) {
+	expected := []string{
+		"0",
+		"0.0",
+		"0.0.0",
+		"0.0.1",
+		"0.0.2",
+		"0.2.0",
+		"1.0.0",
+		"1.0.0-alpine",
+		"1.2.3",
+		"1.2.4",
+	}
+
+	actual := append([]string{}, expected...)
+
+	rand.New(rand.NewSource(5325)).Shuffle(len(actual), func(i, j int) {
+		actual[i], actual[j] = actual[j], actual[i]
+	})
+
+	slices.SortStableFunc(actual, func(a string, b string) int {
+		av, err := ParseVersion(a)
+		require.NoError(t, err)
+
+		bv, err := ParseVersion(b)
+		require.NoError(t, err)
+
+		return int(PackInt64(av) - PackInt64(bv))
+	})
+
+	assert.Equal(t, expected, actual)
 }

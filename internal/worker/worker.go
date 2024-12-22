@@ -107,6 +107,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	// Add some basic tags
+	var versionDiffSortable uint64
 	if data.LatestReference != nil {
 		if data.ImageReference.String() == data.LatestReference.String() {
 			data.Tags = append(data.Tags, "up-to-date")
@@ -122,18 +123,21 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 			if diff != "" {
 				data.Tags = append(data.Tags, diff)
 			}
+
+			versionDiffSortable = semver.PackInt64(newVersion) - semver.PackInt64(currentVersion)
 		}
 	}
 
 	result := models.Image{
-		Reference:       data.ImageReference.String(),
-		LatestReference: "",
-		Description:     data.Description,
-		Tags:            data.Tags,
-		Image:           data.Image,
-		Links:           data.Links,
-		Vulnerabilities: data.Vulnerabilities,
-		LastModified:    time.Now(),
+		Reference:           data.ImageReference.String(),
+		LatestReference:     "",
+		VersionDiffSortable: versionDiffSortable,
+		Description:         data.Description,
+		Tags:                data.Tags,
+		Image:               data.Image,
+		Links:               data.Links,
+		Vulnerabilities:     data.Vulnerabilities,
+		LastModified:        time.Now(),
 	}
 	if data.LatestReference != nil {
 		result.LatestReference = data.LatestReference.String()

@@ -48,7 +48,7 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 		}
 
 		sort := query.Get("sort")
-		if sort != "" && sort != "reference" {
+		if sort != "" && sort != "reference" && sort != "bump" {
 			s.handleGenericResponse(w, r, ErrBadRequest)
 			return
 		}
@@ -82,11 +82,11 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 		}
 
 		listOptions := &store.ListImageOptions{
-			Tags:         tags,
-			Order:        store.Order(order),
-			Page:         int(page),
-			Limit:        int(limit),
-			SortProperty: store.SortProperty(sort),
+			Tags:  tags,
+			Order: store.Order(order),
+			Page:  int(page),
+			Limit: int(limit),
+			Sort:  store.Sort(sort),
 		}
 		response, err := api.ListImages(r.Context(), listOptions)
 		s.handleJSONResponse(w, r, response, err)

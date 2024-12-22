@@ -78,3 +78,21 @@ func LatestOpinionatedVersionString(current string, versions []string) (string, 
 
 	return latestVersionOfSameMajor.raw, true
 }
+
+// PackInt64 packs a [Version] into a lossy format which fits into a 64-bit int.
+// The resulting int is sortable when compared to compatible versions. That is,
+// a version of a higher major, higher minor, higher patch and so on will be a
+// higher value than a lower version. Useful for creating a value which is then
+// used to diff two versions of the same image. The resulting diff is sortable
+// among with calculated values. Might fall apart if there are many parts, but
+// most of the time, there are only three or four version parts.
+func PackInt64(version *Version) uint64 {
+	var packed uint64
+
+	bitsPerPart := 64 / len(version.Release)
+	for i, part := range version.Release {
+		packed |= uint64(part) << uint64((len(version.Release)-i-1)*bitsPerPart)
+	}
+
+	return packed
+}

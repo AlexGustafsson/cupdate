@@ -206,11 +206,12 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	}
 
 	statement, err := tx.PrepareContext(ctx, `INSERT INTO images
-	(reference, latestReference, description, lastModified, imageUrl)
+	(reference, latestReference, versionDiffSortable, description, lastModified, imageUrl)
 	VALUES
-	(?, ?, ?, ?, ?)
+	(?, ?, ?, ?, ?, ?)
 	ON CONFLICT(reference) DO UPDATE SET
 		latestReference=excluded.latestReference,
+		versionDiffSortable=excluded.versionDiffSortable,
 		description=excluded.description,
 		lastModified=excluded.lastModified,
 		imageUrl=excluded.imageUrl
@@ -225,7 +226,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	if image.LatestReference != "" {
 		latestReference = &image.LatestReference
 	}
-	_, err = statement.ExecContext(ctx, image.Reference, latestReference, image.Description, image.LastModified, image.Image)
+	_, err = statement.ExecContext(ctx, image.Reference, latestReference, image.VersionDiffSortable, image.Description, image.LastModified, image.Image)
 	statement.Close()
 	if err != nil {
 		tx.Rollback()
@@ -344,7 +345,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 
 func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, error) {
 	statement, err := s.db.PrepareContext(ctx, `SELECT
-	reference, latestReference, description, imageUrl, lastModified
+	reference, latestReference, versionDiffSortable, description, imageUrl, lastModified
 	FROM images WHERE reference = ?;`)
 	if err != nil {
 		return nil, err
@@ -365,7 +366,7 @@ func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, 
 	}
 
 	var latestReference *string
-	err = res.Scan(&image.Reference, &latestReference, &image.Description, &image.Image, &image.LastModified)
+	err = res.Scan(&image.Reference, &latestReference, &image.VersionDiffSortable, &image.Description, &image.Image, &image.LastModified)
 	res.Close()
 	if err != nil {
 		return nil, err
@@ -667,11 +668,12 @@ const (
 	OrderDescending Order = "desc"
 )
 
-type SortProperty string
+type Sort string
 
 const (
-	SortPropertyReference    SortProperty = "reference"
-	SortPropertyLastModified SortProperty = "last_modified"
+	SortReference    Sort = "reference"
+	SortLastModified Sort = "last_modified"
+	SortBump         Sort = "bump"
 )
 
 type ListImageOptions struct {
@@ -683,8 +685,8 @@ type ListImageOptions struct {
 	Page int
 	// Limit defaults to 30.
 	Limit int
-	// SortProperty defaults to SortPropertyReference.
-	SortProperty SortProperty
+	// Sort defaults to SortBump.
+	Sort Sort
 }
 
 func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*models.ImagePage, error) {
@@ -699,13 +701,14 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 
 	// NOTE: This mapping is done to hard code strings used in SQL queries to
 	// prevent injection attacks
-	sortProperty, ok := map[SortProperty]string{
-		"":                       "images.reference",
-		SortPropertyReference:    "images.reference",
-		SortPropertyLastModified: "images.lastModified",
-	}[options.SortProperty]
+	sort, ok := map[Sort]string{
+		"":               "reference",
+		SortReference:    "reference",
+		SortLastModified: "last_modified",
+		SortBump:         "bump",
+	}[options.Sort]
 	if !ok {
-		return nil, fmt.Errorf("invalid sort property")
+		return nil, fmt.Errorf("invalid sort")
 	}
 
 	// NOTE: This mapping is done to hard code strings used in SQL queries to
@@ -798,7 +801,15 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	result.Summary.Vulnerable = totalVulnerableImages
 	result.Summary.Processing = totalRawImages - totalImages
 
-	orderClause := "ORDER BY " + sortProperty + " " + order
+	orderClause := ""
+	switch sort {
+	case "reference":
+		orderClause = "ORDER BY images.reference " + order
+	case "last_modified":
+		orderClause = "ORDER BY images.last_modified " + order
+	case "bump":
+		orderClause = "ORDER BY images.versionDiffSortable " + order + ", images.reference"
+	}
 
 	limitClause := "LIMIT ? OFFSET ?"
 

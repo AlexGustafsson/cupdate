@@ -33,10 +33,10 @@ paths:
           required: false
         - in: query
           name: sort
-          description: Property to sort by.
+          description: Sort type.
           schema:
             type: string
-            enum: ['reference']
+            enum: ['reference', 'bump']
           required: false
         - in: query
           name: order

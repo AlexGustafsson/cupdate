@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS raw_images (
 CREATE TABLE IF NOT EXISTS images (
   reference TEXT PRIMARY KEY NOT NULL,
   latestReference TEXT,
+  versionDiffSortable INT NOT NULL,
   description TEXT NOT NULL,
   lastModified DATETIME NOT NULL,
   imageUrl TEXT NOT NULL,
