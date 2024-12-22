@@ -702,7 +702,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	// NOTE: This mapping is done to hard code strings used in SQL queries to
 	// prevent injection attacks
 	sort, ok := map[Sort]string{
-		"":               "reference",
+		"":               "bump",
 		SortReference:    "reference",
 		SortLastModified: "last_modified",
 		SortBump:         "bump",
@@ -714,12 +714,21 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	// NOTE: This mapping is done to hard code strings used in SQL queries to
 	// prevent injection attacks
 	order, ok := map[Order]string{
-		"":              "ASC",
+		"":              "",
 		OrderAcending:   "ASC",
 		OrderDescending: "DESC",
 	}[options.Order]
 	if !ok {
 		return nil, fmt.Errorf("invalid order property")
+	}
+	if order == "" {
+		// Different sorts have different orders that make sense to use as a default
+		switch sort {
+		case "bump":
+			order = "DESC"
+		default:
+			order = "ASC"
+		}
 	}
 
 	page := max(options.Page, 0)
