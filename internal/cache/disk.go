@@ -7,10 +7,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	bolt "go.etcd.io/bbolt"
 )
 
 var _ Cache = (*DiskCache)(nil)
+var _ prometheus.Collector = (*DiskCache)(nil)
 
 var (
 	bucketNameCache = []byte("cachev1")
@@ -22,6 +24,8 @@ type DiskCache struct {
 	db     *bolt.DB
 	cancel chan struct{}
 	wg     sync.WaitGroup
+
+	entriesGauge prometheus.Gauge
 }
 
 // NewDiskCache returns a [DiskCache] that stores its data in a file at the
@@ -51,6 +55,23 @@ func NewDiskCache(path string) (*DiskCache, error) {
 	cache := &DiskCache{
 		db:     db,
 		cancel: make(chan struct{}),
+
+		entriesGauge: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "cupdate",
+			Subsystem: "cache",
+			Name:      "entries",
+		}),
+	}
+
+	err = db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(bucketNameCache)
+		stats := bucket.Stats()
+		cache.entriesGauge.Set(float64(stats.KeyN))
+		return nil
+	})
+	if err != nil {
+		db.Close()
+		return nil, err
 	}
 
 	cache.wg.Add(1)
@@ -136,6 +157,7 @@ func (d *DiskCache) Set(ctx context.Context, key string, data []byte, options *S
 			}
 		}
 
+		d.entriesGauge.Inc()
 		return nil
 	})
 }
@@ -154,6 +176,7 @@ func (d *DiskCache) Delete(ctx context.Context, key string) error {
 			return err
 		}
 
+		d.entriesGauge.Dec()
 		return nil
 	})
 }
@@ -198,6 +221,7 @@ func (d *DiskCache) DeleteExpiredEntries(maxAge time.Time) (int, error) {
 		return nil
 	})
 
+	d.entriesGauge.Sub(float64(removed))
 	return removed, err
 }
 
@@ -209,6 +233,16 @@ func (d *DiskCache) Close() error {
 	d.wg.Wait()
 	slog.Debug("Closing boltdb")
 	return d.db.Close()
+}
+
+// Collect implements [prometheus.Collector].
+func (d *DiskCache) Collect(ch chan<- prometheus.Metric) {
+	d.entriesGauge.Collect(ch)
+}
+
+// Describe implements [prometheus.Collector].
+func (d *DiskCache) Describe(descs chan<- *prometheus.Desc) {
+	prometheus.DescribeByCollect(d, descs)
 }
 
 // timeToBytes converts time into a sortable byte slice.

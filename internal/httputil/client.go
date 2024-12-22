@@ -9,15 +9,22 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+var _ prometheus.Collector = (*Client)(nil)
 
 type Client struct {
 	http.Client
 	cache       cache.Cache
 	cacheMaxAge time.Duration
+
+	requestsCounter  *prometheus.CounterVec
+	cacheHitsCounter prometheus.Counter
 }
 
 func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
@@ -31,9 +38,31 @@ func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 			},
 			Timeout: 10 * time.Second,
 		},
+
 		cache:       cache,
 		cacheMaxAge: maxAge,
+
+		requestsCounter: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "cupdate",
+			Subsystem: "http",
+			Name:      "requests_total",
+		}, []string{"hostname", "method", "code"}),
+
+		cacheHitsCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "cupdate",
+			Subsystem: "http",
+			Name:      "cache_hits_total",
+		}),
 	}
+}
+
+// See [http.Client.Do].
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	res, err := c.Client.Do(req)
+	if err == nil {
+		c.requestsCounter.WithLabelValues(req.URL.Host, req.Method, strconv.FormatInt(int64(res.StatusCode), 10)).Inc()
+	}
+	return res, err
 }
 
 // DoCached returns a cached response for the request.
@@ -54,9 +83,11 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	entry, err := c.cache.Get(ctx, key)
 	if err == nil {
 		slog.Debug("HTTP response cache hit")
+		c.cacheHitsCounter.Inc()
 		res, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(entry)), req)
 		if err == nil {
 			slog.Debug("HTTP response successfully read from cache")
+			c.requestsCounter.WithLabelValues(req.URL.Host, req.Method, strconv.FormatInt(int64(res.StatusCode), 10)).Inc()
 			return res, nil
 		} else {
 			slog.Warn("HTTP request cache parse failure", slog.Any("error", err))
@@ -68,7 +99,7 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	}
 
 	// If no entry existed or reading from the cache failed, perform the request
-	res, err := c.Client.Do(req)
+	res, err := c.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -112,4 +143,15 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 
 func (c *Client) CacheKey(req *http.Request) string {
 	return fmt.Sprintf("httputil/v1/%s/%s", req.Method, req.URL.String())
+}
+
+// Collect implements [prometheus.Collector].
+func (c *Client) Collect(ch chan<- prometheus.Metric) {
+	c.requestsCounter.Collect(ch)
+	c.cacheHitsCounter.Collect(ch)
+}
+
+// Describe implements [prometheus.Collector].
+func (c *Client) Describe(descs chan<- *prometheus.Desc) {
+	prometheus.DescribeByCollect(c, descs)
 }

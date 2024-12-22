@@ -22,6 +22,8 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/web"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
 	"github.com/caarlos0/env/v10"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
 )
@@ -136,6 +138,7 @@ func main() {
 		slog.Error("Failed to create disk cache", slog.Any("error", err))
 		os.Exit(1)
 	}
+	prometheus.DefaultRegisterer.MustRegister(cache)
 
 	absoluteDatabasePath, err := filepath.Abs(config.Database.Path)
 	if err != nil {
@@ -196,7 +199,10 @@ func main() {
 
 	wg.Go(func() error {
 		httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
+		prometheus.DefaultRegisterer.MustRegister(httpClient)
+
 		worker := worker.New(httpClient, writeStore)
+		prometheus.DefaultRegisterer.MustRegister(worker)
 
 		for reference := range processQueue {
 			ctx, cancel := context.WithTimeout(ctx, config.Processing.Timeout)
@@ -340,6 +346,7 @@ func main() {
 	apiServer := api.NewServer(readStore, processQueue)
 	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	if !config.Web.Disabled {
 		mux.Handle("/", web.MustNewServer())

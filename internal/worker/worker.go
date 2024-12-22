@@ -11,21 +11,48 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"
+	"github.com/prometheus/client_golang/prometheus"
 )
+
+var _ prometheus.Collector = (*Worker)(nil)
 
 type Worker struct {
 	httpClient *httputil.Client
 	store      *store.Store
+
+	processedCounter   prometheus.Counter
+	processingDuration prometheus.Counter
+	processingGauge    prometheus.Gauge
 }
 
 func New(httpClient *httputil.Client, store *store.Store) *Worker {
 	return &Worker{
 		httpClient: httpClient,
 		store:      store,
+
+		processedCounter: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "cupdate",
+			Subsystem: "worker",
+			Name:      "processed_images_total",
+		}),
+		processingDuration: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "cupdate",
+			Subsystem: "worker",
+			Name:      "processed_images_duration_seconds",
+		}),
+		processingGauge: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "cupdate",
+			Subsystem: "worker",
+			Name:      "processing_images",
+		}),
 	}
 }
 
 func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) error {
+	start := time.Now()
+	w.processingGauge.Inc()
+	defer w.processingGauge.Dec()
+
 	image, err := w.store.GetRawImage(ctx, reference.String())
 	if err != nil {
 		return err
@@ -136,5 +163,19 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	log.Debug("Updated data")
+	w.processedCounter.Inc()
+	w.processingDuration.Add(time.Since(start).Seconds())
 	return nil
+}
+
+// Collect implements [prometheus.Collector].
+func (w *Worker) Collect(ch chan<- prometheus.Metric) {
+	w.processedCounter.Collect(ch)
+	w.processingDuration.Collect(ch)
+	w.processingGauge.Collect(ch)
+}
+
+// Describe implements [prometheus.Collector].
+func (w *Worker) Describe(descs chan<- *prometheus.Desc) {
+	prometheus.DescribeByCollect(w, descs)
 }
