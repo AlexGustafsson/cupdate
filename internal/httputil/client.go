@@ -16,8 +16,8 @@ import (
 
 type Client struct {
 	http.Client
-	Cache       cache.Cache
-	CacheMaxAge time.Duration
+	cache       cache.Cache
+	cacheMaxAge time.Duration
 }
 
 func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
@@ -31,8 +31,8 @@ func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 			},
 			Timeout: 10 * time.Second,
 		},
-		Cache:       cache,
-		CacheMaxAge: maxAge,
+		cache:       cache,
+		cacheMaxAge: maxAge,
 	}
 }
 
@@ -45,17 +45,13 @@ func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 // correct request URL for the response - it will be the original request rather
 // than the request to the final resource.
 func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
-	if c.Cache == nil {
-		panic("no cache configured")
-	}
-
 	ctx := req.Context()
 
 	log := slog.With(slog.String("url", req.URL.String()))
 	key := c.CacheKey(req)
 
 	// Try to read from cache, only return on successful cache reads
-	entry, err := c.Cache.Get(ctx, key)
+	entry, err := c.cache.Get(ctx, key)
 	if err == nil {
 		slog.Debug("HTTP response cache hit")
 		res, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(entry)), req)
@@ -101,7 +97,7 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 		// Restore the response body
 		res.Body = io.NopCloser(bytes.NewReader(body))
 
-		err = c.Cache.Set(ctx, key, buffer.Bytes(), &cache.SetEntryOptions{Expires: time.Now().Add(c.CacheMaxAge)})
+		err = c.cache.Set(ctx, key, buffer.Bytes(), &cache.SetEntryOptions{Expires: time.Now().Add(c.cacheMaxAge)})
 		if err == nil {
 			log.Debug("HTTP request was cached successfully")
 		} else {
