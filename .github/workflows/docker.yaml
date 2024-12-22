@@ -62,7 +62,7 @@ jobs:
           push: true
           tags: ghcr.io/alexgustafsson/cupdate:${{ steps.determine_tag.outputs.tag }}
           build-args: |
-            CUPDATE_VERSION:${{ steps.determine_tag.outputs.rev }}
+            CUPDATE_VERSION=${{ steps.determine_tag.outputs.rev }}
           labels: |
             org.opencontainers.image.title=cupdate
             org.opencontainers.image.description=cupdate keeps track of image updates.
