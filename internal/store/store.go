@@ -671,9 +671,8 @@ const (
 type Sort string
 
 const (
-	SortReference    Sort = "reference"
-	SortLastModified Sort = "last_modified"
-	SortBump         Sort = "bump"
+	SortReference Sort = "reference"
+	SortBump      Sort = "bump"
 )
 
 type ListImageOptions struct {
@@ -702,10 +701,9 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	// NOTE: This mapping is done to hard code strings used in SQL queries to
 	// prevent injection attacks
 	sort, ok := map[Sort]string{
-		"":               "bump",
-		SortReference:    "reference",
-		SortLastModified: "last_modified",
-		SortBump:         "bump",
+		"":            "bump",
+		SortReference: "reference",
+		SortBump:      "bump",
 	}[options.Sort]
 	if !ok {
 		return nil, fmt.Errorf("invalid sort")
@@ -814,8 +812,6 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	switch sort {
 	case "reference":
 		orderClause = "ORDER BY images.reference " + order
-	case "last_modified":
-		orderClause = "ORDER BY images.last_modified " + order
 	case "bump":
 		orderClause = "ORDER BY images.versionDiffSortable " + order + ", images.reference"
 	}
