@@ -171,7 +171,7 @@ export function ImagePage(): JSX.Element {
   const imageTags = tags.value.filter((x) => image.value!.tags.includes(x.name))
 
   return (
-    <div className="flex flex-col items-center w-full py-[40px] px-[20px]">
+    <div className="flex flex-col items-center w-full pt-6 pb-10 px-2">
       {/* Header */}
       {image.value.image ? (
         <img className="w-16 h-16 rounded" src={image.value.image} />
@@ -242,7 +242,7 @@ export function ImagePage(): JSX.Element {
         ))}
       </div>
 
-      <main className="min-w-[200px] max-w-[980px] w-full box-border space-y-6 mt-6">
+      <main className="min-w-[200px] max-w-[800px] w-full box-border space-y-6 mt-6">
         {/* Vulnerability report */}
         {image.value.vulnerabilities.length > 0 && (
           <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
