@@ -28,6 +28,9 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// Version is the current Cupdate version. Overwritten at build time.
+var Version string = "development build"
+
 type Config struct {
 	Log struct {
 		Level string `env:"LEVEL" envDefault:"info"`
@@ -71,7 +74,7 @@ type Config struct {
 }
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})))
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("appVersion", Version)))
 
 	var config Config
 	err := env.ParseWithOptions(&config, env.Options{
@@ -96,7 +99,7 @@ func main() {
 		slog.Error("Failed to parse config - invalid log level")
 		os.Exit(1)
 	}
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})))
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("appVersion", Version)))
 
 	slog.Debug("Parsed config", slog.Any("config", config))
 

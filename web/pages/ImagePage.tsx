@@ -243,6 +243,16 @@ export function ImagePage(): JSX.Element {
       </div>
 
       <main className="min-w-[200px] max-w-[800px] w-full box-border space-y-6 mt-6">
+        {/* Cupdate settings */}
+        {image.value?.reference === 'ghcr.io/alexgustafsson/cupdate' && (
+          <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
+            <p>
+              Cupdate version:{' '}
+              {import.meta.env['VITE_CUPDATE_VERSION'] || 'development build'}.
+            </p>
+          </div>
+        )}
+
         {/* Vulnerability report */}
         {image.value.vulnerabilities.length > 0 && (
           <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
