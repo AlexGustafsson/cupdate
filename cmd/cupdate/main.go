@@ -347,6 +347,13 @@ func main() {
 	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
 	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/livez", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	mux.Handle("/readyz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO: Figure out what checks to have
+		w.WriteHeader(http.StatusOK)
+	}))
 
 	if !config.Web.Disabled {
 		mux.Handle("/", web.MustNewServer())
