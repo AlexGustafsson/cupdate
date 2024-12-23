@@ -82,15 +82,15 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	// Try to read from cache, only return on successful cache reads
 	entry, err := c.cache.Get(ctx, key)
 	if err == nil {
-		slog.Debug("HTTP response cache hit")
+		log.Debug("HTTP response cache hit")
 		c.cacheHitsCounter.Inc()
 		res, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(entry)), req)
 		if err == nil {
-			slog.Debug("HTTP response successfully read from cache")
+			log.Debug("HTTP response successfully read from cache")
 			c.requestsCounter.WithLabelValues(req.URL.Host, req.Method, strconv.FormatInt(int64(res.StatusCode), 10)).Inc()
 			return res, nil
 		} else {
-			slog.Warn("HTTP request cache parse failure", slog.Any("error", err))
+			log.Warn("HTTP request cache parse failure", slog.Any("error", err))
 		}
 	} else if errors.Is(err, cache.ErrNotExist) {
 		log.Debug("HTTP request cache miss")
