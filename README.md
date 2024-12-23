@@ -42,7 +42,6 @@ Supported data sources:
 
 - Docker Hub, Docker Scout
 - GitHub, GitHub Container Registry
-- Quay
 - GitLab
 
 ## Running

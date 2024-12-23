@@ -6,12 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"maps"
 	"net/http"
 	"net/url"
 	"regexp"
-	"slices"
-	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -354,52 +351,4 @@ func (c *Client) GetProjectContainerRepositoryTags(ctx context.Context, id strin
 	}
 
 	return result.Data.ContainerRepository.Tags.Nodes, nil
-}
-
-func (c *Client) GetTags(ctx context.Context, image oci.Reference) ([]string, error) {
-	if !image.HasTag {
-		return nil, nil
-	}
-
-	// There's not going to be any latest version
-	if image.Tag == "latest" {
-		return nil, nil
-	}
-
-	// The repository path is <owner>/<group>/<project>
-	parts := strings.Split(image.Path, "/")
-	if len(parts) < 3 {
-		return nil, nil
-	}
-
-	fullPath := strings.Join(parts[0:3], "/")
-	repositories, err := c.GetProjectContainerRepositories(ctx, fullPath)
-	if err != nil {
-		return nil, err
-	}
-
-	var repository *ContainerRepository
-	for i := range repositories {
-		if repositories[i].Location == image.Name() {
-			r := repositories[i]
-			repository = &r
-			break
-		}
-	}
-
-	if repository == nil {
-		return nil, nil
-	}
-
-	repositoryTags, err := c.GetProjectContainerRepositoryTags(ctx, repository.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	tags := make(map[string]struct{})
-	for _, tag := range repositoryTags {
-		tags[tag.Name] = struct{}{}
-	}
-
-	return slices.Collect(maps.Keys(tags)), nil
 }

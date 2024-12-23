@@ -15,7 +15,14 @@ func GetLatestReference() workflow.Step {
 				return nil, err
 			}
 
-			tags, err := workflow.GetInput[[]string](ctx, "tags", false)
+			registryClient, err := workflow.GetInput[*oci.Client](ctx, "registryClient", true)
+			if err != nil {
+				return nil, err
+			}
+
+			tags, err := registryClient.GetTags(ctx, reference, &oci.GetTagsOptions{
+				AllPages: true,
+			})
 			if err != nil {
 				return nil, err
 			}

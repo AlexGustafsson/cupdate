@@ -197,13 +197,6 @@ func parsePackage(r io.Reader, owner string) (*Package, error) {
 		tagToId[tag] = id
 	}
 
-	tags := make([]PackageTag, 0)
-	latestId, hasLatest := tagToId["latest"]
-	for tag, id := range tagToId {
-		isLatest := hasLatest && id == latestId
-		tags = append(tags, PackageTag{Name: tag, Latest: isLatest})
-	}
-
 	readmeFragment := match(node, func(node *html.Node) bool {
 		return node.Data == "include-fragment" && strings.HasSuffix(attr(node, "src"), "readme?is_package_page=true")
 	})
@@ -216,7 +209,6 @@ func parsePackage(r io.Reader, owner string) (*Package, error) {
 	return &Package{
 		Owner:      owner,
 		Repository: repository,
-		Tags:       tags,
 		ReadmeURL:  readmeURL,
 	}, nil
 }

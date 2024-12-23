@@ -1,16 +1,12 @@
 package dockerhub
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"net/http"
 	"net/url"
-	"slices"
-	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -68,111 +64,6 @@ func (c *Client) AuthorizeOCIRequest(ctx context.Context, image oci.Reference, r
 	}
 
 	return oci.AuthorizerToken(token).AuthorizeOCIRequest(ctx, image, req)
-}
-
-func (c *Client) GetTags(ctx context.Context, image oci.Reference) ([]string, error) {
-	if !image.HasTag {
-		return nil, nil
-	}
-
-	// There's not going to be any latest version
-	if image.Tag == "latest" {
-		return nil, nil
-	}
-
-	var tags []string
-	var err error
-	if strings.HasPrefix(image.Path, "library/") {
-		// Use the source of truth - the Docker official images git
-		tags, err = c.getOfficialImageTags(ctx, image)
-	} else {
-		tags, err = c.getDockerHubTags(ctx, image)
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return tags, nil
-}
-
-func (c *Client) getOfficialImageTags(ctx context.Context, image oci.Reference) ([]string, error) {
-	req, err := http.NewRequest(http.MethodGet, "https://raw.githubusercontent.com/docker-library/official-images/refs/heads/master/library/"+image.Name(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := c.Client.DoCached(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	tags := make(map[string]struct{})
-
-	// SEE: https://github.com/docker-library/official-images?tab=readme-ov-file#instruction-format
-	scanner := bufio.NewScanner(res.Body)
-	for scanner.Scan() {
-		k, v, ok := strings.Cut(scanner.Text(), ":")
-		if !ok {
-			continue
-		}
-
-		if k != "Tags" && k != "SharedTags" {
-			continue
-		}
-
-		values := strings.Split(strings.TrimSpace(v), ", ")
-		for _, tag := range values {
-			tags[tag] = struct{}{}
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return slices.Collect(maps.Keys(tags)), nil
-}
-
-func (c *Client) getDockerHubTags(ctx context.Context, image oci.Reference) ([]string, error) {
-	u, err := url.Parse(fmt.Sprintf("https://hub.docker.com/v2/repositories/%s/tags", image.Path))
-	if err != nil {
-		return nil, err
-	}
-
-	query := u.Query()
-	query.Set("page_size", "25")
-	query.Set("page", "1")
-	query.Set("ordering", "last_updated")
-	query.Set("name", "")
-	u.RawQuery = query.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := c.Client.DoCached(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
-	}
-
-	var result Page[Tag]
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return nil, err
-	}
-
-	tags := make([]string, 0)
-	for _, entry := range result.Results {
-		tags = append(tags, entry.Name)
-	}
-
-	return tags, nil
 }
 
 func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repository, error) {

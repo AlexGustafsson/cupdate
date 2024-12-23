@@ -389,7 +389,7 @@ func (c *Client) GetTags(ctx context.Context, image Reference, options *GetTagsO
 	allTags := append([]string{}, tags...)
 
 	// Follow pagination
-	for linkHeader != "" && options.AllPages {
+	for linkHeader != "" && options != nil && options.AllPages {
 		links, err := httputil.ParseLinkHeader(origin, linkHeader)
 		if err != nil {
 			return nil, err
