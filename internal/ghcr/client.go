@@ -11,6 +11,8 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
+var _ oci.Authorizer = (*Client)(nil)
+
 type Client struct {
 	Client *httputil.Client
 }
@@ -51,11 +53,11 @@ func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (str
 	return result.Token, nil
 }
 
-func (c *Client) Authorize(ctx context.Context, image oci.Reference, req *http.Request) error {
+func (c *Client) AuthorizeOCIRequest(ctx context.Context, image oci.Reference, req *http.Request) error {
 	token, err := c.GetRegistryToken(ctx, image)
 	if err != nil {
 		return err
 	}
 
-	return oci.AuthorizerToken(token).Authorize(ctx, image, req)
+	return oci.AuthorizerToken(token).AuthorizeOCIRequest(ctx, image, req)
 }

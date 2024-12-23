@@ -13,8 +13,15 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
+var _ oci.Authorizer = (*Client)(nil)
+
 type Client struct {
 	Client *httputil.Client
+}
+
+func (c *Client) AuthorizeOCIRequest(ctx context.Context, image oci.Reference, req *http.Request) error {
+	// NOOP
+	return nil
 }
 
 func (c *Client) GetTags(ctx context.Context, image oci.Reference) ([]string, error) {

@@ -15,18 +15,18 @@ import (
 )
 
 type Authorizer interface {
-	Authorize(context.Context, Reference, *http.Request) error
+	AuthorizeOCIRequest(context.Context, Reference, *http.Request) error
 }
 
 type AuthorizeFunc func(context.Context, Reference, *http.Request) error
 
-func (f AuthorizeFunc) Authorize(ctx context.Context, image Reference, req *http.Request) error {
+func (f AuthorizeFunc) AuthorizeOCIRequest(ctx context.Context, image Reference, req *http.Request) error {
 	return f(ctx, image, req)
 }
 
 type AuthorizerToken string
 
-func (s AuthorizerToken) Authorize(ctx context.Context, image Reference, req *http.Request) error {
+func (s AuthorizerToken) AuthorizeOCIRequest(ctx context.Context, image Reference, req *http.Request) error {
 	req.Header.Set("Authorization", "Bearer "+string(s))
 	return nil
 }
@@ -61,7 +61,7 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 	}, ", "))
 
 	if c.Authorizer != nil {
-		if err := c.Authorizer.Authorize(ctx, image, req); err != nil {
+		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
 			return nil, err
 		}
 	}
@@ -211,7 +211,7 @@ func (c *Client) GetManifest(ctx context.Context, image Reference, digest string
 	}
 
 	if c.Authorizer != nil {
-		if err := c.Authorizer.Authorize(ctx, image, req); err != nil {
+		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
 			return nil, err
 		}
 	}
@@ -248,7 +248,7 @@ func (c *Client) GetBlob(ctx context.Context, image Reference, digest string) ([
 	}
 
 	if c.Authorizer != nil {
-		if err := c.Authorizer.Authorize(ctx, image, req); err != nil {
+		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
 			return nil, err
 		}
 	}
@@ -464,7 +464,7 @@ func (c *Client) getTags(ctx context.Context, image Reference, options *GetTagsO
 	req.Header.Set("Accept", "application/json")
 
 	if c.Authorizer != nil {
-		if err := c.Authorizer.Authorize(ctx, image, req); err != nil {
+		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
 			return nil, nil, "", err
 		}
 	}
