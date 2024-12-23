@@ -15,7 +15,7 @@ require (
 	k8s.io/api v0.32.0
 	k8s.io/apimachinery v0.32.0
 	k8s.io/client-go v0.32.0
-	modernc.org/sqlite v1.34.3
+	modernc.org/sqlite v1.34.4
 )
 
 require (
