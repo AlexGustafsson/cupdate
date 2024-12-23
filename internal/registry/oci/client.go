@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -371,4 +372,121 @@ func (c *Client) GetAnnotations(ctx context.Context, image Reference, options *G
 	}
 
 	return configBlob.Config.Labels, nil
+}
+
+type GetTagsOptions struct {
+	Last     string
+	Count    int
+	AllPages bool
+}
+
+func (c *Client) GetTags(ctx context.Context, image Reference, options *GetTagsOptions) ([]string, error) {
+	tags, origin, linkHeader, err := c.getTags(ctx, image, options)
+	if err != nil {
+		return nil, err
+	}
+
+	allTags := append([]string{}, tags...)
+
+	// Follow pagination
+	for linkHeader != "" && options.AllPages {
+		links, err := httputil.ParseLinkHeader(origin, linkHeader)
+		if err != nil {
+			return nil, err
+		}
+
+		var next *httputil.Link
+		for _, link := range links {
+			if link.Params["rel"] == "next" {
+				next = &link
+				break
+			}
+		}
+		if next == nil {
+			break
+		}
+
+		// As a precaution, don't leave the origin
+		if next.URL.Host != origin.Host {
+			return nil, fmt.Errorf("refusing to follow link to other origin")
+		}
+
+		query := next.URL.Query()
+
+		options := GetTagsOptions{}
+
+		if query.Has("n") {
+			n, err := strconv.ParseInt(query.Get("n"), 10, 32)
+			if err != nil {
+				return nil, err
+			}
+
+			options.Count = int(n)
+		}
+
+		options.Last = query.Get("last")
+
+		tags, _, linkHeader, err = c.getTags(ctx, image, &options)
+		if err != nil {
+			return nil, err
+		}
+
+		allTags = append(allTags, tags...)
+	}
+
+	return allTags, nil
+}
+
+func (c *Client) getTags(ctx context.Context, image Reference, options *GetTagsOptions) ([]string, *url.URL, string, error) {
+	// NOTE: It's rather unclear why we need to do this dance manually and why
+	// docker.io simply doesn't just redirect us
+	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
+
+	u, err := url.Parse(fmt.Sprintf("https://%s/v2/%s/tags/list", domain, image.Path))
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	query := make(url.Values)
+	if options != nil && options.Last != "" {
+		query.Set("last", options.Last)
+	}
+	if options != nil && options.Count > 0 {
+		query.Set("n", strconv.FormatInt(int64(options.Count), 10))
+	}
+	u.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, nil, "", err
+	}
+
+	req.Header.Set("Accept", "application/json")
+
+	if c.Authorizer != nil {
+		if err := c.Authorizer.Authorize(ctx, image, req); err != nil {
+			return nil, nil, "", err
+		}
+	}
+
+	res, err := c.Client.DoCached(req)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil, "", nil
+	} else if res.StatusCode != http.StatusOK {
+		return nil, nil, "", fmt.Errorf("unexpected status code: %s", res.Status)
+	}
+
+	var page TagsPage
+	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
+		return nil, nil, "", err
+	}
+
+	tags := page.Tags
+
+	return tags, req.URL, res.Header.Get("Link"), nil
 }

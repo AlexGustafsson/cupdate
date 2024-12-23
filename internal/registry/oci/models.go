@@ -84,3 +84,8 @@ func (a Annotations) Source() string {
 
 	return s
 }
+
+type TagsPage struct {
+	Name string   `json:"name"`
+	Tags []string `json:"tags"`
+}

@@ -163,3 +163,26 @@ func TestGetDockerHubTags(t *testing.T) {
 
 	fmt.Println(tags)
 }
+
+func TestGetTags(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	client := &Client{
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+	}
+
+	ociClient := oci.Client{Client: client.Client, Authorizer: client}
+
+	ref, err := oci.ParseReference("mongo")
+	require.NoError(t, err)
+
+	tags, err := ociClient.GetTags(context.TODO(), ref, &oci.GetTagsOptions{
+		Count:    300,
+		AllPages: true,
+	})
+	require.NoError(t, err)
+
+	fmt.Println(tags)
+}
