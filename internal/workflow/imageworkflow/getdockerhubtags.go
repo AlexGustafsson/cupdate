@@ -1,9 +1,9 @@
 package imageworkflow
 
 import (
+	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -21,7 +21,7 @@ func GetDockerHubTags() workflow.Step {
 				return nil, err
 			}
 
-			client := &docker.Client{Client: httpClient}
+			client := &dockerhub.Client{Client: httpClient}
 
 			tags, err := client.GetTags(ctx, reference)
 			if err != nil {

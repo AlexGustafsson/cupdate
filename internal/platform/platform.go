@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
 type Node interface {

@@ -13,7 +13,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/stretchr/testify/require"
 )
 

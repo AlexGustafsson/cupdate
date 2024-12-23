@@ -10,7 +10,7 @@ import (
 	"slices"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
 type Client struct {

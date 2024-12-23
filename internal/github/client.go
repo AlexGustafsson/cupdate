@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/htmlutil"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"golang.org/x/net/html"
 )
 

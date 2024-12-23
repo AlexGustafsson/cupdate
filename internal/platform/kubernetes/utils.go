@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"

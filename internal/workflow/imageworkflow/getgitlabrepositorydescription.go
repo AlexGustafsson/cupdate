@@ -5,7 +5,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/gitlab"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 

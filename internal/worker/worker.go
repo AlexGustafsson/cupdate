@@ -7,7 +7,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"

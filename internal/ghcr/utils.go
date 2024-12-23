@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
 func PackagePath(reference oci.Reference) string {

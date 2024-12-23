@@ -2,8 +2,8 @@ package imageworkflow
 
 import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
-	"github.com/AlexGustafsson/cupdate/internal/registry/quay"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/quay"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 

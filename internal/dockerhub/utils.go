@@ -1,10 +1,10 @@
-package docker
+package dockerhub
 
 import (
 	"net/url"
 	"strings"
 
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
 func RepositoryUIPath(image oci.Reference) string {

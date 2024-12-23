@@ -3,10 +3,10 @@ package imageworkflow
 import (
 	"strings"
 
+	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -50,7 +50,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 				return nil, nil
 			}
 
-			client := &docker.Client{
+			client := &dockerhub.Client{
 				Client: httpClient,
 			}
 
@@ -66,7 +66,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "critical",
 						Authority: "Docker Scout",
-						Link:      docker.TagUIPath(reference, digest),
+						Link:      dockerhub.TagUIPath(reference, digest),
 					})
 				}
 
@@ -74,7 +74,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "high",
 						Authority: "Docker Scout",
-						Link:      docker.TagUIPath(reference, digest),
+						Link:      dockerhub.TagUIPath(reference, digest),
 					})
 				}
 
@@ -82,7 +82,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "medium",
 						Authority: "Docker Scout",
-						Link:      docker.TagUIPath(reference, digest),
+						Link:      dockerhub.TagUIPath(reference, digest),
 					})
 				}
 
@@ -90,7 +90,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "low",
 						Authority: "Docker Scout",
-						Link:      docker.TagUIPath(reference, digest),
+						Link:      dockerhub.TagUIPath(reference, digest),
 					})
 				}
 
@@ -98,7 +98,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "unspecified",
 						Authority: "Docker Scout",
-						Link:      docker.TagUIPath(reference, digest),
+						Link:      dockerhub.TagUIPath(reference, digest),
 					})
 				}
 			}

@@ -5,12 +5,12 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
+	"github.com/AlexGustafsson/cupdate/internal/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/github"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
-	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -90,7 +90,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						With("reference", data.ImageReference).
 						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						repository, err := workflow.GetValue[*docker.Repository](ctx, "step.repository.repository")
+						repository, err := workflow.GetValue[*dockerhub.Repository](ctx, "step.repository.repository")
 						if err != nil {
 							return nil, err
 						}
@@ -113,7 +113,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						return nil, nil
 					}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						owner, err := workflow.GetValue[*docker.Entity](ctx, "step.owner.owner")
+						owner, err := workflow.GetValue[*dockerhub.Entity](ctx, "step.owner.owner")
 						if err != nil {
 							return nil, err
 						}
@@ -124,7 +124,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						data.InsertLink(models.ImageLink{
 							Type: "docker",
-							URL:  docker.RepositoryUIPath(data.ImageReference),
+							URL:  dockerhub.RepositoryUIPath(data.ImageReference),
 						})
 						return nil, nil
 					}),

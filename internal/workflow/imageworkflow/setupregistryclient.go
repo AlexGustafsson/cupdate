@@ -3,11 +3,11 @@ package imageworkflow
 import (
 	"fmt"
 
+	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
+	"github.com/AlexGustafsson/cupdate/internal/ghcr"
+	"github.com/AlexGustafsson/cupdate/internal/gitlab"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/docker"
-	"github.com/AlexGustafsson/cupdate/internal/registry/ghcr"
-	"github.com/AlexGustafsson/cupdate/internal/registry/gitlab"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -31,7 +31,7 @@ func SetupRegistryClient() workflow.Step {
 			case "docker.io":
 				client = &oci.Client{
 					Client: httpClient,
-					Authorizer: &docker.Client{
+					Authorizer: &dockerhub.Client{
 						Client: httpClient,
 					},
 				}

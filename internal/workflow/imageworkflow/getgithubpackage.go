@@ -3,7 +3,7 @@ package imageworkflow
 import (
 	"github.com/AlexGustafsson/cupdate/internal/github"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 

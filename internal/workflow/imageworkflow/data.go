@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/AlexGustafsson/cupdate/internal/models"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
 type Data struct {

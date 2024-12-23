@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
 )
 
 var _ platform.Grapher = (*Platform)(nil)

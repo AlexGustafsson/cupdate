@@ -11,7 +11,7 @@ import (
 	"strconv"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/registry/oci"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/rss"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 )
