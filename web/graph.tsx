@@ -39,6 +39,7 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     'core/v1/namespace': 'Namespace',
     'core/v1/container': 'Container',
     'apps/v1/deployment': 'Deployment',
+    'apps/v1/daemonset': 'Daemon set',
     'apps/v1/replicaset': 'Replica set',
     'batch/v1/job': 'Job',
     'batch/v1/cronjob': 'Cron job',
