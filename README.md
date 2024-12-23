@@ -14,9 +14,11 @@ Cupdate is for those who like the process of keeping their services up-to-date,
 looking through what's outdated and what features new updates bring. Cupdate
 will not help you deploy the updates. If you deploy your services using things
 like [flux](https://github.com/fluxcd/flux2), then there are great services that
-will modify your manifests for you, such as
-[renovate](https://github.com/renovatebot/renovate). Cupdate is not about that,
-nor will it ever be.
+will modify your manifests for you, such as Dependabot or
+[Renovate](https://github.com/renovatebot/renovate). Cupdate is not about that,
+nor will it ever be. That's not to say that Cupdate won't integrate well with
+such services. Cupdate can still act as a dashboard of your deployed services,
+visualizing their graphs and versions.
 
 Features:
 
