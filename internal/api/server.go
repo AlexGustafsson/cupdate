@@ -152,7 +152,11 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 			return
 		}
 
-		processQueue <- reference
+		select {
+		case <-r.Context().Done():
+			w.WriteHeader(http.StatusRequestTimeout)
+		case processQueue <- reference:
+		}
 
 		w.WriteHeader(http.StatusAccepted)
 	})

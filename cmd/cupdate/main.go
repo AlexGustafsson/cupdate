@@ -18,6 +18,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
+	"github.com/AlexGustafsson/cupdate/internal/ratelimit"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/web"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
@@ -56,10 +57,13 @@ type Config struct {
 	} `envPrefix:"DB_"`
 
 	Processing struct {
-		Interval time.Duration `env:"INTERVAL" envDefault:"1h"`
-		Items    int           `env:"ITEMS" envDefault:"10"`
-		MinAge   time.Duration `env:"MIN_AGE" envDefault:"72h"`
-		Timeout  time.Duration `env:"TIMEOUT" envDefault:"2m"`
+		Interval   time.Duration `env:"INTERVAL" envDefault:"1h"`
+		Items      int           `env:"ITEMS" envDefault:"10"`
+		MinAge     time.Duration `env:"MIN_AGE" envDefault:"72h"`
+		Timeout    time.Duration `env:"TIMEOUT" envDefault:"2m"`
+		QueueSize  int           `env:"QUEUE_SIZE" envDefault:"50"`
+		QueueBurst int           `env:"QUEUE_BURST" envDefault:"10"`
+		QueueRate  time.Duration `env:"QUEUE_RATE" envDefault:"1m"`
 	} `envPrefix:"PROCESSING_"`
 
 	Kubernetes struct {
@@ -163,9 +167,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg errgroup.Group
 
-	// TODO: If the queue is not emptied, the worker reading from the store will
-	// lock...
-	processQueue := make(chan oci.Reference, config.Processing.Items)
+	processQueue := make(chan oci.Reference, config.Processing.QueueSize)
 
 	wg.Go(func() error {
 		ticker := time.NewTicker(config.Processing.Interval)
@@ -177,6 +179,8 @@ func main() {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-ticker.C:
+				ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+
 				slog.Debug("Identifying old references to process")
 				images, err := readStore.ListRawImages(ctx, &store.ListRawImagesOptions{
 					NotUpdatedSince: time.Now().Add(-config.Processing.MinAge),
@@ -184,6 +188,7 @@ func main() {
 				})
 				if err != nil {
 					slog.Error("Failed to process old references", slog.Any("error", err))
+					cancel()
 					continue
 				}
 
@@ -191,11 +196,18 @@ func main() {
 					reference, err := oci.ParseReference(image.Reference)
 					if err != nil {
 						slog.Error("Unexpectedly failed to parse reference from store", slog.Any("error", err))
+						cancel()
 						return err
 					}
 
-					processQueue <- reference
+					select {
+					case <-ctx.Done():
+						slog.Error("Failed to queue old references")
+					case processQueue <- reference:
+					}
 				}
+
+				cancel()
 			}
 		}
 	})
@@ -207,7 +219,7 @@ func main() {
 		worker := worker.New(httpClient, writeStore)
 		prometheus.DefaultRegisterer.MustRegister(worker)
 
-		for reference := range processQueue {
+		for reference := range ratelimit.Channel(ctx, config.Processing.QueueBurst, config.Processing.QueueRate, processQueue) {
 			ctx, cancel := context.WithTimeout(ctx, config.Processing.Timeout)
 			err := worker.ProcessRawImage(ctx, reference)
 			cancel()
