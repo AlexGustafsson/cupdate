@@ -71,7 +71,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	// could be a reoccuring issue, so try to process other images before retrying
 	// the failing image.
 	image.LastProcessed = time.Now()
-	if err := w.store.InsertRawImage(ctx, image); err != nil {
+	if _, err := w.store.InsertRawImage(ctx, image); err != nil {
 		return err
 	}
 

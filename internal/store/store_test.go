@@ -24,7 +24,7 @@ func TestStoreInsertRawImage(t *testing.T) {
 		LastProcessed: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
 
-	err = store.InsertRawImage(context.TODO(), &expected)
+	_, err = store.InsertRawImage(context.TODO(), &expected)
 	require.NoError(t, err)
 
 	actual, err := store.ListRawImages(context.TODO(), nil)
@@ -60,7 +60,7 @@ func TestStoreInsertImage(t *testing.T) {
 		Image:        "https://example.com/logo.png",
 	}
 
-	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: expected.Reference,
 	})
 	require.NoError(t, err)
@@ -80,7 +80,7 @@ func TestStoreTags(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
 
-	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -104,7 +104,7 @@ func TestStoreImageDescription(t *testing.T) {
 		Markdown: "# Release",
 	}
 
-	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 		Released: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
 
-	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -174,7 +174,7 @@ func TestStoreImageGraph(t *testing.T) {
 		},
 	}
 
-	err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -230,7 +230,7 @@ func TestListImages(t *testing.T) {
 	}
 
 	for _, image := range expectedImages {
-		err := store.InsertRawImage(context.TODO(), &models.RawImage{
+		_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 			Reference: image.Reference,
 		})
 		require.NoError(t, err)
@@ -342,7 +342,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 	}
 
 	for _, image := range images {
-		err := store.InsertRawImage(context.TODO(), &models.RawImage{
+		_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 			Reference: image.Reference,
 		})
 		require.NoError(t, err)

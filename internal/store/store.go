@@ -46,15 +46,15 @@ func New(uri string, readonly bool) (*Store, error) {
 	return &Store{db: db}, nil
 }
 
-func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) error {
+func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) (bool, error) {
 	tags, err := json.Marshal(image.Tags)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	graph, err := json.Marshal(image.Graph)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	var lastProcessed *time.Time
@@ -70,18 +70,26 @@ func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) erro
 			tags=excluded.tags,
 			graph=excluded.graph,
 			lastProcessed=coalesce(excluded.lastProcessed, lastProcessed)
+		RETURNING lastProcessed;
 		;`)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	_, err = statement.ExecContext(ctx, image.Reference, tags, graph, lastProcessed)
+	res, err := statement.QueryContext(ctx, image.Reference, tags, graph, lastProcessed)
 	statement.Close()
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	res.Next()
+	err = res.Scan(&lastProcessed)
+	res.Close()
+	if err != nil {
+		return false, err
+	}
+
+	return lastProcessed == nil, nil
 }
 
 func (s *Store) GetRawImage(ctx context.Context, reference string) (*models.RawImage, error) {

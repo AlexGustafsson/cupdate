@@ -332,9 +332,20 @@ func main() {
 
 				// TODO: Do this inside of the worker as well?
 				slog.Debug("Inserting raw image", slog.String("reference", rawImage.Reference))
-				if err := writeStore.InsertRawImage(context.TODO(), rawImage); err != nil {
+				inserted, err := writeStore.InsertRawImage(context.TODO(), rawImage)
+				if err != nil {
 					slog.Error("Failed to insert raw image", slog.Any("error", err))
 					return err
+				}
+
+				// Try to schedule the image for processing
+				if inserted {
+					slog.Debug("Raw image inserted for first time - scheduling for processing")
+					select {
+					case processQueue <- imageNode.Reference:
+					default:
+						slog.Warn("Failed to schedule inserted raw image for processing - queue full")
+					}
 				}
 			}
 
