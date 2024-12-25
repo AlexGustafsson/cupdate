@@ -1,0 +1,70 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        // Fine for small mapping functions. Catch on a review basis rather than
+        // enforcing
+        "noParameterAssign": {
+          "level": "info"
+        },
+        // Type inference can't always deal with things like filtering arrays
+        // and then using the filtered property. Catch on a review basis rather
+        // than enforcing
+        "noNonNullAssertion": {
+          "level": "info"
+        },
+        // To allow error handling to be neat and concise, it can sometimes be
+        // clearer to have a "useless" else to clearly state that all branches
+        // are considered. Catch on a review basis rather than enforcing
+        "noUselessElse": {
+          "level": "info"
+        }
+      }
+    }
+  },
+  // TODO: When support has landed, block restricted syntax:
+  // - TSTypeAliasDeclaration[id.name=Props] - Type declarations for props should be named to reflect what it is used for. Use. Props as a suffix.
+  // - TSInterfaceDeclaration[id.name=Props] - Interface declarations for props should be named to reflect what it is used for. Use Props as a suffix.
+  // TODO: WHen support has landed, require eslint's spaced-comment
+  "javascript": {
+    "formatter": {
+      "enabled": true,
+      "quoteStyle": "single",
+      "trailingCommas": "es5",
+      "semicolons": "asNeeded"
+    }
+  },
+  "json": {
+    "parser": {
+      "allowTrailingCommas": true
+    },
+    "formatter": {
+      "enabled": true,
+      "trailingCommas": "none"
+    }
+  },
+  "css": {
+    "parser": {
+      "cssModules": true
+    },
+    "formatter": {
+      "enabled": true,
+      "quoteStyle": "single"
+    }
+  }
+}
