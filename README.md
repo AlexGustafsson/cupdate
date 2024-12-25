@@ -110,7 +110,7 @@ ln -s ~/.colima/default/docker.sock docker.sock
 
 Source the default dev config for the target platform.
 
-````shell
+```shell
 # Inspect
 cat .env-kubernetes
 
@@ -119,13 +119,13 @@ source .env-kubernetes
 
 # Fish
 export (cat .env-kubernetes | xargs -L 1)
-``
+```
 
 Start cupdate.
 
 ```shell
 go run cmd/cupdate/*.go
-````
+```
 
 Start the web server.
 
