@@ -165,7 +165,7 @@ export function useNodesAndEdges(
       setNodes(nodes)
       setEdges(edges)
     })
-  }, [graph])
+  }, [graph, setNodes, setEdges])
 
   return [
     [nodes, onNodesChange],

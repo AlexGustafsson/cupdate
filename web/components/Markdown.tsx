@@ -19,5 +19,6 @@ export function Markdown({
     }
   }, [children])
 
+  // biome-ignore lint/security/noDangerouslySetInnerHtml: the DOM is purified
   return <div dangerouslySetInnerHTML={{ __html: purified }} />
 }

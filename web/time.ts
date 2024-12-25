@@ -7,7 +7,7 @@ export function formatRelativeTimeTo(date: Date): string {
   diff = Math.floor(Math.abs(diff) / 1000)
 
   const seconds = diff
-  if (seconds == 0) {
+  if (seconds === 0) {
     return 'just now'
   } else if (seconds < 60) {
     return `${prefix}${Math.floor(seconds)} second${seconds > 1 ? 's' : ''}${suffix}`

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useMemo } from 'react'
+import { type Dispatch, type SetStateAction, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
@@ -39,7 +39,7 @@ export function useSort(): [
 
   const property = searchParams.get('sort') || undefined
   const order =
-    searchParams.get('order') == 'desc'
+    searchParams.get('order') === 'desc'
       ? 'desc'
       : searchParams.get('order') === 'asc'
         ? 'asc'

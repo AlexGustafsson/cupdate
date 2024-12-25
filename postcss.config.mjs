@@ -6,9 +6,9 @@ import tailwindcss from 'tailwindcss'
 // and can be introduced manually when needed instead.
 // SEE: https://github.com/tailwindlabs/tailwindcss/pull/7742#issuecomment-1061332148
 const removeTailwindImgAutoHeight = (css) => {
-  css.walkRules(function (rule) {
+  css.walkRules((rule) => {
     if (rule.selector === 'img,\nvideo') {
-      rule.walkDecls(function (decl) {
+      rule.walkDecls((decl) => {
         if (['height'].indexOf(decl.prop) !== -1) {
           decl.remove()
         }

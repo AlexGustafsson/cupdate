@@ -41,16 +41,17 @@ export function Dashboard(): JSX.Element {
     )
     if (images.value.pagination.page >= totalPages) {
       searchParams.delete('page')
-      navigate('/?' + searchParams.toString())
+      navigate(`/?${searchParams.toString()}`)
     }
-  }, [images])
+  }, [images, navigate, searchParams])
 
   const tags = useTags()
 
   // Go to the first page whenever the set of tags are changed
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Run every time tags is changed
   useEffect(() => {
-    navigate('/?' + searchParams.toString())
-  }, [tags])
+    navigate(`/?${searchParams.toString()}`)
+  }, [tags, navigate, searchParams])
 
   if (images.status !== 'resolved' || tags.status !== 'resolved') {
     return <></>

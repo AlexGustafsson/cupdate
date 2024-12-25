@@ -1,10 +1,10 @@
 import { Controls, ReactFlow } from '@xyflow/react'
 import '@xyflow/react/dist/base.css'
-import { type JSX, ReactNode } from 'react'
+import type { JSX, ReactNode } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 
 import {
-  Graph,
+  type Graph,
   useImage,
   useImageDescription,
   useImageGraph,
@@ -87,13 +87,12 @@ export function ImageLink({
       } else {
         return <ImageLink type="git" url={url} />
       }
-      break
     default:
       icon = <FluentLink24Filled />
   }
 
   return (
-    <a title={title} href={url} target="_blank">
+    <a title={title} href={url} target="_blank" rel="noreferrer">
       {icon}
     </a>
   )
@@ -168,13 +167,13 @@ export function ImagePage(): JSX.Element {
     return <Navigate to="/" replace />
   }
 
-  const imageTags = tags.value.filter((x) => image.value!.tags.includes(x.name))
+  const imageTags = tags.value.filter((x) => image.value?.tags.includes(x.name))
 
   return (
     <div className="flex flex-col items-center w-full pt-6 pb-10 px-2">
       {/* Header */}
       {image.value.image ? (
-        <img className="w-16 h-16 rounded" src={image.value.image} />
+        <img alt="logo" className="w-16 h-16 rounded" src={image.value.image} />
       ) : (
         <div className="flex items-center justify-center w-16 h-16 rounded bg-blue-400 dark:bg-blue-700">
           <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
@@ -248,7 +247,7 @@ export function ImagePage(): JSX.Element {
           <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
             <p>
               Cupdate version:{' '}
-              {import.meta.env['VITE_CUPDATE_VERSION'] || 'development build'}.
+              {import.meta.env.VITE_CUPDATE_VERSION || 'development build'}.
             </p>
           </div>
         )}
@@ -360,8 +359,11 @@ export function ImagePage(): JSX.Element {
             </span>
           </p>
           <button
+            type="button"
             title="Schedule update"
-            onClick={() => scheduleScan(image.value!.reference)}
+            onClick={() =>
+              image.value ? scheduleScan(image.value.reference) : undefined
+            }
           >
             <FluentArrowSync16Regular />
           </button>

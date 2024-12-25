@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify'
-import { type JSX } from 'react'
+import type { JSX } from 'react'
 
 export function HTML({
   children,
@@ -10,5 +10,6 @@ export function HTML({
 
   const purified = DOMPurify.sanitize(children)
 
+  // biome-ignore lint/security/noDangerouslySetInnerHtml: the DOM is purified
   return <div dangerouslySetInnerHTML={{ __html: purified }} />
 }

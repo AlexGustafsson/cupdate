@@ -1,10 +1,9 @@
 export function version(reference: string): string {
   const parts = reference.split(':')
-  if (parts.length == 1) {
+  if (parts.length === 1) {
     return 'latest'
-  } else {
-    return parts[1]
   }
+  return parts[1]
 }
 export function name(reference: string): string {
   const parts = reference.split(':')

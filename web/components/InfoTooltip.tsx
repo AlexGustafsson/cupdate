@@ -1,4 +1,4 @@
-import { type JSX, PropsWithChildren } from 'react'
+import type { JSX, PropsWithChildren } from 'react'
 
 import { FluentInfo16Regular } from './icons/fluent-info-16-regular'
 

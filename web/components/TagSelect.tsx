@@ -1,6 +1,6 @@
-import { type JSX, PropsWithChildren, useRef, useState } from 'react'
+import { type JSX, type PropsWithChildren, useRef, useState } from 'react'
 
-import { Tag } from '../tags'
+import type { Tag } from '../tags'
 import { Badge } from './Badge'
 
 export function TagSelect({
@@ -21,13 +21,14 @@ export function TagSelect({
       ref={menuRef}
       onMouseDown={() => setIsOpen(true)}
       onBlur={() => setIsOpen(false)}
-      tabIndex={0}
       className="pl-3 pr-8 py-2 relative border border-gray-200 dark:border-[#333333] rounded transition-colors focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-sm bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer"
     >
       <p className="text-sm">
         {filter.length > 0 ? `${filter.length} selected` : 'Tags'}
       </p>
       <svg
+        role="img"
+        aria-label="icon"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
@@ -45,7 +46,7 @@ export function TagSelect({
         <div className="absolute group-hover:visible -top-4 -left-4 p-2 z-50 text-black dark:text-[#dddddd]">
           <div className="flex flex-col gap-y-2 py-2 px-3 pr-6 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d0d0d0]/95 dark:border-[#505050] rounded-lg w-max shadow">
             {tags.map((x) => (
-              <label className="cursor-pointer">
+              <label key={x.name} className="cursor-pointer">
                 <input
                   type="checkbox"
                   checked={filter.includes(x.name)}

@@ -1,4 +1,4 @@
-import { type JSX, PropsWithChildren, SelectHTMLAttributes } from 'react'
+import type { JSX, PropsWithChildren, SelectHTMLAttributes } from 'react'
 
 export function Select({
   children,
@@ -13,6 +13,8 @@ export function Select({
         {children}
       </select>
       <svg
+        role="img"
+        aria-label="icon"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

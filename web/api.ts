@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { Tag, TagsByName } from './tags'
+import { type Tag, TagsByName } from './tags'
 
 export interface ImagePage {
   images: Image[]
@@ -78,7 +78,7 @@ export function useTags(): Result<Tag[]> {
   const [result, setResult] = useState<Result<Tag[]>>({ status: 'idle' })
 
   useEffect(() => {
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/tags`)
+    fetch(`${import.meta.env.VITE_API_ENDPOINT}/tags`)
       .then((res) => {
         if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
@@ -132,7 +132,7 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
       query.set('limit', options.limit.toString())
     }
 
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/images?${query.toString()}`)
+    fetch(`${import.meta.env.VITE_API_ENDPOINT}/images?${query.toString()}`)
       .then((res) => {
         if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
@@ -159,7 +159,7 @@ export function useImage(reference: string): Result<Image | null> {
 
   useEffect(() => {
     const query = new URLSearchParams({ reference })
-    fetch(`${import.meta.env['VITE_API_ENDPOINT']}/image?${query.toString()}`)
+    fetch(`${import.meta.env.VITE_API_ENDPOINT}/image?${query.toString()}`)
       .then((res) => {
         if (res.status === 404) {
           return null
@@ -187,12 +187,13 @@ export function useImageDescription(
   useEffect(() => {
     const query = new URLSearchParams({ reference })
     fetch(
-      `${import.meta.env['VITE_API_ENDPOINT']}/image/description?${query.toString()}`
+      `${import.meta.env.VITE_API_ENDPOINT}/image/description?${query.toString()}`
     )
       .then((res) => {
         if (res.status === 404) {
           return null
-        } else if (res.status !== 200) {
+        }
+        if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
 
@@ -216,12 +217,13 @@ export function useImageReleaseNotes(
   useEffect(() => {
     const query = new URLSearchParams({ reference })
     fetch(
-      `${import.meta.env['VITE_API_ENDPOINT']}/image/release-notes?${query.toString()}`
+      `${import.meta.env.VITE_API_ENDPOINT}/image/release-notes?${query.toString()}`
     )
       .then((res) => {
         if (res.status === 404) {
           return null
-        } else if (res.status !== 200) {
+        }
+        if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
 
@@ -243,12 +245,13 @@ export function useImageGraph(reference: string): Result<Graph | null> {
   useEffect(() => {
     const query = new URLSearchParams({ reference })
     fetch(
-      `${import.meta.env['VITE_API_ENDPOINT']}/image/graph?${query.toString()}`
+      `${import.meta.env.VITE_API_ENDPOINT}/image/graph?${query.toString()}`
     )
       .then((res) => {
         if (res.status === 404) {
           return null
-        } else if (res.status !== 200) {
+        }
+        if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
         }
 
@@ -319,10 +322,10 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
 }
 
 export function useScheduleScan(): (reference: string) => Promise<void> {
-  return async function (reference: string) {
+  return async (reference: string) => {
     const query = new URLSearchParams({ reference })
     const res = await fetch(
-      `${import.meta.env['VITE_API_ENDPOINT']}/image/scans?${query.toString()}`,
+      `${import.meta.env.VITE_API_ENDPOINT}/image/scans?${query.toString()}`,
       {
         method: 'POST',
       }
@@ -334,4 +337,4 @@ export function useScheduleScan(): (reference: string) => Promise<void> {
   }
 }
 
-export const RSSFeedEndpoint = `${import.meta.env['VITE_API_ENDPOINT']}/feed.rss`
+export const RSSFeedEndpoint = `${import.meta.env.VITE_API_ENDPOINT}/feed.rss`

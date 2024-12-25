@@ -1,4 +1,4 @@
-import { type JSX } from 'react'
+import type { JSX } from 'react'
 
 import { TagsByName } from '../tags'
 import { formatRelativeTimeTo } from '../time'
@@ -36,7 +36,7 @@ export function ImageCard({
     >
       <div className="w-[48px] h-[48px] shrink-0">
         {logo ? (
-          <img src={logo} className="w-full h-full rounded" />
+          <img alt="logo" src={logo} className="w-full h-full rounded" />
         ) : (
           <div className="flex items-center justify-center w-full h-full rounded bg-blue-400 dark:bg-blue-700">
             <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
