@@ -77,3 +77,14 @@ type GraphNode struct {
 	Type   string `json:"type"`
 	Name   string `json:"name"`
 }
+
+type ImageEvent struct {
+	Reference string    `json:"reference"`
+	Type      EventType `json:"type"`
+}
+
+type EventType string
+
+const (
+	EventTypeImageUpdated EventType = "imageUpdated"
+)

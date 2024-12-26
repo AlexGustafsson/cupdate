@@ -10,6 +10,7 @@ import (
 
 	_ "embed" // Embed SQL files
 
+	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	_ "modernc.org/sqlite"
 )
@@ -17,7 +18,20 @@ import (
 //go:embed createTablesIfNotExist.sql
 var createTablesIfNotExist string
 
+type EventType string
+
+const (
+	EventTypeUpdated EventType = "updated"
+)
+
+type Event struct {
+	Reference string
+	Type      EventType
+}
+
 type Store struct {
+	*events.Hub[Event]
+
 	db *sql.DB
 }
 
@@ -43,7 +57,10 @@ func New(uri string, readonly bool) (*Store, error) {
 		}
 	}
 
-	return &Store{db: db}, nil
+	return &Store{
+		db:  db,
+		Hub: events.NewHub[Event](),
+	}, nil
 }
 
 func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) (bool, error) {
@@ -88,6 +105,11 @@ func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) (boo
 	if err != nil {
 		return false, err
 	}
+
+	_ = s.Broadcast(ctx, Event{
+		Reference: image.Reference,
+		Type:      EventTypeUpdated,
+	})
 
 	return lastProcessed == nil, nil
 }
@@ -348,7 +370,16 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	_ = s.Broadcast(ctx, Event{
+		Reference: image.Reference,
+		Type:      EventTypeUpdated,
+	})
+
+	return nil
 }
 
 func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, error) {
@@ -537,7 +568,16 @@ func (s *Store) InsertImageDescription(ctx context.Context, reference string, de
 
 	_, err = statement.ExecContext(ctx, reference, description.HTML, description.Markdown)
 	statement.Close()
-	return err
+	if err != nil {
+		return err
+	}
+
+	_ = s.Broadcast(ctx, Event{
+		Reference: reference,
+		Type:      EventTypeUpdated,
+	})
+
+	return nil
 }
 
 func (s *Store) GetImageDescription(ctx context.Context, reference string) (*models.ImageDescription, error) {
@@ -584,7 +624,16 @@ func (s *Store) InsertImageReleaseNotes(ctx context.Context, reference string, r
 
 	_, err = statement.ExecContext(ctx, reference, releaseNotes.Title, releaseNotes.HTML, releaseNotes.Markdown, releaseNotes.Released)
 	statement.Close()
-	return err
+	if err != nil {
+		return err
+	}
+
+	_ = s.Broadcast(ctx, Event{
+		Reference: reference,
+		Type:      EventTypeUpdated,
+	})
+
+	return nil
 }
 
 func (s *Store) GetImageReleaseNotes(ctx context.Context, reference string) (*models.ImageReleaseNotes, error) {
@@ -634,7 +683,16 @@ func (s *Store) InsertImageGraph(ctx context.Context, reference string, graph *m
 
 	_, err = statement.ExecContext(ctx, reference, serializedGraph)
 	statement.Close()
-	return err
+	if err != nil {
+		return err
+	}
+
+	_ = s.Broadcast(ctx, Event{
+		Reference: reference,
+		Type:      EventTypeUpdated,
+	})
+
+	return nil
 }
 
 func (s *Store) GetImageGraph(ctx context.Context, reference string) (*models.Graph, error) {
