@@ -369,7 +369,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	apiServer := api.NewServer(readStore, processQueue)
+	apiServer := api.NewServer(readStore, writeStore.Hub, processQueue)
 	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
 	mux.Handle("/metrics", promhttp.Handler())

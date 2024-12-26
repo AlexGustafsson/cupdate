@@ -10,7 +10,9 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
+	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/rss"
 	"github.com/AlexGustafsson/cupdate/internal/store"
@@ -23,14 +25,16 @@ var (
 
 type Server struct {
 	api *store.Store
+	hub *events.Hub[store.Event]
 	mux *http.ServeMux
 
 	WebAddress string
 }
 
-func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
+func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan<- oci.Reference) *Server {
 	s := &Server{
 		api: api,
+		hub: hub,
 		mux: http.NewServeMux(),
 	}
 
@@ -229,6 +233,32 @@ func NewServer(api *store.Store, processQueue chan<- oci.Reference) *Server {
 		}
 		if err := encoder.Encode(&feed); err != nil {
 			return
+		}
+	})
+
+	s.mux.HandleFunc("GET /api/v1/events", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.WriteHeader(http.StatusOK)
+
+		for event := range s.hub.Subscribe(r.Context()) {
+			var eventType models.EventType
+			switch event.Type {
+			case store.EventTypeUpdated:
+				eventType = models.EventTypeImageUpdated
+			}
+
+			data, err := json.Marshal(models.ImageEvent{
+				Reference: event.Reference,
+				Type:      eventType,
+			})
+			if err == nil {
+				_, _ = fmt.Fprintf(w, "data:%s\n\n", data)
+				if flusher, ok := w.(http.Flusher); ok {
+					flusher.Flush()
+				}
+			}
 		}
 	})
 

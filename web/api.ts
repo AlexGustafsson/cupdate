@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { type Tag, TagsByName } from './tags'
 
@@ -338,3 +338,38 @@ export function useScheduleScan(): (reference: string) => Promise<void> {
 }
 
 export const RSSFeedEndpoint = `${import.meta.env.VITE_API_ENDPOINT}/feed.rss`
+
+export type ImageEvent = { type: 'imageUpdated'; reference: string }
+
+export type Event = ImageEvent
+
+export function useEvents(callback: (e: Event) => void) {
+  const onMessage = useCallback(
+    (e: MessageEvent) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (
+          data !== null &&
+          typeof data === 'object' &&
+          typeof data.type === 'string'
+        ) {
+          callback(data as Event)
+        }
+      } catch {
+        // Do nothing
+      }
+    },
+    [callback]
+  )
+
+  useEffect(() => {
+    const eventSource = new EventSource(
+      `${import.meta.env.VITE_API_ENDPOINT}/events`
+    )
+
+    eventSource.addEventListener('message', onMessage)
+
+    return () => eventSource.close()
+  }, [onMessage])
+  return
+}
