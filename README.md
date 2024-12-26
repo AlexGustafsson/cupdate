@@ -23,6 +23,7 @@ visualizing their graphs and versions.
 Features:
 
 - Zero configuration required
+- Performant and lightweight - uses virtually zero CPU and roughly 14MiB RAM
 - Auto-detect container images in Kubernetes and Docker
 - Auto-detect the latest available container image versions
 - UI for discovering updates
