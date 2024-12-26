@@ -193,6 +193,7 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 		graph.InsertTree(
 			platform.ImageNode{
 				Reference: reference,
+				Digest:    image.Digest(),
 			},
 			resource{
 				kind: ResourceKindContainer,
@@ -249,4 +250,15 @@ func (i Image) Reference() (oci.Reference, bool) {
 	}
 
 	return oci.Reference{}, false
+}
+
+func (i Image) Digest() string {
+	for _, v := range i.RepoDigests {
+		_, digest, ok := strings.Cut(v, "@")
+		if ok {
+			return digest
+		}
+	}
+
+	return ""
 }

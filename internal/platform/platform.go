@@ -19,6 +19,7 @@ type Graph = *graph.Graph[Node]
 
 type ImageNode struct {
 	Reference oci.Reference
+	Digest    string
 }
 
 func (n ImageNode) ID() string {
