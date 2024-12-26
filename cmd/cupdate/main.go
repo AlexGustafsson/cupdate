@@ -219,7 +219,16 @@ func main() {
 		worker := worker.New(httpClient, writeStore)
 		prometheus.DefaultRegisterer.MustRegister(worker)
 
-		for reference := range ratelimit.Channel(ctx, config.Processing.QueueBurst, config.Processing.QueueRate, processQueue) {
+		gauge := prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "cupdate",
+			Subsystem: "worker",
+			Name:      "available_burst",
+		})
+		prometheus.DefaultRegisterer.MustRegister(gauge)
+
+		for reference, burst := range ratelimit.Channel(ctx, config.Processing.QueueBurst, config.Processing.QueueRate, processQueue) {
+			gauge.Set(float64(burst))
+
 			ctx, cancel := context.WithTimeout(ctx, config.Processing.Timeout)
 			err := worker.ProcessRawImage(ctx, reference)
 			cancel()

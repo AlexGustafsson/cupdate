@@ -11,7 +11,7 @@ import (
 //
 // The bucket will contain (and starts with) burst tokens. Every tick the bucket
 // is filled with another token.
-func Channel[T any](ctx context.Context, burst int, tick time.Duration, ch <-chan T) iter.Seq[T] {
+func Channel[T any](ctx context.Context, burst int, tick time.Duration, ch <-chan T) iter.Seq2[T, int] {
 	ticker := time.NewTicker(tick)
 
 	bucket := make(chan struct{}, burst)
@@ -34,7 +34,7 @@ func Channel[T any](ctx context.Context, burst int, tick time.Duration, ch <-cha
 		}
 	}()
 
-	return func(yield func(T) bool) {
+	return func(yield func(T, int) bool) {
 		defer ticker.Stop()
 
 		for {
@@ -58,7 +58,7 @@ func Channel[T any](ctx context.Context, burst int, tick time.Duration, ch <-cha
 						return
 					}
 
-					if !yield(v) {
+					if !yield(v, len(bucket)) {
 						// Loop exited
 						return
 					}
