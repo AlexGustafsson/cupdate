@@ -331,7 +331,7 @@ export function useScheduleScan(): (reference: string) => Promise<void> {
       }
     )
 
-    if (res.status !== 201) {
+    if (res.status !== 202) {
       throw new Error(`unexpected status - ${res.status}`)
     }
   }
