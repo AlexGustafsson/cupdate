@@ -16,7 +16,7 @@ on:
       - web/**
       - .yarn
       - .yarnrc.yml
-      - eslint.config.mjs
+      - biome.jsonc
       - package.json
       - postcss.config.mjs
       - tailwind.config.js
