@@ -1,34 +1,33 @@
-import type {
-  Edge,
-  Node,
-  NodeTypes,
-  OnEdgesChange,
-  OnNodesChange,
-} from '@xyflow/react'
-import { getNodesBounds, useEdgesState, useNodesState } from '@xyflow/react'
 import ELK from 'elkjs/lib/elk.bundled'
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 
 import type { Graph, GraphNode } from './api'
-import { CustomGraphNode } from './components/CustomGraphNode'
 import { SimpleIconsDocker } from './components/icons/simple-icons-docker'
 import { SimpleIconsKubernetes } from './components/icons/simple-icons-kubernetes'
 import { SimpleIconsOci } from './components/icons/simple-icons-oci'
 
-export const nodeTypes: NodeTypes = {
-  custom: CustomGraphNode,
-}
-
-export interface NodeType extends Node {
+export interface Node {
+  id: string
   data: {
-    subtitle: string
     title: string
+    subtitle: string
     label: ReactNode
   }
+  width: number
+  height: number
+  position: Position
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface EdgeType extends Edge {}
+export interface Position {
+  x: number
+  y: number
+}
+
+export interface Edge {
+  id: string
+  start: Position
+  end: Position
+}
 
 const titles: Record<string, Record<string, string | undefined> | undefined> = {
   oci: {
@@ -50,7 +49,7 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
   },
 }
 
-function formatNode(id: string, node: GraphNode): NodeType {
+function formatNode(id: string, node: GraphNode): Node {
   let label: ReactNode
   switch (node.domain) {
     case 'oci':
@@ -65,19 +64,22 @@ function formatNode(id: string, node: GraphNode): NodeType {
 
   return {
     id,
-    type: 'custom',
     data: {
       title: titles[node.domain]?.[node.type] || node.type,
       subtitle: node.name,
       label,
     },
+    width: 0,
+    height: 0,
     position: { x: 0, y: 0 },
   }
 }
 
-async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
-  const nodes: NodeType[] = []
-  const edges: EdgeType[] = []
+async function formatGraph(
+  graph: Graph
+): Promise<[Node[], Edge[], { width: number; height: number }]> {
+  const nodes: Node[] = []
+  const edges: Edge[] = []
 
   const elk = new ELK()
 
@@ -104,14 +106,12 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
 
   for (const node of root.children || []) {
     const formatted = formatNode(node.id, graph.nodes[node.id])
-    formatted.position.x = (node.x || 0) - (node.width || 0) / 2
-    formatted.position.y = node.y || 0
-    formatted.width = node.width
-    formatted.height = node.height
+    formatted.position.x = node.x ?? 0
+    formatted.position.y = node.y ?? 0
+    formatted.width = node.width ?? 0
+    formatted.height = node.height ?? 0
     nodes.push(formatted)
   }
-
-  const bounds = getNodesBounds(nodes)
 
   // The node for the image is (should be) on a "row" of its own. Always center
   // the image node on that row
@@ -120,12 +120,7 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
       graph.nodes[node.id].domain === 'oci' &&
       graph.nodes[node.id].type === 'image'
     ) {
-      // 42 is a magic number - an offset that makes centering look nice. I
-      // think that there's something going on with the layout engine - that the
-      // center of the graph isn't always the center of the image.
-      // TODO: There are other good reasons to just write a simple viewer, this
-      // is another reason why
-      node.position.x = bounds.width / 2 - (node.width ?? 0) + 42
+      node.position.x = (root.width ?? 0) / 2 - (node.width ?? 0) / 2
     }
   }
 
@@ -141,34 +136,47 @@ async function formatGraph(graph: Graph): Promise<[NodeType[], EdgeType[]]> {
   }
 
   for (const edge of root.edges || []) {
+    const startNode = nodes.find((x) => x.id === edge.sources[0])
+    const endNode = nodes.find((x) => x.id === edge.targets[0])
+    if (!startNode || !endNode) {
+      continue
+    }
+
+    const start = { ...startNode.position }
+    const end = { ...endNode.position }
+
+    start.x += startNode.width / 2
+    start.y += startNode.height
+
+    end.x += startNode.width / 2
+
     edges.push({
       id: edge.id,
-      source: edge.sources[0],
-      target: edge.targets[0],
+      start,
+      end,
     })
   }
 
-  return [nodes, edges]
+  return [nodes, edges, { width: root.width || 0, height: root.height || 0 }]
 }
 
 export function useNodesAndEdges(
   graph: Graph
-): [
-  [NodeType[], OnNodesChange<NodeType>],
-  [EdgeType[], OnEdgesChange<EdgeType>],
-] {
-  const [nodes, setNodes, onNodesChange] = useNodesState<NodeType>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<EdgeType>([])
+): [Node[], Edge[], { width: number; height: number }] {
+  const [nodes, setNodes] = useState<Node[]>([])
+  const [edges, setEdges] = useState<Edge[]>([])
+  const [bounds, setBounds] = useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  })
 
   useEffect(() => {
-    formatGraph(graph).then(([nodes, edges]) => {
+    formatGraph(graph).then(([nodes, edges, bounds]) => {
       setNodes(nodes)
       setEdges(edges)
+      setBounds(bounds)
     })
-  }, [graph, setNodes, setEdges])
+  }, [graph])
 
-  return [
-    [nodes, onNodesChange],
-    [edges, onEdgesChange],
-  ]
+  return [nodes, edges, bounds]
 }

@@ -1,5 +1,3 @@
-import { Controls, ReactFlow } from '@xyflow/react'
-import '@xyflow/react/dist/base.css'
 import type { JSX, ReactNode } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 
@@ -13,6 +11,7 @@ import {
   useTags,
 } from '../api'
 import { Badge } from '../components/Badge'
+import { Graph as GraphRenderer } from '../components/Graph'
 import { HTML } from '../components/HTML'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { Markdown } from '../components/Markdown'
@@ -28,7 +27,7 @@ import { SimpleIconsGit } from '../components/icons/simple-icons-git'
 import { SimpleIconsGithub } from '../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
 import { SimpleIconsOci } from '../components/icons/simple-icons-oci'
-import { nodeTypes, useNodesAndEdges } from '../graph'
+import { useNodesAndEdges } from '../graph'
 import { name, version } from '../oci'
 import { formatRelativeTimeTo } from '../time'
 
@@ -103,28 +102,11 @@ type GraphCardProps = {
 }
 
 export function GraphCard({ graph }: GraphCardProps): JSX.Element {
-  const [[nodes, onNodesChange], [edges, _onEdgesChange]] =
-    useNodesAndEdges(graph)
+  const [nodes, edges, bounds] = useNodesAndEdges(graph)
 
   return (
     <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-2 shadow h-[480px]">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        nodeTypes={nodeTypes}
-        fitView
-        edgesFocusable={false}
-        nodesDraggable={true}
-        nodesConnectable={false}
-        nodesFocusable={false}
-        draggable={true}
-        panOnDrag={true}
-        elementsSelectable={false}
-        minZoom={0.001}
-      >
-        <Controls />
-      </ReactFlow>
+      <GraphRenderer edges={edges} nodes={nodes} bounds={bounds} />
     </div>
   )
 }

@@ -8,10 +8,9 @@
     "dev": "vite",
     "test": "vitest run --coverage.enabled --coverage.all --coverage.reportOnFailure --coverage.reportsDirectory \"$PWD/coverage\" --coverage.reporter html",
     "lint": "biome ci .; prettier --check '**/*.md'",
-    "format": "biome format --write .; biome lint --write .; prettier --check '**/*.md'"
+    "format": "biome check --write .; prettier --check '**/*.md'"
   },
   "dependencies": {
-    "@xyflow/react": "12.3.6",
     "dompurify": "3.2.3",
     "elkjs": "0.9.3",
     "github-markdown-css": "5.8.1",
