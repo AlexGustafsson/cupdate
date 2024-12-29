@@ -171,7 +171,7 @@ export function ImagePage(): JSX.Element {
         {name(image.value.reference)}
         {image.value.vulnerabilities.length > 0 && (
           <InfoTooltip
-            icon={<FluentShieldError24Filled className="text-red-400" />}
+            icon={<FluentShieldError24Filled className="text-red-600" />}
           >
             {image.value.vulnerabilities.length} vulnerabilities reported.
           </InfoTooltip>
