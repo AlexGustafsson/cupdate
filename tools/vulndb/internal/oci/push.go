@@ -18,6 +18,7 @@ func PushArtifact(ctx context.Context, path string, username string, password st
 	if err != nil {
 		return err
 	}
+	defer os.RemoveAll(workdir)
 
 	fs, err := file.New(workdir)
 	if err != nil {

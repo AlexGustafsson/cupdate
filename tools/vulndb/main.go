@@ -46,12 +46,13 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("missing required input(s)")
 	}
 
-	workdir, err := os.MkdirTemp(os.TempDir(), "cupdate-vulndb-*")
+	workdirParent, err := os.MkdirTemp(os.TempDir(), "cupdate-vulndb-*")
 	if err != nil {
 		return err
 	}
+	defer os.RemoveAll(workdirParent)
 
-	workdir = filepath.Join(workdir, "advisory-database")
+	workdir := filepath.Join(workdirParent, "advisory-database")
 
 	slog.Debug("Performing shallow clone of GitHub's advisory database")
 	err = git.ShallowClone(context.Background(), "https://github.com/github/advisory-database", workdir, "advisories/github-reviewed/2024")
