@@ -59,7 +59,7 @@ func GetQuayVulnerabilities() workflow.Step {
 				for _, feature := range scan.Data.Layer.Features {
 					for _, vulnerability := range feature.Vulnerabilities {
 						vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-							Severity:    strings.ToLower(string(vulnerability.Severity)),
+							Severity:    strings.Replace(strings.ToLower(string(vulnerability.Severity)), "unknown", "unspecified", 1),
 							Authority:   "Quay",
 							Description: vulnerability.Description,
 							Links:       strings.Split(vulnerability.Link, " "),
