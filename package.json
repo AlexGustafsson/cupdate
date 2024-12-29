@@ -8,7 +8,7 @@
     "dev": "vite",
     "test": "vitest run --coverage.enabled --coverage.all --coverage.reportOnFailure --coverage.reportsDirectory \"$PWD/coverage\" --coverage.reporter html",
     "lint": "biome ci --no-errors-on-unmatched .; prettier --check '**/*.md'",
-    "format": "biome check --write --no-errors-on-unmatched .; prettier --check '**/*.md'"
+    "format": "biome check --write --no-errors-on-unmatched .; prettier --write '**/*.md'"
   },
   "dependencies": {
     "dompurify": "3.2.3",
