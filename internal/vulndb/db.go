@@ -65,3 +65,7 @@ func (c *Conn) GetGitHubAdvisoriesForRepository(ctx context.Context, repository 
 
 	return advisories, nil
 }
+
+func (c *Conn) Close() error {
+	return c.db.Close()
+}

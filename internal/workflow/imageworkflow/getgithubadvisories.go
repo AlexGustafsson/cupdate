@@ -40,6 +40,7 @@ func GetGitHubAdvisoriesForRepository() workflow.Step {
 			if err != nil {
 				return nil, err
 			}
+			defer vulndb.Close()
 
 			advisories, err := vulndb.GetGitHubAdvisoriesForRepository(ctx, "https://github.com/"+owner+"/"+repository)
 			if err != nil {
