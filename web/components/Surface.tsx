@@ -20,32 +20,32 @@ export function Surface({
   const [scale, setScale] = useState<number>(1.0)
   const [isDragging, setIsDragging] = useState(false)
 
-  const onMouseMove = useCallback((e: MouseEvent) => {
+  const onPointerMove = useCallback((e: PointerEvent) => {
     setOffset((current) => ({
       x: current.x + e.movementX,
       y: current.y + e.movementY,
     }))
   }, [])
-  const onMouseUp = useCallback(
-    (e: MouseEvent) => {
-      document.removeEventListener('mousemove', onMouseMove)
+  const onPointerUp = useCallback(
+    (e: PointerEvent) => {
+      document.removeEventListener('pointermove', onPointerMove)
 
       setIsDragging(false)
     },
-    [onMouseMove]
+    [onPointerMove]
   )
-  const onMouseDown = useCallback(
-    (e: MouseEvent) => {
+  const onPointerDown = useCallback(
+    (e: PointerEvent) => {
       if (e.buttons !== 1) {
         return
       }
 
-      document.addEventListener('mousemove', onMouseMove)
-      document.addEventListener('mouseup', onMouseUp)
+      document.addEventListener('pointermove', onPointerMove)
+      document.addEventListener('pointerup', onPointerUp)
 
       setIsDragging(true)
     },
-    [onMouseMove, onMouseUp]
+    [onPointerMove, onPointerUp]
   )
 
   const onZoom = useCallback((delta: number) => {
@@ -83,14 +83,14 @@ export function Surface({
   }, [])
 
   useEffect(() => {
-    surfaceRef.current?.addEventListener('mousedown', onMouseDown)
+    surfaceRef.current?.addEventListener('pointerdown', onPointerDown)
     surfaceRef.current?.addEventListener('wheel', onWheel)
 
     return () => {
-      surfaceRef.current?.removeEventListener('mousedown', onMouseDown)
+      surfaceRef.current?.removeEventListener('pointerdown', onPointerDown)
       surfaceRef.current?.removeEventListener('wheel', onWheel)
     }
-  }, [onMouseDown, onWheel])
+  }, [onPointerDown, onWheel])
 
   // Center on child re-size (which should only happen a couple of times the
   // first few renders)
@@ -114,7 +114,7 @@ export function Surface({
   return (
     <div
       ref={surfaceRef}
-      className={`relative w-full h-full overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`relative w-full h-full overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} touch-none`}
     >
       <div className="absolute left-0 bottom-0 m-2 rounded bg-white dark:bg-[#1e1e1e] flex flex-col p-2 z-50 shadow-md gap-y-2">
         <button type="button" onClick={() => onZoom(1)}>
