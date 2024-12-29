@@ -1,4 +1,12 @@
-import { type Dispatch, type SetStateAction, useCallback, useMemo } from 'react'
+import {
+  type Dispatch,
+  type SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
@@ -91,4 +99,54 @@ export function useSort(): [
   )
 
   return [property, setProperty, order, setOrder]
+}
+
+export function useDebouncedEffect(
+  effect: React.EffectCallback,
+  deps?: React.DependencyList
+) {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: effect should not be changed
+  useEffect(() => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      effect()
+      timeoutRef.current = null
+    }, 200)
+  }, deps)
+}
+
+export function useQuery(): [
+  string | undefined,
+  Dispatch<SetStateAction<string | undefined>>,
+] {
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const query = useMemo(() => {
+    return searchParams.get('query') || undefined
+  }, [searchParams])
+
+  const setQuery = useCallback(
+    (s?: string | ((current: string | undefined) => string | undefined)) => {
+      setSearchParams((current) => {
+        if (typeof s === 'function') {
+          s = s(current.get('query') || undefined)
+        }
+        if (!s) {
+          current.delete('query')
+        } else {
+          current.set('query', s)
+        }
+        return current
+      })
+    },
+    [setSearchParams]
+  )
+
+  return [query, setQuery]
 }

@@ -107,6 +107,7 @@ interface UseImagesProps {
   order?: 'asc' | 'desc'
   page?: number
   limit?: number
+  query?: string
 }
 
 export function useImages(options?: UseImagesProps): Result<ImagePage> {
@@ -131,6 +132,9 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
     if (options?.limit !== undefined) {
       query.set('limit', options.limit.toString())
     }
+    if (options?.query !== undefined) {
+      query.set('query', options.query)
+    }
 
     fetch(`${import.meta.env.VITE_API_ENDPOINT}/images?${query.toString()}`)
       .then((res) => {
@@ -148,6 +152,7 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
     options?.order,
     options?.page,
     options?.limit,
+    options?.query,
   ])
 
   return result

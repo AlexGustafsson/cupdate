@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -752,6 +753,8 @@ type ListImageOptions struct {
 	Limit int
 	// Sort defaults to SortBump.
 	Sort Sort
+	// Query is an Sqlite full text search query.
+	Query string
 }
 
 func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*models.ImagePage, error) {
@@ -886,7 +889,15 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 
 	whereClause := ""
 	if len(options.Tags) > 0 {
-		whereClause = fmt.Sprintf("WHERE images_tags.tag IN (%s)", "?"+strings.Repeat(", ?", len(options.Tags)-1))
+		whereClause += fmt.Sprintf("WHERE images_tags.tag IN (%s)", "?"+strings.Repeat(", ?", len(options.Tags)-1))
+	}
+	if options.Query != "" {
+		if len(options.Tags) > 0 {
+			whereClause += " AND "
+		} else {
+			whereClause += "WHERE "
+		}
+		whereClause += "images.reference IN (SELECT reference from images_fts WHERE images_fts MATCH ?)"
 	}
 
 	groupByClause := "GROUP BY images.reference"
@@ -906,7 +917,12 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		for _, tag := range options.Tags {
 			args = append(args, tag)
 		}
+		if options.Query != "" {
+			args = append(args, ftsEscape(options.Query))
+		}
 		args = append(args, len(options.Tags))
+	} else if options.Query != "" {
+		args = append(args, ftsEscape(options.Query))
 	}
 	res, err = statement.QueryContext(ctx, args...)
 	statement.Close()
@@ -941,7 +957,12 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		for _, tag := range options.Tags {
 			args = append(args, tag)
 		}
+		if options.Query != "" {
+			args = append(args, strconv.Quote(options.Query))
+		}
 		args = append(args, len(options.Tags))
+	} else if options.Query != "" {
+		args = append(args, ftsEscape(options.Query))
 	}
 	args = append(args, limit)
 	args = append(args, offset)
@@ -1041,4 +1062,11 @@ func (s *Store) DeleteNonPresent(ctx context.Context, references []string) (int6
 
 func (s *Store) Close() error {
 	return s.db.Close()
+}
+
+// ftsEscape escapes a string for use with sqlite's full text search.
+// It is not a security feature, it just ensures that all searches are full text
+// and not using fts' query syntax.
+func ftsEscape(s string) string {
+	return `"` + strings.ReplaceAll(s, `"`, `""`) + `"`
 }

@@ -1,11 +1,11 @@
-import { type JSX, useEffect } from 'react'
+import { type JSX, useEffect, useState } from 'react'
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useImages, usePagination, useTags } from '../api'
 import { ImageCard } from '../components/ImageCard'
 import { Select } from '../components/Select'
 import { TagSelect } from '../components/TagSelect'
-import { useFilter, useSort } from '../hooks'
+import { useDebouncedEffect, useFilter, useQuery, useSort } from '../hooks'
 import { name, version } from '../oci'
 
 export function Dashboard(): JSX.Element {
@@ -13,9 +13,21 @@ export function Dashboard(): JSX.Element {
 
   const [sort, setSort, sortOrder, setSortOrder] = useSort()
 
+  const [query, setQuery] = useQuery()
+
+  const [queryInput, setQueryInput] = useState('')
+
   const [searchParams, _] = useSearchParams()
 
   const navigate = useNavigate()
+
+  useDebouncedEffect(() => {
+    setQuery(queryInput)
+  }, [queryInput])
+
+  useEffect(() => {
+    setQueryInput(query || '')
+  }, [query])
 
   const images = useImages({
     tags: filter,
@@ -23,6 +35,7 @@ export function Dashboard(): JSX.Element {
     order: sortOrder,
     page: searchParams.get('page') ? Number(searchParams.get('page')) : 0,
     limit: 30,
+    query: query,
   })
 
   const pages = usePagination(
@@ -98,8 +111,17 @@ export function Dashboard(): JSX.Element {
 
       <hr className="my-6 w-3/4" />
 
-      <div className="flex justify-between items-center w-full max-w-[800px]">
-        <div className="flex gap-x-2">
+      {/* Filters */}
+      <div className="flex justify-between items-center w-full mt-2 max-w-[800px]">
+        <div className="flex items-center gap-x-2 w-full">
+          <input
+            type="text"
+            placeholder="Search"
+            value={queryInput}
+            onChange={(e) => setQueryInput(e.target.value)}
+            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded flex-grow border border-[#e5e5e5] dark:border-[#333333]"
+          />
+
           <Select
             value={sort}
             onChange={(e) => setSort(e.target.value)}
@@ -127,6 +149,8 @@ export function Dashboard(): JSX.Element {
           <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
         </div>
       </div>
+
+      {/* Images */}
       <div className="flex flex-col mt-2 gap-y-4 w-full max-w-[800px]">
         {images.value.images.map((x) => (
           <NavLink

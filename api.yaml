@@ -56,6 +56,12 @@ paths:
           schema:
             type: integer
           required: false
+        - in: query
+          name: query
+          description: Full text search query.
+          schema:
+            type: string
+          required: false
       responses:
         '200':
           description: A page of images.

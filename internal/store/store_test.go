@@ -288,7 +288,79 @@ func TestListImages(t *testing.T) {
 	actualPage, err = store.ListImages(context.TODO(), &ListImageOptions{Page: 1, Limit: 1})
 	require.NoError(t, err)
 	assert.Equal(t, expectedPage, actualPage)
+}
 
+func TestListImagesQuery(t *testing.T) {
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
+	require.NoError(t, err)
+
+	images := []models.Image{
+		{
+			Reference:       "mongo:3",
+			LatestReference: "mongo:4",
+			Description:     "Mongo is a database",
+			Tags:            []string{"docker"},
+			Links: []models.ImageLink{
+				{
+					Type: "docker",
+					URL:  "https://docker.com/_/mongo",
+				},
+			},
+			Vulnerabilities: []models.ImageVulnerability{},
+			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+			Image:           "https://example.com/logo.png",
+		},
+	}
+
+	expectedPage := &models.ImagePage{
+		Images: []models.Image{
+			{
+				Reference:       "mongo:3",
+				LatestReference: "mongo:4",
+				Description:     "Mongo is a database",
+				Tags:            []string{"docker"},
+				Links: []models.ImageLink{
+					{
+						Type: "docker",
+						URL:  "https://docker.com/_/mongo",
+					},
+				},
+				Vulnerabilities: []models.ImageVulnerability{},
+				LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+				Image:           "https://example.com/logo.png",
+			},
+		},
+		Summary: models.ImagePageSummary{
+			Images:     1,
+			Outdated:   1,
+			Vulnerable: 0,
+			Processing: 0,
+		},
+		Pagination: models.PaginationMetadata{
+			Total:    1,
+			Page:     0,
+			Size:     30,
+			Next:     "",
+			Previous: "",
+		},
+	}
+
+	for _, image := range images {
+		_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+			Reference: image.Reference,
+		})
+		require.NoError(t, err)
+
+		err = store.InsertImage(context.TODO(), &image)
+		require.NoError(t, err)
+	}
+
+	page, err := store.ListImages(context.TODO(), &ListImageOptions{
+		Query: "database",
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, expectedPage, page)
 }
 
 func TestStoreDeleteNonPresent(t *testing.T) {

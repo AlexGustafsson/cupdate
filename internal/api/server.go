@@ -91,6 +91,7 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 			Page:  int(page),
 			Limit: int(limit),
 			Sort:  store.Sort(sort),
+			Query: query.Get("query"),
 		}
 		response, err := api.ListImages(r.Context(), listOptions)
 		s.handleJSONResponse(w, r, response, err)
