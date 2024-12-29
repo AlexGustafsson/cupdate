@@ -40,14 +40,15 @@ func PushArtifact(ctx context.Context, path string, username string, password st
 	artifactType := "application/vnd.cupdate.vulndb.v1+json"
 	opts := oras.PackManifestOptions{
 		Layers: fileDescriptors,
+		ManifestAnnotations: map[string]string{
+			"org.opencontainers.image.source":      "https://github.com/AlexGustafsson/cupdate",
+			"org.opencontainers.image.description": `Cupdate's vulnerability database.`,
+		},
 	}
 	manifestDescriptor, err := oras.PackManifest(ctx, fs, oras.PackManifestVersion1_1, artifactType, opts)
 	if err != nil {
 		return err
 	}
-
-	manifestDescriptor.Annotations["org.opencontainers.image.source"] = "https://github.com/AlexGustafsson/cupdate"
-	manifestDescriptor.Annotations["org.opencontainers.image.description"] = `Cupdate's vulnerability database.`
 
 	tag := "latest"
 	if err = fs.Tag(ctx, manifestDescriptor, tag); err != nil {
