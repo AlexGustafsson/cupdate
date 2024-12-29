@@ -36,6 +36,10 @@ type Client struct {
 	Authorizer Authorizer
 }
 
+// TODO: Rewrite to return a ManifestList / ManifestIndex instead, which then
+// contains the manifests.
+// That way we can differentiate with the content types of actual manifests as
+// returned by GetManifest...
 func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest, error) {
 	id := ""
 	if image.HasTag {
@@ -266,6 +270,37 @@ func (c *Client) GetBlob(ctx context.Context, image Reference, digest string) ([
 	}
 
 	return io.ReadAll(res.Body)
+}
+
+func (c *Client) ReadBlob(ctx context.Context, image Reference, digest string) (io.ReadCloser, error) {
+	// NOTE: It's rather unclear why we need to do this dance manually and why
+	// docker.io simply doesn't just redirect us
+	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/blobs/%s", domain, image.Path, digest), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.Authorizer != nil {
+		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
+			return nil, err
+		}
+	}
+
+	res, err := c.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode == http.StatusNotFound {
+		res.Body.Close()
+		return nil, nil
+	} else if res.StatusCode != http.StatusOK {
+		res.Body.Close()
+		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	}
+
+	return res.Body, nil
 }
 
 type GetAnnotationsOptions struct {

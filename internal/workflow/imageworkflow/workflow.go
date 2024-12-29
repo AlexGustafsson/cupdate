@@ -377,6 +377,25 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						}
 						return nil, nil
 					}),
+					GetGitHubAdvisoriesForRepository().
+						WithID("vulnerabilities").
+						With("httpClient", httpClient).
+						With("reference", data.ImageReference).
+						With("owner", workflow.Ref{Key: "step.repository.owner"}).
+						With("repository", workflow.Ref{Key: "step.repository.name"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						vulnerabilities, err := workflow.GetValue[[]models.ImageVulnerability](ctx, "step.vulnerabilities.vulnerabilities")
+						if err != nil {
+							return nil, err
+						}
+
+						if len(vulnerabilities) > 0 {
+							data.InsertVulnerabilities(vulnerabilities)
+							data.InsertTag("vulnerable")
+						}
+
+						return nil, nil
+					}),
 				},
 			},
 		},

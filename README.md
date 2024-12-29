@@ -29,7 +29,8 @@ Features:
 - UI for discovering updates
 - Subscribe to updates via an RSS feed
 - Graphs image versions' dependants explaining why they're in use
-- Vulnerability scanning via Docker Scout and Quay
+- Vulnerability scanning via Docker Scout, Quay and the
+  GitHub Advisory Database through [vulndb](https://github.com/AlexGustafsson/cupdate/pkgs/container/cupdate%2Fvulndb).
 - APIs for custom integrations
 
 Supported registries:
