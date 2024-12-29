@@ -1,6 +1,7 @@
 name: Build vulndb
 
 on:
+  workflow_dispatch: {}
   schedule:
     # Run once daily
     - cron: "0 0 * * *"

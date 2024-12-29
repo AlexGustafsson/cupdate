@@ -55,7 +55,7 @@ func PushArtifact(ctx context.Context, path string, username string, password st
 	}
 
 	reg := "ghcr.io"
-	repo, err := remote.NewRepository(reg + "/alexgustafsson/cupdate-vulndb")
+	repo, err := remote.NewRepository(reg + "/alexgustafsson/cupdate/vulndb")
 	if err != nil {
 		return err
 	}
