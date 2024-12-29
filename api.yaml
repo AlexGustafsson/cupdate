@@ -316,16 +316,19 @@ components:
         authority:
           type: string
           example: Docker Scout
+        links:
+          type: array
+          items:
+            type: string
+            format: url
         description:
           type: string
           example: CVE-2024-9476
-        link:
-          type: string
-          format: url
       required:
         - id
         - severity
         - authority
+        - links
 
     Graph:
       type: object

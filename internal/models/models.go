@@ -60,11 +60,11 @@ type ImageLink struct {
 }
 
 type ImageVulnerability struct {
-	ID          int    `json:"id"`
-	Severity    string `json:"severity"`
-	Authority   string `json:"authority"`
-	Description string `json:"description,omitempty"`
-	Link        string `json:"link,omitempty"`
+	ID          int      `json:"id"`
+	Severity    string   `json:"severity"`
+	Authority   string   `json:"authority"`
+	Description string   `json:"description,omitempty"`
+	Links       []string `json:"links"`
 }
 
 type Graph struct {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -355,7 +356,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	// Add vulnerabilities
 	for _, vulnerability := range image.Vulnerabilities {
 		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_vulnerabilities
-		(reference, severity, authority, description, link)
+		(reference, severity, authority, description, links)
 		VALUES
 		(?, ?, ?, ?, ?);`)
 		if err != nil {
@@ -363,7 +364,9 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 			return err
 		}
 
-		_, err = statement.ExecContext(ctx, image.Reference, vulnerability.Severity, vulnerability.Authority, vulnerability.Description, vulnerability.Link)
+		// Store links as a space-separated list
+		links := strings.Join(slices.Sorted(slices.Values(vulnerability.Links)), " ")
+		_, err = statement.ExecContext(ctx, image.Reference, vulnerability.Severity, vulnerability.Authority, vulnerability.Description, links)
 		statement.Close()
 		if err != nil {
 			tx.Rollback()
@@ -495,7 +498,7 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 }
 
 func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) ([]models.ImageVulnerability, error) {
-	statement, err := s.db.PrepareContext(ctx, `SELECT id, severity, authority, description, link FROM images_vulnerabilities WHERE reference = ?;`)
+	statement, err := s.db.PrepareContext(ctx, `SELECT id, severity, authority, description, links FROM images_vulnerabilities WHERE reference = ?;`)
 	if err != nil {
 		return nil, err
 	}
@@ -509,11 +512,13 @@ func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) (
 	vulnerabilities := make([]models.ImageVulnerability, 0)
 	for res.Next() {
 		var vulnerability models.ImageVulnerability
-		err := res.Scan(&vulnerability.ID, &vulnerability.Severity, &vulnerability.Authority, &vulnerability.Description, &vulnerability.Link)
+		var links string
+		err := res.Scan(&vulnerability.ID, &vulnerability.Severity, &vulnerability.Authority, &vulnerability.Description, &links)
 		if err != nil {
 			res.Close()
 			return nil, err
 		}
+		vulnerability.Links = strings.Split(links, " ")
 		vulnerabilities = append(vulnerabilities, vulnerability)
 	}
 	res.Close()

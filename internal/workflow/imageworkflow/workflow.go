@@ -193,6 +193,40 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 				},
 			},
 			{
+				ID:        "quay",
+				Name:      "Get Quay information",
+				DependsOn: []string{"oci"},
+				// Only run for Quay images
+				If: func(ctx workflow.Context) (bool, error) {
+					domain, err := workflow.GetValue[string](ctx, "job.oci.step.registry.domain")
+					if err != nil {
+						return false, err
+					}
+
+					return domain == "quay.io", nil
+				},
+				Steps: []workflow.Step{
+					GetQuayVulnerabilities().
+						WithID("vulnerabilities").
+						With("httpClient", httpClient).
+						With("reference", data.ImageReference).
+						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						vulnerabilities, err := workflow.GetValue[[]models.ImageVulnerability](ctx, "step.vulnerabilities.vulnerabilities")
+						if err != nil {
+							return nil, err
+						}
+
+						if len(vulnerabilities) > 0 {
+							data.InsertVulnerabilities(vulnerabilities)
+							data.InsertTag("vulnerable")
+						}
+
+						return nil, nil
+					}),
+				},
+			},
+			{
 				ID:        "gitlab",
 				Name:      "Get GitLab information",
 				DependsOn: []string{"oci"},
@@ -260,7 +294,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 				ID:   "github",
 				Name: "Get GitHub information",
 				// Depend on whatever provides us with the latest image version
-				DependsOn: []string{"oci", "docker", "ghcr", "gitlab"},
+				DependsOn: []string{"oci", "docker", "ghcr", "quay", "gitlab"},
 				// Only run for images with a reference to GitHub
 				If: func(ctx workflow.Context) (bool, error) {
 					if data.ImageReference.Domain == "ghcr.io" {

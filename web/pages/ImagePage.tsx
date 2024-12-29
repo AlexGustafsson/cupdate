@@ -50,6 +50,11 @@ function unique<T>(previousValue: T[], currentValue: T): T[] {
   return previousValue
 }
 
+function flattened<T>(previousValue: T[], currentValue: T[]): T[] {
+  previousValue.push(...currentValue)
+  return previousValue
+}
+
 export function ImageLink({
   type,
   url,
@@ -295,8 +300,8 @@ export function ImagePage(): JSX.Element {
               <h2>Links</h2>
               <ul>
                 {image.value.vulnerabilities
-                  .filter((x) => x.link)
-                  .map((x) => x.link!)
+                  .map((x) => x.links)
+                  .reduce(flattened<string>, [])
                   .reduce(unique<string>, [])
                   .map((x) => (
                     <li key={x}>

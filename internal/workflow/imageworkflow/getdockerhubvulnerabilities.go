@@ -66,7 +66,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "critical",
 						Authority: "Docker Scout",
-						Link:      dockerhub.TagUIPath(reference, digest),
+						Links:     []string{dockerhub.TagUIPath(reference, digest)},
 					})
 				}
 
@@ -74,7 +74,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "high",
 						Authority: "Docker Scout",
-						Link:      dockerhub.TagUIPath(reference, digest),
+						Links:     []string{dockerhub.TagUIPath(reference, digest)},
 					})
 				}
 
@@ -82,7 +82,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "medium",
 						Authority: "Docker Scout",
-						Link:      dockerhub.TagUIPath(reference, digest),
+						Links:     []string{dockerhub.TagUIPath(reference, digest)},
 					})
 				}
 
@@ -90,7 +90,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "low",
 						Authority: "Docker Scout",
-						Link:      dockerhub.TagUIPath(reference, digest),
+						Links:     []string{dockerhub.TagUIPath(reference, digest)},
 					})
 				}
 
@@ -98,7 +98,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
 						Severity:  "unspecified",
 						Authority: "Docker Scout",
-						Link:      dockerhub.TagUIPath(reference, digest),
+						Links:     []string{dockerhub.TagUIPath(reference, digest)},
 					})
 				}
 			}

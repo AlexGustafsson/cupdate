@@ -63,7 +63,7 @@ func TestStoreInsertImage(t *testing.T) {
 				Severity:    "low",
 				Authority:   "test",
 				Description: "Some CVE",
-				Link:        "https://example.com",
+				Links:       []string{"https://example.com"},
 			},
 		},
 		LastModified: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),

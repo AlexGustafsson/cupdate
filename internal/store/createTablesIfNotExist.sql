@@ -82,6 +82,6 @@ CREATE TABLE IF NOT EXISTS images_vulnerabilities (
   severity TEXT NOT NULL,
   authority TEXT NOT NULL,
   description TEXT NOT NULL,
-  link TEXT NOT NULL,
+  links TEXT NOT NULL,
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 )

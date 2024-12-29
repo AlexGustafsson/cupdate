@@ -29,7 +29,7 @@ Features:
 - UI for discovering updates
 - Subscribe to updates via an RSS feed
 - Graphs image versions' dependants explaining why they're in use
-- Vulnerability scanning
+- Vulnerability scanning via Docker Scout and Quay
 - APIs for custom integrations
 
 Supported registries:
@@ -46,6 +46,7 @@ Supported data sources:
 - Docker Hub, Docker Scout
 - GitHub, GitHub Container Registry
 - GitLab
+- Quay
 
 ## Running
 
