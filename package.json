@@ -7,8 +7,8 @@
     "build": "tsc --noEmit && vite build",
     "dev": "vite",
     "test": "vitest run --coverage.enabled --coverage.all --coverage.reportOnFailure --coverage.reportsDirectory \"$PWD/coverage\" --coverage.reporter html",
-    "lint": "biome ci --no-errors-on-unmatched .; prettier --check '**/*.md'",
-    "format": "biome check --write --no-errors-on-unmatched .; prettier --write '**/*.md'"
+    "lint": "biome ci --no-errors-on-unmatched .; prettier --check '**/*.{md,yml,yaml}'",
+    "format": "biome check --write --no-errors-on-unmatched .; prettier --write '**/*.{md,yml,yaml}'"
   },
   "dependencies": {
     "dompurify": "3.2.3",

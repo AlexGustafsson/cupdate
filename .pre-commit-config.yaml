@@ -12,4 +12,4 @@ repos:
         entry: yarn exec prettier --check
         language: system
         types: [text]
-        files: \.(md)$
+        files: \.(md|yml|yaml)$
