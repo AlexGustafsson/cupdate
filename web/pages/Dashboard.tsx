@@ -113,13 +113,13 @@ export function Dashboard(): JSX.Element {
 
       {/* Filters */}
       <div className="flex justify-between items-center w-full mt-2 max-w-[800px]">
-        <div className="flex items-center gap-x-2 w-full">
+        <div className="flex items-center flex-wrap gap-x-2 gap-y-2 w-full">
           <input
             type="text"
             placeholder="Search"
             value={queryInput}
             onChange={(e) => setQueryInput(e.target.value)}
-            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded flex-grow border border-[#e5e5e5] dark:border-[#333333]"
+            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded flex-grow shrink-0 w-full sm:w-min border border-[#e5e5e5] dark:border-[#333333]"
           />
 
           <Select
