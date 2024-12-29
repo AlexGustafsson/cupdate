@@ -84,6 +84,10 @@ func TestStoreInsertImage(t *testing.T) {
 	actual, err := store.GetImage(context.TODO(), "mongo:4")
 	require.NoError(t, err)
 	assert.EqualValues(t, expected, actual)
+
+	// Make sure triggers don't complain when upserting
+	err = store.InsertImage(context.TODO(), expected)
+	require.NoError(t, err)
 }
 
 func TestStoreTags(t *testing.T) {
