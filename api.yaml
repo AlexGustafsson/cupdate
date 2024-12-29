@@ -312,7 +312,7 @@ components:
           type: int
         severity:
           type: string
-          example: high
+          enum: ["critical", "high", "medium", "low", "unspecified"]
         authority:
           type: string
           example: Docker Scout
