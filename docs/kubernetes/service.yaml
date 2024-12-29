@@ -38,7 +38,7 @@ spec:
             - name: CUPDATE_DB_PATH
               value: /run/data/dbv1.sqlite
             - name: CUPDATE_API_ADDRESS
-              value: '0.0.0.0'
+              value: "0.0.0.0"
           volumeMounts:
             - name: data
               mountPath: /run/data
@@ -47,10 +47,10 @@ spec:
               containerPort: 8080
           resources:
             requests:
-              cpu: '0.01'
-              memory: '64Mi'
+              cpu: "0.01"
+              memory: "64Mi"
             limits:
-              memory: '128Mi'
+              memory: "128Mi"
           livenessProbe:
             httpGet:
               path: /livez

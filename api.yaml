@@ -2,7 +2,7 @@ openapi: 3.1.0
 
 info:
   title: Cupdate
-  version: '1.0'
+  version: "1.0"
 
 servers:
   - url: http://localhost:8080/api/v1
@@ -12,7 +12,7 @@ paths:
     get:
       summary: Returns available tags.
     responses:
-      '200':
+      "200":
         description: A list of tags.
         content:
           application/json:
@@ -36,14 +36,14 @@ paths:
           description: Sort type.
           schema:
             type: string
-            enum: ['reference', 'bump']
+            enum: ["reference", "bump"]
           required: false
         - in: query
           name: order
           description: Order to sort by.
           schema:
             type: string
-            enum: ['asc', 'desc']
+            enum: ["asc", "desc"]
         - in: query
           name: page
           description: Page to view.
@@ -63,12 +63,12 @@ paths:
             type: string
           required: false
       responses:
-        '200':
+        "200":
           description: A page of images.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImagePage'
+                $ref: "#/components/schemas/ImagePage"
 
   /image:
     get:
@@ -80,12 +80,12 @@ paths:
             type: string
           required: true
       responses:
-        '200':
+        "200":
           description: An image
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Image'
+                $ref: "#/components/schemas/Image"
 
   /image/description:
     get:
@@ -97,13 +97,13 @@ paths:
             type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Rendered HTML description of the image
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImageDescription'
-        '404':
+                $ref: "#/components/schemas/ImageDescription"
+        "404":
           description: No description was found
 
   /image/release-notes:
@@ -116,13 +116,13 @@ paths:
             type: string
           required: true
       responses:
-        '200':
+        "200":
           description: Description of the version's release notes
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ImageReleaseNotes'
-        '404':
+                $ref: "#/components/schemas/ImageReleaseNotes"
+        "404":
           description: No release notes were found
 
   /image/graph:
@@ -135,12 +135,12 @@ paths:
             type: string
           required: true
       responses:
-        '200':
+        "200":
           description: The image's graph
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Graph'
+                $ref: "#/components/schemas/Graph"
 
   /events:
     get:
@@ -150,7 +150,7 @@ paths:
           content:
             text/event-stream:
               schema:
-                $ref: '#/components/schemas/Event'
+                $ref: "#/components/schemas/Event"
 
   # TODO: This API is rather simplified. Perhaps we should expose more internals
   # like processing logs, time to process etc.
@@ -164,14 +164,14 @@ paths:
             type: string
           required: true
       responses:
-        '201':
+        "201":
           description: Accepted
 
   /feed.rss:
     get:
       summary: Get an RSS feed of outdated images.
       respones:
-        '200':
+        "200":
           description: RSS feed.
           content:
             application/rss+xml:
@@ -184,7 +184,7 @@ components:
         images:
           type: array
           items:
-            $ref: '#/components/schemas/Image'
+            $ref: "#/components/schemas/Image"
         summary:
           type: object
           properties:
@@ -206,7 +206,7 @@ components:
             - vulnerable
             - processing
         pagination:
-          $ref: '#/components/schemas/PaginationMetadata'
+          $ref: "#/components/schemas/PaginationMetadata"
       required:
         - images
         - summary
@@ -250,11 +250,11 @@ components:
         links:
           type: array
           items:
-            $ref: '#/components/schemas/ImageLink'
+            $ref: "#/components/schemas/ImageLink"
         vulnerabilities:
           type: array
           items:
-            $ref: '#/components/schemas/ImageVulnerability'
+            $ref: "#/components/schemas/ImageVulnerability"
         lastModified:
           type: string
           format: datetime
@@ -340,7 +340,7 @@ components:
         nodes:
           type: object
           additionalProperties:
-            $ref: '#/components/schemas/GraphNode'
+            $ref: "#/components/schemas/GraphNode"
       required:
         - edges
         - nodes
@@ -374,4 +374,4 @@ components:
           type: string
         type:
           type: string
-          enum: ['imageUpdated']
+          enum: ["imageUpdated"]

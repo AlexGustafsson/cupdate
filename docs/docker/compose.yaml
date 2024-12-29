@@ -6,7 +6,7 @@ services:
     environment:
       CUPDATE_CACHE_PATH: /run/data/cachev1.boltdb
       CUPDATE_DB_PATH: /run/data/dbv1.sqlite
-      CUPDATE_API_ADDRESS: '0.0.0.0'
+      CUPDATE_API_ADDRESS: "0.0.0.0"
       CUPDATE_DOCKER_HOST: /run/docker.sock
     volumes:
       - /var/run/docker.sock:/run/docker.sock
