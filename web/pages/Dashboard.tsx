@@ -117,8 +117,12 @@ export function Dashboard(): JSX.Element {
           <input
             type="text"
             placeholder="Search"
+            enterKeyHint="search"
             value={queryInput}
             onChange={(e) => setQueryInput(e.target.value)}
+            onKeyUp={(e) =>
+              e.key === 'Enter' ? e.currentTarget.blur() : undefined
+            }
             className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded flex-grow shrink-0 w-full sm:w-min border border-[#e5e5e5] dark:border-[#333333]"
           />
 
