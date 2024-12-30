@@ -25,6 +25,9 @@ func (s Step) WithID(id string) Step {
 }
 
 func (s Step) WithCondition(condition Condition) Step {
+	if s.If != nil {
+		panic("step already has a condition")
+	}
 	s.If = condition
 	return s
 }

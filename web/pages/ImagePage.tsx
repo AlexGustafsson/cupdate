@@ -202,6 +202,15 @@ export function ImagePage(): JSX.Element {
           </>
         )}
       </div>
+      {/* Image release dates, if newer and available */}
+      {image.value.latestCreated && (
+        <p>
+          Last updated{' '}
+          <span title={new Date(image.value.latestCreated).toLocaleString()}>
+            {formatRelativeTimeTo(new Date(image.value.latestCreated))}
+          </span>
+        </p>
+      )}
       {/* Image description, if available */}
       {image.value.description && (
         <p className="mt-2">{image.value.description}</p>
@@ -335,7 +344,7 @@ export function ImagePage(): JSX.Element {
 
         <div className="flex justify-center gap-x-2 items-center">
           <p>
-            Last updated{' '}
+            Last processed{' '}
             <span title={new Date(image.value.lastModified).toLocaleString()}>
               {formatRelativeTimeTo(new Date(image.value.lastModified))}
             </span>

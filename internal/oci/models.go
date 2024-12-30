@@ -1,5 +1,10 @@
 package oci
 
+import (
+	"strings"
+	"time"
+)
+
 type DockerDistributionManifestListV2 struct {
 	// 2
 	SchemaVersion int `json:"schemaVersion"`
@@ -83,6 +88,18 @@ func (a Annotations) Source() string {
 	}
 
 	return s
+}
+
+func (a Annotations) CreatedTime() time.Time {
+	s := a["org.opencontainers.image.created"]
+	if s == "" {
+		s = a["org.label-schema.build-date"]
+	}
+
+	// Golang's RFC3339 format requires a "T", but the spec allows a space
+	s = strings.Replace(s, " ", "T", 1)
+	time, _ := time.Parse(time.RFC3339, s)
+	return time
 }
 
 type TagsPage struct {

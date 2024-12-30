@@ -1,12 +1,17 @@
 package workflow
 
 import (
+	"errors"
 	"fmt"
 )
 
 // Input is an input value to a step.
 // A value can be either a [Ref], or any verbatim value.
 type Input = any
+
+var (
+	ErrInvalidType = errors.New("invalid type")
+)
 
 // GetInput returns a value or output in the ctx.
 // If a value does not exist, the type's zero value is returned, with a nil
@@ -25,7 +30,7 @@ func GetInput[T any](ctx Context, name string, required bool) (T, error) {
 	var ok bool
 	ret, ok = v.(T)
 	if !ok {
-		return ret, fmt.Errorf("invalid type %T for input %s of type %T", v, name, ret)
+		return ret, fmt.Errorf("%w: input %s of type %T cannot be retrieved as %T", ErrInvalidType, name, v, ret)
 	}
 
 	return ret, nil

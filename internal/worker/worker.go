@@ -132,7 +132,9 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 
 	result := models.Image{
 		Reference:           data.ImageReference.String(),
+		Created:             data.Created,
 		LatestReference:     "",
+		LatestCreated:       data.LatestCreated,
 		VersionDiffSortable: versionDiffSortable,
 		Description:         data.Description,
 		Tags:                data.Tags,

@@ -3,6 +3,7 @@ package imageworkflow
 import (
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -11,8 +12,10 @@ import (
 type Data struct {
 	sync.Mutex
 	ImageReference  oci.Reference
+	Created         *time.Time
 	Image           string
 	LatestReference *oci.Reference
+	LatestCreated   *time.Time
 	Tags            []string
 	Description     string
 	FullDescription *models.ImageDescription

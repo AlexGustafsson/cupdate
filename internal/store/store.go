@@ -238,11 +238,13 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	}
 
 	statement, err := tx.PrepareContext(ctx, `INSERT INTO images
-	(reference, latestReference, versionDiffSortable, description, lastModified, imageUrl)
+	(reference, created, latestReference, latestCreated, versionDiffSortable, description, lastModified, imageUrl)
 	VALUES
-	(?, ?, ?, ?, ?, ?)
+	(?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(reference) DO UPDATE SET
+		created=excluded.created,
 		latestReference=excluded.latestReference,
+		latestCreated=excluded.latestCreated,
 		versionDiffSortable=excluded.versionDiffSortable,
 		description=excluded.description,
 		lastModified=excluded.lastModified,
@@ -258,7 +260,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	if image.LatestReference != "" {
 		latestReference = &image.LatestReference
 	}
-	_, err = statement.ExecContext(ctx, image.Reference, latestReference, image.VersionDiffSortable, image.Description, image.LastModified, image.Image)
+	_, err = statement.ExecContext(ctx, image.Reference, image.Created, latestReference, image.LatestCreated, image.VersionDiffSortable, image.Description, image.LastModified, image.Image)
 	statement.Close()
 	if err != nil {
 		tx.Rollback()
@@ -388,7 +390,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 
 func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, error) {
 	statement, err := s.db.PrepareContext(ctx, `SELECT
-	reference, latestReference, versionDiffSortable, description, imageUrl, lastModified
+	reference, created, latestReference, latestCreated, versionDiffSortable, description, imageUrl, lastModified
 	FROM images WHERE reference = ?;`)
 	if err != nil {
 		return nil, err
@@ -409,7 +411,7 @@ func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, 
 	}
 
 	var latestReference *string
-	err = res.Scan(&image.Reference, &latestReference, &image.VersionDiffSortable, &image.Description, &image.Image, &image.LastModified)
+	err = res.Scan(&image.Reference, &image.Created, &latestReference, &image.LatestCreated, &image.VersionDiffSortable, &image.Description, &image.Image, &image.LastModified)
 	res.Close()
 	if err != nil {
 		return nil, err

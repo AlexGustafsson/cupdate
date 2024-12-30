@@ -1,6 +1,8 @@
 package imageworkflow
 
 import (
+	"errors"
+
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -16,7 +18,14 @@ func GetManifests() workflow.Step {
 			}
 
 			image, err := workflow.GetInput[oci.Reference](ctx, "reference", true)
-			if err != nil {
+			if errors.Is(err, workflow.ErrInvalidType) {
+				imageRef, err := workflow.GetInput[*oci.Reference](ctx, "reference", true)
+				if err != nil {
+					return nil, err
+				} else if imageRef != nil {
+					image = *imageRef
+				}
+			} else if err != nil {
 				return nil, err
 			}
 

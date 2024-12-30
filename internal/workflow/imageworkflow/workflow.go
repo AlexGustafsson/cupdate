@@ -39,6 +39,17 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("latest").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference),
+					GetManifests().
+						WithID("latest-manifests").
+						WithCondition(workflow.ValueExists("step.latest.reference")).
+						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
+						With("reference", workflow.Ref{Key: "step.latest.reference"}),
+					GetAnnotations().
+						WithID("latest-annotations").
+						WithCondition(workflow.ValueExists("step.latest.reference")).
+						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
+						With("reference", workflow.Ref{Key: "step.latest.reference"}).
+						With("manifests", workflow.Ref{Key: "step.latest-manifests.manifests"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
 						if err != nil {
@@ -63,12 +74,30 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							})
 						}
 
+						time := annotations.CreatedTime()
+						if !time.IsZero() {
+							data.Created = &time
+						}
+
 						reference, err := workflow.GetValue[*oci.Reference](ctx, "step.latest.reference")
 						if err != nil {
 							return nil, err
 						}
 
 						data.LatestReference = reference
+
+						latestAnnotations, err := workflow.GetValue[oci.Annotations](ctx, "step.latest-annotations.annotations")
+						if err != nil {
+							return nil, err
+						}
+						fmt.Println(annotations, latestAnnotations)
+
+						if latestAnnotations != nil {
+							time := latestAnnotations.CreatedTime()
+							if !time.IsZero() {
+								data.LatestCreated = &time
+							}
+						}
 
 						return nil, nil
 					}),

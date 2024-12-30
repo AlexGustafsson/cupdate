@@ -238,11 +238,17 @@ components:
       properties:
         reference:
           type: string
+        created:
+          type: string
+          format: datetime
         description:
           type: string
         lasestReference:
           type: string
           description: The latest available version on the same track
+        latestCreated:
+          type: string
+          format: datetime
         tags:
           type: array
           items:

@@ -25,7 +25,9 @@ export interface PaginationMetadata {
 
 export interface Image {
   reference: string
+  created?: string
   latestReference?: string
+  latestCreated?: string
   description?: string
   tags: string[]
   links: ImageLink[]
