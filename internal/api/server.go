@@ -195,6 +195,10 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 
 		items := make([]rss.Item, len(page.Images))
 		for i, image := range page.Images {
+			if image.LatestReference == "" {
+				continue
+			}
+
 			ref, err := oci.ParseReference(image.LatestReference)
 			if err != nil {
 				s.handleGenericResponse(w, r, err)
@@ -207,7 +211,7 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 			}
 
 			items[i] = rss.Item{
-				GUID:        rss.NewDeterministicGUID(image.Reference),
+				GUID:        rss.NewDeterministicGUID(fmt.Sprintf("%s->%s", image.Reference, image.LatestReference)),
 				PubDate:     rss.Time(pubDate),
 				Title:       fmt.Sprintf("%s updated", ref.Name()),
 				Link:        requestURL.Scheme + "://" + requestURL.Host + "/image?reference=" + url.QueryEscape(image.Reference),
