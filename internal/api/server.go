@@ -201,10 +201,14 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 				return
 			}
 
+			pubDate := image.LastModified
+			if image.LatestCreated != nil {
+				pubDate = *image.LatestCreated
+			}
+
 			items[i] = rss.Item{
-				GUID: rss.NewDeterministicGUID(image.Reference),
-				// TODO: Use image update time instead
-				PubDate:     rss.Time(image.LastModified),
+				GUID:        rss.NewDeterministicGUID(image.Reference),
+				PubDate:     rss.Time(pubDate),
 				Title:       fmt.Sprintf("%s updated", ref.Name()),
 				Link:        requestURL.Scheme + "://" + requestURL.Host + "/image?reference=" + url.QueryEscape(image.Reference),
 				Description: fmt.Sprintf("%s updated to %s", ref.Name(), ref.Version()),
