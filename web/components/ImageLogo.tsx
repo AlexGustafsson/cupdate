@@ -16,7 +16,10 @@ export function ImageLogo({ src, width, height }: ImageLogoProps): JSX.Element {
   }, [])
 
   return (
-    <div className={`w-[${width}px] h-[${height}px] shrink-0`}>
+    <div
+      className="shrink-0"
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
       {src && (
         <img
           ref={ref}
