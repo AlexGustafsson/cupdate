@@ -56,7 +56,7 @@ export function App(): JSX.Element {
           />
         )}
       </div>
-      <main className="pt-[64px]">
+      <main className="pt-[64px] overflow-hidden">
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/image" element={<ImagePage />} />
