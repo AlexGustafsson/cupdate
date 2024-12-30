@@ -60,6 +60,8 @@ jobs:
           echo "tag=${TAG#v}" >> "$GITHUB_OUTPUT"
           echo -n "rev=" >> "$GITHUB_OUTPUT"
           git describe >> "$GITHUB_OUTPUT"
+          echo -n "date=" >> "$GITHUB_OUTPUT"
+          date -u +%Y-%m-%dT%T%z >> "$GITHUB_OUTPUT"
 
       - name: Build and publish
         uses: docker/build-push-action@v6
@@ -75,4 +77,5 @@ jobs:
             org.opencontainers.image.description=cupdate keeps track of image updates.
             org.opencontainers.image.source=https://github.com/AlexGustafsson/cupdate
             org.opencontainers.image.version=${{ steps.determine_tag.outputs.tag }}
+            org.opencontainers.image.created=${{ steps.determine_tag.outputs.date }}
             org.opencontainers.image.licenses=MIT
