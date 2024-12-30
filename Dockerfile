@@ -1,4 +1,4 @@
-FROM node:22 AS web-builder
+FROM --platform=${BUILDPLATFORM} node:22 AS web-builder
 
 WORKDIR /src
 
@@ -13,7 +13,7 @@ COPY web web
 ARG CUPDATE_VERSION="development build"
 RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
-FROM golang:1.23 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.23 AS builder
 
 WORKDIR /src
 
@@ -27,7 +27,8 @@ COPY internal internal
 COPY --from=web-builder /src/internal/web/public /src/internal/web/public
 
 ARG CUPDATE_VERSION="development build"
-RUN CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'main.Version=$CUPDATE_VERSION'" -o cupdate cmd/cupdate/*.go
+ARG TARGETARCH
+RUN GOARCH=${TARGETARCH} CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'main.Version=$CUPDATE_VERSION'" -o cupdate cmd/cupdate/*.go
 
 FROM scratch AS export
 
