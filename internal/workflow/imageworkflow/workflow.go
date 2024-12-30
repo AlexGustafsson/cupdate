@@ -352,7 +352,6 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 
 						return nil, nil
 					}),
-					// TODO: Get latest version based on github instead if possible
 					// TODO: Get description if not found
 					GetGitHubRelease().
 						WithID("release").
