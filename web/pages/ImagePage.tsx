@@ -13,6 +13,7 @@ import {
 import { Badge } from '../components/Badge'
 import { Graph as GraphRenderer } from '../components/Graph'
 import { HTML } from '../components/HTML'
+import { ImageLogo } from '../components/ImageLogo'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { Markdown } from '../components/Markdown'
 import { FluentArrowSync16Regular } from '../components/icons/fluent-arrow-sync-16-regular'
@@ -159,13 +160,7 @@ export function ImagePage(): JSX.Element {
   return (
     <div className="flex flex-col items-center w-full pt-6 pb-10 px-2">
       {/* Header */}
-      {image.value.image ? (
-        <img alt="logo" className="w-16 h-16 rounded" src={image.value.image} />
-      ) : (
-        <div className="flex items-center justify-center w-16 h-16 rounded bg-blue-400 dark:bg-blue-700">
-          <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
-        </div>
-      )}
+      <ImageLogo src={image.value.image} width={48} height={48} />
       {/* Image name */}
       <h1 className="text-2xl font-medium">
         {name(image.value.reference)}
