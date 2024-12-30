@@ -160,7 +160,7 @@ export function ImagePage(): JSX.Element {
   return (
     <div className="flex flex-col items-center w-full pt-6 pb-10 px-2">
       {/* Header */}
-      <ImageLogo src={image.value.image} width={48} height={48} />
+      <ImageLogo src={image.value.image} width={90} height={90} />
       {/* Image name */}
       <h1 className="text-2xl font-medium">
         {name(image.value.reference)}
