@@ -53,7 +53,7 @@ function formatNode(id: string, node: GraphNode): Node {
   let label: ReactNode
   switch (node.domain) {
     case 'oci':
-      label = <SimpleIconsOci className="text-blue-700" />
+      label = <SimpleIconsOci className="text-blue-400" />
       break
     case 'kubernetes':
       label = <SimpleIconsKubernetes className="text-blue-400" />
