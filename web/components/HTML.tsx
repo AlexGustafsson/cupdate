@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify'
-import type { JSX } from 'react'
+import { type JSX, useMemo } from 'react'
 
 export function HTML({
   children,
@@ -8,7 +8,24 @@ export function HTML({
     throw new Error('invalid HTML')
   }
 
-  const purified = DOMPurify.sanitize(children)
+  const purified = useMemo(() => {
+    const purify = DOMPurify()
+
+    purify.addHook('afterSanitizeElements', async (node) => {
+      if (node instanceof HTMLElement) {
+        switch (node.tagName.toLowerCase()) {
+          case 'a':
+          case 'area':
+          case 'img':
+          case 'iframe':
+          case 'script':
+            node.setAttribute('referrer-policy', 'no-referrer')
+        }
+      }
+    })
+
+    return purify.sanitize(children, { ADD_ATTR: ['referrer-policy'] })
+  }, [children])
 
   // biome-ignore lint/security/noDangerouslySetInnerHtml: the DOM is purified
   return <div dangerouslySetInnerHTML={{ __html: purified }} />
