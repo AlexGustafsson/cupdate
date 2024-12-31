@@ -47,6 +47,10 @@ type Config struct {
 		Address  string `env:"ADDRESS"`
 	} `envPrefix:"WEB_"`
 
+	HTTP struct {
+		UserAgent string `env:"USER_AGENT" envDefault:"Cupdate/1.0"`
+	} `envPrefix:"HTTP_"`
+
 	Cache struct {
 		Path   string        `env:"PATH" envDefault:"cachev1.boltdb"`
 		MaxAge time.Duration `env:"MAX_AGE" envDefault:"24h"`
@@ -214,6 +218,7 @@ func main() {
 
 	wg.Go(func() error {
 		httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
+		httpClient.UserAgent = config.HTTP.UserAgent
 		prometheus.DefaultRegisterer.MustRegister(httpClient)
 
 		worker := worker.New(httpClient, writeStore)

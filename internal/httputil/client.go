@@ -20,6 +20,9 @@ var _ prometheus.Collector = (*Client)(nil)
 
 type Client struct {
 	http.Client
+
+	UserAgent string
+
 	cache       cache.Cache
 	cacheMaxAge time.Duration
 
@@ -58,6 +61,12 @@ func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 
 // See [http.Client.Do].
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	if _, ok := req.Header["User-Agent"]; !ok {
+		if c.UserAgent != "" {
+			req.Header.Set("User-Agent", c.UserAgent)
+		}
+	}
+
 	res, err := c.Client.Do(req)
 	if err == nil {
 		c.requestsCounter.WithLabelValues(req.URL.Host, req.Method, strconv.FormatInt(int64(res.StatusCode), 10)).Inc()
