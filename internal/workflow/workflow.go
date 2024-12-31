@@ -7,6 +7,12 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+
+	"github.com/AlexGustafsson/cupdate/internal/otelutil"
+	"github.com/AlexGustafsson/cupdate/internal/slogutil"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type Workflow struct {
@@ -15,7 +21,11 @@ type Workflow struct {
 }
 
 func (w Workflow) Run(ctx context.Context) error {
-	log := slog.With(slog.String("workflow", w.Name))
+	ctx, span := otel.Tracer(otelutil.DefaultScope).Start(ctx, "cupdate.workflow.run")
+	span.SetAttributes(attribute.String("cupdate.workflow.name", w.Name))
+	defer span.End()
+
+	log := slog.With(slog.String("workflow", w.Name)).With(slogutil.Context(ctx))
 	log.Debug("Running workflow")
 
 	var mutex sync.Mutex
@@ -30,7 +40,7 @@ func (w Workflow) Run(ctx context.Context) error {
 	var wg sync.WaitGroup
 	for i := range w.Jobs {
 		job := w.Jobs[i]
-		log := log.With(slog.String("job", job.Name))
+		log := log.With(slog.String("job", job.Name)).With(slogutil.Context(ctx))
 
 		wg.Add(1)
 		go func() {
@@ -89,7 +99,14 @@ func (w Workflow) Run(ctx context.Context) error {
 	}
 
 	wg.Wait()
-	return errors.Join(errs...)
+
+	err := errors.Join(errs...)
+	if err == nil {
+		span.SetStatus(codes.Ok, "")
+	} else {
+		span.SetStatus(codes.Error, "One or more jobs failed")
+	}
+	return err
 }
 
 func (w Workflow) Describe() string {

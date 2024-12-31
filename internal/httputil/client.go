@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -85,7 +86,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	ctx := req.Context()
 
-	log := slog.With(slog.String("url", req.URL.String()))
+	log := slog.With(slog.String("url", req.URL.String())).With(slogutil.Context(ctx))
 	key := c.CacheKey(req)
 
 	// Try to read from cache, only return on successful cache reads

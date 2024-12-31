@@ -135,3 +135,15 @@ Start the web server.
 ```shell
 yarn run dev
 ```
+
+Using Jaeger for otel testing.
+
+```shell
+docker run --rm -it \
+  -p 4317:4317 \
+  -p 8081:16686 \
+  jaegertracing/all-in-one
+
+export CUPDATE_OTEL_TARGET=localhost:4317
+export CUPDATE_OTEL_INSECURE=true
+```

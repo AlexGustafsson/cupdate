@@ -8,6 +8,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 )
 
 type Node interface {
@@ -54,6 +55,7 @@ type PollGrapher struct {
 }
 
 func (g *PollGrapher) GraphContinously(ctx context.Context) (<-chan Graph, error) {
+	log := slog.With(slogutil.Context(ctx))
 
 	ch := make(chan Graph)
 
@@ -68,10 +70,10 @@ func (g *PollGrapher) GraphContinously(ctx context.Context) (<-chan Graph, error
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				slog.Debug("Polling graph")
+				log.Debug("Polling graph")
 				graph, err := g.Grapher.Graph(ctx)
 				if err != nil {
-					slog.Error("Failed to poll graph", slog.Any("error", err))
+					log.Error("Failed to poll graph", slog.Any("error", err))
 					continue
 				}
 

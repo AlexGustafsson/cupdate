@@ -9,6 +9,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
+	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"
 	"github.com/prometheus/client_golang/prometheus"
@@ -58,7 +59,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		return err
 	}
 
-	log := slog.With(slog.String("reference", reference.String()))
+	log := slog.With(slog.String("reference", reference.String())).With(slogutil.Context(ctx))
 	log.Debug("Processing reference")
 
 	// Try to update the image's process time

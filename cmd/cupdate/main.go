@@ -15,6 +15,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
@@ -79,6 +80,11 @@ type Config struct {
 		Host                 string `env:"HOST"`
 		IncludeAllContainers bool   `env:"INCLUDE_ALL_CONTAINERS"`
 	} `envPrefix:"DOCKER_"`
+
+	OTEL struct {
+		Target   string `env:"TARGET"`
+		Insecure bool   `env:"INSECURE"`
+	} `envPrefix:"OTEL_"`
 }
 
 func main() {
@@ -110,6 +116,20 @@ func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("appVersion", Version)))
 
 	slog.Debug("Parsed config", slog.Any("config", config))
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	if config.OTEL.Target != "" {
+		shutdown, err := otelutil.Init(ctx, config.OTEL.Target, config.OTEL.Insecure)
+		if err != nil {
+			slog.Error("Failed to initialize otel", slog.Any("error", err))
+			os.Exit(1)
+		}
+
+		// TODO: This won't be invoked on exit, make it part of the shutdown
+		// procedure
+		defer shutdown(ctx)
+	}
 
 	// Set up the configured platform (Docker if specified, auto discovery of
 	// Kubernetes otherwise)
@@ -168,7 +188,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
 	var wg errgroup.Group
 
 	processQueue := make(chan oci.Reference, config.Processing.QueueSize)
