@@ -1,6 +1,6 @@
-import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { type JSX, useMemo } from 'react'
+import { HTML } from './HTML'
 
 export function Markdown({
   children,
@@ -9,16 +9,10 @@ export function Markdown({
     throw new Error('invalid HTML')
   }
 
-  const purified = useMemo(() => {
-    try {
-      const dom = marked.parse(children, { async: false })
-      return DOMPurify.sanitize(dom)
-    } catch (error) {
-      console.log('Failed to render markdown', error)
-      return ''
-    }
-  }, [children])
+  const html = useMemo(
+    () => marked.parse(children, { async: false }),
+    [children]
+  )
 
-  // biome-ignore lint/security/noDangerouslySetInnerHtml: the DOM is purified
-  return <div dangerouslySetInnerHTML={{ __html: purified }} />
+  return <HTML>{html}</HTML>
 }
