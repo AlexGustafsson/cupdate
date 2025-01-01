@@ -90,7 +90,6 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						if err != nil {
 							return nil, err
 						}
-						fmt.Println(annotations, latestAnnotations)
 
 						if latestAnnotations != nil {
 							time := latestAnnotations.CreatedTime()
