@@ -39,8 +39,7 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 	}
 
 	var jobSpan trace.Span
-	ctx.Context, jobSpan = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, "cupdate.workflow.job.run")
-	jobSpan.SetAttributes(attribute.String("cupdate.workflow.job.name", j.Name))
+	ctx.Context, jobSpan = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, "cupdate.workflow.job.run", trace.WithAttributes(attribute.String("cupdate.workflow.job.name", j.Name)))
 	defer jobSpan.End()
 
 	outputs := make(map[string]any)
@@ -79,8 +78,7 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 
 		if step.Main != nil && shouldRun {
 			var stepSpan trace.Span
-			ctx.Context, stepSpan = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, "cupdate.workflow.step.run")
-			stepSpan.SetAttributes(attribute.String("cupdate.workflow.step.name", step.Name))
+			ctx.Context, stepSpan = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, "cupdate.workflow.step.run", trace.WithAttributes(attribute.String("cupdate.workflow.step.name", step.Name)))
 
 			log := log.With(slogutil.Context(ctx))
 
@@ -127,8 +125,9 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 		}
 
 		var postStepRun trace.Span
-		ctx.Context, postStepRun = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, "cupdate.workflow.step.post-run")
-		postStepRun.SetAttributes(attribute.String("cupdate.workflow.step.name", step.Name))
+		ctx.Context, postStepRun = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, "cupdate.workflow.step.post-run", trace.WithAttributes(
+			attribute.String("cupdate.workflow.step.name", step.Name),
+		))
 
 		log := log.With(slog.String("step", step.Name)).With(slogutil.Context(ctx))
 
