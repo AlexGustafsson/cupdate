@@ -18,13 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 1,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -71,6 +71,10 @@
       "pluginVersion": "11.4.0",
       "targets": [
         {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${Prometheus}"
+          },
           "editorMode": "code",
           "expr": "cupdate_worker_processing_images",
           "legendFormat": "__auto",
@@ -84,7 +88,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -150,7 +154,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -213,7 +217,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -273,7 +277,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -322,7 +326,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${Prometheus}"
           },
           "editorMode": "code",
           "expr": "cupdate_http_cache_hits_total / sum(cupdate_http_requests_total)",
@@ -333,7 +337,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${Prometheus}"
           },
           "editorMode": "code",
           "expr": "1 - cupdate_http_cache_hits_total / sum(cupdate_http_requests_total)",
@@ -350,7 +354,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -408,7 +412,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -467,7 +471,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -526,7 +530,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -643,7 +647,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${Prometheus}"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -657,7 +661,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${Prometheus}"
           },
           "editorMode": "code",
           "expr": "increase(cupdate_cache_entries[$__rate_interval]) != 0",
@@ -674,7 +678,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${Prometheus}"
       },
       "fieldConfig": {
         "defaults": {
@@ -733,7 +737,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${Loki}"
       },
       "fieldConfig": {
         "defaults": {},
@@ -761,7 +765,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${Loki}"
           },
           "editorMode": "builder",
           "expr": "{app=\"cupdate\"} | label_format level=detected_level | level != `debug`",
@@ -775,7 +779,7 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "${Tempo}"
       },
       "fieldConfig": {
         "defaults": {
@@ -822,7 +826,7 @@
         {
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "${Tempo}"
           },
           "filters": [
             {
@@ -860,7 +864,7 @@
     {
       "datasource": {
         "type": "tempo",
-        "uid": "tempo"
+        "uid": "${Tempo}"
       },
       "fieldConfig": {
         "defaults": {
@@ -908,7 +912,7 @@
         {
           "datasource": {
             "type": "tempo",
-            "uid": "tempo"
+            "uid": "${Tempo}"
           },
           "filters": [
             {
@@ -969,16 +973,53 @@
   "schemaVersion": 40,
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "text": "Loki",
+          "value": "loki"
+        },
+        "name": "Loki",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "Victoria Metrics",
+          "value": "prometheus"
+        },
+        "name": "Prometheus",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "Tempo",
+          "value": "tempo"
+        },
+        "name": "Tempo",
+        "options": [],
+        "query": "tempo",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      }
+    ]
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Cupdate",
   "uid": "ce7p8sjf6vldsc",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }
