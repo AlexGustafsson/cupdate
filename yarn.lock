@@ -1442,7 +1442,7 @@ __metadata:
     globals: "npm:15.14.0"
     marked: "npm:15.0.4"
     postcss: "npm:8.4.49"
-    prettier: "npm:^3.4.2"
+    prettier: "npm:3.4.2"
     react: "npm:19.0.0"
     react-dom: "npm:19.0.0"
     react-router-dom: "npm:7.1.1"
@@ -2609,7 +2609,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.4.2":
+"prettier@npm:3.4.2":
   version: 3.4.2
   resolution: "prettier@npm:3.4.2"
   bin:
