@@ -89,7 +89,7 @@ type Config struct {
 }
 
 func main() {
-	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("appVersion", Version)))
+	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("service.version", Version)).With(slog.String("service.name", "cupdate")))
 
 	var config Config
 	err := env.ParseWithOptions(&config, env.Options{
@@ -114,7 +114,7 @@ func main() {
 		slog.Error("Failed to parse config - invalid log level")
 		os.Exit(1)
 	}
-	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("appVersion", Version)))
+	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("service.version", Version)).With(slog.String("service.name", "cupdate")))
 
 	slog.Debug("Parsed config", slog.Any("config", config))
 
