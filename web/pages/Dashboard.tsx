@@ -203,7 +203,7 @@ export function Dashboard(): JSX.Element {
                 // TODO
                 key={index}
                 to={`/?page=${index}`}
-                className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded ${current ? 'bg-blue-400 dark:bg-blue-800' : 'hover:bg-blue-400 hover:dark:bg-blue-800'}`}
+                className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
               >
                 <p>{label}</p>
               </NavLink>
