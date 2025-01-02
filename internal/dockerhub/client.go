@@ -140,7 +140,8 @@ func (c *Client) GetVulnerabilityReport(ctx context.Context, repo string, digest
 		return nil, err
 	}
 
-	res, err := c.Client.DoCached(req)
+	// TODO: The cache doesn't understand graphql, so we can't cache this request
+	res, err := c.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}

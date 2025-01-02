@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
@@ -156,6 +157,10 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 
 	log := slog.With(slog.String("url", req.URL.String()))
 	key := c.CacheKey(req)
+
+	if strings.HasSuffix(req.URL.Path, "/graphql") {
+		log.WarnContext(ctx, "HTTP requests to GraphQL endpoints should not be cached")
+	}
 
 	// Try to read from cache, only return on successful cache reads
 	entry, err := c.cache.Get(ctx, key)

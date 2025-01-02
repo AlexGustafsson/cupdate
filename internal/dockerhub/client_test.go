@@ -90,7 +90,7 @@ func TestGetVulnerabilityReport(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	report, err := client.GetVulnerabilityReport(context.TODO(), "traefik", "sha256:bdeec8d8ac650ff774393581757a7fbd4bcdef555acd22b265c4641b3cf2256a")
+	report, err := client.GetVulnerabilityReport(context.TODO(), "traefik", "sha256:ebad181937de72a6226b39a63eb92b26406cf0f3bd44b5d92810264c93b76078")
 	require.NoError(t, err)
 
 	json.NewEncoder(os.Stdout).Encode(report)
