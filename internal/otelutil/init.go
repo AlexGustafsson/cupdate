@@ -17,10 +17,16 @@ func Init(ctx context.Context, target string, insecure bool) (func(context.Conte
 	// NOTE: otlptracegrpc.New accepts config via OTEL_EXPORTER_OTLP_ENDPOINT and
 	// friends. That behavior does not seem to be configurable. For now, let's
 	// just keep it undocumented
-	exporter, err := otlptracegrpc.New(ctx,
-		otlptracegrpc.WithInsecure(),
+
+	options := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(target),
-	)
+	}
+
+	if insecure {
+		options = append(options, otlptracegrpc.WithInsecure())
+	}
+
+	exporter, err := otlptracegrpc.New(ctx, options...)
 	if err != nil {
 		return nil, err
 	}
