@@ -3,6 +3,7 @@ package httputil
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -13,8 +14,13 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var _ prometheus.Collector = (*Client)(nil)
@@ -62,6 +68,53 @@ func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 
 // See [http.Client.Do].
 func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	ctx, span := c.createSpan(req)
+	defer span.End()
+
+	span.SetAttributes(otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusUncached))
+
+	return c.do(req.Clone(ctx), span)
+}
+
+func (c *Client) createSpan(req *http.Request) (context.Context, trace.Span) {
+	serverPort := 0
+	switch req.URL.Port() {
+	case "":
+		switch req.URL.Scheme {
+		case "http":
+			serverPort = 80
+		case "https":
+			serverPort = 443
+		default:
+			panic("httputil: client misue - unsupported protocol")
+		}
+	default:
+		// Port should already be parsed
+		v, _ := strconv.ParseInt(req.URL.Port(), 10, 16)
+		serverPort = int(v)
+	}
+
+	// Strip username / password
+	safeURL := *req.URL
+	safeURL.User = nil
+
+	ctx, span := otel.Tracer(otelutil.DefaultScope).Start(
+		req.Context(),
+		req.Method+" "+req.URL.Host,
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			semconv.HTTPRequestMethodKey.String(req.Method),
+			semconv.ServerAddress(req.URL.Hostname()),
+			semconv.ServerPort(serverPort),
+			semconv.URLFull(safeURL.String()),
+			semconv.URLScheme(safeURL.Scheme),
+		),
+	)
+
+	return ctx, span
+}
+
+func (c *Client) do(req *http.Request, span trace.Span) (*http.Response, error) {
 	if _, ok := req.Header["User-Agent"]; !ok {
 		if c.UserAgent != "" {
 			req.Header.Set("User-Agent", c.UserAgent)
@@ -72,6 +125,21 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	if err == nil {
 		c.requestsCounter.WithLabelValues(req.URL.Host, req.Method, strconv.FormatInt(int64(res.StatusCode), 10)).Inc()
 	}
+
+	// Span status
+	// SEE: https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
+	if err == nil && res.StatusCode >= 400 {
+		span.SetStatus(codes.Error, "")
+	} else if errors.Is(err, context.Canceled) {
+		span.SetStatus(codes.Error, "Context canceled")
+	} else if errors.Is(err, context.DeadlineExceeded) {
+		span.SetStatus(codes.Error, "Context deadline exceeded")
+	} else if err != nil {
+		span.SetStatus(codes.Error, "Network error")
+	}
+
+	span.SetAttributes(semconv.HTTPResponseStatusCode(res.StatusCode))
+
 	return res, err
 }
 
@@ -84,7 +152,8 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 // correct request URL for the response - it will be the original request rather
 // than the request to the final resource.
 func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
-	ctx := req.Context()
+	ctx, span := c.createSpan(req)
+	defer span.End()
 
 	log := slog.With(slog.String("url", req.URL.String())).With(slogutil.Context(ctx))
 	key := c.CacheKey(req)
@@ -98,14 +167,21 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 		if err == nil {
 			log.Debug("HTTP response successfully read from cache")
 			c.requestsCounter.WithLabelValues(req.URL.Host, req.Method, strconv.FormatInt(int64(res.StatusCode), 10)).Inc()
+			span.SetAttributes(
+				semconv.HTTPResponseStatusCode(res.StatusCode),
+				otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusHit),
+			)
 			return res, nil
 		} else {
 			log.Warn("HTTP request cache parse failure", slog.Any("error", err))
+			span.SetAttributes(otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusError))
 		}
 	} else if errors.Is(err, cache.ErrNotExist) {
 		log.Debug("HTTP request cache miss")
+		span.SetAttributes(otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusMiss))
 	} else {
 		log.Warn("HTTP request cache lookup failure", slog.Any("error", err))
+		span.SetAttributes(otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusError))
 	}
 
 	// If no entry existed or reading from the cache failed, perform the request
@@ -124,9 +200,11 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 		// use cases are small enough that it shouldn't be an issue
 		body, err := io.ReadAll(res.Body)
 		if err != nil {
+			span.SetStatus(codes.Error, "Cache error")
 			return nil, err
 		}
 		if err := res.Body.Close(); err != nil {
+			span.SetStatus(codes.Error, "Cache error")
 			return nil, err
 		}
 
