@@ -15,7 +15,7 @@ type Client struct {
 }
 
 func (c *Client) GetScan(ctx context.Context, reference oci.Reference, digest string) (*Scan, error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://quay.io/api/v1/repository/%s/manifest/%s/security?vulnerabilities=true", reference.Path, digest), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://quay.io/api/v1/repository/%s/manifest/%s/security?vulnerabilities=true", reference.Path, digest), nil)
 	if err != nil {
 		return nil, err
 	}

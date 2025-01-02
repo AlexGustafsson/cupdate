@@ -63,7 +63,7 @@ func NewPlatform(ctx context.Context, host string, options *Options) (*Platform,
 }
 
 func (p *Platform) GetVersion(ctx context.Context) (string, string, error) {
-	req, err := http.NewRequest(http.MethodGet, "http://unix/version", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://unix/version", nil)
 	if err != nil {
 		return "", "", err
 	}
@@ -108,7 +108,7 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 		query.Set("filters", string(filters))
 	}
 
-	req, err := http.NewRequest(http.MethodGet, "http://unix/containers/json?"+query.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://unix/containers/json?"+query.Encode(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 }
 
 func (p *Platform) GetImage(ctx context.Context, nameOrID string) (*Image, error) {
-	req, err := http.NewRequest(http.MethodGet, "http://unix/images/"+url.PathEscape(nameOrID)+"/json", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://unix/images/"+url.PathEscape(nameOrID)+"/json", nil)
 	if err != nil {
 		return nil, err
 	}
