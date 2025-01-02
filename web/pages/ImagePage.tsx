@@ -17,6 +17,7 @@ import { ImageLogo } from '../components/ImageLogo'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { Markdown } from '../components/Markdown'
 import { FluentArrowSync16Regular } from '../components/icons/fluent-arrow-sync-16-regular'
+import { FluentBookQuestionMark24Filled } from '../components/icons/fluent-book-question-mark-24-filled'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { FluentLink24Filled } from '../components/icons/fluent-link-24-filled'
@@ -39,6 +40,7 @@ const titles: Record<string, string | undefined> = {
   docker: "Project's page on Docker Hub",
   quay: "Project's page on Quay.io",
   git: "Project's git page",
+  docs: "Project's documentation",
   'oci-registry': "Project's OCI registry",
 }
 
@@ -63,7 +65,7 @@ export function ImageLink({
   type: string
   url: string
 }): JSX.Element {
-  const title = titles[type]
+  const title = titles[type] || url
   let icon: ReactNode
   switch (type) {
     case 'github':
@@ -92,6 +94,9 @@ export function ImageLink({
       } else {
         return <ImageLink type="git" url={url} />
       }
+    case 'docs':
+      icon = <FluentBookQuestionMark24Filled />
+      break
     default:
       icon = <FluentLink24Filled />
   }

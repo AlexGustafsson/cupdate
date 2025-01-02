@@ -102,6 +102,14 @@ func (a Annotations) CreatedTime() time.Time {
 	return time
 }
 
+func (a Annotations) URL() string {
+	return a["org.opencontainers.image.url"]
+}
+
+func (a Annotations) DocumentationURL() string {
+	return a["org.opencontainers.image.documentation"]
+}
+
 type TagsPage struct {
 	Name string   `json:"name"`
 	Tags []string `json:"tags"`

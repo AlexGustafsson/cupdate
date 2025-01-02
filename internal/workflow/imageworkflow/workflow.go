@@ -66,16 +66,28 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
-						source := annotations.Source()
-						if source != "" {
+						if url := annotations.Source(); url != "" {
 							data.InsertLink(models.ImageLink{
 								Type: "svc",
-								URL:  source,
+								URL:  url,
 							})
 						}
 
-						time := annotations.CreatedTime()
-						if !time.IsZero() {
+						if url := annotations.URL(); url != "" {
+							data.InsertLink(models.ImageLink{
+								Type: "generic",
+								URL:  url,
+							})
+						}
+
+						if url := annotations.DocumentationURL(); url != "" {
+							data.InsertLink(models.ImageLink{
+								Type: "docs",
+								URL:  url,
+							})
+						}
+
+						if time := annotations.CreatedTime(); !time.IsZero() {
 							data.Created = &time
 						}
 
