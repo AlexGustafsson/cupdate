@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
-	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -21,18 +20,18 @@ type Job struct {
 }
 
 func (j Job) Run(ctx Context) (map[string]any, error) {
-	log := slog.With(slog.String("workflow", ctx.Workflow.Name), slog.String("job", ctx.Job.Name)).With(slogutil.Context(ctx))
-	log.Debug("Running job")
+	log := slog.With(slog.String("workflow", ctx.Workflow.Name), slog.String("job", ctx.Job.Name))
+	log.DebugContext(ctx, "Running job")
 
 	if j.If != nil {
 		shouldRun, err := testCondition(ctx, j.If)
 		if err != nil {
-			log.Error("Failed to identify if job should run", slog.Any("error", err))
+			log.ErrorContext(ctx, "Failed to identify if job should run", slog.Any("error", err))
 			return nil, err
 		}
 
 		if !shouldRun {
-			log.Debug("Skipping job in accordance to specified condition")
+			log.DebugContext(ctx, "Skipping job in accordance to specified condition")
 			return nil, nil
 		}
 	}
@@ -48,10 +47,10 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 
 	var jobErr error
 
-	log.Debug("Running job steps")
+	log.DebugContext(ctx, "Running job steps")
 	for i := range j.Steps {
 		step := j.Steps[i]
-		log := log.With(slog.String("step", step.Name)).With(slogutil.Context(ctx))
+		log := log.With(slog.String("step", step.Name))
 
 		ctx := Context{
 			Context: ctx.Context,
@@ -79,20 +78,18 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 			var stepSpan trace.Span
 			ctx.Context, stepSpan = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, otelutil.CupdateWorkflowStepRunSpanName, trace.WithAttributes(otelutil.CupdateWorkflowStepName(step.Name)))
 
-			log := log.With(slogutil.Context(ctx))
-
-			log.Debug("Running step")
+			log.DebugContext(ctx, "Running step")
 
 			command, err := step.Main(ctx)
 			if err != nil {
-				log.Warn("Job step failed", slog.Any("error", err))
+				log.WarnContext(ctx, "Job step failed", slog.Any("error", err))
 				jobErr = err
 				stepSpan.SetStatus(codes.Error, "Step failed")
 				stepSpan.End()
 				continue
 			}
 
-			log.Debug("Step ran successfully")
+			log.DebugContext(ctx, "Step ran successfully")
 
 			// Run side effect
 			if command != nil {
@@ -104,7 +101,7 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 		}
 	}
 
-	log.Debug("Running post steps")
+	log.DebugContext(ctx, "Running post steps")
 	for i := range j.Steps {
 		step := j.Steps[i]
 		if step.Post == nil {
@@ -128,7 +125,7 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 			otelutil.CupdateWorkflowStepName(step.Name),
 		))
 
-		log := log.With(slog.String("step", step.Name)).With(slogutil.Context(ctx))
+		log := log.With(slog.String("step", step.Name))
 
 		shouldRun := jobErr == nil
 		if step.PostIf != nil {
@@ -142,16 +139,16 @@ func (j Job) Run(ctx Context) (map[string]any, error) {
 		}
 
 		if shouldRun {
-			log.Debug("Running post step")
+			log.DebugContext(ctx, "Running post step")
 			if err := step.Post(ctx); err != nil {
-				log.Warn("Job post step failed", slog.Any("error", err))
+				log.WarnContext(ctx, "Job post step failed", slog.Any("error", err))
 				jobErr = err
 				postStepRun.SetStatus(codes.Error, "Post step failed")
 				postStepRun.End()
 				continue
 			}
 
-			log.Debug("Post step ran successfully")
+			log.DebugContext(ctx, "Post step ran successfully")
 			postStepRun.SetStatus(codes.Ok, "")
 			postStepRun.End()
 		}

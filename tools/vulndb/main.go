@@ -28,12 +28,12 @@ func main() {
 		signal.Notify(signals, os.Interrupt)
 
 		<-signals
-		slog.Info("Caught signal, exiting gracefully")
+		slog.InfoContext(ctx, "Caught signal, exiting gracefully")
 		cancel()
 	}()
 
 	if err := run(ctx); err != nil {
-		slog.Error("Fatal error", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Fatal error", slog.Any("error", err))
 		os.Exit(1)
 	}
 }
@@ -54,20 +54,20 @@ func run(ctx context.Context) error {
 
 	workdir := filepath.Join(workdirParent, "advisory-database")
 
-	slog.Debug("Performing shallow clone of GitHub's advisory database")
+	slog.DebugContext(ctx, "Performing shallow clone of GitHub's advisory database")
 	err = git.ShallowClone(context.Background(), "https://github.com/github/advisory-database", workdir, "advisories/github-reviewed/2024")
 	if err != nil {
 		return fmt.Errorf("failed to clone repository: %w", err)
 	}
 
-	slog.Debug("Creating database")
+	slog.DebugContext(ctx, "Creating database")
 	db, err := db.Open("vulndb.sqlite")
 	if err != nil {
 		return err
 	}
 	defer db.Close()
 
-	slog.Debug("Inserting advisories in database")
+	slog.DebugContext(ctx, "Inserting advisories in database")
 	err = filepath.WalkDir(workdir, func(path string, d fs.DirEntry, err error) error {
 		if filepath.Ext(path) == ".json" {
 			file, err := os.Open(path)
@@ -87,18 +87,18 @@ func run(ctx context.Context) error {
 	})
 
 	if err := db.Close(); err != nil {
-		slog.Error("Failed to close database", slog.Any("error", db))
+		slog.ErrorContext(ctx, "Failed to close database", slog.Any("error", db))
 	}
 
 	if err != nil {
 		return err
 	}
 
-	slog.Debug("Pushing artifact")
+	slog.DebugContext(ctx, "Pushing artifact")
 	if err := oci.PushArtifact(ctx, "vulndb.sqlite", githubActor, githubToken); err != nil {
 		return err
 	}
 
-	slog.Info("Successfully pushed artifact")
+	slog.InfoContext(ctx, "Successfully pushed artifact")
 	return nil
 }

@@ -20,6 +20,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/ratelimit"
+	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/web"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
@@ -88,7 +89,7 @@ type Config struct {
 }
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("appVersion", Version)))
+	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("appVersion", Version)))
 
 	var config Config
 	err := env.ParseWithOptions(&config, env.Options{
@@ -113,7 +114,7 @@ func main() {
 		slog.Error("Failed to parse config - invalid log level")
 		os.Exit(1)
 	}
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("appVersion", Version)))
+	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("appVersion", Version)))
 
 	slog.Debug("Parsed config", slog.Any("config", config))
 
@@ -122,7 +123,7 @@ func main() {
 	if config.OTEL.Target != "" {
 		shutdown, err := otelutil.Init(ctx, config.OTEL.Target, config.OTEL.Insecure)
 		if err != nil {
-			slog.Error("Failed to initialize otel", slog.Any("error", err))
+			slog.ErrorContext(ctx, "Failed to initialize otel", slog.Any("error", err))
 			os.Exit(1)
 		}
 
@@ -140,7 +141,7 @@ func main() {
 			var err error
 			kubernetesConfig, err = rest.InClusterConfig()
 			if err != nil {
-				slog.Error("Failed to configure Kubernetes client", slog.Any("error", err))
+				slog.ErrorContext(ctx, "Failed to configure Kubernetes client", slog.Any("error", err))
 				os.Exit(1)
 			}
 		} else {
@@ -151,7 +152,7 @@ func main() {
 
 		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, &kubernetes.Options{IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets})
 		if err != nil {
-			slog.Error("Failed to create kubernetes source", slog.Any("error", err))
+			slog.ErrorContext(ctx, "Failed to create kubernetes source", slog.Any("error", err))
 			os.Exit(1)
 		}
 	} else {
@@ -159,32 +160,32 @@ func main() {
 			IncludeAllContainers: config.Docker.IncludeAllContainers,
 		})
 		if err != nil {
-			slog.Error("Failed to create docker source", slog.Any("error", err))
+			slog.ErrorContext(ctx, "Failed to create docker source", slog.Any("error", err))
 			os.Exit(1)
 		}
 	}
 
 	cache, err := cache.NewDiskCache(config.Cache.Path)
 	if err != nil {
-		slog.Error("Failed to create disk cache", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to create disk cache", slog.Any("error", err))
 		os.Exit(1)
 	}
 	prometheus.DefaultRegisterer.MustRegister(cache)
 
 	absoluteDatabasePath, err := filepath.Abs(config.Database.Path)
 	if err != nil {
-		slog.Error("Failed to resolve database path", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to resolve database path", slog.Any("error", err))
 		os.Exit(1)
 	}
 
 	readStore, err := store.New("file://"+absoluteDatabasePath, true)
 	if err != nil {
-		slog.Error("Failed to load database", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to load database", slog.Any("error", err))
 		os.Exit(1)
 	}
 	writeStore, err := store.New("file://"+absoluteDatabasePath, false)
 	if err != nil {
-		slog.Error("Failed to load database", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to load database", slog.Any("error", err))
 		os.Exit(1)
 	}
 
@@ -204,13 +205,13 @@ func main() {
 			case <-ticker.C:
 				ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 
-				slog.Debug("Identifying old references to process")
+				slog.DebugContext(ctx, "Identifying old references to process")
 				images, err := readStore.ListRawImages(ctx, &store.ListRawImagesOptions{
 					NotUpdatedSince: time.Now().Add(-config.Processing.MinAge),
 					Limit:           config.Processing.Items,
 				})
 				if err != nil {
-					slog.Error("Failed to process old references", slog.Any("error", err))
+					slog.ErrorContext(ctx, "Failed to process old references", slog.Any("error", err))
 					cancel()
 					continue
 				}
@@ -218,14 +219,14 @@ func main() {
 				for _, image := range images {
 					reference, err := oci.ParseReference(image.Reference)
 					if err != nil {
-						slog.Error("Unexpectedly failed to parse reference from store", slog.Any("error", err))
+						slog.ErrorContext(ctx, "Unexpectedly failed to parse reference from store", slog.Any("error", err))
 						cancel()
 						return err
 					}
 
 					select {
 					case <-ctx.Done():
-						slog.Error("Failed to queue old references")
+						slog.ErrorContext(ctx, "Failed to queue old references")
 					case processQueue <- reference:
 					}
 				}
@@ -257,7 +258,7 @@ func main() {
 			err := worker.ProcessRawImage(ctx, reference)
 			cancel()
 			if err != nil {
-				slog.Error("Failed to process queued raw image", slog.Any("error", err), slog.String("reference", reference.String()))
+				slog.ErrorContext(ctx, "Failed to process queued raw image", slog.Any("error", err), slog.String("reference", reference.String()))
 			}
 		}
 
@@ -265,11 +266,11 @@ func main() {
 	})
 
 	wg.Go(func() error {
-		slog.Info("Starting platform grapher")
+		slog.InfoContext(ctx, "Starting platform grapher")
 
 		grapher, ok := targetPlatform.(platform.ContinousGrapher)
 		if !ok {
-			slog.Debug("Platform lacks native continous graphing support. Falling back to polling", slog.Duration("interval", config.Processing.Interval))
+			slog.DebugContext(ctx, "Platform lacks native continous graphing support. Falling back to polling", slog.Duration("interval", config.Processing.Interval))
 			grapher = &platform.PollGrapher{
 				Grapher:  targetPlatform,
 				Interval: config.Processing.Interval,
@@ -278,12 +279,12 @@ func main() {
 
 		graphs, err := grapher.GraphContinously(ctx)
 		if err != nil {
-			slog.Error("Failed to start graphing platform", slog.Any("error", err))
+			slog.ErrorContext(ctx, "Failed to start graphing platform", slog.Any("error", err))
 			return err
 		}
 
 		for graph := range graphs {
-			slog.Debug("Got updated platform graph")
+			slog.DebugContext(ctx, "Got updated platform graph")
 			roots := graph.Roots()
 
 			for _, root := range roots {
@@ -364,20 +365,20 @@ func main() {
 				}
 
 				// TODO: Do this inside of the worker as well?
-				slog.Debug("Inserting raw image", slog.String("reference", rawImage.Reference))
+				slog.DebugContext(ctx, "Inserting raw image", slog.String("reference", rawImage.Reference))
 				inserted, err := writeStore.InsertRawImage(context.TODO(), rawImage)
 				if err != nil {
-					slog.Error("Failed to insert raw image", slog.Any("error", err))
+					slog.ErrorContext(ctx, "Failed to insert raw image", slog.Any("error", err))
 					return err
 				}
 
 				// Try to schedule the image for processing
 				if inserted {
-					slog.Debug("Raw image inserted for first time - scheduling for processing")
+					slog.DebugContext(ctx, "Raw image inserted for first time - scheduling for processing")
 					select {
 					case processQueue <- imageNode.Reference:
 					default:
-						slog.Warn("Failed to schedule inserted raw image for processing - queue full")
+						slog.WarnContext(ctx, "Failed to schedule inserted raw image for processing - queue full")
 					}
 				}
 			}
@@ -388,13 +389,13 @@ func main() {
 				allReferences = append(allReferences, imageNode.Reference.String())
 			}
 
-			slog.Debug("Cleaning up removed images")
+			slog.DebugContext(ctx, "Cleaning up removed images")
 			removed, err := writeStore.DeleteNonPresent(context.TODO(), allReferences)
 			if err != nil {
-				slog.Error("Failed to clean up removed images", slog.Any("error", err))
+				slog.ErrorContext(ctx, "Failed to clean up removed images", slog.Any("error", err))
 				return err
 			}
-			slog.Debug("Cleaned up removed images successfully", slog.Int64("removed", removed))
+			slog.DebugContext(ctx, "Cleaned up removed images successfully", slog.Int64("removed", removed))
 		}
 
 		return nil
@@ -424,10 +425,10 @@ func main() {
 	}
 
 	wg.Go(func() error {
-		slog.Info("Starting HTTP server")
+		slog.InfoContext(ctx, "Starting HTTP server")
 		err := httpServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			slog.Error("Failed to serve", slog.Any("error", err))
+			slog.ErrorContext(ctx, "Failed to serve", slog.Any("error", err))
 			return err
 		}
 		return nil
@@ -440,35 +441,35 @@ func main() {
 		for range signals {
 			caught++
 			if caught == 1 {
-				slog.Info("Caught signal, exiting gracefully")
+				slog.InfoContext(ctx, "Caught signal, exiting gracefully")
 				if err := httpServer.Close(); err != nil {
-					slog.Error("Failed to close server", slog.Any("error", err))
+					slog.ErrorContext(ctx, "Failed to close server", slog.Any("error", err))
 					// Fallthrough
 				}
 				if err := cache.Close(); err != nil {
-					slog.Error("Failed to close cache", slog.Any("error", err))
+					slog.ErrorContext(ctx, "Failed to close cache", slog.Any("error", err))
 					// Fallthrough
 				}
 				if err := readStore.Close(); err != nil {
-					slog.Error("Failed to close read store", slog.Any("error", err))
+					slog.ErrorContext(ctx, "Failed to close read store", slog.Any("error", err))
 					// Fallthrough
 				}
 				if err := writeStore.Close(); err != nil {
-					slog.Error("Failed to close write store", slog.Any("error", err))
+					slog.ErrorContext(ctx, "Failed to close write store", slog.Any("error", err))
 					// Fallthrough
 				}
 				// Cancel goroutines started in main last as to block on all of the
 				// above calls
 				cancel()
 			} else {
-				slog.Info("Caught signal, exiting now")
+				slog.InfoContext(ctx, "Caught signal, exiting now")
 				os.Exit(1)
 			}
 		}
 	}()
 
 	if err := wg.Wait(); err != nil && err != ctx.Err() {
-		slog.Error("Failed to run", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to run", slog.Any("error", err))
 		os.Exit(1)
 	}
 }

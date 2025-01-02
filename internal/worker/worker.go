@@ -9,7 +9,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
-	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"
 	"github.com/prometheus/client_golang/prometheus"
@@ -59,8 +58,8 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		return err
 	}
 
-	log := slog.With(slog.String("reference", reference.String())).With(slogutil.Context(ctx))
-	log.Debug("Processing reference")
+	log := slog.With(slog.String("reference", reference.String()))
+	log.DebugContext(ctx, "Processing reference")
 
 	// Try to update the image's process time
 	// NOTE: There's a race here if the entry has been modified or removed since
@@ -76,7 +75,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		return err
 	}
 
-	log.Debug("Running workflow")
+	log.DebugContext(ctx, "Running workflow")
 	data := &imageworkflow.Data{
 		ImageReference:  reference,
 		Image:           "",
@@ -96,7 +95,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 
 	workflow := imageworkflow.New(w.httpClient, data)
 	if err := workflow.Run(ctx); err != nil {
-		log.Error("Failed to run pipeline for image", slog.Any("error", err))
+		log.ErrorContext(ctx, "Failed to run pipeline for image", slog.Any("error", err))
 		// Fallthrough - insert what we have
 	}
 
@@ -148,30 +147,30 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		result.LatestReference = data.LatestReference.String()
 	}
 	if err := w.store.InsertImage(context.TODO(), &result); err != nil {
-		log.Error("Failed to insert image", slog.Any("error", err))
+		log.ErrorContext(ctx, "Failed to insert image", slog.Any("error", err))
 		// Fallthrough - try to insert what we have
 	}
 
 	if data.FullDescription != nil {
 		if err := w.store.InsertImageDescription(ctx, reference.String(), data.FullDescription); err != nil {
-			log.Error("Failed to insert image description", slog.Any("error", err))
+			log.ErrorContext(ctx, "Failed to insert image description", slog.Any("error", err))
 			// Fallthrough - try to insert what we have
 		}
 	}
 
 	if data.ReleaseNotes != nil {
 		if err := w.store.InsertImageReleaseNotes(ctx, reference.String(), data.ReleaseNotes); err != nil {
-			log.Error("Failed to insert image description", slog.Any("error", err))
+			log.ErrorContext(ctx, "Failed to insert image description", slog.Any("error", err))
 			// Fallthrough - try to insert what we have
 		}
 	}
 
 	if err := w.store.InsertImageGraph(ctx, reference.String(), &data.Graph); err != nil {
-		log.Error("Failed to insert image description", slog.Any("error", err))
+		log.ErrorContext(ctx, "Failed to insert image description", slog.Any("error", err))
 		// Fallthrough - try to insert what we have
 	}
 
-	log.Debug("Updated data")
+	log.DebugContext(ctx, "Updated data")
 	w.processedCounter.Inc()
 	w.processingDuration.Add(time.Since(start).Seconds())
 	return nil

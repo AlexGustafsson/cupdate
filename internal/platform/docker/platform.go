@@ -186,7 +186,7 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 
 		reference, ok := image.Reference()
 		if !ok {
-			slog.Warn("Failed to identify a reference for image", slog.String("id", image.ID))
+			slog.WarnContext(ctx, "Failed to identify a reference for image", slog.String("id", image.ID))
 			continue
 		}
 

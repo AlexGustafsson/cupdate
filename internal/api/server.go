@@ -15,7 +15,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/rss"
-	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 )
@@ -305,8 +304,6 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 }
 
 func (s *Server) handleGenericResponse(w http.ResponseWriter, r *http.Request, err error) bool {
-	log := slog.With(slogutil.Context(r.Context()))
-
 	if err == ErrBadRequest {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return false
@@ -320,7 +317,7 @@ func (s *Server) handleGenericResponse(w http.ResponseWriter, r *http.Request, e
 			return false
 		}
 
-		log.Error("Failed to handle request", slog.Any("error", err), slog.String("path", r.URL.Path))
+		slog.ErrorContext(r.Context(), "Failed to handle request", slog.Any("error", err), slog.String("path", r.URL.Path))
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return false
 	}
@@ -329,8 +326,6 @@ func (s *Server) handleGenericResponse(w http.ResponseWriter, r *http.Request, e
 }
 
 func (s *Server) handleJSONResponse(w http.ResponseWriter, r *http.Request, response any, err error) {
-	log := slog.With(slogutil.Context(r.Context()))
-
 	ok := s.handleGenericResponse(w, r, err)
 	if !ok {
 		return
@@ -338,7 +333,7 @@ func (s *Server) handleJSONResponse(w http.ResponseWriter, r *http.Request, resp
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Error("Failed to write response", slog.Any("error", err))
+		slog.ErrorContext(r.Context(), "Failed to write response", slog.Any("error", err))
 	}
 }
 

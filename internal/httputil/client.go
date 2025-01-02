@@ -15,7 +15,6 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
-	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
@@ -155,17 +154,17 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	ctx, span := c.createSpan(req)
 	defer span.End()
 
-	log := slog.With(slog.String("url", req.URL.String())).With(slogutil.Context(ctx))
+	log := slog.With(slog.String("url", req.URL.String()))
 	key := c.CacheKey(req)
 
 	// Try to read from cache, only return on successful cache reads
 	entry, err := c.cache.Get(ctx, key)
 	if err == nil {
-		log.Debug("HTTP response cache hit")
+		log.DebugContext(ctx, "HTTP response cache hit")
 		c.cacheHitsCounter.Inc()
 		res, err := http.ReadResponse(bufio.NewReader(bytes.NewReader(entry)), req)
 		if err == nil {
-			log.Debug("HTTP response successfully read from cache")
+			log.DebugContext(ctx, "HTTP response successfully read from cache")
 			c.requestsCounter.WithLabelValues(req.URL.Host, req.Method, strconv.FormatInt(int64(res.StatusCode), 10)).Inc()
 			span.SetAttributes(
 				semconv.HTTPResponseStatusCode(res.StatusCode),
@@ -173,14 +172,14 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 			)
 			return res, nil
 		} else {
-			log.Warn("HTTP request cache parse failure", slog.Any("error", err))
+			log.WarnContext(ctx, "HTTP request cache parse failure", slog.Any("error", err))
 			span.SetAttributes(otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusError))
 		}
 	} else if errors.Is(err, cache.ErrNotExist) {
-		log.Debug("HTTP request cache miss")
+		log.DebugContext(ctx, "HTTP request cache miss")
 		span.SetAttributes(otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusMiss))
 	} else {
-		log.Warn("HTTP request cache lookup failure", slog.Any("error", err))
+		log.WarnContext(ctx, "HTTP request cache lookup failure", slog.Any("error", err))
 		span.SetAttributes(otelutil.CupdateCacheStatus(otelutil.CupdateCacheStatusError))
 	}
 
@@ -192,7 +191,7 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 
 	// Cache 2xx
 	if res.StatusCode >= 200 && res.StatusCode <= 299 {
-		log.Debug("Caching HTTP response")
+		log.DebugContext(ctx, "Caching HTTP response")
 
 		// Let's try to not be smart about streaming the result to / from cache,
 		// something that was previously done. Just read the body to memory and
@@ -218,12 +217,12 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 
 		err = c.cache.Set(ctx, key, buffer.Bytes(), &cache.SetEntryOptions{Expires: time.Now().Add(c.cacheMaxAge)})
 		if err == nil {
-			log.Debug("HTTP request was cached successfully")
+			log.DebugContext(ctx, "HTTP request was cached successfully")
 		} else {
-			log.Warn("HTTP response cache failure", slog.Any("error", err))
+			log.WarnContext(ctx, "HTTP response cache failure", slog.Any("error", err))
 		}
 	} else {
-		log.Debug("Skipping HTTP response cache as status code was not 2xx", slog.Int("statusCode", res.StatusCode))
+		log.DebugContext(ctx, "Skipping HTTP response cache as status code was not 2xx", slog.Int("statusCode", res.StatusCode))
 	}
 
 	return res, nil

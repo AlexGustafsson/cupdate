@@ -63,7 +63,7 @@ func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets b
 			graph, err := grapher.Graph(ctx)
 			cancel()
 			if err != nil {
-				slog.Error("Failed to graph informer", slog.Any("error", err))
+				slog.ErrorContext(ctx, "Failed to graph informer", slog.Any("error", err))
 				continue
 			}
 

@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
-	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -24,8 +23,8 @@ func (w Workflow) Run(ctx context.Context) error {
 	ctx, span := otel.Tracer(otelutil.DefaultScope).Start(ctx, otelutil.CupdateWorkflowRunSpanName, trace.WithAttributes(otelutil.CupdateWorkflowName(w.Name)))
 	defer span.End()
 
-	log := slog.With(slog.String("workflow", w.Name)).With(slogutil.Context(ctx))
-	log.Debug("Running workflow")
+	log := slog.With(slog.String("workflow", w.Name))
+	log.DebugContext(ctx, "Running workflow")
 
 	var mutex sync.Mutex
 	errs := make([]error, len(w.Jobs))
@@ -39,7 +38,7 @@ func (w Workflow) Run(ctx context.Context) error {
 	var wg sync.WaitGroup
 	for i := range w.Jobs {
 		job := w.Jobs[i]
-		log := log.With(slog.String("job", job.Name)).With(slogutil.Context(ctx))
+		log := log.With(slog.String("job", job.Name))
 
 		wg.Add(1)
 		go func() {
@@ -47,7 +46,7 @@ func (w Workflow) Run(ctx context.Context) error {
 			defer close(done[i])
 
 			if len(job.DependsOn) > 0 {
-				log.Debug("Waiting for dependencies to complete before starting job")
+				log.DebugContext(ctx, "Waiting for dependencies to complete before starting job")
 				for _, dependency := range job.DependsOn {
 					index := -1
 					for i := 0; i < len(w.Jobs); i++ {
@@ -65,7 +64,7 @@ func (w Workflow) Run(ctx context.Context) error {
 							mutex.Unlock()
 						case <-done[index]:
 							if errs[index] != nil {
-								log.Warn("Skipping job as dependent job failed", slog.String("dependency", dependency))
+								log.WarnContext(ctx, "Skipping job as dependent job failed", slog.String("dependency", dependency))
 								errs[i] = fmt.Errorf("failed to run job - dependent job failed: %w", errs[index])
 								return
 							}
