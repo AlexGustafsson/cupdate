@@ -42,6 +42,8 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /run/data
+            - name: "tmp"
+              mountPath: "/tmp"
           ports:
             - name: web
               containerPort: 8080
@@ -65,5 +67,7 @@ spec:
             initialDelaySeconds: 5
       volumes:
         - name: data
-          emptyDir:
-            sizeLimit: 50Mi
+          hostPath:
+            path: /home/alex/cupdate/data
+        - name: "tmp"
+          emptyDir: {}
