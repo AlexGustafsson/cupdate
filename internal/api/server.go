@@ -17,6 +17,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/rss"
 	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
+	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 )
 
 var (
@@ -40,11 +41,17 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 	}
 
 	s.mux.HandleFunc("GET /api/v1/tags", func(w http.ResponseWriter, r *http.Request) {
-		tags, err := api.GetTags(r.Context())
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/tags"))
+
+		tags, err := api.GetTags(ctx)
 		s.handleJSONResponse(w, r, tags, err)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/images", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/images"))
+
 		query := r.URL.Query()
 
 		tags, ok := query["tag"]
@@ -94,16 +101,20 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 			Sort:  store.Sort(sort),
 			Query: query.Get("query"),
 		}
-		response, err := api.ListImages(r.Context(), listOptions)
+
+		response, err := api.ListImages(ctx, listOptions)
 		s.handleJSONResponse(w, r, response, err)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image"))
+
 		query := r.URL.Query()
 
 		reference := query.Get("reference")
 
-		response, err := api.GetImage(r.Context(), reference)
+		response, err := api.GetImage(ctx, reference)
 		if response == nil && err == nil {
 			s.handleGenericResponse(w, r, ErrNotFound)
 			return
@@ -113,11 +124,14 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image/description", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/description"))
+
 		query := r.URL.Query()
 
 		reference := query.Get("reference")
 
-		response, err := api.GetImageDescription(r.Context(), reference)
+		response, err := api.GetImageDescription(ctx, reference)
 		if response == nil && err == nil {
 			s.handleGenericResponse(w, r, ErrNotFound)
 			return
@@ -127,11 +141,14 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image/release-notes", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/release-notes"))
+
 		query := r.URL.Query()
 
 		reference := query.Get("reference")
 
-		response, err := api.GetImageReleaseNotes(r.Context(), reference)
+		response, err := api.GetImageReleaseNotes(ctx, reference)
 		if response == nil && err == nil {
 			s.handleGenericResponse(w, r, ErrNotFound)
 			return
@@ -141,15 +158,21 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image/graph", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/graph"))
+
 		query := r.URL.Query()
 
 		reference := query.Get("reference")
 
-		response, err := api.GetImageGraph(r.Context(), reference)
+		response, err := api.GetImageGraph(ctx, reference)
 		s.handleJSONResponse(w, r, response, err)
 	})
 
 	s.mux.HandleFunc("POST /api/v1/image/scans", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/scans"))
+
 		query := r.URL.Query()
 
 		reference, err := oci.ParseReference(query.Get("reference"))
@@ -159,7 +182,7 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 		}
 
 		select {
-		case <-r.Context().Done():
+		case <-ctx.Done():
 			w.WriteHeader(http.StatusRequestTimeout)
 		case processQueue <- reference:
 		}
@@ -168,6 +191,9 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 	})
 
 	s.mux.HandleFunc("GET /api/v1/feed.rss", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/feed.rss"))
+
 		var requestURL *url.URL
 		var err error
 		if s.WebAddress == "" {
@@ -188,7 +214,7 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 			Tags: []string{"outdated"},
 		}
 
-		page, err := api.ListImages(r.Context(), options)
+		page, err := api.ListImages(ctx, options)
 		if err != nil {
 			s.handleGenericResponse(w, r, err)
 			return
@@ -247,12 +273,15 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 	})
 
 	s.mux.HandleFunc("GET /api/v1/events", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/events"))
+
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 		w.WriteHeader(http.StatusOK)
 
-		for event := range s.hub.Subscribe(r.Context()) {
+		for event := range s.hub.Subscribe(ctx) {
 			var eventType models.EventType
 			switch event.Type {
 			case store.EventTypeUpdated:
@@ -315,6 +344,7 @@ func (s *Server) handleJSONResponse(w http.ResponseWriter, r *http.Request, resp
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "traceresponse")
 
-	s.mux.ServeHTTP(w, r)
+	httputil.InstrumentHandler(s.mux).ServeHTTP(w, r)
 }
