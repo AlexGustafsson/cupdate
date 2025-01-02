@@ -17,7 +17,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/rss"
 	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
-	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 )
 
 var (

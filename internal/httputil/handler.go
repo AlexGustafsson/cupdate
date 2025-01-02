@@ -10,7 +10,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
-	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -123,8 +123,6 @@ func instrumentRequest(r *http.Request) (context.Context, trace.Span) {
 			// not for audit purposes...
 			semconv.ClientAddress(host),
 			semconv.ClientPort(int(port)),
-			semconv.ClientSocketAddress(host),
-			semconv.ClientSocketPort(int(port)),
 		)
 	}
 
