@@ -11,7 +11,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -22,7 +21,7 @@ type Workflow struct {
 }
 
 func (w Workflow) Run(ctx context.Context) error {
-	ctx, span := otel.Tracer(otelutil.DefaultScope).Start(ctx, "cupdate.workflow.run", trace.WithAttributes(attribute.String("cupdate.workflow.name", w.Name)))
+	ctx, span := otel.Tracer(otelutil.DefaultScope).Start(ctx, otelutil.CupdateWorkflowRunSpanName, trace.WithAttributes(otelutil.CupdateWorkflowName(w.Name)))
 	defer span.End()
 
 	log := slog.With(slog.String("workflow", w.Name)).With(slogutil.Context(ctx))
