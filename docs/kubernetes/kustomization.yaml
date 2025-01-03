@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cupdate
+
+resources:
+  # NOTE: Update the ref to the tag you want to deploy
+  # NOTE: The double slash (//) is required by kustomize
+  - https://github.com/AlexGustafsson/cupdate//deploy/overlays/rbac?timeout=120&ref=v0.13.0
+  # Here's a good place to reference a file containing ingress manifests
+  # - ingress.yaml
+#
+# Uncomment these lines to modify Cupdate's config
+# configMapGenerator:
+#   - name: cupdate-config
+#     behavior: merge
+#     literals:
+#       - CUPDATE_LOG_LEVEL=debug
+#       - CUPDATE_OTEL_INSECURE=true
+#       - CUPDATE_OTEL_TARGET=tempo.monitoring.svc.cluster.local:4317
+#       - CUPDATE_PROCESSING_MIN_AGE=12h
+#
+# Uncomment these lines to configure a persistent volume for Cupdate
+# patches:
+#   - patch: |-
+#       apiVersion: apps/v1
+#       kind: Deployment
+#       metadata:
+#         name: cupdate
+#       spec:
+#         template:
+#           spec:
+#             volumes:
+#               - name: data
+#                 emptyDir:
+#                   $patch: delete
+#                 hostPath:
+#                   # By default owned by uid:gid 2000:2000
+#                   path: /path/to/cupdate/data

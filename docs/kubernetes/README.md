@@ -1,39 +1,55 @@
-# Kubernetes
+# Running Cupdate in Kubernetes
 
-Cupdate is made to run well in Kubernetes. It is intended to be deployed as a
-single node, optionally persisting its state to a persistent volume. Cupdate
-will automatically react to changes to resources and update its data
-accordingly.
+Cupdate is made for running in Kubernetes. It is intended to be deployed as a
+single instance, using the Kubernetes APIs to react on changes made to
+deployments, containers, replica sets and more.
 
-Cupdate is intended to be run using a service account.
+To get started, run the command below to inspect the manifests about to be
+applied.
 
-Please refer to [`rbac.yaml`](./rbac.yaml) and [`service.yaml`](./service.yaml)
-for examples on how Cupdate can be configured to run in Kubernetes.
-
-## Graph
-
-The diagram below shows the graphing supported by the Kubernetes Cupdate
-platform.
-
-```mermaid
-flowchart TD
-    Namespace --> ResourceKindAppsV1Deployment
-    Namespace --> ResourceKindAppsV1DaemonSet
-    Namespace --> ResourceKindAppsV1ReplicaSet
-    Namespace --> ResourceKindAppsV1StatefulSet
-    Namespace --> ResourceKindBatchV1CronJob
-    Namespace --> ResourceKindBatchV1Job
-    Namespace --> ResourceKindCoreV1Pod
-    Namespace --> ResourceKindCoreV1Pod
-
-    ResourceKindAppsV1Deployment --> ResourceKindCoreV1Pod
-    ResourceKindAppsV1DaemonSet --> ResourceKindCoreV1Pod
-    ResourceKindAppsV1ReplicaSet --> ResourceKindCoreV1Pod
-    ResourceKindAppsV1StatefulSet --> ResourceKindCoreV1Pod
-    ResourceKindBatchV1CronJob --> ResourceKindCoreV1Pod
-    ResourceKindBatchV1Job --> ResourceKindCoreV1Pod
-
-    ResourceKindCoreV1Pod --> ResourceKindCoreV1Container
-
-    ResourceKindCoreV1Container --> Image
+```shell
+kubectl apply --dry-run=client -o yaml 'https://github.com/AlexGustafsson/cupdate/deploy?ref=v0.13.0'
 ```
+
+Next, run the following command to apply the manifests.
+
+```shell
+kubectl apply -k 'https://github.com/AlexGustafsson/cupdate/deploy?ref=v0.13.0'
+```
+
+If you're running Kubernetes with RBAC, Cupdate needs additional configuration.
+To install Cupdate with support for RBAC, run the following command.
+
+```shell
+kubectl apply -k 'https://github.com/AlexGustafsson/cupdate/deploy/overlays/rbac?ref=v0.13.0'
+```
+
+## Config
+
+> [!NOTE]
+> As there are a lot of different ways to expose services, Cupdate is not
+> deployed without any ingress.
+
+> [!NOTE]
+> Without additional configuration, Cupdate is deployed without any persistent
+> state. This will work, but may require additional time after startup for all
+> images to be processed.
+
+To more easily configure Cupdate, it's recommended to use a
+`kustomization.yaml` file. You can copy [kustomization.yaml](kustomization.yaml)
+and then run `kubectl apply -k kustomization.yaml` to deploy Cupdate.
+
+For even more configurability, build the complete manifests and modify them to
+your liking.
+
+```shell
+kustomize build 'https://github.com/AlexGustafsson/cupdate/deploy/overlays/rbac?ref=v0.13.0' > cupdate.yaml
+```
+
+By default, Cupdate will ignore old replica sets kept around by Kubernetes to
+enable rollback of services. To include them, set
+`CUPDATE_KUBERNETES_INCLUDE_OLD_REPLICAS` to `true`.
+
+Whilst the commands above are enough to get you started with Cupdate, you might
+want to change some configuration to better suite your needs. Please see the
+additional documentation in [../config.md](../config.md).
