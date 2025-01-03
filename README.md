@@ -49,17 +49,20 @@ Supported data sources:
 - GitLab
 - Quay
 
-## Running
+## Getting started
 
 Cupdate can be deployed using Kubernetes or Docker. It's designed to run well
 with minimal required configuration. Please refer to the platform-specific
-documentation for more information on how to deploy:
+documentation for more information on how to get started with Cupdate:
 
-- Kubernetes: [docs/kubernetes/README.md](docs/kubernetes/README.md)
-- Docker: [docs/docker/README.md](docs/docker/README.md)
+- Running Cupdate using Kubernetes:
+  [docs/kubernetes/README.md](docs/kubernetes/README.md)
+- Running Cupdate using Docker:
+  [docs/docker/README.md](docs/docker/README.md)
 
-Cupdate requires zero configuration, but is very configurable. See
-[docs/config.md](docs/config.md) for more information.
+Although not recommended or intended, Cupdate can be run directly on host. In
+that case, please build Cupdate and run it using the development instructions
+in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Screenshots
 
