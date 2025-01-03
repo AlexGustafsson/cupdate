@@ -50,12 +50,6 @@
     --bgColor-neutral-muted: light-dark(#fafafa, #262626);
   }
 
-  @media (max-width: 767px) {
-    .markdown-body {
-      padding: 15px;
-    }
-  }
-
   .markdown-body li {
     list-style-type: disc;
   }
