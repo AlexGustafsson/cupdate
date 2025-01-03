@@ -54,7 +54,14 @@ type PollGrapher struct {
 }
 
 func (g *PollGrapher) GraphContinously(ctx context.Context) (<-chan Graph, error) {
-	ch := make(chan Graph)
+	ch := make(chan Graph, 1)
+
+	slog.DebugContext(ctx, "Polling graph")
+	graph, err := g.Grapher.Graph(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ch <- graph
 
 	go func() {
 		defer close(ch)
