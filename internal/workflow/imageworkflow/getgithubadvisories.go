@@ -2,6 +2,8 @@ package imageworkflow
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -36,7 +38,7 @@ func GetGitHubAdvisoriesForRepository() workflow.Step {
 				return nil, err
 			}
 
-			vulndb, err := vulndb.AutoFetchAndOpen(ctx, "vulndb.sqlite", httpClient, 24*time.Hour)
+			vulndb, err := vulndb.AutoFetchAndOpen(ctx, filepath.Join(os.TempDir(), "vulndb.sqlite"), httpClient, 24*time.Hour)
 			if err != nil {
 				return nil, err
 			}
