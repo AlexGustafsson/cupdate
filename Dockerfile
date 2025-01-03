@@ -28,7 +28,8 @@ COPY --from=web-builder /src/internal/web/public /src/internal/web/public
 
 ARG CUPDATE_VERSION="development build"
 ARG TARGETARCH
-RUN GOARCH=${TARGETARCH} CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'main.Version=$CUPDATE_VERSION'" -o cupdate cmd/cupdate/*.go
+ARG TARGETOS
+RUN GOARCH=${TARGETARCH} GOOS=${TARGETOS} CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'main.Version=$CUPDATE_VERSION'" -o cupdate cmd/cupdate/*.go
 
 FROM scratch AS export
 
