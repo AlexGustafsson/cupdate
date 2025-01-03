@@ -61,8 +61,8 @@ documentation for more information on how to get started with Cupdate:
   [docs/docker/README.md](docs/docker/README.md)
 
 Although not recommended or intended, Cupdate can be run directly on host. In
-that case, please build Cupdate and run it using the development instructions
-in [DEVELOPMENT.md](DEVELOPMENT.md).
+that case, please build Cupdate and run it using the instructions in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Screenshots
 
@@ -73,80 +73,3 @@ in [DEVELOPMENT.md](DEVELOPMENT.md).
 | ![Image page screenshot in light mode](./docs/screenshots/image-page-light.png)                       | ![Image page screenshot in dark mode](./docs/screenshots/image-page-dark.png)                       |
 | ![Full image screenshot page in light mode](./docs/screenshots/image-page-full-light.png)             | ![Full image page screenshot in dark mode](./docs/screenshots/image-page-full-dark.png)             |
 | ![Vulnerable image page screenshot in light mode](./docs/screenshots/image-page-vulnerable-light.png) | ![Vulnerable image page screenshot in dark mode](./docs/screenshots/image-page-vulnerable-dark.png) |
-
-## Architecture
-
-See [docs/architecture/architecture.md](docs/architecture/architecture.md).
-
-## Building
-
-Either build using yarn+go, or docker.
-
-```shell
-yarn install
-yarn build
-go build -o cupdate cmd/cupdate/*.go
-```
-
-```shell
-# Build for running the container
-docker build -t ghcr.com/alexgustafsson/cupdate:latest .
-
-# Build inside the container, for running on host
-DOCKER_BUILDKIT=1 docker build --target=export . --output .
-```
-
-## Contributing
-
-Cupdate is still being developed.
-
-### Development
-
-Proxy the Kubernetes API server.
-
-```shell
-kubectl proxy
-```
-
-Link the Docker socket.
-
-```shell
-ln -s ~/.colima/default/docker.sock docker.sock
-```
-
-Source the default dev config for the target platform.
-
-```shell
-# Inspect
-cat .env-kubernetes
-
-# Bash etc.
-source .env-kubernetes
-
-# Fish
-export (cat .env-kubernetes | xargs -L 1)
-```
-
-Start cupdate.
-
-```shell
-go run cmd/cupdate/*.go
-```
-
-Start the web server.
-
-```shell
-yarn run dev
-```
-
-Using Jaeger for otel testing.
-
-```shell
-docker run --rm -it \
-  -p 4317:4317 \
-  -p 8081:16686 \
-  jaegertracing/all-in-one
-
-export CUPDATE_OTEL_TARGET=localhost:4317
-export CUPDATE_OTEL_INSECURE=true
-```
