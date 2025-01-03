@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cupdate
+  labels:
+    app: cupdate
+spec:
+  selector:
+    matchLabels:
+      app: cupdate
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: cupdate
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 2000
+        runAsGroup: 2000
+        fsGroup: 2000
+      containers:
+        - name: cupdate
+          image: ghcr.io/alexgustafsson/cupdate
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            privileged: false
+            capabilities:
+              drop:
+                - ALL
+          envFrom:
+            - configMapRef:
+                name: cupdate-config
+          volumeMounts:
+            - name: data
+              mountPath: /var/run/data
+            - name: tmp
+              mountPath: /tmp
+          ports:
+            - name: web
+              containerPort: 8080
+          resources:
+            requests:
+              cpu: "0.01"
+              memory: "16Mi"
+            limits:
+              memory: "64Mi"
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+      volumes:
+        - name: "tmp"
+          emptyDir: {}
