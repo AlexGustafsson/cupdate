@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -39,10 +40,13 @@ func NewPlatform(ctx context.Context, host string, options *Options) (*Platform,
 
 	client := &http.Client{
 		Transport: &http.Transport{
-			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", path)
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				return (&net.Dialer{
+					Timeout: 5 * time.Second,
+				}).DialContext(ctx, "unix", path)
 			},
 		},
+		Timeout: 10 * time.Second,
 	}
 
 	p := &Platform{
