@@ -3,7 +3,7 @@
 > [!WARNING]
 > WIP
 
-![A simplified overview of the architecture](overview.excalidraw.png)
+![A simplified overview of the architecture](docs/architecture/overview.excalidraw.png)
 
 Cupdate discovers container images that are in use in a _platform_. Next,
 Cupdate discovers new versions for these container images in their respective
@@ -12,7 +12,7 @@ depending on the information gathered about the image from the registry.
 
 ## Cupdate
 
-![An overview of the parts that constitute Cupdate](cupdate.excalidraw.png)
+![An overview of the parts that constitute Cupdate](docs/architecture/cupdate.excalidraw.png)
 
 ## Platforms
 
@@ -70,7 +70,7 @@ flowchart TD
 
 ### Kubernetes
 
-![An overview of how Cupdate uses Kubernetes](kubernetes.excalidraw.png)
+![An overview of how Cupdate uses Kubernetes](docs/architecture/kubernetes.excalidraw.png)
 
 When running in Kubernetes, Cupdate lists and then watches all resources that
 references an image. Resources such as pods directly refences an image that is
@@ -78,37 +78,24 @@ in use. Resources like deployments reference images through pod templates.
 
 ### Docker
 
-![An overview of how Cupdate uses Docker](docker.excalidraw.png)
+![An overview of how Cupdate uses Docker](docs/architecture/docker.excalidraw.png)
 
 When using Docker, Cupdate uses `docker.sock` directly to identify images and
 containers using those images.
 
-## Pipeline
+## Workflow
 
 Once images have been identified in platforms, a few steps are taken to
-consolidate what images are available and how they're used. Henceforth an image
-and a version (tag / digest) will be referred to as "image reference" or just
-"reference".
+consolidate what images are available and how they're used.
 
-- Deduplicate references and merge graphs
+This processing is done using a workflow implementation deeply inspired by
+GitHub Actions. The implementation allows expressive declaration of workflows
+with reusable and loosely coupled components.
 
-Once unique references have been identified, they are processed.
+The code for the workflow implementation is kept in
+[internal/workflow](internal/workflow).
 
-For each reference:
+## Data
 
-- Add registry tag
-- Get the OCI manifests
-  - Add links to code repositories
-- Get the image's Docker Hub repository data
-  - Set the image's description
-  - Add link to Docker Hub
-- Get the image's Docker Hub repository owner
-  - Set the image's logo
-- Identify the latest image version from Docker Hub
-  - Set image's latest version
-- Identify a GitHub release for the latest version
-  - Set release notes
-
-Note that not all steps are always valid, such as fetching info about a GHCR
-image from Docker Hub. Likewise, an image without references to GitHub won't
-have information gathered from GitHub.
+Data is persisted using SQLite. The code for the state store is kept in
+[internal/store](internal/store).
