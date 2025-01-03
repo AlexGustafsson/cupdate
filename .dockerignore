@@ -3,6 +3,5 @@
 /tsconfig.tsbuildinfo
 .DS_Store
 /coverage
-/.eslintcache
 /*.sqlite*
 /*.boltdb
