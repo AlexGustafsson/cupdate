@@ -160,13 +160,13 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 
 	if data.ReleaseNotes != nil {
 		if err := w.store.InsertImageReleaseNotes(ctx, reference.String(), data.ReleaseNotes); err != nil {
-			log.ErrorContext(ctx, "Failed to insert image description", slog.Any("error", err))
+			log.ErrorContext(ctx, "Failed to insert image release notes", slog.Any("error", err))
 			// Fallthrough - try to insert what we have
 		}
 	}
 
 	if err := w.store.InsertImageGraph(ctx, reference.String(), &data.Graph); err != nil {
-		log.ErrorContext(ctx, "Failed to insert image description", slog.Any("error", err))
+		log.ErrorContext(ctx, "Failed to insert image graph", slog.Any("error", err))
 		// Fallthrough - try to insert what we have
 	}
 
