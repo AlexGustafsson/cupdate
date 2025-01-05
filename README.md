@@ -60,6 +60,9 @@ documentation for more information on how to get started with Cupdate:
 - Running Cupdate using Docker:
   [docs/docker/README.md](docs/docker/README.md)
 
+Cupdate can expose metrics and traces. For more information on how to use them,
+see [docs/observability/README.md](docs/observability/README.md).
+
 Although not recommended or intended, Cupdate can be run directly on host. In
 that case, please build Cupdate and run it using the instructions in
 [CONTRIBUTING.md](CONTRIBUTING.md).

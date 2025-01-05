@@ -1,0 +1,80 @@
+{
+  "id": 203,
+  "type": "table",
+  "title": "Outdated images",
+  "gridPos": {
+    "x": 18,
+    "y": 7,
+    "h": 12,
+    "w": 6
+  },
+  "fieldConfig": {
+    "defaults": {
+      "custom": {
+        "align": "auto",
+        "cellOptions": {
+          "type": "auto"
+        },
+        "inspect": false
+      },
+      "mappings": [],
+      "thresholds": {
+        "mode": "absolute",
+        "steps": [
+          {
+            "color": "green",
+            "value": null
+          }
+        ]
+      },
+      "color": {
+        "mode": "fixed"
+      },
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "Open in Cupdate",
+          "url": "https://cupdate.home.local/image?reference=${__data.fields[\"reference\"]}"
+        }
+      ]
+    },
+    "overrides": []
+  },
+  "pluginVersion": "11.4.0",
+  "targets": [
+    {
+      "columns": [],
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "cupdate"
+      },
+      "filters": [],
+      "format": "table",
+      "global_query_id": "outdated-images",
+      "refId": "A",
+      "root_selector": "",
+      "source": "url",
+      "type": "global",
+      "url": "",
+      "url_options": {
+        "data": "",
+        "method": "GET"
+      }
+    }
+  ],
+  "datasource": {
+    "type": "yesoreyeram-infinity-datasource",
+    "uid": "cupdate"
+  },
+  "options": {
+    "showHeader": false,
+    "cellHeight": "sm",
+    "footer": {
+      "show": false,
+      "reducer": ["sum"],
+      "countRows": false,
+      "fields": "",
+      "enablePagination": false
+    }
+  }
+}
