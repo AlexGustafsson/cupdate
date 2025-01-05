@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	_ "embed" // Embed SQL files
@@ -34,12 +35,15 @@ type Event struct {
 type Store struct {
 	*events.Hub[Event]
 
-	db *sql.DB
+	// mutex must be held when performing write operations
+	mutex sync.Mutex
+	db    *sql.DB
 }
 
 // TODO: For single rows use QueryRowContext instead of QueryContext
 
 func New(uri string, readonly bool) (*Store, error) {
+	// Use WAL to allow multiple readers
 	uri += "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(1000)&_time_format=sqlite"
 	if readonly {
 		uri += "&_pragma=query_only(true)"
@@ -66,6 +70,9 @@ func New(uri string, readonly bool) (*Store, error) {
 }
 
 func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) (bool, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	tags, err := json.Marshal(image.Tags)
 	if err != nil {
 		return false, err
@@ -232,6 +239,9 @@ func (s *Store) ListRawImages(ctx context.Context, options *ListRawImagesOptions
 }
 
 func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
@@ -562,6 +572,9 @@ func (s *Store) GetTags(ctx context.Context) ([]string, error) {
 }
 
 func (s *Store) InsertImageDescription(ctx context.Context, reference string, description *models.ImageDescription) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_descriptions
 		(reference, html, markdown)
 		VALUES
@@ -616,6 +629,9 @@ func (s *Store) GetImageDescription(ctx context.Context, reference string) (*mod
 }
 
 func (s *Store) InsertImageReleaseNotes(ctx context.Context, reference string, releaseNotes *models.ImageReleaseNotes) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_release_notes
 		(reference, title, html, markdown, released)
 		VALUES
@@ -672,6 +688,9 @@ func (s *Store) GetImageReleaseNotes(ctx context.Context, reference string) (*mo
 }
 
 func (s *Store) InsertImageGraph(ctx context.Context, reference string, graph *models.Graph) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_graphs
 		(reference, graph)
 		VALUES
