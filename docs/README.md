@@ -5,4 +5,5 @@
   - [Docker](./docker/README.md)
 - [Config](./config.md)
 - [Observability](./observability/README.md)
-- [Architecture](./architecture/architecture.md)
+- [Contributing](../CONTRIBUTING.md)
+- [Architecture](../ARCHITECTURE.md)
