@@ -12,7 +12,7 @@ docker run --interactive --tty --rm \
   --mount type=tmpfs,destination=/tmp \
   --env CUPDATE_DOCKER_HOST=unix:///var/run/docker.sock \
   --publish 8080:8080 \
-  ghcr.io/alexgustafsson/cupdate:0.14.0
+  ghcr.io/alexgustafsson/cupdate:0.14.1
 ```
 
 To more easily configure Cupdate to your liking and persisting the configuration

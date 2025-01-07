@@ -17,7 +17,7 @@ namespace: cupdate
 
 images:
   - name: ghcr.io/alexgustafsson/cupdate
-    newTag: 0.14.0
+    newTag: 0.14.1
 
 resources:
   - namespace.yml

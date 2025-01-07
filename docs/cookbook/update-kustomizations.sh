@@ -4,7 +4,7 @@
 # changes such as the following:
 # images:
 #   - name: ghcr.io/alexgustafsson/cupdate
-#     newTag: v0.14.0
+#     newTag: 0.14.1
 #
 # For all such images, the script will perform a lookup towards Cupdate's API to
 # find the latest image and update the manifest in-place if the user whishes to
@@ -40,7 +40,7 @@ while read -r kustomization; do
   # For each image reference tag replacement found in the kustomization, such as
   # images:
   #   - name: ghcr.io/alexgustafsson/cupdate
-  #     newTag: 0.14.0
+  #     newTag: 0.14.1
   while read -r reference; do
     if [[ -z "$reference" ]]; then
       continue
