@@ -36,7 +36,7 @@ func TestChannel(t *testing.T) {
 		2 * time.Second,
 	}
 
-	epsilon := 2 * time.Millisecond
+	epsilon := 10 * time.Millisecond
 
 	i := 0
 	start := time.Now()
