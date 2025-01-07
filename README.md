@@ -18,7 +18,9 @@ will modify your manifests for you, such as Dependabot or
 [Renovate](https://github.com/renovatebot/renovate). Cupdate is not about that,
 nor will it ever be. That's not to say that Cupdate won't integrate well with
 such services. Cupdate can still act as a dashboard of your deployed services,
-visualizing their graphs and versions.
+visualizing their graphs and versions. Cupdate's APIs can also be used to write
+such services/scripts with ease. There's an example script in the
+[cookbook](docs/cookbook/README.md).
 
 Features:
 
