@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/platform"
@@ -22,17 +23,15 @@ type InformerGrapher struct {
 	close chan struct{}
 
 	includeOldReplicaSets bool
+
+	mutex sync.Mutex
 }
 
 func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets bool) (*InformerGrapher, error) {
 	grapher := &InformerGrapher{
 		clientset: clientset,
 		// TODO: Make resync configurable
-		informerFactory: informers.NewSharedInformerFactory(clientset, 30*time.Minute),
-
-		events: make(chan struct{}),
-		ch:     make(chan platform.Graph),
-
+		informerFactory:       informers.NewSharedInformerFactory(clientset, 30*time.Minute),
 		includeOldReplicaSets: includeOldReplicaSets,
 	}
 
@@ -53,42 +52,60 @@ func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets b
 		}
 	}
 
-	go func() {
-		defer close(grapher.ch)
+	return grapher, nil
+}
 
-		for range grapher.events {
+func (g *InformerGrapher) Start() {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	g.ch = make(chan platform.Graph)
+	g.events = make(chan struct{})
+	g.close = make(chan struct{})
+
+	// Handle events and produce graphs
+	go func() {
+		defer close(g.ch)
+
+		for range g.events {
 			// TODO: Make the timeout configurable? 30s should be plenty, but who
 			// knows
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			graph, err := grapher.Graph(ctx)
+			graph, err := g.Graph(ctx)
 			cancel()
 			if err != nil {
 				slog.ErrorContext(ctx, "Failed to graph informer", slog.Any("error", err))
 				continue
 			}
 
-			grapher.ch <- graph
+			g.ch <- graph
 		}
 	}()
 
-	return grapher, nil
-}
-
-func (g *InformerGrapher) Start() {
-
-	g.close = make(chan struct{})
 	// Trigger once after sync
 	go func() {
 		g.informerFactory.WaitForCacheSync(g.close)
 		g.events <- struct{}{}
 	}()
+
 	g.informerFactory.Start(g.close)
 }
 
 func (g *InformerGrapher) Stop() {
-	close(g.close)
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	if g.close != nil {
+		close(g.close)
+		g.close = nil
+	}
+
 	g.informerFactory.Shutdown()
-	close(g.events)
+
+	if g.events != nil {
+		close(g.events)
+		g.events = nil
+	}
 }
 
 func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
