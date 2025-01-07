@@ -978,12 +978,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:22.10.2":
-  version: 22.10.2
-  resolution: "@types/node@npm:22.10.2"
+"@types/node@npm:22.10.5":
+  version: 22.10.5
+  resolution: "@types/node@npm:22.10.5"
   dependencies:
     undici-types: "npm:~6.20.0"
-  checksum: 10c0/2c7b71a040f1ef5320938eca8ebc946e6905caa9bbf3d5665d9b3774a8d15ea9fab1582b849a6d28c7fc80756a62c5666bc66b69f42f4d5dafd1ccb193cdb4ac
+  checksum: 10c0/6a0e7d1fe6a86ef6ee19c3c6af4c15542e61aea2f4cee655b6252efb356795f1f228bc8299921e82924e80ff8eca29b74d9dd0dd5cc1a90983f892f740b480df
   languageName: node
   linkType: hard
 
@@ -996,12 +996,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:19.0.2":
-  version: 19.0.2
-  resolution: "@types/react@npm:19.0.2"
+"@types/react@npm:19.0.3":
+  version: 19.0.3
+  resolution: "@types/react@npm:19.0.3"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10c0/8992f39701fcf1bf893ef8f94a56196445667baf08fe4f6050a14e229a17aad3265ad3efc01595ff3b4d5d5c69da885f9aa4ff80f164a613018734efcff1eb8f
+  checksum: 10c0/90129c45f2f09154d9409964964d0ccbac7f04d5f7fcf73fc146d33887931fbfdfd1e2947514298f94f986cc264aff8ba3201e9a4ea207d3308f20a06d47c805
   languageName: node
   linkType: hard
 
@@ -1430,8 +1430,8 @@ __metadata:
   dependencies:
     "@biomejs/biome": "npm:1.9.4"
     "@types/dompurify": "npm:3.2.0"
-    "@types/node": "npm:22.10.2"
-    "@types/react": "npm:19.0.2"
+    "@types/node": "npm:22.10.5"
+    "@types/react": "npm:19.0.3"
     "@types/react-dom": "npm:19.0.2"
     "@vitejs/plugin-react": "npm:4.3.4"
     "@vitest/coverage-v8": "npm:2.1.8"
@@ -1440,7 +1440,7 @@ __metadata:
     elkjs: "npm:0.9.3"
     github-markdown-css: "npm:5.8.1"
     globals: "npm:15.14.0"
-    marked: "npm:15.0.4"
+    marked: "npm:15.0.6"
     postcss: "npm:8.4.49"
     prettier: "npm:3.4.2"
     react: "npm:19.0.0"
@@ -1448,7 +1448,7 @@ __metadata:
     react-router-dom: "npm:7.1.1"
     tailwindcss: "npm:3.4.17"
     typescript: "npm:5.7.2"
-    vite: "npm:6.0.6"
+    vite: "npm:6.0.7"
     vitest: "npm:2.1.8"
   languageName: unknown
   linkType: soft
@@ -2227,12 +2227,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:15.0.4":
-  version: 15.0.4
-  resolution: "marked@npm:15.0.4"
+"marked@npm:15.0.6":
+  version: 15.0.6
+  resolution: "marked@npm:15.0.6"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/e2bfd9178e5242cc814aaf8020f3c2e954c047652c498dac0732f4b711d5e3ab80dbc54b964799d80470d6c515a24905e554c4a40f87b05dedc26e4e36cfdfdb
+  checksum: 10c0/8f30972ac5fdf879353484bdd7717409c241d15031a58bbc483070dedb58e4b314c41c0b59b78e536658907c02ee149eaf4b9be221f198df97beae703f529d40
   languageName: node
   linkType: hard
 
@@ -3270,9 +3270,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:6.0.6":
-  version: 6.0.6
-  resolution: "vite@npm:6.0.6"
+"vite@npm:6.0.7":
+  version: 6.0.7
+  resolution: "vite@npm:6.0.7"
   dependencies:
     esbuild: "npm:^0.24.2"
     fsevents: "npm:~2.3.3"
@@ -3318,7 +3318,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/144c3f80a7920a4b2fa14f00f99b58ece246455ca9313561a67a227b45dadac3343e406d3c1dbfafa79992ac88f54cb2b040b229997e432daf47594fe8cacec2
+  checksum: 10c0/ae81047b4290a7206b9394a39a782d509e9610462e7946422ba22d5bc615b5a322c07e33d7bf9dd0b3312ec3f5c63353b725913d1519324bfdf539b4f1e03f52
   languageName: node
   linkType: hard
 
