@@ -59,7 +59,7 @@ func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets b
 		for range grapher.events {
 			// TODO: Make the timeout configurable? 30s should be plenty, but who
 			// knows
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			graph, err := grapher.Graph(ctx)
 			cancel()
 			if err != nil {
