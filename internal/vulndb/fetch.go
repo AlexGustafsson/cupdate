@@ -10,7 +10,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
-	"oras.land/oras-go/v2/content/file"
 )
 
 func Fetch(ctx context.Context, httpClient *httputil.Client, destination string) error {
@@ -19,12 +18,6 @@ func Fetch(ctx context.Context, httpClient *httputil.Client, destination string)
 		return err
 	}
 	defer os.RemoveAll(workdir)
-
-	fs, err := file.New(workdir)
-	if err != nil {
-		return err
-	}
-	defer fs.Close()
 
 	client := oci.Client{
 		Client: httpClient,
