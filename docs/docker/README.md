@@ -50,3 +50,15 @@ containers, running or not, set `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS` to
 Whilst the commands above are enough to get you started with Cupdate, you might
 want to change some configuration to better suite your needs. Please see the
 additional documentation in [../config.md](../config.md).
+
+## Updating Cupdate
+
+> [!NOTE]
+> Before Cupdate hits v1.0.0, breaking changes can occur. Breaking changes could
+> include API changes or changes to how the data is stored on disk. Breaking
+> changes are communicated in release notes.
+
+If you've installed Cupdate using the example compose file, please re-apply it
+using the latest version to update Cupdate. If you've written custom manifests,
+update the image version and refer to the release notes to learn if there are
+additional changes required.
