@@ -79,3 +79,19 @@ that case, please build Cupdate and run it using the instructions in
 | ![Image page release screenshot page in light mode](./docs/screenshots/image-page-release-light.png)  | ![Image page release screenshot in dark mode](./docs/screenshots/image-page-release-dark.png)       |
 | ![Image page graph screenshot page in light mode](./docs/screenshots/image-page-graph-light.png)      | ![Image page graph screenshot in dark mode](./docs/screenshots/image-page-graph-dark.png)           |
 | ![Vulnerable image page screenshot in light mode](./docs/screenshots/image-page-vulnerable-light.png) | ![Vulnerable image page screenshot in dark mode](./docs/screenshots/image-page-vulnerable-dark.png) |
+
+## Vulndb
+
+Vulndb is a tiny sqlite file that contains information useful to statically look
+up known vulnerabilities in container images based on their source repositories.
+For now it uses recent GitHub's advisory database.
+
+For more information see [tools/vulndb/README.md](tools/vulndb/README.md).
+
+The database is updated daily and published as an OCI artifact used by Cupdate.
+The artifact is available here:
+<https://github.com/AlexGustafsson/cupdate/pkgs/container/cupdate%2Fvulndb>.
+
+For more advanced scanning requirements, use something like
+[Trivy](https://github.com/aquasecurity/trivy) or
+[Grype](https://github.com/anchore/grype).
