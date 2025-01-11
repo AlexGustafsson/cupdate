@@ -74,5 +74,5 @@ while read -r kustomization; do
 
     # Separate runs by a newline
     echo
-  done <<<"$(yq '.images[] | select((.name|type == "!!str") and (.newTag|type == "!!str")) |  "\(.name):\(.newTag)"' "$kustomization" | grep -v '^:$')"
+  done <<<"$(yq '.images[] | select((.name|type == "!!str") and (.newTag|type == "!!str")) | "\(.name):\(.newTag)"' "$kustomization" | grep -v '^:$')"
 done <<<"$(find . -type f -name "$MANIFEST_FILE_NAME")"
