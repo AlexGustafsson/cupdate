@@ -2,7 +2,7 @@
 
 Vulndb is a tiny sqlite file that contains information useful to statically look
 up known vulnerabilities in container images based on their source repositories.
-For now it uses recent GitHub's advisory database.
+For now it uses GitHub's advisory database.
 
 The database is updated daily and published as an OCI artifact used by Cupdate.
 The artifact is available here:

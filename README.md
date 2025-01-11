@@ -32,7 +32,7 @@ Features:
 - Subscribe to updates via an RSS feed
 - Graphs image versions' dependants explaining why they're in use
 - Vulnerability scanning via Docker Scout, Quay and the
-  GitHub Advisory Database through [vulndb](https://github.com/AlexGustafsson/cupdate/pkgs/container/cupdate%2Fvulndb).
+  GitHub Advisory Database through [vulndb](#vulndb)
 - APIs for custom integrations
 
 Supported registries:
@@ -84,7 +84,7 @@ that case, please build Cupdate and run it using the instructions in
 
 Vulndb is a tiny sqlite file that contains information useful to statically look
 up known vulnerabilities in container images based on their source repositories.
-For now it uses recent GitHub's advisory database.
+For now it uses GitHub's advisory database.
 
 For more information see [tools/vulndb/README.md](tools/vulndb/README.md).
 
