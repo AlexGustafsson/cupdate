@@ -26,6 +26,16 @@ docker compose -f ./docs/docker/compose.yaml up
 The Compose file is configured using best practices, but can be adapted to suite
 your needs.
 
+If you do not want to mount the Docker socket, you can use a reverse proxy.
+Cupdate uses the following API paths:
+
+- `/version`
+- `/containers/json`
+- `/images/{id}/json`
+
+If you wish to inspect the source code for the image, the relevant parts can be
+found in `internal/platforms/docker/platform.go`.
+
 ## Config
 
 When running Cupdate using Docker, the Docker host needs to be specified. For
