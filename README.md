@@ -76,5 +76,6 @@ that case, please build Cupdate and run it using the instructions in
 | ![Dashboard screenshot in light mode](./docs/screenshots/dashboard-light.png)                         | ![Dashboard screenshot in dark mode](./docs/screenshots/dashboard-dark.png)                         |
 | ![Dashboard screenshot on small screen in light mode](./docs/screenshots/dashboard-small-light.png)   | ![Dashboard screenshot on small screen in dark mode](./docs/screenshots/dashboard-small-dark.png)   |
 | ![Image page screenshot in light mode](./docs/screenshots/image-page-light.png)                       | ![Image page screenshot in dark mode](./docs/screenshots/image-page-dark.png)                       |
-| ![Full image screenshot page in light mode](./docs/screenshots/image-page-full-light.png)             | ![Full image page screenshot in dark mode](./docs/screenshots/image-page-full-dark.png)             |
+| ![Image page release screenshot page in light mode](./docs/screenshots/image-page-release-light.png)  | ![Image page release screenshot in dark mode](./docs/screenshots/image-page-release-dark.png)       |
+| ![Image page graph screenshot page in light mode](./docs/screenshots/image-page-graph-light.png)      | ![Image page graph screenshot in dark mode](./docs/screenshots/image-page-graph-dark.png)           |
 | ![Vulnerable image page screenshot in light mode](./docs/screenshots/image-page-vulnerable-light.png) | ![Vulnerable image page screenshot in dark mode](./docs/screenshots/image-page-vulnerable-dark.png) |
