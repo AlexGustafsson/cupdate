@@ -14,6 +14,8 @@ import (
 )
 
 func PushArtifact(ctx context.Context, path string, username string, password string) error {
+	// TODO: This code could probably use our internal oci package so that we can
+	// remove the oras dependency
 	workdir, err := os.MkdirTemp(os.TempDir(), "cupdate-vulndb-oci-*")
 	if err != nil {
 		return err
