@@ -12,7 +12,6 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/db"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/git"
-	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/oci"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/ossf"
 )
 
@@ -55,7 +54,7 @@ func run(ctx context.Context) error {
 	workdir := filepath.Join(workdirParent, "advisory-database")
 
 	slog.DebugContext(ctx, "Performing shallow clone of GitHub's advisory database")
-	err = git.ShallowClone(context.Background(), "https://github.com/github/advisory-database", workdir, "advisories/github-reviewed/2024")
+	err = git.ShallowClone(context.Background(), "https://github.com/github/advisory-database", workdir, "advisories/github-reviewed/2024", "advisories/github-reviewed/2025")
 	if err != nil {
 		return fmt.Errorf("failed to clone repository: %w", err)
 	}
@@ -95,9 +94,9 @@ func run(ctx context.Context) error {
 	}
 
 	slog.DebugContext(ctx, "Pushing artifact")
-	if err := oci.PushArtifact(ctx, "vulndb.sqlite", githubActor, githubToken); err != nil {
-		return err
-	}
+	// if err := oci.PushArtifact(ctx, "vulndb.sqlite", githubActor, githubToken); err != nil {
+	// 	return err
+	// }
 
 	slog.InfoContext(ctx, "Successfully pushed artifact")
 	return nil
