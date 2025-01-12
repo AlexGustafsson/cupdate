@@ -24,6 +24,7 @@ Docker in the [cookbook](docs/cookbook/README.md).
 
 Features:
 
+- Supports Kubernetes and Docker (one or more hosts, local or remote)
 - Zero configuration required
 - Performant and lightweight - uses virtually zero CPU and roughly 14MiB RAM
 - Auto-detect container images in Kubernetes and Docker
