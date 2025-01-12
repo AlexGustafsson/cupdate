@@ -18,7 +18,23 @@ const (
 	ResourceKindCoreV1Namespace   = "core/v1/namespace"
 	ResourceKindCoreV1Pod         = "core/v1/pod"
 	ResourceKindCoreV1Container   = "core/v1/container"
+	ResourceKindUnknown           = "unknown"
 )
+
+// IsSupported returns whether or not the resource is supported.
+// Filters out custom resource definitions.
+func (r ResourceKind) IsSupported() bool {
+	switch r {
+	case ResourceKindAppsV1Deployment, ResourceKindAppsV1DaemonSet,
+		ResourceKindAppsV1ReplicaSet, ResourceKindAppsV1StatefulSet,
+		ResourceKindBatchV1CronJob, ResourceKindBatchV1Job,
+		ResourceKindCoreV1Namespace, ResourceKindCoreV1Pod,
+		ResourceKindCoreV1Container:
+		return true
+	default:
+		return false
+	}
+}
 
 type Resource interface {
 	platform.Node
@@ -53,6 +69,8 @@ func (r resource) String() string {
 	return fmt.Sprintf("%s<%s>", r.kind, r.name)
 }
 
+// TagName returns the name of a tag representing the resource.
+// Panics if [ResourceKind.IsSupported] returns false.
 func TagName(kind ResourceKind) string {
 	switch kind {
 	case ResourceKindAppsV1Deployment:

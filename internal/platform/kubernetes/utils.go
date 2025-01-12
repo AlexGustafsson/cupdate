@@ -228,9 +228,16 @@ func addObjectToGraph(graph platform.Graph, obj runtime.Object, includeOldReplic
 			// For now, let's assume a pod only has one owning reference
 			var parent Resource
 			if len(o.OwnerReferences) > 0 {
+				kind := ResourceKind(strings.ToLower(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind))
+				if !kind.IsSupported() {
+					// Even though we don't know anyhting about the resource, add it as a
+					// unknown type to show it in the UI
+					kind = ResourceKindUnknown
+				}
+
 				parent = resource{
 					id:   fmt.Sprintf("kubernetes/%s", o.OwnerReferences[0].UID),
-					kind: ResourceKind(strings.ToLower(o.OwnerReferences[0].APIVersion + "/" + o.OwnerReferences[0].Kind)),
+					kind: kind,
 					name: o.OwnerReferences[0].Name,
 				}
 			}

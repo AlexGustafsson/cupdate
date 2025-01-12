@@ -356,7 +356,10 @@ func main() {
 
 						if childNode != nil {
 							resource := (*childNode).(kubernetes.Resource)
-							tags = append(tags, kubernetes.TagName(resource.Kind()))
+							kind := resource.Kind()
+							if kind.IsSupported() {
+								tags = append(tags, kubernetes.TagName(resource.Kind()))
+							}
 						}
 					}
 				}

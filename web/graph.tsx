@@ -43,6 +43,7 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     'batch/v1/job': 'Job',
     'batch/v1/cronjob': 'Cron job',
     'apps/v1/statefulset': 'Stateful set',
+    unknown: '<unknown resource>',
   },
   docker: {
     container: 'Container',
