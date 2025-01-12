@@ -5,13 +5,13 @@ labels: ["bug", "ui"]
 body:
   - type: markdown
     attributes:
-      value: |
+      value: >
         Thanks for taking the time to fill out this bug report!
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
-      description: |
+      description: >
         What happened? What did you expect to happen?
         If applicable, please include screenshots.
     validations:
@@ -51,7 +51,7 @@ body:
     id: logs
     attributes:
       label: Relevant log output
-      description: |
+      description: >
         Please copy and paste any relevant log output from the browser's dev
         tools. This will be automatically formatted into code, so no need for
         backticks.

@@ -5,16 +5,16 @@ labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
-      value: |
+      value: >
         Thanks for taking the time to request a new feature!
   - type: textarea
     id: stories
     attributes:
       label: User stories
-      description: |
+      description: >
         In its essence, what is the feature you want to add? Explain your
         request as one or more user stories.
-      placeholder: |
+      placeholder: >
         - As a user I want to click on an image's name to show other versions of that image
         - As an admin I want to deploy Cupdate using Nomad
         - As a user I want to know if images are vulnerable
@@ -24,7 +24,7 @@ body:
     id: description
     attributes:
       label: Feature description
-      description: |
+      description: >
         In detail, what is the feature you'd like to have. How should it work?
         Try to explain in detail how the feature would work - but also why you
         want the feature in the first place.
