@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Determine ref
         id: determine_ref
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo -n "ref=" >> "$GITHUB_OUTPUT"
           gh pr view --json headRefName --jq .headRefName ${{ inputs.pr }} >> "$GITHUB_OUTPUT"
