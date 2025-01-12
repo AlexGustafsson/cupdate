@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { TagsByName, sortTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
@@ -32,6 +32,8 @@ export function ImageCard({
   tags,
   className,
 }: ImageCardProps & { className?: string }): JSX.Element {
+  const navigate = useNavigate()
+
   return (
     <div
       className={`flex gap-x-4 p-4 md:p-6 bg-white dark:bg-[#1e1e1e] rounded-lg shadow ${className || ''}`}
@@ -90,16 +92,34 @@ export function ImageCard({
         <p className="text-sm mt-2">{description}</p>
         <div className="flex flex-wrap gap-2 mt-4">
           {tags.toSorted(sortTags).map((x) => (
-            <NavLink key={x} to={`/?tag=${encodeURIComponent(x)}`}>
-              <Badge
-                label={x}
-                color={TagsByName[x]?.color}
-                className="hover:opacity-90"
-              />
-            </NavLink>
+            <Badge
+              key={x}
+              label={x}
+              color={TagsByName[x]?.color}
+              className="hover:opacity-90"
+              // It's illegal to nest anchors in HTML, so unfortunately we need
+              // to use onClick here
+              onClick={(e) => {
+                e.metaKey || e.ctrlKey
+                  ? openTab(`/?tag=${encodeURIComponent(x)}`)
+                  : navigate(`/?tag=${encodeURIComponent(x)}`)
+                e.preventDefault()
+              }}
+            />
           ))}
         </div>
       </div>
     </div>
   )
+}
+
+function openTab(target: string) {
+  // Using window.open with target _blank creates a new window on Safari, macOS
+  // so use this cross-platform solution instead
+  const a = document.createElement('a')
+
+  a.rel = 'noreferrer'
+  a.target = '_blank'
+  a.href = target
+  a.click()
 }
