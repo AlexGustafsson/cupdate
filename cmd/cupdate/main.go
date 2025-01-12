@@ -303,7 +303,6 @@ func main() {
 				edges := subgraph.Edges()
 				nodes := subgraph.Nodes()
 
-				// TODO: Rewrite to be more generic (to include Docker?)
 				var namespaceNode *platform.Node
 
 				mappedNodes := make(map[string]models.GraphNode)
@@ -324,6 +323,9 @@ func main() {
 							Type:   string(n.Kind()),
 							Name:   n.Name(),
 						}
+						if node.Type() == "docker/"+docker.ResourceKindSwarmNamespace {
+							namespaceNode = &node
+						}
 					case platform.ImageNode:
 						mappedNodes[node.ID()] = models.GraphNode{
 							Domain: "oci",
@@ -336,8 +338,8 @@ func main() {
 				}
 
 				tags := []string{}
+
 				// Set tags for resources
-				// TODO: Handle for docker as well?
 				if namespaceNode != nil {
 					children := edges[(*namespaceNode).ID()]
 					for childID, isParent := range children {
@@ -355,10 +357,14 @@ func main() {
 						}
 
 						if childNode != nil {
-							resource := (*childNode).(kubernetes.Resource)
-							kind := resource.Kind()
-							if kind.IsSupported() {
-								tags = append(tags, kubernetes.TagName(resource.Kind()))
+							switch resource := (*childNode).(type) {
+							case kubernetes.Resource:
+								kind := resource.Kind()
+								if kind.IsSupported() {
+									tags = append(tags, kubernetes.TagName(resource.Kind()))
+								}
+							case docker.Resource:
+								tags = append(tags, docker.TagName(resource.Kind()))
 							}
 						}
 					}

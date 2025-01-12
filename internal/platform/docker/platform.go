@@ -217,7 +217,19 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 			continue
 		}
 
-		graph.InsertTree(
+		// Docker Swarm has a preference for digested names, even when started with
+		// a manifest referencing a tag, try to resolve the reference
+		if !reference.HasTag && reference.HasDigest {
+			r, _, ok := strings.Cut(container.Image, "@")
+			if ok {
+				ref, err := oci.ParseReference(r)
+				if err == nil {
+					reference = ref
+				}
+			}
+		}
+
+		tree := []platform.Node{
 			platform.ImageNode{
 				Reference: reference,
 			},
@@ -226,7 +238,46 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 				id:   fmt.Sprintf("docker/containers/%s", container.ID),
 				name: container.Name(),
 			},
-		)
+		}
+
+		// Add graph nodes for Docker Swarm, if available
+		if container.Labels != nil {
+			if taskID, ok := container.Labels["com.docker.swarm.task.id"]; ok {
+				taskName, ok := container.Labels["com.docker.swarm.task.name"]
+				if !ok {
+					taskName = taskID
+				}
+
+				tree = append(tree, resource{
+					kind: ResourceKindSwarmTask,
+					id:   fmt.Sprintf("docker/swarm/task/%s", taskID),
+					name: taskName,
+				})
+			}
+
+			if serviceID, ok := container.Labels["com.docker.swarm.service.id"]; ok {
+				serviceName, ok := container.Labels["com.docker.swarm.service.name"]
+				if !ok {
+					serviceName = serviceID
+				}
+
+				tree = append(tree, resource{
+					kind: ResourceKindSwarmService,
+					id:   fmt.Sprintf("docker/swarm/service/%s", serviceID),
+					name: serviceName,
+				})
+			}
+
+			if namespace, ok := container.Labels["com.docker.stack.namespace"]; ok {
+				tree = append(tree, resource{
+					kind: ResourceKindSwarmNamespace,
+					id:   fmt.Sprintf("docker/swarm/namespace/%s", namespace),
+					name: namespace,
+				})
+			}
+		}
+
+		graph.InsertTree(tree...)
 	}
 
 	return graph, nil
@@ -237,6 +288,7 @@ type Container struct {
 	Names   []string
 	Image   string
 	ImageID string
+	Labels  map[string]string
 
 	// ... other ignored fields
 }

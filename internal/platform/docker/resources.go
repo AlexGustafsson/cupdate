@@ -9,7 +9,10 @@ import (
 type ResourceKind string
 
 const (
-	ResourceKindContainer = "container"
+	ResourceKindContainer      = "container"
+	ResourceKindSwarmTask      = "swarm/task"
+	ResourceKindSwarmService   = "swarm/service"
+	ResourceKindSwarmNamespace = "swarm/namespace"
 )
 
 type Resource interface {
@@ -49,6 +52,12 @@ func TagName(kind ResourceKind) string {
 	switch kind {
 	case ResourceKindContainer:
 		return "container"
+	case ResourceKindSwarmTask:
+		return "task"
+	case ResourceKindSwarmService:
+		return "service"
+	case ResourceKindSwarmNamespace:
+		return "namespace"
 	default:
 		// Panic as missing entries would be a programming issue, not runtime
 		// bug

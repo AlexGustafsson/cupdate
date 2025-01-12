@@ -47,6 +47,9 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
   },
   docker: {
     container: 'Container',
+    'swarm/task': 'Task',
+    'swarm/service': 'Service',
+    'swarm/namespace': 'Namespace',
   },
 }
 

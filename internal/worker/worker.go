@@ -8,6 +8,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/store"
@@ -139,7 +140,9 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 				data.InsertTag(node.Name)
 			}
 		case "docker":
-			// Not implemented
+			if node.Type == docker.ResourceKindSwarmNamespace {
+				data.InsertTag(node.Name)
+			}
 		}
 	}
 
