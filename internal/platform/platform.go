@@ -2,8 +2,10 @@ package platform
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
@@ -87,6 +89,39 @@ func (g *PollGrapher) GraphContinously(ctx context.Context) (<-chan Graph, error
 	}()
 
 	return ch, nil
+}
+
+// CompoundGrapher creates a graph from one or more [Grapher] simultaneously.
+type CompoundGrapher struct {
+	Graphers []Grapher
+}
+
+func (g *CompoundGrapher) Graph(ctx context.Context) (Graph, error) {
+	graphs := make([]Graph, len(g.Graphers))
+	errs := make([]error, len(g.Graphers))
+
+	// Don't use ErrGroup in order to retain all errors to help users debug any
+	// issues
+	var wg sync.WaitGroup
+	for i, grapher := range g.Graphers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			graphs[i], errs[i] = grapher.Graph(ctx)
+		}()
+	}
+	wg.Wait()
+
+	if err := errors.Join(errs...); err != nil {
+		return nil, err
+	}
+
+	compoundGraph := NewGraph()
+	for _, graph := range graphs {
+		compoundGraph.InsertGraph(graph)
+	}
+
+	return compoundGraph, nil
 }
 
 func NewGraph() Graph {

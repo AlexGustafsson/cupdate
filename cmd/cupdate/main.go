@@ -78,8 +78,8 @@ type Config struct {
 	} `envPrefix:"KUBERNETES_"`
 
 	Docker struct {
-		Host                 string `env:"HOST"`
-		IncludeAllContainers bool   `env:"INCLUDE_ALL_CONTAINERS"`
+		Hosts                []string `env:"HOST"`
+		IncludeAllContainers bool     `env:"INCLUDE_ALL_CONTAINERS"`
 	} `envPrefix:"DOCKER_"`
 
 	OTEL struct {
@@ -135,7 +135,7 @@ func main() {
 	// Set up the configured platform (Docker if specified, auto discovery of
 	// Kubernetes otherwise)
 	var targetPlatform platform.Grapher
-	if config.Docker.Host == "" {
+	if len(config.Docker.Hosts) == 0 {
 		var kubernetesConfig *rest.Config
 		if config.Kubernetes.Host == "" {
 			var err error
@@ -156,12 +156,20 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		targetPlatform, err = docker.NewPlatform(context.Background(), config.Docker.Host, &docker.Options{
-			IncludeAllContainers: config.Docker.IncludeAllContainers,
-		})
-		if err != nil {
-			slog.ErrorContext(ctx, "Failed to create docker source", slog.Any("error", err))
-			os.Exit(1)
+		graphers := make([]platform.Grapher, 0)
+		for _, host := range config.Docker.Hosts {
+			platform, err := docker.NewPlatform(context.Background(), host, &docker.Options{
+				IncludeAllContainers: config.Docker.IncludeAllContainers,
+			})
+			if err != nil {
+				slog.ErrorContext(ctx, "Failed to create docker source", slog.Any("error", err))
+				os.Exit(1)
+			}
+
+			graphers = append(graphers, platform)
+		}
+		targetPlatform = &platform.CompoundGrapher{
+			Graphers: graphers,
 		}
 	}
 
