@@ -137,11 +137,11 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		switch node.Domain {
 		case "kubernetes":
 			if node.Type == kubernetes.ResourceKindCoreV1Namespace {
-				data.InsertTag(node.Name)
+				data.InsertTag("namespace:" + node.Name)
 			}
 		case "docker":
 			if node.Type == docker.ResourceKindSwarmNamespace {
-				data.InsertTag(node.Name)
+				data.InsertTag("namespace:" + node.Name)
 			}
 		}
 	}
