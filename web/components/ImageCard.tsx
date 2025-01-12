@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 
 import { NavLink, useNavigate } from 'react-router-dom'
-import { TagsByName, sortTags } from '../tags'
+import { TagsByName, compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
 import { ImageLogo } from './ImageLogo'
@@ -91,22 +91,24 @@ export function ImageCard({
         )}
         <p className="text-sm mt-2">{description}</p>
         <div className="flex flex-wrap gap-2 mt-4">
-          {tags.toSorted(sortTags).map((x) => (
-            <Badge
-              key={x}
-              label={x}
-              color={TagsByName[x]?.color}
-              className="hover:opacity-90"
-              // It's illegal to nest anchors in HTML, so unfortunately we need
-              // to use onClick here
-              onClick={(e) => {
-                e.metaKey || e.ctrlKey
-                  ? openTab(`/?tag=${encodeURIComponent(x)}`)
-                  : navigate(`/?tag=${encodeURIComponent(x)}`)
-                e.preventDefault()
-              }}
-            />
-          ))}
+          {tags
+            .toSorted((a, b) => compareTags(a, b))
+            .map((x) => (
+              <Badge
+                key={x}
+                label={x}
+                color={TagsByName[x]?.color}
+                className="hover:opacity-90"
+                // It's illegal to nest anchors in HTML, so unfortunately we need
+                // to use onClick here
+                onClick={(e) => {
+                  e.metaKey || e.ctrlKey
+                    ? openTab(`/?tag=${encodeURIComponent(x)}`)
+                    : navigate(`/?tag=${encodeURIComponent(x)}`)
+                  e.preventDefault()
+                }}
+              />
+            ))}
         </div>
       </div>
     </div>
