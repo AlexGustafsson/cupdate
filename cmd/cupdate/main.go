@@ -323,7 +323,7 @@ func main() {
 							Name:   imageNode.Reference.String(),
 						}
 					default:
-						panic(fmt.Sprintf("unimplemented node type: %s", node.Type()))
+						panic(fmt.Sprintf("mapping unimplemented node type: %s", node.Type()))
 					}
 				}
 

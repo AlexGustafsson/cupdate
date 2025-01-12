@@ -74,6 +74,8 @@ func TagName(kind ResourceKind) string {
 	case ResourceKindCoreV1Container:
 		return "container"
 	default:
-		panic("tag for resource kind not implemented")
+		// Panic as missing entries would be a programming issue, not runtime
+		// bug
+		panic(fmt.Sprintf("kubernetes: tag for resource kind <%s> not implemented", kind))
 	}
 }

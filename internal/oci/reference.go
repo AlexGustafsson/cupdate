@@ -2,6 +2,7 @@ package oci
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/distribution/reference"
@@ -22,7 +23,7 @@ func (r Reference) Canonical() Reference {
 	// ParseReference always canonicalizes the reference, reuse it
 	ref, err := ParseReference(r.String())
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("reference: canonical format misuse: %v", err))
 	}
 
 	return ref

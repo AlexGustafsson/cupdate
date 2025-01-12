@@ -271,7 +271,7 @@ func addObjectToGraph(graph platform.Graph, obj runtime.Object, includeOldReplic
 	default:
 		// Panic as missing entries would be a programming issue, not runtime
 		// bug
-		panic("unsupported object kind")
+		panic("kubernetes: unsupported object kind <%s>")
 	}
 
 	return nil
