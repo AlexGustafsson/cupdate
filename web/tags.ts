@@ -63,6 +63,16 @@ export const Tags: Tag[] = [
     color: palette.kubernetes,
   },
   {
+    name: 'service',
+    description: 'A Docker Swarm service',
+    color: palette.docker,
+  },
+  {
+    name: 'task',
+    description: 'A Docker Swarm task',
+    color: palette.docker,
+  },
+  {
     name: 'docker',
     description: 'A docker image',
     color: palette.docker,
