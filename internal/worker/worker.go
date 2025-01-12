@@ -8,6 +8,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/workflow/imageworkflow"
@@ -127,6 +128,18 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 			}
 
 			versionDiffSortable = semver.PackInt64(newVersion) - semver.PackInt64(currentVersion)
+		}
+	}
+
+	// Add Kubernetes namespace and Docker stack tags
+	for _, node := range image.Graph.Nodes {
+		switch node.Domain {
+		case "kubernetes":
+			if node.Type == kubernetes.ResourceKindCoreV1Namespace {
+				data.InsertTag(node.Name)
+			}
+		case "docker":
+			// Not implemented
 		}
 	}
 
