@@ -128,7 +128,7 @@ func (c *Client) do(req *http.Request, span trace.Span) (*http.Response, error) 
 
 	// Span status
 	// SEE: https://opentelemetry.io/docs/specs/semconv/http/http-spans/#status
-	if err == nil && res.StatusCode >= 400 {
+	if err == nil && res != nil && res.StatusCode >= 400 {
 		span.SetStatus(codes.Error, "")
 	} else if errors.Is(err, context.Canceled) {
 		span.SetStatus(codes.Error, "Context canceled")
@@ -138,7 +138,9 @@ func (c *Client) do(req *http.Request, span trace.Span) (*http.Response, error) 
 		span.SetStatus(codes.Error, "Network error")
 	}
 
-	span.SetAttributes(semconv.HTTPResponseStatusCode(res.StatusCode))
+	if res != nil {
+		span.SetAttributes(semconv.HTTPResponseStatusCode(res.StatusCode))
+	}
 
 	return res, err
 }
