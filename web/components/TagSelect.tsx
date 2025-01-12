@@ -12,6 +12,17 @@ const IOS = [
   'iPod',
 ].includes(navigator.platform)
 
+/** Sort tags lexically, putting prefixed tags last. */
+function sortTags(a: Tag, b: Tag): number {
+  if (a.name.includes(':') === b.name.includes(':')) {
+    return a.name.localeCompare(b.name)
+  } else if (a.name.includes(':')) {
+    return 1
+  } else {
+    return -1
+  }
+}
+
 export function TagSelect({
   tags,
   filter,
@@ -39,7 +50,7 @@ export function TagSelect({
             )
           }
         >
-          {tags.map((x) => (
+          {tags.toSorted(sortTags).map((x) => (
             <option key={x.name} value={x.name}>
               {x.name}
             </option>
@@ -97,7 +108,7 @@ export function TagSelect({
       {isOpen && (
         <div className="absolute group-hover:visible -top-4 -left-4 p-2 z-50 text-black dark:text-[#dddddd]">
           <div className="flex flex-col gap-y-2 py-2 px-3 pr-6 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d0d0d0]/95 dark:border-[#505050] rounded-lg w-max shadow">
-            {tags.map((x) => (
+            {tags.toSorted(sortTags).map((x) => (
               <label key={x.name} className="cursor-pointer">
                 <input
                   type="checkbox"
