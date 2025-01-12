@@ -13,7 +13,7 @@ export function Badge({
   className,
   ...rest
 }: Omit<HTMLAttributes<HTMLSpanElement>, 'color'> & BadgeProps): JSX.Element {
-  let backgroundColor = '#CC5889'
+  let backgroundColor = 'light-dark(#3A3FCE, #4349f0)'
   if (typeof color === 'string') {
     backgroundColor = color
   } else if (color !== undefined) {
