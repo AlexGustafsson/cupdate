@@ -112,9 +112,9 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	// Add some basic tags
 	if data.LatestReference != nil {
 		if data.ImageReference.String() == data.LatestReference.String() {
-			data.Tags = append(data.Tags, "up-to-date")
+			data.InsertTag("up-to-date")
 		} else {
-			data.Tags = append(data.Tags, "outdated")
+			data.InsertTag("outdated")
 		}
 
 		// Add tags based on version diff
@@ -123,7 +123,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		if currentVersion != nil && currentVersionErr == nil && newVersion != nil && newVersionErr == nil {
 			diff := currentVersion.Diff(newVersion)
 			if diff != "" {
-				data.Tags = append(data.Tags, diff)
+				data.InsertTag(diff)
 			}
 
 			versionDiffSortable = semver.PackInt64(newVersion) - semver.PackInt64(currentVersion)
