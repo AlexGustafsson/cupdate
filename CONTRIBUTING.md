@@ -120,3 +120,10 @@ docker run --rm -it \
 export CUPDATE_OTEL_TARGET=localhost:4317
 export CUPDATE_OTEL_INSECURE=true
 ```
+
+Optionally proxy a Docker socket to test Docker over TCP. Use the proxied port
+as the Docker host rather then the one specified in `.env-docker`.
+
+```shell
+go run tools/sockproxy/*.go -p 3000 docker.sock
+```

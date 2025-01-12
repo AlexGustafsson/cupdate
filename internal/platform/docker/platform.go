@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -28,25 +29,47 @@ type Options struct {
 	IncludeAllContainers bool
 }
 
-func NewPlatform(ctx context.Context, host string, options *Options) (*Platform, error) {
+func NewPlatform(ctx context.Context, dockerURI string, options *Options) (*Platform, error) {
 	if options == nil {
 		options = &Options{}
 	}
 
-	if !strings.HasPrefix(host, "unix://") {
-		return nil, fmt.Errorf("unexpected docker host - expected a unix socket")
-	}
-	path := strings.TrimPrefix(host, "unix://")
+	var transport *http.Transport
+	if strings.HasPrefix(dockerURI, "unix://") {
+		host := strings.TrimPrefix(dockerURI, "unix://")
 
-	client := &http.Client{
-		Transport: &http.Transport{
+		if _, err := os.Stat(host); err != nil {
+			return nil, err
+		}
+
+		transport = &http.Transport{
 			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
 				return (&net.Dialer{
 					Timeout: 5 * time.Second,
-				}).DialContext(ctx, "unix", path)
+				}).DialContext(ctx, "unix", host)
 			},
-		},
-		Timeout: 10 * time.Second,
+		}
+	} else if strings.HasPrefix(dockerURI, "tcp://") {
+		host := strings.TrimPrefix(dockerURI, "tcp://")
+
+		if _, _, err := net.SplitHostPort(host); err != nil {
+			return nil, err
+		}
+
+		transport = &http.Transport{
+			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+				return (&net.Dialer{
+					Timeout: 5 * time.Second,
+				}).DialContext(ctx, "tcp", host)
+			},
+		}
+	} else {
+		return nil, fmt.Errorf("unsupported docker URI: %s", dockerURI)
+	}
+
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   10 * time.Second,
 	}
 
 	p := &Platform{
@@ -55,7 +78,7 @@ func NewPlatform(ctx context.Context, host string, options *Options) (*Platform,
 		includeAllContainers: options.IncludeAllContainers,
 	}
 
-	// Make sure that we can connect to the socket.
+	// Make sure that we can connect to the host.
 	// For now, we probably support most API versions - no need to limit the use
 	// or pin to specific API versions using docker's versioned path prefix
 	_, _, err := p.GetVersion(ctx)
@@ -67,7 +90,7 @@ func NewPlatform(ctx context.Context, host string, options *Options) (*Platform,
 }
 
 func (p *Platform) GetVersion(ctx context.Context) (string, string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://unix/version", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/version", nil)
 	if err != nil {
 		return "", "", err
 	}
@@ -112,7 +135,7 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 		query.Set("filters", string(filters))
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://unix/containers/json?"+query.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/containers/json?"+query.Encode(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +159,7 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 }
 
 func (p *Platform) GetImage(ctx context.Context, nameOrID string) (*Image, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://unix/images/"+url.PathEscape(nameOrID)+"/json", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/images/"+url.PathEscape(nameOrID)+"/json", nil)
 	if err != nil {
 		return nil, err
 	}
