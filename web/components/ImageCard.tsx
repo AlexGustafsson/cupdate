@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 
 import { NavLink } from 'react-router-dom'
-import { TagsByName } from '../tags'
+import { TagsByName, sortTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
 import { ImageLogo } from './ImageLogo'
@@ -89,7 +89,7 @@ export function ImageCard({
         )}
         <p className="text-sm mt-2">{description}</p>
         <div className="flex flex-wrap gap-2 mt-4">
-          {tags.map((x) => (
+          {tags.toSorted(sortTags).map((x) => (
             <NavLink key={x} to={`/?tag=${encodeURIComponent(x)}`}>
               <Badge
                 label={x}

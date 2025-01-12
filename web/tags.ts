@@ -112,3 +112,17 @@ export const Tags: Tag[] = [
 export const TagsByName: Record<string, Tag> = Object.fromEntries(
   Tags.map((x) => [x.name, x])
 )
+
+/** Sort tags lexically, putting prefixed tags last. */
+export function sortTags(a: Tag | string, b: Tag | string): number {
+  const aString = typeof a === 'string' ? a : a.name
+  const bString = typeof b === 'string' ? b : b.name
+
+  if (aString.includes(':') === bString.includes(':')) {
+    return aString.localeCompare(bString)
+  } else if (aString.includes(':')) {
+    return 1
+  } else {
+    return -1
+  }
+}

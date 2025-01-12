@@ -1,6 +1,6 @@
 import { type JSX, type PropsWithChildren, useRef, useState } from 'react'
 
-import type { Tag } from '../tags'
+import { type Tag, sortTags } from '../tags'
 import { Badge } from './Badge'
 
 const IOS = [
@@ -11,17 +11,6 @@ const IOS = [
   'iPhone',
   'iPod',
 ].includes(navigator.platform)
-
-/** Sort tags lexically, putting prefixed tags last. */
-function sortTags(a: Tag, b: Tag): number {
-  if (a.name.includes(':') === b.name.includes(':')) {
-    return a.name.localeCompare(b.name)
-  } else if (a.name.includes(':')) {
-    return 1
-  } else {
-    return -1
-  }
-}
 
 export function TagSelect({
   tags,
