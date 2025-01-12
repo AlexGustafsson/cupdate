@@ -1,5 +1,6 @@
 import type { JSX } from 'react'
 
+import { NavLink } from 'react-router-dom'
 import { TagsByName } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
@@ -80,7 +81,13 @@ export function ImageCard({
         <p className="text-sm mt-2">{description}</p>
         <div className="flex flex-wrap gap-2 mt-4">
           {tags.map((x) => (
-            <Badge key={x} label={x} color={TagsByName[x]?.color} />
+            <NavLink key={x} to={`/?tag=${encodeURIComponent(x)}`}>
+              <Badge
+                label={x}
+                color={TagsByName[x]?.color}
+                className="hover:opacity-90"
+              />
+            </NavLink>
           ))}
         </div>
       </div>

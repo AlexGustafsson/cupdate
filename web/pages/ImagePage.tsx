@@ -1,5 +1,5 @@
 import type { JSX, ReactNode } from 'react'
-import { Navigate, useSearchParams } from 'react-router-dom'
+import { Link, NavLink, Navigate, useSearchParams } from 'react-router-dom'
 
 import {
   type Graph,
@@ -222,7 +222,14 @@ export function ImagePage(): JSX.Element {
       {/* Image tags */}
       <div className="flex mt-4 items-center gap-x-2">
         {imageTags.map((x) => (
-          <Badge key={x.name} label={x.name} color={x.color} />
+          <NavLink key={x.name} to={`/?tag=${encodeURIComponent(x.name)}`}>
+            <Badge
+              key={x.name}
+              label={x.name}
+              color={x.color}
+              className="hover:opacity-90"
+            />
+          </NavLink>
         ))}
       </div>
       {/* Links */}
