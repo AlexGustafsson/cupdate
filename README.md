@@ -42,7 +42,8 @@ Supported registries:
 - ghcr.io
 - quay.io
 - lscr.io
-- registry.k8s.io, k8s.gcr.io
+- registry.k8s.io
+- k8s.gcr.io, gke.gcr.io, gcr.io
 - registry.gitlab.com
 
 Supported data sources:

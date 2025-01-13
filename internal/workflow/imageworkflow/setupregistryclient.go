@@ -49,7 +49,7 @@ func SetupRegistryClient() workflow.Step {
 						Client: httpClient,
 					},
 				}
-			case "k8s.gcr.io", "quay.io", "registry.k8s.io":
+			case "k8s.gcr.io", "gcr.io", "gke.gcr.io", "quay.io", "registry.k8s.io":
 				client = &oci.Client{
 					Client: httpClient,
 				}
