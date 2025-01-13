@@ -9,8 +9,19 @@ type DockerDistributionManifestListV2 struct {
 	// 2
 	SchemaVersion int `json:"schemaVersion"`
 	// application/vnd.docker.distribution.manifest.list.v2+json
-	MediaType string                         `json:"mediaType"`
-	Manifests []DockerDistributionManifestV2 `json:"manifests"`
+	MediaType string `json:"mediaType"`
+	Manifests []struct {
+		// application/vnd.docker.distribution.manifest.v2+json
+		// application/vnd.docker.distribution.manifest.v1+json
+		MediaType string `json:"mediaType"`
+		Size      int    `json:"size"`
+		Digest    string `json:"digest"`
+		Platform  struct {
+			Architecture string `json:"architecture"`
+			OS           string `json:"os"`
+			Variant      string `json:"variant"`
+		} `json:"platform"`
+	} `json:"manifests"`
 }
 
 type DockerDistributionManifestV2 struct {
@@ -18,13 +29,12 @@ type DockerDistributionManifestV2 struct {
 	SchemaVersion int `json:"schemaVersion"`
 	// application/vnd.docker.distribution.manifest.v2+json
 	MediaType string `json:"mediaType"`
-	Digest    string `json:"digest"`
-	Platform  struct {
-		Architecture string `json:"architecture"`
-		OS           string `json:"os"`
-		Variant      string `json:"variant"`
-	} `json:"platform"`
-	Size int `json:"size"`
+	Config    struct {
+		// application/vnd.docker.container.image.v1+json
+		MediaType string `json:"mediaType"`
+		Size      int    `json:"size"`
+		Digest    string `json:"digest"`
+	} `json:"config"`
 }
 
 type OCIImageIndexV1 struct {

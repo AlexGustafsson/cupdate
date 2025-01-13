@@ -105,13 +105,6 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 
 		manifests := make([]Manifest, 0)
 		for _, manifest := range result.Manifests {
-			// The manifest's schema version always seems to be unset in this case,
-			// fall back to use the parent manifest's version
-			schemaVersion := manifest.SchemaVersion
-			if schemaVersion == 0 {
-				schemaVersion = result.SchemaVersion
-			}
-
 			var platform *Platform
 			if manifest.Platform.Architecture != "" {
 				platform = &Platform{
@@ -122,7 +115,7 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 			}
 
 			manifests = append(manifests, Manifest{
-				SchemaVersion: schemaVersion,
+				SchemaVersion: result.SchemaVersion,
 				MediaType:     manifest.MediaType,
 				Digest:        manifest.Digest,
 				Platform:      platform,
@@ -134,25 +127,16 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 
 	if result.MediaType == "application/vnd.docker.distribution.manifest.v2+json" && result.SchemaVersion == 2 {
 		var manifest DockerDistributionManifestV2
-		if err := json.Unmarshal(body, &result); err != nil {
+		if err := json.Unmarshal(body, &manifest); err != nil {
 			return nil, err
-		}
-
-		var platform *Platform
-		if manifest.Platform.Architecture != "" {
-			platform = &Platform{
-				Architecture: manifest.Platform.Architecture,
-				OS:           manifest.Platform.OS,
-				Variant:      manifest.Platform.Variant,
-			}
 		}
 
 		return []Manifest{
 			{
 				SchemaVersion: manifest.SchemaVersion,
 				MediaType:     manifest.MediaType,
-				Digest:        manifest.Digest,
-				Platform:      platform,
+				Digest:        manifest.Config.Digest,
+				Platform:      nil,
 			},
 		}, nil
 	}
