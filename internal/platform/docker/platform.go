@@ -240,7 +240,7 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 			},
 		}
 
-		// Add graph nodes for Docker Swarm, if available
+		// Add graph nodes for Docker Swarm and Compose, if available
 		if container.Labels != nil {
 			if taskID, ok := container.Labels["com.docker.swarm.task.id"]; ok {
 				taskName, ok := container.Labels["com.docker.swarm.task.name"]
@@ -266,6 +266,12 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 					id:   fmt.Sprintf("docker/swarm/service/%s", serviceID),
 					name: serviceName,
 				})
+			} else if service, ok := container.Labels["com.docker.compose.service"]; ok {
+				tree = append(tree, resource{
+					kind: ResourceKindComposeService,
+					id:   fmt.Sprintf("docker/compose/service/%s", service),
+					name: service,
+				})
 			}
 
 			if namespace, ok := container.Labels["com.docker.stack.namespace"]; ok {
@@ -273,6 +279,12 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 					kind: ResourceKindSwarmNamespace,
 					id:   fmt.Sprintf("docker/swarm/namespace/%s", namespace),
 					name: namespace,
+				})
+			} else if project, ok := container.Labels["com.docker.compose.project"]; ok {
+				tree = append(tree, resource{
+					kind: ResourceKindComposeProject,
+					id:   fmt.Sprintf("docker/compose/project/%s", project),
+					name: project,
 				})
 			}
 		}

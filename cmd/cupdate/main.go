@@ -323,7 +323,7 @@ func main() {
 							Type:   string(n.Kind()),
 							Name:   n.Name(),
 						}
-						if node.Type() == "docker/"+docker.ResourceKindSwarmNamespace {
+						if node.Type() == "docker/"+docker.ResourceKindSwarmNamespace || node.Type() == "docker/"+docker.ResourceKindComposeProject {
 							namespaceNode = &node
 						}
 					case platform.ImageNode:

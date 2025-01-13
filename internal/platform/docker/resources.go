@@ -13,6 +13,8 @@ const (
 	ResourceKindSwarmTask      = "swarm/task"
 	ResourceKindSwarmService   = "swarm/service"
 	ResourceKindSwarmNamespace = "swarm/namespace"
+	ResourceKindComposeProject = "compose/project"
+	ResourceKindComposeService = "compose/service"
 )
 
 type Resource interface {
@@ -58,6 +60,10 @@ func TagName(kind ResourceKind) string {
 		return "service"
 	case ResourceKindSwarmNamespace:
 		return "namespace"
+	case ResourceKindComposeProject:
+		return "project"
+	case ResourceKindComposeService:
+		return "service"
 	default:
 		// Panic as missing entries would be a programming issue, not runtime
 		// bug

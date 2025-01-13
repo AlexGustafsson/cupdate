@@ -50,6 +50,8 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     'swarm/task': 'Task',
     'swarm/service': 'Service',
     'swarm/namespace': 'Namespace',
+    'compose/service': 'Service',
+    'compose/project': 'Project',
   },
 }
 

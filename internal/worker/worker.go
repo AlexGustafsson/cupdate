@@ -142,6 +142,8 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		case "docker":
 			if node.Type == docker.ResourceKindSwarmNamespace {
 				data.InsertTag("namespace:" + node.Name)
+			} else if node.Type == docker.ResourceKindComposeProject {
+				data.InsertTag("project:" + node.Name)
 			}
 		}
 	}
