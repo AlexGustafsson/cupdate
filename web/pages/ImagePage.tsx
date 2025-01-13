@@ -177,10 +177,13 @@ export function ImagePage(): JSX.Element {
         )}
       </h1>
       {/* Image version */}
+      {/* Digests are formatted like <algo>:<digest>, such as sha256:<digest>. Show a maximum of 5 hex digits before truncating with ellipsis (hence 15ch) */}
       <div className="flex items-center">
         {!image.value.latestReference ? (
-          <p className="font-medium">
-            {version(image.value.reference)}{' '}
+          <>
+            <p className="font-medium max-w-[15ch] truncate">
+              {version(image.value.reference)}{' '}
+            </p>
             <InfoTooltip
               icon={<FluentWarning16Filled className="text-yellow-600" />}
             >
@@ -188,16 +191,18 @@ export function ImagePage(): JSX.Element {
               image not being available, the registry not being supported,
               missing authentication or a temporary issue.
             </InfoTooltip>
-          </p>
+          </>
         ) : image.value.reference === image.value.latestReference ? (
-          <p className="font-medium">{version(image.value.reference)}</p>
+          <p className="font-medium max-w-[15ch] truncate">
+            {version(image.value.reference)}
+          </p>
         ) : (
           <>
             <FluentChevronDown20Regular className="text-red-600" />
-            <p className="font-medium text-red-600">
+            <p className="font-medium text-red-600 max-w-[15ch] truncate">
               {version(image.value.reference)}
             </p>
-            <p className="font-medium ml-4 text-green-600">
+            <p className="font-medium ml-4 text-green-600 max-w-[15ch] truncate">
               {image.value.latestReference
                 ? version(image.value.latestReference)
                 : 'unknown'}

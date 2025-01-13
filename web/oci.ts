@@ -1,11 +1,41 @@
+function parse(reference: string): {
+  name: string
+  tag: string
+  digest: string
+} {
+  let digest = ''
+  const digestDelimiter = reference.indexOf('@')
+  if (digestDelimiter >= 0) {
+    digest = reference.substring(digestDelimiter + 1)
+    reference = reference.substring(0, digestDelimiter)
+  }
+
+  let tag = ''
+  const tagDelimiter = reference.indexOf(':')
+  if (tagDelimiter >= 0) {
+    digest = reference.substring(tagDelimiter + 1)
+    tag = reference.substring(0, tagDelimiter)
+  }
+
+  return {
+    name: reference,
+    tag,
+    digest,
+  }
+}
+
 export function version(reference: string): string {
-  const parts = reference.split(':')
-  if (parts.length === 1) {
+  const { tag, digest } = parse(reference)
+  if (digest.length > 0) {
+    return digest
+  } else if (tag.length > 0) {
+    return tag
+  } else {
     return 'latest'
   }
-  return parts[1]
 }
+
 export function name(reference: string): string {
-  const parts = reference.split(':')
-  return parts[0]
+  const { name } = parse(reference)
+  return name
 }
