@@ -300,6 +300,14 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 		}
 	})
 
+	s.mux.HandleFunc("GET /api/v1/summary", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/summary"))
+
+		response, err := api.Summary(ctx)
+		s.handleJSONResponse(w, r, response, err)
+	})
+
 	return s
 }
 

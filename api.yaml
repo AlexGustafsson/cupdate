@@ -176,6 +176,17 @@ paths:
           content:
             application/rss+xml:
 
+  /summary:
+    get:
+      summary: Get a summary.
+      responses:
+        "200":
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+
 components:
   schemas:
     ImagePage:
@@ -186,25 +197,7 @@ components:
           items:
             $ref: "#/components/schemas/Image"
         summary:
-          type: object
-          properties:
-            images:
-              description: Total number of images
-              type: number
-            outdated:
-              description: Total number of outdated images
-              type: number
-            vulnerable:
-              description: Total number of vulnerable images
-              type: number
-            processing:
-              description: Total number of unprocessed images
-              type: number
-          required:
-            - images
-            - outdated
-            - vulnerable
-            - processing
+          $ref: "#/components/schemas/Summary"
         pagination:
           $ref: "#/components/schemas/PaginationMetadata"
       required:
@@ -384,3 +377,24 @@ components:
         type:
           type: string
           enum: ["imageUpdated"]
+
+    Summary:
+      type: object
+      properties:
+        images:
+          description: Total number of images
+          type: number
+        outdated:
+          description: Total number of outdated images
+          type: number
+        vulnerable:
+          description: Total number of vulnerable images
+          type: number
+        processing:
+          description: Total number of unprocessed images
+          type: number
+      required:
+        - images
+        - outdated
+        - vulnerable
+        - processing

@@ -828,80 +828,14 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 
 	offset := page * limit
 
-	// Total images
-	res, err := s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images;`)
-	if err != nil {
-		return nil, err
-	}
-
-	if !res.Next() {
-		return nil, res.Err()
-	}
-
-	var totalImages int
-	if err := res.Scan(&totalImages); err != nil {
-		res.Close()
-		return nil, err
-	}
-	res.Close()
-
-	// Total outdated images
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images WHERE latestReference IS NOT NULL AND reference != latestReference;`)
-	if err != nil {
-		return nil, err
-	}
-
-	if !res.Next() {
-		return nil, res.Err()
-	}
-
-	var totalOutdatedImages int
-	if err := res.Scan(&totalOutdatedImages); err != nil {
-		res.Close()
-		return nil, err
-	}
-	res.Close()
-
-	// Total vulnerable images
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(DISTINCT reference) FROM images_vulnerabilities;`)
-	if err != nil {
-		return nil, err
-	}
-
-	if !res.Next() {
-		return nil, res.Err()
-	}
-
-	var totalVulnerableImages int
-	if err := res.Scan(&totalVulnerableImages); err != nil {
-		res.Close()
-		return nil, err
-	}
-	res.Close()
-
-	// Total raw images
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM raw_images;`)
-	if err != nil {
-		return nil, err
-	}
-
-	if !res.Next() {
-		return nil, res.Err()
-	}
-
-	var totalRawImages int
-	if err := res.Scan(&totalRawImages); err != nil {
-		res.Close()
-		return nil, err
-	}
-	res.Close()
-
 	var result models.ImagePage
 	result.Images = make([]models.Image, 0)
-	result.Summary.Images = totalImages
-	result.Summary.Outdated = totalOutdatedImages
-	result.Summary.Vulnerable = totalVulnerableImages
-	result.Summary.Processing = totalRawImages - totalImages
+
+	summary, err := s.Summary(ctx)
+	if err != nil {
+		return nil, err
+	}
+	result.Summary = *summary
 
 	orderClause := ""
 	switch sort {
@@ -950,7 +884,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	} else if options.Query != "" {
 		args = append(args, ftsEscape(options.Query))
 	}
-	res, err = statement.QueryContext(ctx, args...)
+	res, err := statement.QueryContext(ctx, args...)
 	statement.Close()
 	if err != nil {
 		return nil, err
@@ -1084,6 +1018,83 @@ func (s *Store) DeleteNonPresent(ctx context.Context, references []string) (int6
 	}
 
 	return rowsAffected, nil
+}
+
+func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
+	// Total images
+	res, err := s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images;`)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, res.Err()
+	}
+
+	var totalImages int
+	if err := res.Scan(&totalImages); err != nil {
+		res.Close()
+		return nil, err
+	}
+	res.Close()
+
+	// Total outdated images
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images WHERE latestReference IS NOT NULL AND reference != latestReference;`)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, res.Err()
+	}
+
+	var totalOutdatedImages int
+	if err := res.Scan(&totalOutdatedImages); err != nil {
+		res.Close()
+		return nil, err
+	}
+	res.Close()
+
+	// Total vulnerable images
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(DISTINCT reference) FROM images_vulnerabilities;`)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, res.Err()
+	}
+
+	var totalVulnerableImages int
+	if err := res.Scan(&totalVulnerableImages); err != nil {
+		res.Close()
+		return nil, err
+	}
+	res.Close()
+
+	// Total raw images
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM raw_images;`)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, res.Err()
+	}
+
+	var totalRawImages int
+	if err := res.Scan(&totalRawImages); err != nil {
+		res.Close()
+		return nil, err
+	}
+	res.Close()
+
+	return &models.ImagePageSummary{
+		Images:     totalImages,
+		Outdated:   totalOutdatedImages,
+		Vulnerable: totalVulnerableImages,
+		Processing: totalRawImages - totalImages,
+	}, nil
 }
 
 func (s *Store) Close() error {
