@@ -184,9 +184,8 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 		case <-ctx.Done():
 			w.WriteHeader(http.StatusRequestTimeout)
 		case processQueue <- reference:
+			w.WriteHeader(http.StatusAccepted)
 		}
-
-		w.WriteHeader(http.StatusAccepted)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/feed.rss", func(w http.ResponseWriter, r *http.Request) {

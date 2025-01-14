@@ -5,11 +5,19 @@ import (
 )
 
 var _ http.ResponseWriter = (*StatusRecorder)(nil)
+var _ http.Flusher = (*StatusRecorder)(nil)
 
 type StatusRecorder struct {
 	Writer http.ResponseWriter
 
 	statusCode int
+}
+
+// Flush implements http.Flusher.
+func (s *StatusRecorder) Flush() {
+	if flusher, ok := s.Writer.(http.Flusher); ok {
+		flusher.Flush()
+	}
 }
 
 // Header implements http.ResponseWriter.
