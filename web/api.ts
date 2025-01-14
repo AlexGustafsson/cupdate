@@ -328,19 +328,18 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
   return pages
 }
 
-export function useScheduleScan(): (reference: string) => Promise<void> {
-  return async (reference: string) => {
-    const query = new URLSearchParams({ reference })
-    const res = await fetch(
-      `${import.meta.env.VITE_API_ENDPOINT}/image/scans?${query.toString()}`,
-      {
-        method: 'POST',
-      }
-    )
-
-    if (res.status !== 202) {
-      throw new Error(`unexpected status - ${res.status}`)
+export async function scheduleScan(reference: string): Promise<void> {
+  const query = new URLSearchParams({ reference })
+  const res = await fetch(
+    `${import.meta.env.VITE_API_ENDPOINT}/image/scans?${query.toString()}`,
+    {
+      method: 'POST',
+      signal: AbortSignal.timeout(5000),
     }
+  )
+
+  if (res.status !== 202) {
+    throw new Error(`unexpected status - ${res.status}`)
   }
 }
 

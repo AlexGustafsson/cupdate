@@ -1,13 +1,13 @@
-import type { JSX, ReactNode } from 'react'
+import { type JSX, type ReactNode, useCallback, useState } from 'react'
 import { Link, NavLink, Navigate, useSearchParams } from 'react-router-dom'
 
 import {
   type Graph,
+  scheduleScan,
   useImage,
   useImageDescription,
   useImageGraph,
   useImageReleaseNotes,
-  useScheduleScan,
   useTags,
 } from '../api'
 import { Badge } from '../components/Badge'
@@ -131,8 +131,6 @@ export function ImagePage(): JSX.Element {
   const description = useImageDescription(reference)
   const releaseNotes = useImageReleaseNotes(reference)
   const graph = useImageGraph(reference)
-
-  const scheduleScan = useScheduleScan()
 
   if (
     tags.status === 'idle' ||
@@ -359,23 +357,64 @@ export function ImagePage(): JSX.Element {
         {graph.value && <GraphCard graph={graph.value} />}
 
         <div className="flex justify-center gap-x-2 items-center">
-          <p>
-            Last processed{' '}
-            <span title={new Date(image.value.lastModified).toLocaleString()}>
-              {formatRelativeTimeTo(new Date(image.value.lastModified))}
-            </span>
-          </p>
-          <button
-            type="button"
-            title="Schedule update"
-            onClick={() =>
-              image.value ? scheduleScan(image.value.reference) : undefined
-            }
-          >
-            <FluentArrowSync16Regular />
-          </button>
+          <ProcessStatus
+            reference={image.value.reference}
+            lastModified={image.value.lastModified}
+          />
         </div>
       </main>
     </div>
+  )
+}
+
+type ProcessStatusProps = {
+  lastModified: string
+  reference: string
+}
+
+function ProcessStatus({
+  lastModified,
+  reference,
+}: ProcessStatusProps): JSX.Element {
+  const [status, setStatus] = useState<
+    'idle' | 'in-flight' | 'successful' | 'failed'
+  >('idle')
+
+  const onSchedule = useCallback(() => {
+    setStatus('in-flight')
+    scheduleScan(reference)
+      .then(() => setStatus('successful'))
+      .catch(() => setStatus('failed'))
+  }, [reference])
+
+  return (
+    <>
+      {status !== 'successful' && (
+        <p>
+          Last processed{' '}
+          <span title={new Date(lastModified).toLocaleString()}>
+            {formatRelativeTimeTo(new Date(lastModified))}
+          </span>
+        </p>
+      )}
+      <p>{status === 'successful' && 'Image is scheduled for processing'}</p>
+      <button
+        type="button"
+        title={status === 'idle' ? 'Schedule update' : ''}
+        onClick={onSchedule}
+        disabled={status !== 'idle'}
+      >
+        {(status === 'idle' || status === 'in-flight') && (
+          <FluentArrowSync16Regular
+            className={`ml-1 hover:opacity-90 active:opacity-80 disabled:opacity-70 ${status === 'in-flight' ? 'animate-spin' : ''}`}
+          />
+        )}
+        {status === 'failed' && (
+          <InfoTooltip icon={<FluentWarning16Filled />}>
+            Failed to schedule image. Cupdate is likely busy. Try again later.
+          </InfoTooltip>
+        )}
+      </button>
+    </>
   )
 }
