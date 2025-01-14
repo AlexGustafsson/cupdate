@@ -1,4 +1,11 @@
-import { type JSX, type PropsWithChildren, useRef, useState } from 'react'
+import {
+  type JSX,
+  type PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import { type Tag, compareTags } from '../tags'
 import { Badge } from './Badge'
@@ -24,6 +31,41 @@ export function TagSelect({
   const menuRef = useRef<HTMLDivElement>(null)
 
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      const handler = (e: MouseEvent) => {
+        if (!menuRef.current) {
+          return
+        }
+
+        const { offsetLeft, offsetWidth, offsetTop, offsetHeight } =
+          menuRef.current
+        if (
+          e.offsetX < offsetLeft ||
+          e.offsetX > offsetLeft + offsetWidth ||
+          e.offsetY < offsetTop ||
+          e.offsetY > offsetTop + offsetHeight
+        ) {
+          setIsOpen(false)
+        }
+      }
+      document.addEventListener('mousedown', handler)
+      return () => document.removeEventListener('mousedown', handler)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isOpen) {
+      const handler = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setIsOpen(false)
+        }
+      }
+      document.addEventListener('keydown', handler)
+      return () => document.removeEventListener('keydown', handler)
+    }
+  }, [isOpen])
 
   // Use the nice native multi-select input on iOS
   if (IOS) {
@@ -69,11 +111,7 @@ export function TagSelect({
 
   return (
     <div
-      ref={menuRef}
       onMouseDown={() => setIsOpen(true)}
-      onBlur={() => setIsOpen(false)}
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: the blur does not fire without a tab index
-      tabIndex={0}
       role="menu"
       className="pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded transition-colors focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-sm bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer"
     >
@@ -97,7 +135,10 @@ export function TagSelect({
         />
       </svg>
       {isOpen && (
-        <div className="absolute group-hover:visible -top-4 -left-4 p-2 z-50 text-black dark:text-[#dddddd]">
+        <div
+          ref={menuRef}
+          className="absolute group-hover:visible -top-4 -left-4 p-2 z-50 text-black dark:text-[#dddddd]"
+        >
           <div className="flex max-h-64 overflow-y-auto flex-col gap-y-2 py-2 px-3 pr-6 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d0d0d0]/95 dark:border-[#505050] rounded-lg w-max shadow">
             {tags
               .toSorted((a, b) =>
