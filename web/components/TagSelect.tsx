@@ -109,7 +109,10 @@ export function TagSelect({
                 )
               )
               .map((x) => (
-                <label key={x.name} className="cursor-pointer">
+                <label
+                  key={x.name}
+                  className="cursor-pointer flex shrink-0 items-center"
+                >
                   <input
                     type="checkbox"
                     checked={filter.includes(x.name)}
