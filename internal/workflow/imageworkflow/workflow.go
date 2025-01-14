@@ -25,7 +25,8 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					SetupRegistryClient().
 						WithID("registry").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference),
+						With("reference", data.ImageReference).
+						With("registryAuth", data.RegistryAuth),
 					GetManifests().
 						WithID("manifests").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).

@@ -29,3 +29,4 @@ done using environment variables.
 | `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS`   | Whether or not to include containers in any state, not just running containers.                                                                         | `false`                         |
 | `CUPDATE_OTEL_TARGET`                     | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                                                   | Required to use Open Telemetry. |
 | `CUPDATE_OTEL_INSECURE`                   | Disable client transport security for the Open Telemetry GRPC connection.                                                                               | `false`                         |
+| `CUPDATE_REGISTRY_SECRETS`                | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.                                           | None                            |

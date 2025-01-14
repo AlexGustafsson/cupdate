@@ -28,8 +28,8 @@ func TestClientGetManifest(t *testing.T) {
 	require.NoError(t, err)
 
 	ociClient := &oci.Client{
-		Client:     client.Client,
-		Authorizer: client,
+		Client:   client.Client,
+		AuthFunc: client.HandleAuth,
 	}
 
 	actual, err := ociClient.GetManifests(context.TODO(), ref)
@@ -51,8 +51,8 @@ func TestClientGetAnnotations(t *testing.T) {
 	require.NoError(t, err)
 
 	ociClient := &oci.Client{
-		Client:     client.Client,
-		Authorizer: client,
+		Client:   client.Client,
+		AuthFunc: client.HandleAuth,
 	}
 
 	manifests, err := ociClient.GetAnnotations(context.TODO(), ref, nil)

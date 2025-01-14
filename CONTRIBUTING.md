@@ -129,3 +129,31 @@ as the Docker host rather then the one specified in `.env-docker`.
 ```shell
 go run tools/sockproxy/*.go -p 3000 docker.sock
 ```
+
+### Testing custom registry
+
+To test custom registries and authentication, Zot can be used.
+
+```shell
+# Create a htpasswd for zot
+htpasswd -bBn username password > integration/zot/htpasswd
+```
+
+```shell
+docker run --rm -it -p 9090:9090 --volume "$PWD/integration/zot:/etc/zot:ro" ghcr.io/project-zot/zot-linux-arm64
+```
+
+Note that Zot's UI doesn't work on Safari ATM - you will just be logged out if
+you log in.
+
+Run an image using zot instead.
+
+```shell
+docker run --rm -it localhost:9090/alpine
+```
+
+Start Cupdate targeting Docker, specifying the auth file.
+
+```shell
+export CUPDATE_REGISTRY_SECRETS="integration/zot/docker-basic-auth.json"
+```

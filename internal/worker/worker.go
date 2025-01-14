@@ -19,18 +19,20 @@ import (
 var _ prometheus.Collector = (*Worker)(nil)
 
 type Worker struct {
-	httpClient *httputil.Client
-	store      *store.Store
+	httpClient   *httputil.Client
+	store        *store.Store
+	registryAuth *httputil.AuthMux
 
 	processedCounter   prometheus.Counter
 	processingDuration prometheus.Counter
 	processingGauge    prometheus.Gauge
 }
 
-func New(httpClient *httputil.Client, store *store.Store) *Worker {
+func New(httpClient *httputil.Client, store *store.Store, registryAuth *httputil.AuthMux) *Worker {
 	return &Worker{
-		httpClient: httpClient,
-		store:      store,
+		httpClient:   httpClient,
+		store:        store,
+		registryAuth: registryAuth,
 
 		processedCounter: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: "cupdate",
@@ -89,6 +91,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		Links:           make([]models.ImageLink, 0),
 		Vulnerabilities: make([]models.ImageVulnerability, 0),
 		Graph:           image.Graph,
+		RegistryAuth:    w.registryAuth,
 	}
 
 	for _, tag := range image.Tags {

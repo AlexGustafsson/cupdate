@@ -14,26 +14,9 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 )
 
-type Authorizer interface {
-	AuthorizeOCIRequest(context.Context, Reference, *http.Request) error
-}
-
-type AuthorizeFunc func(context.Context, Reference, *http.Request) error
-
-func (f AuthorizeFunc) AuthorizeOCIRequest(ctx context.Context, image Reference, req *http.Request) error {
-	return f(ctx, image, req)
-}
-
-type AuthorizerToken string
-
-func (s AuthorizerToken) AuthorizeOCIRequest(ctx context.Context, image Reference, req *http.Request) error {
-	req.Header.Set("Authorization", "Bearer "+string(s))
-	return nil
-}
-
 type Client struct {
-	Client     *httputil.Client
-	Authorizer Authorizer
+	Client   *httputil.Client
+	AuthFunc func(*http.Request) error
 }
 
 // TODO: Rewrite to return a ManifestList / ManifestIndex instead, which then
@@ -64,8 +47,8 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 		"application/vnd.docker.distribution.manifest.v2+json",
 	}, ", "))
 
-	if c.Authorizer != nil {
-		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
+	if f := c.AuthFunc; f != nil {
+		if err := f(req); err != nil {
 			return nil, err
 		}
 	}
@@ -198,8 +181,8 @@ func (c *Client) GetManifest(ctx context.Context, image Reference, digest string
 		return nil, err
 	}
 
-	if c.Authorizer != nil {
-		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
+	if f := c.AuthFunc; f != nil {
+		if err := f(req); err != nil {
 			return nil, err
 		}
 	}
@@ -235,8 +218,8 @@ func (c *Client) GetBlob(ctx context.Context, image Reference, digest string) ([
 		return nil, err
 	}
 
-	if c.Authorizer != nil {
-		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
+	if f := c.AuthFunc; f != nil {
+		if err := f(req); err != nil {
 			return nil, err
 		}
 	}
@@ -265,8 +248,8 @@ func (c *Client) ReadBlob(ctx context.Context, image Reference, digest string) (
 		return nil, err
 	}
 
-	if c.Authorizer != nil {
-		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
+	if f := c.AuthFunc; f != nil {
+		if err := f(req); err != nil {
 			return nil, err
 		}
 	}
@@ -482,8 +465,8 @@ func (c *Client) getTags(ctx context.Context, image Reference, options *GetTagsO
 
 	req.Header.Set("Accept", "application/json")
 
-	if c.Authorizer != nil {
-		if err := c.Authorizer.AuthorizeOCIRequest(ctx, image, req); err != nil {
+	if f := c.AuthFunc; f != nil {
+		if err := f(req); err != nil {
 			return nil, nil, "", err
 		}
 	}

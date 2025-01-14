@@ -21,9 +21,9 @@ func Fetch(ctx context.Context, httpClient *httputil.Client, destination string)
 
 	client := oci.Client{
 		Client: httpClient,
-		Authorizer: &ghcr.Client{
+		AuthFunc: (&ghcr.Client{
 			Client: httpClient,
-		},
+		}).HandleAuth,
 	}
 
 	ref, err := oci.ParseReference("ghcr.io/alexgustafsson/cupdate/vulndb:latest")

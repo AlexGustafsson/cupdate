@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -86,6 +87,10 @@ type Config struct {
 		Target   string `env:"TARGET"`
 		Insecure bool   `env:"INSECURE"`
 	} `envPrefix:"OTEL_"`
+
+	Registry struct {
+		Secrets string `env:"SECRETS"`
+	} `envPrefix:"REGISTRY_"`
 }
 
 func main() {
@@ -117,6 +122,38 @@ func main() {
 	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("service.version", Version)).With(slog.String("service.name", "cupdate")))
 
 	slog.Debug("Parsed config", slog.Any("config", config))
+
+	registryAuth := httputil.NewAuthMux()
+	if config.Registry.Secrets != "" {
+		file, err := os.Open(config.Registry.Secrets)
+		if err != nil {
+			slog.Error("Failed to read registry secrets", slog.Any("error", err))
+			os.Exit(1)
+		}
+
+		var dockerConfig *docker.ConfigFile
+		err = json.NewDecoder(file).Decode(&dockerConfig)
+		file.Close()
+		if err != nil {
+			slog.Error("Failed to parse registry secrets", slog.Any("error", err))
+			os.Exit(1)
+		}
+
+		for k, v := range dockerConfig.HttpHeaders {
+			registryAuth.SetHeader(k, v)
+		}
+
+		for pattern, auth := range dockerConfig.Auths {
+			if auth.Auth == "" {
+				registryAuth.Handle(pattern, httputil.BasicAuthHandler{
+					Username: auth.Username,
+					Password: auth.Password,
+				})
+			} else {
+				registryAuth.Handle(pattern, httputil.BearerToken(auth.Auth))
+			}
+		}
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -249,7 +286,7 @@ func main() {
 		httpClient.UserAgent = config.HTTP.UserAgent
 		prometheus.DefaultRegisterer.MustRegister(httpClient)
 
-		worker := worker.New(httpClient, writeStore)
+		worker := worker.New(httpClient, writeStore, registryAuth)
 		prometheus.DefaultRegisterer.MustRegister(worker)
 
 		gauge := prometheus.NewGauge(prometheus.GaugeOpts{

@@ -6,3 +6,4 @@
 /*.sqlite*
 /*.boltdb
 /docker.sock
+/integration/zot/htpasswd

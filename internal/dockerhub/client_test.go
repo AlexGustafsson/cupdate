@@ -30,8 +30,8 @@ func TestClientGetManifest(t *testing.T) {
 	require.NoError(t, err)
 
 	ociClient := &oci.Client{
-		Client:     client.Client,
-		Authorizer: client,
+		Client:   client.Client,
+		AuthFunc: client.HandleAuth,
 	}
 
 	actual, err := ociClient.GetManifests(context.TODO(), ref)
@@ -53,8 +53,8 @@ func TestClientGetAnnotations(t *testing.T) {
 	require.NoError(t, err)
 
 	ociClient := &oci.Client{
-		Client:     client.Client,
-		Authorizer: client,
+		Client:   client.Client,
+		AuthFunc: client.HandleAuth,
 	}
 
 	manifests, err := ociClient.GetAnnotations(context.TODO(), ref, nil)
@@ -105,7 +105,10 @@ func TestGetTags(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	ociClient := oci.Client{Client: client.Client, Authorizer: client}
+	ociClient := oci.Client{
+		Client:   client.Client,
+		AuthFunc: client.HandleAuth,
+	}
 
 	ref, err := oci.ParseReference("mongo")
 	require.NoError(t, err)

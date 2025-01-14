@@ -1,8 +1,6 @@
 package imageworkflow
 
 import (
-	"fmt"
-
 	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
 	"github.com/AlexGustafsson/cupdate/internal/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/gitlab"
@@ -25,36 +23,36 @@ func SetupRegistryClient() workflow.Step {
 				return nil, err
 			}
 
-			// TODO: Support other registries (gitlab etc.)
-			var client *oci.Client
-			switch image.Domain {
-			case "docker.io":
-				client = &oci.Client{
-					Client: httpClient,
-					Authorizer: &dockerhub.Client{
-						Client: httpClient,
-					},
-				}
-			case "ghcr.io", "lscr.io":
-				client = &oci.Client{
-					Client: httpClient,
-					Authorizer: &ghcr.Client{
-						Client: httpClient,
-					},
-				}
-			case "registry.gitlab.com":
-				client = &oci.Client{
-					Client: httpClient,
-					Authorizer: &gitlab.Client{
-						Client: httpClient,
-					},
-				}
-			case "k8s.gcr.io", "gcr.io", "gke.gcr.io", "quay.io", "registry.k8s.io":
-				client = &oci.Client{
-					Client: httpClient,
-				}
-			default:
-				return nil, fmt.Errorf("unsupported registry domain: %s", image.Domain)
+			registryAuth, err := workflow.GetInput[*httputil.AuthMux](ctx, "registryAuth", true)
+			if err != nil {
+				return nil, err
+			}
+
+			// TODO: Support the www-authenticate return header mandated by the OCI
+			// distribution spec. Would help support currently unknown registries that are
+			// well-behaved
+			baseAuth := httputil.NewAuthMux()
+			baseAuth.Handle("*.docker.io", &dockerhub.Client{
+				Client: httpClient,
+			})
+			baseAuth.Handle("ghcr.io", &ghcr.Client{
+				Client: httpClient,
+			})
+			// Linux Server mirrors images, but the default is GitHub and I've never
+			// seen any other backend being used. For now, assume GitHub
+			baseAuth.Handle("lscr.io", &ghcr.Client{
+				Client: httpClient,
+			})
+			baseAuth.Handle("registry.gitlab.com", &gitlab.Client{
+				Client: httpClient,
+			})
+
+			// Apply user configuration
+			baseAuth.Copy(registryAuth)
+
+			client := &oci.Client{
+				Client:   httpClient,
+				AuthFunc: baseAuth.HandleAuth,
 			}
 
 			return workflow.Batch(

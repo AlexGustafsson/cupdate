@@ -7,19 +7,18 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
-var _ oci.Authorizer = (*Client)(nil)
-
 type Client struct {
 	Client *httputil.Client
 }
 
-func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (string, error) {
+func (c *Client) GetRegistryToken(ctx context.Context, repository string) (string, error) {
 	// TODO: Registries expose the realm and scheme via Www-Authenticate if 403
 	// is given
 	u, err := url.Parse("https://auth.docker.io/token?service=registry.docker.io")
@@ -28,7 +27,7 @@ func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (str
 	}
 
 	query := u.Query()
-	query.Set("scope", fmt.Sprintf("repository:%s:pull", image.Path))
+	query.Set("scope", fmt.Sprintf("repository:%s:pull", repository))
 	u.RawQuery = query.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
@@ -57,13 +56,20 @@ func (c *Client) GetRegistryToken(ctx context.Context, image oci.Reference) (str
 	return result.Token, nil
 }
 
-func (c *Client) AuthorizeOCIRequest(ctx context.Context, image oci.Reference, req *http.Request) error {
-	token, err := c.GetRegistryToken(ctx, image)
+func (c *Client) HandleAuth(r *http.Request) error {
+	name := oci.NameFromAPI(r.URL.Path)
+	if (r.Host != "docker.io" && !strings.HasSuffix(r.Host, ".docker.io")) || name == "" {
+		return nil
+	}
+
+	token, err := c.GetRegistryToken(r.Context(), name)
 	if err != nil {
 		return err
 	}
 
-	return oci.AuthorizerToken(token).AuthorizeOCIRequest(ctx, image, req)
+	r.Header.Set("Authorization", "Bearer "+token)
+
+	return nil
 }
 
 func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repository, error) {

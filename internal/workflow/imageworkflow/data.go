@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
@@ -23,6 +24,7 @@ type Data struct {
 	Links           []models.ImageLink
 	Vulnerabilities []models.ImageVulnerability
 	Graph           models.Graph
+	RegistryAuth    *httputil.AuthMux
 }
 
 func (d *Data) InsertTag(tag string) {

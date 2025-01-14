@@ -1,0 +1,8 @@
+{
+  "auths": {
+    "http://localhost:9090/v2/": {
+      "username": "username",
+      "password": "password"
+    }
+  }
+}
