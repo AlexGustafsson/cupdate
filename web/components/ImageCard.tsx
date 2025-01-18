@@ -11,6 +11,7 @@ import { FluentWarning16Filled } from './icons/fluent-warning-16-filled'
 import { SimpleIconsOci } from './icons/simple-icons-oci'
 
 export type ImageCardProps = {
+  reference: string
   name: string
   currentVersion: string
   latestVersion?: string
@@ -23,6 +24,7 @@ export type ImageCardProps = {
 }
 
 export function ImageCard({
+  reference,
   name,
   logo,
   currentVersion,
@@ -40,7 +42,7 @@ export function ImageCard({
     <div
       className={`flex gap-x-4 bg-white dark:bg-[#1e1e1e] rounded-lg shadow ${compact ? 'p-3' : 'p-4 md:p-6'} ${className || ''}`}
     >
-      <ImageLogo src={logo} width={48} height={48} />
+      <ImageLogo src={logo} width={48} height={48} reference={reference} />
       <div className="flex flex-col w-full">
         <div
           className={`${compact ? '' : 'flex flex-col sm:flex-row w-full sm:items-center sm:justify-between'}`}

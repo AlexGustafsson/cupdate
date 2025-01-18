@@ -203,6 +203,7 @@ export function Dashboard(): JSX.Element {
           >
             <ImageCard
               className={`hover:shadow-md transition-shadow cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
+              reference={x.reference}
               name={name(x.reference)}
               currentVersion={version(x.reference)}
               latestVersion={

@@ -1,15 +1,29 @@
 import { type JSX, useCallback, useRef, useState } from 'react'
 import { SimpleIconsOci } from './icons/simple-icons-oci'
 
+import CupdateLogoURL from '../favicon.png'
+
 export type ImageLogoProps = {
+  reference: string
   src?: string
   width: number
   height: number
 }
 
-export function ImageLogo({ src, width, height }: ImageLogoProps): JSX.Element {
+export function ImageLogo({
+  reference,
+  src,
+  width,
+  height,
+}: ImageLogoProps): JSX.Element {
   const ref = useRef<HTMLImageElement>(null)
   const [isLoading, setIsLoading] = useState(src !== undefined)
+
+  // Don't show the default artwork for Cupdate
+  // SEE: https://github.com/opencontainers/image-spec/issues/1231
+  if (!src && reference.includes('ghcr.io/alexgustafsson/cupdate')) {
+    src = CupdateLogoURL
+  }
 
   const onLoad = useCallback(() => {
     setIsLoading(false)
