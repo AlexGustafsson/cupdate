@@ -13,8 +13,8 @@ function parse(reference: string): {
   let tag = ''
   const tagDelimiter = reference.indexOf(':')
   if (tagDelimiter >= 0) {
-    digest = reference.substring(tagDelimiter + 1)
-    tag = reference.substring(0, tagDelimiter)
+    tag = reference.substring(tagDelimiter + 1)
+    reference = reference.substring(0, tagDelimiter)
   }
 
   return {
