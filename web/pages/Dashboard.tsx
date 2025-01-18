@@ -5,7 +5,17 @@ import { useImages, usePagination, useTags } from '../api'
 import { ImageCard } from '../components/ImageCard'
 import { Select } from '../components/Select'
 import { TagSelect } from '../components/TagSelect'
-import { useDebouncedEffect, useFilter, useQuery, useSort } from '../hooks'
+import { FluentAlignSpaceEvenlyVertical20Filled } from '../components/icons/fluent-align-space-evenly-vertical-20-filled'
+import { FluentAlignSpaceEvenlyVertical20Regular } from '../components/icons/fluent-align-space-evenly-vertical-20-regular'
+import { FluentGrid20Filled } from '../components/icons/fluent-grid-20-filled'
+import { FluentGrid20Regular } from '../components/icons/fluent-grid-20-regular'
+import {
+  useDebouncedEffect,
+  useFilter,
+  useLayout,
+  useQuery,
+  useSort,
+} from '../hooks'
 import { name, version } from '../oci'
 
 export function Dashboard(): JSX.Element {
@@ -18,6 +28,8 @@ export function Dashboard(): JSX.Element {
   const [queryInput, setQueryInput] = useState('')
 
   const [searchParams, _] = useSearchParams()
+
+  const [layout, setLayout] = useLayout()
 
   const navigate = useNavigate()
 
@@ -111,9 +123,9 @@ export function Dashboard(): JSX.Element {
 
       <hr className="my-6 w-3/4" />
 
-      {/* Filters */}
+      {/* Filters / controls */}
       <div className="flex justify-between items-center w-full mt-2 max-w-[800px]">
-        <div className="flex items-center flex-wrap gap-x-2 gap-y-2 w-full">
+        <div className="flex items-center flex-wrap gap-x-1 sm:gap-x-2 gap-y-2 w-full">
           <input
             type="text"
             placeholder="Search"
@@ -151,18 +163,46 @@ export function Dashboard(): JSX.Element {
             <option value="desc">Descending</option>
           </Select>
           <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
+          <div className="grid grid-cols-2 divide-x dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
+            <button
+              type="button"
+              title="Enable list view"
+              className="pl-2 pr-1"
+              onClick={() => setLayout('list')}
+            >
+              {layout === 'list' ? (
+                <FluentAlignSpaceEvenlyVertical20Filled />
+              ) : (
+                <FluentAlignSpaceEvenlyVertical20Regular />
+              )}
+            </button>
+            <button
+              type="button"
+              title="Enable grid view"
+              className="pl-1 pr-2"
+              onClick={() => setLayout('grid')}
+            >
+              {layout === 'grid' ? (
+                <FluentGrid20Filled />
+              ) : (
+                <FluentGrid20Regular />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Images */}
-      <div className="flex flex-col mt-2 gap-y-4 w-full max-w-[800px]">
+      <div
+        className={`mt-2 w-full ${layout === 'list' ? 'flex flex-col max-w-[800px] gap-y-4' : 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1'}`}
+      >
         {images.value.images.map((x) => (
           <NavLink
             key={x.reference}
             to={`image?reference=${encodeURIComponent(x.reference)}`}
           >
             <ImageCard
-              className="hover:shadow-md transition-shadow cursor-pointer dark:transition-colors dark:hover:bg-[#262626]"
+              className={`hover:shadow-md transition-shadow cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
               name={name(x.reference)}
               currentVersion={version(x.reference)}
               latestVersion={
@@ -172,6 +212,7 @@ export function Dashboard(): JSX.Element {
               logo={x.image}
               description={x.description}
               tags={x.tags}
+              compact={layout === 'grid'}
               // TODO:
               // updated={new Date(x.updated)}
             />

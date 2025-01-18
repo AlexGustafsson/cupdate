@@ -150,3 +150,24 @@ export function useQuery(): [
 
   return [query, setQuery]
 }
+
+export function useLayout(): [
+  'list' | 'grid',
+  Dispatch<SetStateAction<'list' | 'grid'>>,
+] {
+  const [layout, setLayout] = useState<'list' | 'grid'>(() => {
+    const value = localStorage.getItem('layout')
+    if (value === 'list' || value === 'grid') {
+      return value
+    }
+
+    return 'list'
+  })
+
+  // Store layout in local storage
+  useEffect(() => {
+    localStorage.setItem('layout', layout)
+  }, [layout])
+
+  return [layout, setLayout]
+}

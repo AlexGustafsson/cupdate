@@ -19,6 +19,7 @@ export type ImageCardProps = {
   updated?: Date
   description?: string
   tags: string[]
+  compact?: boolean
 }
 
 export function ImageCard({
@@ -30,19 +31,26 @@ export function ImageCard({
   vulnerabilities,
   description,
   tags,
+  compact,
   className,
 }: ImageCardProps & { className?: string }): JSX.Element {
   const navigate = useNavigate()
 
   return (
     <div
-      className={`flex gap-x-4 p-4 md:p-6 bg-white dark:bg-[#1e1e1e] rounded-lg shadow ${className || ''}`}
+      className={`flex gap-x-4 bg-white dark:bg-[#1e1e1e] rounded-lg shadow ${compact ? 'p-3' : 'p-4 md:p-6'} ${className || ''}`}
     >
       <ImageLogo src={logo} width={48} height={48} />
       <div className="flex flex-col w-full">
-        <div className="flex flex-col sm:flex-row w-full sm:items-center sm:justify-between">
-          <div className="flex items-center">
-            <p className="text-sm break-all font-semibold">{name}</p>
+        <div
+          className={`${compact ? '' : 'flex flex-col sm:flex-row w-full sm:items-center sm:justify-between'}`}
+        >
+          <div
+            className={`${compact ? 'flex flex-col-reverse' : 'flex items-center'}`}
+          >
+            <p className="text-sm break-all line-clamp-2 font-semibold">
+              {name}
+            </p>
             {vulnerabilities > 0 && (
               <InfoTooltip
                 icon={<FluentShieldError24Filled className="text-red-600" />}
@@ -89,27 +97,31 @@ export function ImageCard({
         {updated && (
           <p className="text-sm">Updated {formatRelativeTimeTo(updated)}</p>
         )}
-        <p className="text-sm mt-2">{description}</p>
-        <div className="flex flex-wrap gap-2 mt-4">
-          {tags
-            .toSorted((a, b) => compareTags(a, b))
-            .map((x) => (
-              <Badge
-                key={x}
-                label={x}
-                color={TagsByName[x]?.color}
-                className="hover:opacity-90"
-                // It's illegal to nest anchors in HTML, so unfortunately we need
-                // to use onClick here
-                onClick={(e) => {
-                  e.metaKey || e.ctrlKey
-                    ? openTab(`/?tag=${encodeURIComponent(x)}`)
-                    : navigate(`/?tag=${encodeURIComponent(x)}`)
-                  e.preventDefault()
-                }}
-              />
-            ))}
-        </div>
+        <p className={`text-sm mt-2 ${compact ? 'line-clamp-2' : ''}`}>
+          {description}
+        </p>
+        {!compact && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {tags
+              .toSorted((a, b) => compareTags(a, b))
+              .map((x) => (
+                <Badge
+                  key={x}
+                  label={x}
+                  color={TagsByName[x]?.color}
+                  className="hover:opacity-90"
+                  // It's illegal to nest anchors in HTML, so unfortunately we need
+                  // to use onClick here
+                  onClick={(e) => {
+                    e.metaKey || e.ctrlKey
+                      ? openTab(`/?tag=${encodeURIComponent(x)}`)
+                      : navigate(`/?tag=${encodeURIComponent(x)}`)
+                    e.preventDefault()
+                  }}
+                />
+              ))}
+          </div>
+        )}
       </div>
     </div>
   )
