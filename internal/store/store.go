@@ -1105,5 +1105,7 @@ func (s *Store) Close() error {
 // It is not a security feature, it just ensures that all searches are full text
 // and not using fts' query syntax.
 func ftsEscape(s string) string {
-	return `"` + strings.ReplaceAll(s, `"`, `""`) + `"`
+	// The trailing * makes this a prefix search which will allow more natural
+	// matches on smaller queries
+	return `"` + strings.ReplaceAll(s, `"`, `""`) + `"*`
 }
