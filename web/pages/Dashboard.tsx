@@ -16,7 +16,7 @@ import {
   useQuery,
   useSort,
 } from '../hooks'
-import { name, version } from '../oci'
+import { fullVersion, name, version } from '../oci'
 
 export function Dashboard(): JSX.Element {
   const [filter, setFilter] = useFilter()
@@ -206,8 +206,12 @@ export function Dashboard(): JSX.Element {
               reference={x.reference}
               name={name(x.reference)}
               currentVersion={version(x.reference)}
+              fullCurrentVersion={fullVersion(x.reference)}
               latestVersion={
                 x.latestReference ? version(x.latestReference) : undefined
+              }
+              fullLatestVersion={
+                x.latestReference ? fullVersion(x.latestReference) : undefined
               }
               vulnerabilities={x.vulnerabilities.length}
               logo={x.image}

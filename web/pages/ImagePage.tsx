@@ -29,7 +29,7 @@ import { SimpleIconsGit } from '../components/icons/simple-icons-git'
 import { SimpleIconsGithub } from '../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
 import { useNodesAndEdges } from '../graph'
-import { name, version } from '../oci'
+import { fullVersion, name, version } from '../oci'
 import { formatRelativeTimeTo } from '../time'
 
 const titles: Record<string, string | undefined> = {
@@ -184,7 +184,10 @@ export function ImagePage(): JSX.Element {
       <div className="flex items-center">
         {!image.value.latestReference ? (
           <>
-            <p className="font-medium max-w-[15ch] truncate">
+            <p
+              className="font-medium max-w-[15ch] truncate"
+              title={fullVersion(image.value.reference)}
+            >
               {version(image.value.reference)}{' '}
             </p>
             <InfoTooltip
@@ -196,16 +199,25 @@ export function ImagePage(): JSX.Element {
             </InfoTooltip>
           </>
         ) : image.value.reference === image.value.latestReference ? (
-          <p className="font-medium max-w-[15ch] truncate">
+          <p
+            className="font-medium max-w-[15ch] truncate"
+            title={fullVersion(image.value.reference)}
+          >
             {version(image.value.reference)}
           </p>
         ) : (
           <>
             <FluentChevronDown20Regular className="text-red-600" />
-            <p className="font-medium text-red-600 max-w-[15ch] truncate">
+            <p
+              className="font-medium text-red-600 max-w-[15ch] truncate"
+              title={fullVersion(image.value.reference)}
+            >
               {version(image.value.reference)}
             </p>
-            <p className="font-medium ml-4 text-green-600 max-w-[15ch] truncate">
+            <p
+              className="font-medium ml-4 text-green-600 max-w-[15ch] truncate"
+              title={fullVersion(image.value.latestReference)}
+            >
               {image.value.latestReference
                 ? version(image.value.latestReference)
                 : 'unknown'}

@@ -14,7 +14,9 @@ export type ImageCardProps = {
   reference: string
   name: string
   currentVersion: string
+  fullCurrentVersion: string
   latestVersion?: string
+  fullLatestVersion?: string
   logo?: string
   vulnerabilities: number
   updated?: Date
@@ -28,7 +30,9 @@ export function ImageCard({
   name,
   logo,
   currentVersion,
+  fullCurrentVersion,
   latestVersion,
+  fullLatestVersion,
   updated,
   vulnerabilities,
   description,
@@ -65,22 +69,34 @@ export function ImageCard({
             {/* Digests are formatted like <algo>:<digest>, such as sha256:<digest>. Show a maximum of 5 hex digits before truncating with ellipsis (hence 15ch) */}
             {latestVersion ? (
               currentVersion === latestVersion ? (
-                <p className="text-green-600 max-w-[15ch] truncate">
+                <p
+                  className="text-green-600 max-w-[15ch] truncate"
+                  title={fullLatestVersion}
+                >
                   {latestVersion}
                 </p>
               ) : (
                 <>
-                  <p className="text-red-600 line-through max-w-[15ch] truncate">
+                  <p
+                    className="text-red-600 line-through max-w-[15ch] truncate"
+                    title={fullCurrentVersion}
+                  >
                     {currentVersion}
                   </p>
-                  <p className="text-green-600 max-w-[15ch] truncate">
+                  <p
+                    className="text-green-600 max-w-[15ch] truncate"
+                    title={fullLatestVersion}
+                  >
                     {latestVersion}
                   </p>
                 </>
               )
             ) : (
               <>
-                <p className="text-yellow-600 max-w-[15ch] truncate">
+                <p
+                  className="text-yellow-600 max-w-[15ch] truncate"
+                  title={fullCurrentVersion}
+                >
                   {currentVersion}
                 </p>
                 {!latestVersion && (

@@ -29,8 +29,27 @@ export function version(reference: string): string {
     return ''
   }
 
+  // For now, if both a tag and a digest is specified - show only the tag
+  if (result.tag.length > 0) {
+    return result.tag
+  } else if (result.digest.length > 0) {
+    return result.digest
+  } else {
+    return 'latest'
+  }
+}
+
+export function fullVersion(reference: string): string {
+  const result = parse(reference)
+  if (!result) {
+    return ''
+  }
+
   if (result.digest.length > 0) {
-    // For now, if both a tag and a digest is specified - show only the digest
+    if (result.tag.length > 0) {
+      return `${result.tag}@${result.digest}`
+    }
+
     return result.digest
   } else if (result.tag.length > 0) {
     return result.tag
