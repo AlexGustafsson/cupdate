@@ -1,41 +1,49 @@
+/**
+ * Regex is taken from the distribution reference, which is under an Apache 2.0
+ * license.
+ * @see {@link https://github.com/distribution/reference/blob/8c942b0459dfdcc5b6685581dd0a5a470f615bff/regexp.go#L34}
+ */
+const ReferenceRegexp =
+  /^((?:(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))*|\[(?:[a-fA-F0-9:]+)\])(?::[0-9]+)?\/)?[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*(?:\/[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*)*)(?::([\w][\w.-]{0,127}))?(?:@([A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][0-9A-Fa-f]{32,}))?$/
+
 function parse(reference: string): {
   name: string
   tag: string
   digest: string
-} {
-  let digest = ''
-  const digestDelimiter = reference.indexOf('@')
-  if (digestDelimiter >= 0) {
-    digest = reference.substring(digestDelimiter + 1)
-    reference = reference.substring(0, digestDelimiter)
-  }
-
-  let tag = ''
-  const tagDelimiter = reference.indexOf(':')
-  if (tagDelimiter >= 0) {
-    tag = reference.substring(tagDelimiter + 1)
-    reference = reference.substring(0, tagDelimiter)
+} | null {
+  const match = ReferenceRegexp.exec(reference)
+  if (!match) {
+    return null
   }
 
   return {
-    name: reference,
-    tag,
-    digest,
+    name: match[1] || '',
+    tag: match[2] || '',
+    digest: match[3] || '',
   }
 }
 
 export function version(reference: string): string {
-  const { tag, digest } = parse(reference)
-  if (digest.length > 0) {
-    return digest
-  } else if (tag.length > 0) {
-    return tag
+  const result = parse(reference)
+  if (!result) {
+    return ''
+  }
+
+  if (result.digest.length > 0) {
+    // For now, if both a tag and a digest is specified - show only the digest
+    return result.digest
+  } else if (result.tag.length > 0) {
+    return result.tag
   } else {
     return 'latest'
   }
 }
 
 export function name(reference: string): string {
-  const { name } = parse(reference)
-  return name
+  const result = parse(reference)
+  if (!result) {
+    return ''
+  }
+
+  return result.name
 }

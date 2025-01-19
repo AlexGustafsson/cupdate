@@ -98,12 +98,12 @@ func (r Reference) String() string {
 
 	builder.WriteString(r.Name())
 
-	if r.HasTag {
-		if r.Tag != "latest" {
-			builder.WriteString(":")
-			builder.WriteString(r.Tag)
-		}
-	} else if r.HasDigest {
+	if r.HasTag && r.Tag != "latest" {
+		builder.WriteString(":")
+		builder.WriteString(r.Tag)
+	}
+
+	if r.HasDigest {
 		builder.WriteString("@")
 		builder.WriteString(r.Digest)
 	}

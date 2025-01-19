@@ -90,6 +90,52 @@ func TestReference(t *testing.T) {
 			ExpectedPath:   "mongo/mongo",
 			ExpectedDigest: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 		},
+		{
+			Reference: "ghcr.io/mongo/mongo:6.0.0@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+
+			ExpectedName:   "ghcr.io/mongo/mongo",
+			ExpectedString: "ghcr.io/mongo/mongo:6.0.0@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			ExpectedDomain: "ghcr.io",
+			ExpectedPath:   "mongo/mongo",
+			ExpectedTag:    "6.0.0",
+			ExpectedDigest: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		},
+		{
+			Reference: "[1234:5678:9012:1::1]:8080/test/image:1.0.0",
+
+			ExpectedName:   "[1234:5678:9012:1::1]:8080/test/image",
+			ExpectedString: "[1234:5678:9012:1::1]:8080/test/image:1.0.0",
+			ExpectedDomain: "[1234:5678:9012:1::1]:8080",
+			ExpectedPath:   "test/image",
+			ExpectedTag:    "1.0.0",
+		},
+		{
+			Reference: "192.168.1.2:8080/test/image:1.0.0",
+
+			ExpectedName:   "192.168.1.2:8080/test/image",
+			ExpectedString: "192.168.1.2:8080/test/image:1.0.0",
+			ExpectedDomain: "192.168.1.2:8080",
+			ExpectedPath:   "test/image",
+			ExpectedTag:    "1.0.0",
+		},
+		{
+			Reference: "[1234:5678:9012:1::1]/test/image:1.0.0",
+
+			ExpectedName:   "[1234:5678:9012:1::1]/test/image",
+			ExpectedString: "[1234:5678:9012:1::1]/test/image:1.0.0",
+			ExpectedDomain: "[1234:5678:9012:1::1]",
+			ExpectedPath:   "test/image",
+			ExpectedTag:    "1.0.0",
+		},
+		{
+			Reference: "192.168.1.2/test/image:1.0.0",
+
+			ExpectedName:   "192.168.1.2/test/image",
+			ExpectedString: "192.168.1.2/test/image:1.0.0",
+			ExpectedDomain: "192.168.1.2",
+			ExpectedPath:   "test/image",
+			ExpectedTag:    "1.0.0",
+		},
 	}
 
 	for _, testCase := range testCase {
