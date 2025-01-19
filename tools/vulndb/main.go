@@ -12,6 +12,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/db"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/git"
+	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/oci"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/ossf"
 )
 
@@ -94,9 +95,9 @@ func run(ctx context.Context) error {
 	}
 
 	slog.DebugContext(ctx, "Pushing artifact")
-	// if err := oci.PushArtifact(ctx, "vulndb.sqlite", githubActor, githubToken); err != nil {
-	// 	return err
-	// }
+	if err := oci.PushArtifact(ctx, "vulndb.sqlite", githubActor, githubToken); err != nil {
+		return err
+	}
 
 	slog.InfoContext(ctx, "Successfully pushed artifact")
 	return nil
