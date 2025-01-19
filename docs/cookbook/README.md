@@ -1,5 +1,8 @@
 # Cookbook
 
+- [Update kustomizations using Cupdate's API](#update-kustomizations-using-cupdates-api)
+- [Update compose files using Cupdate's API](#update-compose-files-using-cupdates-api)
+
 ## Update kustomizations using Cupdate's API
 
 If you're using kustomizations to write and deploy your Kubernetes services you
