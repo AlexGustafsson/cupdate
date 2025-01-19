@@ -34,7 +34,12 @@ func GetLatestReference() workflow.Step {
 				latest, ok := semver.LatestOpinionatedVersionString(reference.Tag, tags)
 				if ok {
 					l := reference
+					l.HasTag = true
 					l.Tag = latest
+					// Remove the digest of the latest reference in all cases as we don't
+					// know the new image's digest
+					l.Digest = ""
+					l.HasDigest = false
 					latestReference = &l
 				}
 			}

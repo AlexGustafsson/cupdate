@@ -31,10 +31,9 @@ Cupdate uses the following API paths:
 
 - `/version`
 - `/containers/json`
-- `/images/{id}/json`
 
-If you wish to inspect the source code for the image, the relevant parts can be
-found in `internal/platforms/docker/platform.go`.
+If you wish to inspect the source code, the relevant parts can be found in
+`internal/platforms/docker/platform.go`.
 
 ## Config
 
