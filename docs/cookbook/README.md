@@ -79,13 +79,13 @@ gethomepage.dev/widget.type: customapi
 gethomepage.dev/widget.url: http://cupdate.cupdate.svc.cluster.local/api/v1/summary
 gethomepage.dev/widget.method: GET
 gethomepage.dev/widget.mappings.0.label: outdated
-gethomepage.dev/widget.mappings.0.field.summary: outdated
+gethomepage.dev/widget.mappings.0.field: outdated
 gethomepage.dev/widget.mappings.1.label: images
-gethomepage.dev/widget.mappings.1.field.summary: images
+gethomepage.dev/widget.mappings.1.field: images
 gethomepage.dev/widget.mappings.2.label: vulnerable
-gethomepage.dev/widget.mappings.2.field.summary: vulnerable
+gethomepage.dev/widget.mappings.2.field: vulnerable
 gethomepage.dev/widget.mappings.3.label: processing
-gethomepage.dev/widget.mappings.3.field.summary: processing
+gethomepage.dev/widget.mappings.3.field: processing
 ```
 
 The same support exists in Docker, but looks a little bit different:
@@ -105,12 +105,12 @@ labels:
   - homepage.widget.url=http://cupdate.internal/api/v1/summary
   - homepage.widget.method=GET
   - homepage.widget.mappings[0].label=outdated
-  - homepage.widget.mappings[0].field.summary=outdated
+  - homepage.widget.mappings[0].field=outdated
   - homepage.widget.mappings[1].label=images
-  - homepage.widget.mappings[1].field.summary=images
+  - homepage.widget.mappings[1].field=images
   - homepage.widget.mappings[2].label=vulnerable
-  - homepage.widget.mappings[2].field.summary=vulnerable
+  - homepage.widget.mappings[2].field=vulnerable
   - homepage.widget.mappings[3].label=processing
-  - homepage.widget.mappings[3].field.summary=processing
+  - homepage.widget.mappings[3].field=processing
 ``
 ```
