@@ -1,7 +1,9 @@
 # Contributing
 
-We are open for contributions, big or small. If you can't code it yourself,
-please feel free to open an issue or discussion on GitHub.
+We are open for contributions, big or small. The best way to contribute is to
+open a bug report or feature request and testing fixes. If you want to poke
+around in Cupdate's code, the rest of this document contains some basic info to
+get you started.
 
 ## Architecture
 
