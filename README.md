@@ -56,7 +56,7 @@ Supported data sources:
 ## Getting started
 
 Cupdate can be deployed using Kubernetes or Docker. It's designed to run well
-with minimal required configuration. Please refer to the platform-specific
+with minimal required configuration. Refer to the platform-specific
 documentation for more information on how to get started with Cupdate:
 
 - Running Cupdate using Kubernetes:
@@ -66,6 +66,12 @@ documentation for more information on how to get started with Cupdate:
 
 Cupdate can expose metrics and traces. For more information on how to use them,
 see [docs/observability/README.md](docs/observability/README.md).
+
+If you want to deploy Cupdate as a container through other means, chose the
+latest [released version](https://github.com/AlexGustafsson/cupdate/releases)
+and refer to the general config documentation in
+[docs/config.md](docs/config.md). The `latest` tag tracks the main branch and is
+therefore not recommended to use unless you want to try out the latest features.
 
 Although not recommended or intended, Cupdate can be run directly on host. In
 that case, please build Cupdate and run it using the instructions in
