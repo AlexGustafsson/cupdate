@@ -160,7 +160,9 @@ func parsePackage(r io.Reader, owner string) (*Package, error) {
 
 	hrefs := make([]string, 0)
 	match(node, func(node *html.Node) bool {
-		if node.Data == "a" && strings.HasPrefix(attr(node, "href"), fmt.Sprintf("/users/%s/packages/container/", owner)) {
+		matchesUserHref := strings.HasPrefix(attr(node, "href"), fmt.Sprintf("/users/%s/packages/container/", owner))
+		matchesOrgHref := strings.HasPrefix(attr(node, "href"), fmt.Sprintf("/orgs/%s/packages/container/", owner))
+		if node.Data == "a" && (matchesUserHref || matchesOrgHref) {
 			hrefs = append(hrefs, attr(node, "href"))
 		}
 		return false

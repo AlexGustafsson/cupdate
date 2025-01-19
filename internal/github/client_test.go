@@ -43,7 +43,7 @@ func TestClientGetDescription(t *testing.T) {
 	fmt.Printf("%+v\n", release)
 }
 
-func TestClientGetPackage(t *testing.T) {
+func TestClientGetUserPackage(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -57,8 +57,24 @@ func TestClientGetPackage(t *testing.T) {
 
 	release, err := c.GetPackage(context.TODO(), ref)
 	require.NoError(t, err)
+	assert.NotNil(t, release)
+}
 
-	fmt.Printf("%+v\n", release)
+func TestClientGetOrgPackage(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	c := &Client{
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+	}
+
+	ref, err := oci.ParseReference("ghcr.io/project-zot/zot-linux-arm64")
+	require.NoError(t, err)
+
+	release, err := c.GetPackage(context.TODO(), ref)
+	require.NoError(t, err)
+	assert.NotNil(t, release)
 }
 
 func TestClientGetREADME(t *testing.T) {
