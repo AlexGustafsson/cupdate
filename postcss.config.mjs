@@ -17,6 +17,9 @@ const removeTailwindImgAutoHeight = (css) => {
   })
 }
 
-export default {
+/** @type {import('postcss-load-config').Config} */
+const config = {
   plugins: [tailwindcss, autoprefixer, removeTailwindImgAutoHeight],
 }
+
+export default config
