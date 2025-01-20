@@ -66,8 +66,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run tests
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run go tests
         run: go test -short -v ./...
+
+      - name: Run web tests
+        run: yarn run test
 
   build-web:
     name: Build web
