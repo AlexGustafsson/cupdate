@@ -8,7 +8,7 @@ import (
 )
 
 func TestReference(t *testing.T) {
-	testCase := []struct {
+	testCases := []struct {
 		Reference string
 
 		ExpectedName   string
@@ -138,7 +138,7 @@ func TestReference(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range testCase {
+	for _, testCase := range testCases {
 		t.Run(testCase.Reference, func(t *testing.T) {
 			r, err := ParseReference(testCase.Reference)
 			require.NoError(t, err)
