@@ -111,7 +111,7 @@ func (r Reference) String() string {
 
 	builder.WriteString(r.Name())
 
-	if r.HasTag && r.Tag != "latest" {
+	if r.HasTag && (r.Tag != "latest" || r.HasDigest) {
 		builder.WriteString(":")
 		builder.WriteString(r.Tag)
 	}

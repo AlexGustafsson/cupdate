@@ -46,6 +46,13 @@ func TestGetImageReference(t *testing.T) {
 			Expected: "mongo:4@sha256:9c20e607b82fc66a0b81a45c04d6ccd8fd056add3a3adacc0bb7a6b99460fdb0",
 		},
 		{
+			SpecImage:     "mongo",
+			StatusImage:   "mongo:latest",
+			StatusImageID: "mongo@sha256:9c20e607b82fc66a0b81a45c04d6ccd8fd056add3a3adacc0bb7a6b99460fdb0",
+			// Status image id present and valid, with tag - use image from status
+			Expected: "mongo:latest@sha256:9c20e607b82fc66a0b81a45c04d6ccd8fd056add3a3adacc0bb7a6b99460fdb0",
+		},
+		{
 			SpecImage:     "mongo:4",
 			StatusImageID: "aW52YWxpZA==",
 			// Status image id present, but not a valid reference - use image from spec

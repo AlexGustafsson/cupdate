@@ -82,6 +82,16 @@ func TestReference(t *testing.T) {
 			ExpectedDigest: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 		},
 		{
+			Reference: "mongo:latest@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+
+			ExpectedName:   "mongo",
+			ExpectedString: "mongo:latest@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			ExpectedDomain: "docker.io",
+			ExpectedPath:   "library/mongo",
+			ExpectedTag:    "latest",
+			ExpectedDigest: "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+		},
+		{
 			Reference: "ghcr.io/mongo/mongo@sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
 
 			ExpectedName:   "ghcr.io/mongo/mongo",
