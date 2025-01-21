@@ -55,7 +55,7 @@ func GetQuayVulnerabilities() workflow.Step {
 
 			vulnerabilities := make([]models.ImageVulnerability, 0)
 
-			if scan.Status == quay.ScanStatusScanned && scan.Data != nil {
+			if scan != nil && scan.Status == quay.ScanStatusScanned && scan.Data != nil {
 				for _, feature := range scan.Data.Layer.Features {
 					for _, vulnerability := range feature.Vulnerabilities {
 						vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
