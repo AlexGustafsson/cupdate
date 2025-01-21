@@ -159,6 +159,30 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 	return result, nil
 }
 
+func (p *Platform) GetImage(ctx context.Context, nameOrID string) (*Image, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/images/"+url.PathEscape(nameOrID)+"/json", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := p.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	}
+
+	var result Image
+	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 // Graph implements platform.Platform.
 // SEE: https://docs.docker.com/reference/api/engine/version/v1.47/
 func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], error) {
@@ -170,18 +194,36 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 		return nil, err
 	}
 
+	images := make(map[string]*Image)
+	for _, container := range containers {
+		_, ok := images[container.ImageID]
+		if !ok {
+			image, err := p.GetImage(ctx, container.ImageID)
+			if err != nil {
+				return nil, err
+			}
+
+			images[image.ID] = image
+		}
+	}
+
 	graph := platform.NewGraph()
 
 	for _, container := range containers {
-		reference, err := oci.ParseReference(container.Image)
+		var repoDigests []string
+		if image, ok := images[container.ImageID]; ok {
+			repoDigests = image.RepoDigests
+		}
+
+		ref, err := getImageReference(container.Image, repoDigests)
 		if err != nil {
-			slog.Warn("Failed to parse Docker container's image reference", slog.String("reference", container.Image))
+			slog.Error("Failed to identify a valid image reference for container", slog.String("container", container.ID))
 			continue
 		}
 
 		tree := []platform.Node{
 			platform.ImageNode{
-				Reference: reference,
+				Reference: ref,
 			},
 			resource{
 				kind: ResourceKindContainer,
