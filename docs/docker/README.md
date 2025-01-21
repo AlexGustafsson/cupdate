@@ -12,7 +12,7 @@ docker run --interactive --tty --rm \
   --mount type=tmpfs,destination=/tmp \
   --env CUPDATE_DOCKER_HOST=unix:///var/run/docker.sock \
   --publish 8080:8080 \
-  ghcr.io/alexgustafsson/cupdate:0.14.1
+  ghcr.io/alexgustafsson/cupdate:0.15.0
 ```
 
 To more easily configure Cupdate to your liking and persisting the configuration
@@ -31,6 +31,7 @@ Cupdate uses the following API paths:
 
 - `/version`
 - `/containers/json`
+- `/images/{id}/json`
 
 If you wish to inspect the source code, the relevant parts can be found in
 `internal/platforms/docker/platform.go`.
