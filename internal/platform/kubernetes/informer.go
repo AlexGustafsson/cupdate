@@ -2,12 +2,15 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/platform"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
@@ -68,6 +71,7 @@ func (g *InformerGrapher) Start() {
 		defer close(g.ch)
 
 		for range g.events {
+			slog.Debug("Got informer event from Kubernetes, graphing")
 			// TODO: Make the timeout configurable? 30s should be plenty, but who
 			// knows
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -109,14 +113,14 @@ func (g *InformerGrapher) Stop() {
 }
 
 func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
-	graph := platform.NewGraph()
+	resources := make(map[types.UID]v1.Object)
 
 	deployments, err := g.informerFactory.Apps().V1().Deployments().Lister().List(labels.Everything())
 	if err != nil {
 		return nil, err
 	}
 	for _, object := range deployments {
-		addObjectToGraph(graph, object, g.includeOldReplicaSets)
+		resources[object.UID] = object
 	}
 
 	daemonSets, err := g.informerFactory.Apps().V1().DaemonSets().Lister().List(labels.Everything())
@@ -124,7 +128,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		return nil, err
 	}
 	for _, object := range daemonSets {
-		addObjectToGraph(graph, object, g.includeOldReplicaSets)
+		resources[object.UID] = object
 	}
 
 	replicaSets, err := g.informerFactory.Apps().V1().ReplicaSets().Lister().List(labels.Everything())
@@ -132,7 +136,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		return nil, err
 	}
 	for _, object := range replicaSets {
-		addObjectToGraph(graph, object, g.includeOldReplicaSets)
+		resources[object.UID] = object
 	}
 
 	statefulSets, err := g.informerFactory.Apps().V1().StatefulSets().Lister().List(labels.Everything())
@@ -140,7 +144,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		return nil, err
 	}
 	for _, object := range statefulSets {
-		addObjectToGraph(graph, object, g.includeOldReplicaSets)
+		resources[object.UID] = object
 	}
 
 	cronJobs, err := g.informerFactory.Batch().V1().CronJobs().Lister().List(labels.Everything())
@@ -148,7 +152,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		return nil, err
 	}
 	for _, object := range cronJobs {
-		addObjectToGraph(graph, object, g.includeOldReplicaSets)
+		resources[object.UID] = object
 	}
 
 	jobs, err := g.informerFactory.Batch().V1().Jobs().Lister().List(labels.Everything())
@@ -156,7 +160,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		return nil, err
 	}
 	for _, object := range jobs {
-		addObjectToGraph(graph, object, g.includeOldReplicaSets)
+		resources[object.UID] = object
 	}
 
 	pods, err := g.informerFactory.Core().V1().Pods().Lister().List(labels.Everything())
@@ -164,7 +168,60 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		return nil, err
 	}
 	for _, object := range pods {
-		addObjectToGraph(graph, object, g.includeOldReplicaSets)
+		resources[object.UID] = object
+	}
+
+	graph := platform.NewGraph()
+	for _, pod := range pods {
+		didAddImage := false
+		for _, containerSpec := range pod.Spec.Containers {
+
+			// Resolve the container's image reference
+			specImage := containerSpec.Image
+			var statusImage, statusImageID string
+			// Note that container statuses are not well-defined. See SDK docs.
+			// Note that container statuses are not always available, for example,
+			// before a cron job has created it.
+			// Use the first match
+			for _, status := range pod.Status.ContainerStatuses {
+				if status.Name == containerSpec.Name {
+					statusImage = status.Image
+					statusImageID = status.ImageID
+					break
+				}
+			}
+
+			ref, err := getImageReference(specImage, statusImage, statusImageID)
+			if err != nil {
+				slog.Error("Failed to identify a valid image reference for container", slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
+				continue
+			}
+
+			graph.InsertTree(
+				platform.ImageNode{
+					Reference: ref,
+				},
+				resource{
+					id:   fmt.Sprintf("kubernetes/%s/container/%s", pod.UID, containerSpec.Name),
+					kind: ResourceKindCoreV1Container,
+					name: containerSpec.Name,
+				},
+				// This node is technically already added by addObjectToGraph later on,
+				// but we still need to reference the resource to connect the relation
+				resource{
+					kind: ResourceKindCoreV1Pod,
+					id:   fmt.Sprintf("kubernetes/%s", pod.UID),
+					name: pod.Name,
+				},
+			)
+			didAddImage = true
+		}
+
+		// If we found and added a valid image, resolve and add the rest of the
+		// pod's hierarchy
+		if didAddImage {
+			addObjectToGraph(graph, resources, pod)
+		}
 	}
 
 	return graph, nil
