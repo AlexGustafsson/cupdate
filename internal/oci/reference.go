@@ -83,11 +83,24 @@ func (r Reference) Name() string {
 
 // Version is the familiar version of the reference, such as its tag, digest or
 // "latest", if no tag or digest is specified.
+// Mostly useful for human-readable use cases. For use with APIs, see
+// [Reference.Reference].
 func (r Reference) Version() string {
 	if r.HasTag {
 		return r.Tag
 	} else if r.HasDigest {
 		return r.Digest
+	} else {
+		return "latest"
+	}
+}
+
+// Reference returns the reference as used by OCI distribution APIs.
+func (r Reference) Reference() string {
+	if r.HasDigest {
+		return r.Digest
+	} else if r.HasTag {
+		return r.Tag
 	} else {
 		return "latest"
 	}

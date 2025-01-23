@@ -27,21 +27,21 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						With("httpClient", httpClient).
 						With("reference", data.ImageReference).
 						With("registryAuth", data.RegistryAuth),
-					GetManifests().
-						WithID("manifests").
+					GetManifest().
+						WithID("manifest").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference),
 					GetAnnotations().
 						WithID("annotations").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference).
-						With("manifests", workflow.Ref{Key: "step.manifests.manifests"}),
+						With("manifest", workflow.Ref{Key: "step.manifest.manifest"}),
 					GetLatestReference().
 						WithID("latest").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", data.ImageReference),
-					GetManifests().
-						WithID("latest-manifests").
+					GetManifest().
+						WithID("latest-manifest").
 						WithCondition(workflow.ValueExists("step.latest.reference")).
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", workflow.Ref{Key: "step.latest.reference"}),
@@ -50,7 +50,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithCondition(workflow.ValueExists("step.latest.reference")).
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
 						With("reference", workflow.Ref{Key: "step.latest.reference"}).
-						With("manifests", workflow.Ref{Key: "step.latest-manifests.manifests"}),
+						With("manifest", workflow.Ref{Key: "step.latest-manifest.manifest"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						domain, err := workflow.GetValue[string](ctx, "step.registry.domain")
 						if err != nil {
@@ -141,7 +141,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("vulnerabilities").
 						With("httpClient", httpClient).
 						With("reference", data.ImageReference).
-						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}),
+						With("manifest", workflow.Ref{Key: "job.oci.step.manifest.manifest"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						repository, err := workflow.GetValue[*dockerhub.Repository](ctx, "step.repository.repository")
 						if err != nil {
@@ -251,7 +251,7 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 						WithID("vulnerabilities").
 						With("httpClient", httpClient).
 						With("reference", data.ImageReference).
-						With("manifests", workflow.Ref{Key: "job.oci.step.manifests.manifests"}),
+						With("manifest", workflow.Ref{Key: "job.oci.step.manifest.manifest"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						vulnerabilities, err := workflow.GetValue[[]models.ImageVulnerability](ctx, "step.vulnerabilities.vulnerabilities")
 						if err != nil {

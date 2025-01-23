@@ -31,7 +31,13 @@ func Fetch(ctx context.Context, httpClient *httputil.Client, destination string)
 		return err
 	}
 
-	manifestBlob, err := client.GetManifest(ctx, ref, ref.Version())
+	manifestBlob, err := client.GetManifestBlob(ctx, ref)
+	if err != nil {
+		return err
+	}
+
+	manifestBlobContents, err := io.ReadAll(manifestBlob)
+	manifestBlob.Close()
 	if err != nil {
 		return err
 	}
@@ -41,7 +47,7 @@ func Fetch(ctx context.Context, httpClient *httputil.Client, destination string)
 		MediaType     string `json:"mediaType"`
 		ArtifactType  string `json:"artifactType"`
 	}
-	if err := json.Unmarshal(manifestBlob, &baseManifest); err != nil {
+	if err := json.Unmarshal(manifestBlobContents, &baseManifest); err != nil {
 		return err
 	}
 
@@ -60,7 +66,7 @@ func Fetch(ctx context.Context, httpClient *httputil.Client, destination string)
 		} `json:"layers"`
 		Annotations map[string]string `json:"annotations"`
 	}
-	if err := json.Unmarshal(manifestBlob, &manifest); err != nil {
+	if err := json.Unmarshal(manifestBlobContents, &manifest); err != nil {
 		return err
 	}
 
@@ -76,11 +82,9 @@ func Fetch(ctx context.Context, httpClient *httputil.Client, destination string)
 		return fmt.Errorf("artifact contains no database blob")
 	}
 
-	blob, err := client.ReadBlob(ctx, ref, databaseBlobDigest)
+	blob, err := client.GetBlob(ctx, ref, databaseBlobDigest, false)
 	if err != nil {
 		return err
-	} else if blob == nil {
-		return fmt.Errorf("artifact database blob not found")
 	}
 	defer blob.Close()
 

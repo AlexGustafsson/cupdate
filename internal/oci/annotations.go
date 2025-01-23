@@ -39,3 +39,24 @@ func (a Annotations) URL() string {
 func (a Annotations) DocumentationURL() string {
 	return a["org.opencontainers.image.documentation"]
 }
+
+// Merge returns the merge of a and b.
+// If both are nil, nil is returned.
+func (a Annotations) Merge(b Annotations) Annotations {
+	if a == nil && b == nil {
+		return nil
+	} else if a == nil {
+		return b
+	} else if b == nil {
+		return b
+	} else {
+		clone := make(Annotations)
+		for k, v := range a {
+			clone[k] = v
+		}
+		for k, v := range b {
+			clone[k] = v
+		}
+		return clone
+	}
+}

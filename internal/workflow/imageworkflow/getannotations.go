@@ -30,9 +30,17 @@ func GetAnnotations() workflow.Step {
 				return nil, err
 			}
 
-			manifests, err := workflow.GetInput[[]oci.Manifest](ctx, "manifests", true)
+			manifest, err := workflow.GetInput[any](ctx, "manifest", true)
 			if err != nil {
 				return nil, err
+			}
+
+			var manifests []oci.ImageManifest
+			switch m := manifest.(type) {
+			case *oci.ImageIndex:
+				manifest = m.Manifests
+			case *oci.ImageManifest:
+				manifest = []oci.ImageManifest{*m}
 			}
 
 			annotations, err := registryClient.GetAnnotations(ctx, image, &oci.GetAnnotationsOptions{

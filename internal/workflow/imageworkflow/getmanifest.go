@@ -7,9 +7,9 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func GetManifests() workflow.Step {
+func GetManifest() workflow.Step {
 	return workflow.Step{
-		Name: "Get manifests",
+		Name: "Get manifest",
 
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
 			registryClient, err := workflow.GetInput[*oci.Client](ctx, "registryClient", true)
@@ -17,24 +17,24 @@ func GetManifests() workflow.Step {
 				return nil, err
 			}
 
-			image, err := workflow.GetInput[oci.Reference](ctx, "reference", true)
+			ref, err := workflow.GetInput[oci.Reference](ctx, "reference", true)
 			if errors.Is(err, workflow.ErrInvalidType) {
 				imageRef, err := workflow.GetInput[*oci.Reference](ctx, "reference", true)
 				if err != nil {
 					return nil, err
 				} else if imageRef != nil {
-					image = *imageRef
+					ref = *imageRef
 				}
 			} else if err != nil {
 				return nil, err
 			}
 
-			manifests, err := registryClient.GetManifests(ctx, image)
+			manifest, err := registryClient.GetManifest(ctx, ref)
 			if err != nil {
 				return nil, err
 			}
 
-			return workflow.SetOutput("manifests", manifests), nil
+			return workflow.SetOutput("manifest", manifest), nil
 		},
 	}
 }

@@ -1,6 +1,9 @@
 package oci
 
-import "strings"
+import (
+	"io"
+	"strings"
+)
 
 // NameFromAPI returns the OCI name based on the distribution spec API endpoint.
 // Assumes name has at least two components.
@@ -28,4 +31,31 @@ loop:
 	}
 
 	return strings.Join(parts[2:2+components], "/")
+}
+
+var _ io.Reader = (*teeReadCloser)(nil)
+var _ io.Closer = (*teeReadCloser)(nil)
+
+type teeReadCloser struct {
+	reader io.Reader
+	closer io.Closer
+	writer io.Writer
+}
+
+func newTeeReadCloser(r io.ReadCloser, w io.Writer) *teeReadCloser {
+	return &teeReadCloser{
+		reader: io.TeeReader(r, w),
+		closer: r,
+		writer: w,
+	}
+}
+
+// Read implements io.Reader.
+func (t *teeReadCloser) Read(p []byte) (n int, err error) {
+	return t.reader.Read(p)
+}
+
+// Close implements io.Closer.
+func (t *teeReadCloser) Close() error {
+	return t.closer.Close()
 }

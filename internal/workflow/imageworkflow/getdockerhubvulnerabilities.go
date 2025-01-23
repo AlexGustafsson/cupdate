@@ -19,7 +19,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 				return nil, err
 			}
 
-			manifests, err := workflow.GetInput[[]oci.Manifest](ctx, "manifests", true)
+			manifest, err := workflow.GetInput[any](ctx, "manifest", true)
 			if err != nil {
 				return nil, err
 			}
@@ -36,11 +36,16 @@ func GetDockerHubVulnerabilities() workflow.Step {
 			}
 
 			// TODO: For now, use the first digest of a manifest
-			digest := ""
-			for _, manifest := range manifests {
-				if manifest.Digest != "" {
-					digest = manifest.Digest
-					break
+			var digest string
+			switch m := manifest.(type) {
+			case *oci.ImageManifest:
+				digest = m.Digest
+			case *oci.ImageIndex:
+				for _, m := range m.Manifests {
+					if m.Digest != "" {
+						digest = m.Digest
+						break
+					}
 				}
 			}
 

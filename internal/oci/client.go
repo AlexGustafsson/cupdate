@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"slices"
@@ -19,32 +18,23 @@ type Client struct {
 	AuthFunc func(*http.Request) error
 }
 
-// TODO: Rewrite to return a ManifestList / ManifestIndex instead, which then
-// contains the manifests.
-// That way we can differentiate with the content types of actual manifests as
-// returned by GetManifest...
-func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest, error) {
-	id := ""
-	if image.HasTag {
-		id = image.Tag
-	} else if image.HasDigest {
-		id = image.Digest
-	} else {
-		return nil, fmt.Errorf("unsupported reference type: must be tagged or digested")
-	}
+// GetManifestBlob downloads a manifest from an OCI registry.
+// SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pull
+func (c *Client) GetManifestBlob(ctx context.Context, ref Reference) (Blob, error) {
+	ref = c.rewriteReference(ref)
 
-	// NOTE: It's rather unclear why we need to do this dance manually and why
-	// docker.io simply doesn't just redirect us
-	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/manifests/%s", domain, image.Path, url.PathEscape(id)), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/manifests/%s", ref.Domain, ref.Path, ref.Reference()), nil)
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header.Set("Accept", strings.Join([]string{
-		"application/vnd.docker.distribution.manifest.list.v2+json",
 		"application/vnd.oci.image.index.v1+json",
+		"application/vnd.oci.image.manifest.v1+json",
+		"application/vnd.docker.distribution.manifest.list.v2+json",
 		"application/vnd.docker.distribution.manifest.v2+json",
+		"application/vnd.docker.distribution.manifest.v1+prettyjws",
+		"application/vnd.docker.distribution.manifest.v1+json",
 	}, ", "))
 
 	if f := c.AuthFunc; f != nil {
@@ -57,126 +47,33 @@ func (c *Client) GetManifests(ctx context.Context, image Reference) ([]Manifest,
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
 
-	if res.StatusCode == http.StatusNotFound {
-		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := assertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
-	body, err := io.ReadAll(res.Body)
+	return blobFromResponse(res), nil
+}
+
+// GetManifest downloads a [Manifest] or a [ManifestIndex] from an OCI registry.
+// SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pull
+func (c *Client) GetManifest(ctx context.Context, ref Reference) (any, error) {
+	ref = c.rewriteReference(ref)
+
+	blob, err := c.GetManifestBlob(ctx, ref)
 	if err != nil {
 		return nil, err
 	}
 
-	var result struct {
-		SchemaVersion int    `json:"schemaVersion"`
-		MediaType     string `json:"mediaType"`
-	}
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, err
-	}
-
-	contentType := res.Header.Get("Content-Type")
-
-	if result.MediaType == "application/vnd.docker.distribution.manifest.list.v2+json" && result.SchemaVersion == 2 {
-		var result DockerDistributionManifestListV2
-		if err := json.Unmarshal(body, &result); err != nil {
-			return nil, err
-		}
-
-		manifests := make([]Manifest, 0)
-		for _, manifest := range result.Manifests {
-			var platform *Platform
-			if manifest.Platform.Architecture != "" {
-				platform = &Platform{
-					Architecture: manifest.Platform.Architecture,
-					OS:           manifest.Platform.OS,
-					Variant:      manifest.Platform.Variant,
-				}
-			}
-
-			manifests = append(manifests, Manifest{
-				SchemaVersion: result.SchemaVersion,
-				MediaType:     manifest.MediaType,
-				Digest:        manifest.Digest,
-				Platform:      platform,
-			})
-		}
-
-		return manifests, nil
-	}
-
-	if result.MediaType == "application/vnd.docker.distribution.manifest.v2+json" && result.SchemaVersion == 2 {
-		var manifest DockerDistributionManifestV2
-		if err := json.Unmarshal(body, &manifest); err != nil {
-			return nil, err
-		}
-
-		return []Manifest{
-			{
-				SchemaVersion: manifest.SchemaVersion,
-				MediaType:     manifest.MediaType,
-				Digest:        manifest.Config.Digest,
-				Platform:      nil,
-			},
-		}, nil
-	}
-
-	if result.MediaType == "application/vnd.oci.image.index.v1+json" && result.SchemaVersion == 2 {
-		var result OCIImageIndexV1
-		if err := json.Unmarshal(body, &result); err != nil {
-			return nil, err
-		}
-
-		manifests := make([]Manifest, 0)
-		for _, manifest := range result.Manifests {
-			// The manifest's schema version always seems to be unset in this case,
-			// fall back to use the parent manifest's version
-			schemaVersion := manifest.SchemaVersion
-			if schemaVersion == 0 {
-				schemaVersion = result.SchemaVersion
-			}
-
-			var platform *Platform
-			if manifest.Platform.Architecture != "" {
-				platform = &Platform{
-					Architecture: manifest.Platform.Architecture,
-					OS:           manifest.Platform.OS,
-					Variant:      manifest.Platform.Variant,
-				}
-			}
-
-			manifests = append(manifests, Manifest{
-				SchemaVersion: schemaVersion,
-				MediaType:     manifest.MediaType,
-				Annotations:   manifest.Annotations,
-				Digest:        manifest.Digest,
-				Platform:      platform,
-			})
-		}
-
-		return manifests, nil
-	}
-
-	if contentType == "application/vnd.docker.distribution.manifest.v1+prettyjws" && result.SchemaVersion == 1 {
-		var result DockerDistributionManifestV1
-		if err := json.Unmarshal(body, &result); err != nil {
-			return nil, err
-		}
-
-		return make([]Manifest, 0), nil
-	}
-
-	return nil, fmt.Errorf("unsupported manifest type: %s (%s, %d)", res.Header["Content-Type"], result.MediaType, result.SchemaVersion)
+	return manifestFromBlob(blob)
 }
 
-func (c *Client) GetManifest(ctx context.Context, image Reference, digest string) ([]byte, error) {
-	// NOTE: It's rather unclear why we need to do this dance manually and why
-	// docker.io simply doesn't just redirect us
-	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/manifests/%s", domain, image.Path, digest), nil)
+// GetBlob downloads a blob from an OCI registry.
+// SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pulling-blobs
+func (c *Client) GetBlob(ctx context.Context, ref Reference, digest string, cache bool) (Blob, error) {
+	ref = c.rewriteReference(ref)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/blobs/%s", ref.Domain, ref.Path, digest), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -194,26 +91,29 @@ func (c *Client) GetManifest(ctx context.Context, image Reference, digest string
 		"application/vnd.oci.image.manifest.v1+json",
 	}, ", "))
 
-	res, err := c.Client.DoCached(req)
+	var res *http.Response
+	if cache {
+		res, err = c.Client.DoCached(req)
+	} else {
+		res, err = c.Client.DoCached(req)
+	}
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
 
-	if res.StatusCode == http.StatusNotFound {
-		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := assertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
-	return io.ReadAll(res.Body)
+	return blobFromResponse(res), nil
 }
 
-func (c *Client) GetBlob(ctx context.Context, image Reference, digest string) ([]byte, error) {
-	// NOTE: It's rather unclear why we need to do this dance manually and why
-	// docker.io simply doesn't just redirect us
-	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/blobs/%s", domain, image.Path, digest), nil)
+// HeadBlob gets information about a blob from an OCI registry.
+// SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pulling-blobs
+func (c *Client) HeadBlob(ctx context.Context, ref Reference, digest string) (*BlobInfo, error) {
+	ref = c.rewriteReference(ref)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodHead, fmt.Sprintf("https://%s/v2/%s/blobs/%s", ref.Domain, ref.Path, digest), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -228,97 +128,67 @@ func (c *Client) GetBlob(ctx context.Context, image Reference, digest string) ([
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
 
-	if res.StatusCode == http.StatusNotFound {
-		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
-	}
-
-	return io.ReadAll(res.Body)
-}
-
-func (c *Client) ReadBlob(ctx context.Context, image Reference, digest string) (io.ReadCloser, error) {
-	// NOTE: It's rather unclear why we need to do this dance manually and why
-	// docker.io simply doesn't just redirect us
-	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/blobs/%s", domain, image.Path, digest), nil)
-	if err != nil {
+	if err := assertStatusCode(res, http.StatusOK); err != nil {
 		return nil, err
 	}
 
-	if f := c.AuthFunc; f != nil {
-		if err := f(req); err != nil {
-			return nil, err
-		}
-	}
-
-	res, err := c.Client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if res.StatusCode == http.StatusNotFound {
-		res.Body.Close()
-		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		res.Body.Close()
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
-	}
-
-	return res.Body, nil
+	info := blobInfoFromResponse(res)
+	return &info, nil
 }
 
 type GetAnnotationsOptions struct {
-	Manifests    []Manifest
+	Manifests    []ImageManifest
 	Digest       string
 	Architecture string
 	OS           string
 	Variant      string
 }
 
-// GetAnnotations tries to identify annotations for the image.
+// GetAnnotations tries to identify annotations for the reference.
 // Fetches manifests as necessary.
 // To narrow down the search and to avoid unnecessary fetches, specify the
 // available options.
-func (c *Client) GetAnnotations(ctx context.Context, image Reference, options *GetAnnotationsOptions) (Annotations, error) {
+func (c *Client) GetAnnotations(ctx context.Context, ref Reference, options *GetAnnotationsOptions) (Annotations, error) {
 	if options == nil {
 		options = &GetAnnotationsOptions{}
 	}
 
-	var manifests []Manifest
-	if options.Manifests == nil {
-		var err error
-		manifests, err = c.GetManifests(ctx, image)
+	manifests := options.Manifests
+	if manifests == nil {
+		manifestOrIndex, err := c.GetManifest(ctx, ref)
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		manifests = make([]Manifest, len(options.Manifests))
-		copy(manifests, options.Manifests)
+
+		switch m := manifestOrIndex.(type) {
+		case *ImageManifest:
+			manifests = []ImageManifest{*m}
+		case *ImageIndex:
+			manifests = m.Manifests
+		}
 	}
 
 	if options.Digest != "" {
-		manifests = slices.DeleteFunc(manifests, func(m Manifest) bool {
+		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
 			return m.Digest != options.Digest
 		})
 	}
 
 	if options.Architecture != "" {
-		manifests = slices.DeleteFunc(manifests, func(m Manifest) bool {
+		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
 			return m.Platform == nil || m.Platform.Architecture != options.Architecture
 		})
 	}
 
 	if options.OS != "" {
-		manifests = slices.DeleteFunc(manifests, func(m Manifest) bool {
+		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
 			return m.Platform == nil || m.Platform.OS != options.OS
 		})
 	}
 
 	if options.Variant != "" {
-		manifests = slices.DeleteFunc(manifests, func(m Manifest) bool {
+		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
 			return m.Platform == nil || m.Platform.Variant != options.Variant
 		})
 	}
@@ -330,50 +200,60 @@ func (c *Client) GetAnnotations(ctx context.Context, image Reference, options *G
 	// Pick the first manifest
 	manifest := manifests[0]
 
-	// If the manifest doesn't have a digest, it cannot be fetched
-	if manifest.Digest == "" {
-		return nil, nil
-	}
+	// Resolve the reference to its digest
+	ref.HasTag = false
+	ref.Tag = ""
+	ref.HasDigest = true
+	ref.Digest = manifest.Digest
 
-	// Fetch the blob for the manifest (trying to get labels from the config)
-	blob, err := c.GetManifest(ctx, image, manifest.Digest)
+	// Fetch the manifest
+	manifestBlob, err := c.GetManifestBlob(ctx, ref)
 	if err != nil {
 		return nil, err
-	} else if blob == nil {
-		return nil, fmt.Errorf("manifest blob not found")
 	}
+	defer manifestBlob.Close()
 
-	var manifestBlob struct {
+	var manifestContent struct {
 		Config struct {
 			Digest string `json:"digest"`
 		} `json:"config"`
+		Annotations Annotations `json:"annotations,omitempty"`
 	}
-	if err := json.Unmarshal(blob, &manifestBlob); err != nil {
+	if err := json.NewDecoder(manifestBlob).Decode(&manifestContent); err != nil {
 		return nil, err
 	}
 
-	// The blob was probably not a manifest blob
-	if manifestBlob.Config.Digest == "" {
-		return nil, nil
+	annotations := manifestContent.Annotations
+
+	// The blob was probably not a manifest blob but could still contain
+	// annotations if it was a OCI manifest
+	if manifestContent.Config.Digest == "" {
+		return annotations, nil
 	}
 
-	blob, err = c.GetBlob(ctx, image, manifestBlob.Config.Digest)
+	// Get the config itself
+	configBlob, err := c.GetBlob(ctx, ref, manifestContent.Config.Digest, true)
 	if err != nil {
 		return nil, err
-	} else if blob == nil {
-		return nil, fmt.Errorf("manifest config blob not found")
 	}
+	defer configBlob.Close()
 
-	var configBlob struct {
+	// For now, only two formats are known to support annotations in config:
+	// application/vnd.docker.container.image.v1+json
+	// application/vnd.oci.image.config.v1+json
+	// But the content types don't seem to be returned by all servers, so just try
+	// to parse it anyways
+
+	var configContent struct {
 		Config struct {
 			Labels map[string]string `json:"Labels"`
 		} `json:"config"`
 	}
-	if err := json.Unmarshal(blob, &configBlob); err != nil {
+	if err := json.NewDecoder(configBlob).Decode(&configContent); err != nil {
 		return nil, err
 	}
 
-	return configBlob.Config.Labels, nil
+	return annotations.Merge(configContent.Config.Labels), nil
 }
 
 type GetTagsOptions struct {
@@ -439,12 +319,10 @@ func (c *Client) GetTags(ctx context.Context, image Reference, options *GetTagsO
 	return allTags, nil
 }
 
-func (c *Client) getTags(ctx context.Context, image Reference, options *GetTagsOptions) ([]string, *url.URL, string, error) {
-	// NOTE: It's rather unclear why we need to do this dance manually and why
-	// docker.io simply doesn't just redirect us
-	domain := strings.Replace(image.Domain, "docker.io", "registry-1.docker.io", 1)
+func (c *Client) getTags(ctx context.Context, ref Reference, options *GetTagsOptions) ([]string, *url.URL, string, error) {
+	ref = c.rewriteReference(ref)
 
-	u, err := url.Parse(fmt.Sprintf("https://%s/v2/%s/tags/list", domain, image.Path))
+	u, err := url.Parse(fmt.Sprintf("https://%s/v2/%s/tags/list", ref.Domain, ref.Path))
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -479,11 +357,14 @@ func (c *Client) getTags(ctx context.Context, image Reference, options *GetTagsO
 
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil, "", nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, nil, "", fmt.Errorf("unexpected status code: %s", res.Status)
+	} else if err := assertStatusCode(res, http.StatusOK); err != nil {
+		return nil, nil, "", err
 	}
 
-	var page TagsPage
+	var page struct {
+		Name string   `json:"name"`
+		Tags []string `json:"tags"`
+	}
 	if err := json.NewDecoder(res.Body).Decode(&page); err != nil {
 		return nil, nil, "", err
 	}
@@ -491,4 +372,16 @@ func (c *Client) getTags(ctx context.Context, image Reference, options *GetTagsO
 	tags := page.Tags
 
 	return tags, req.URL, res.Header.Get("Link"), nil
+}
+
+// rewriteReference rewrites ref to handle caveats like Docker's registry not
+// dealing with redirects.
+func (c *Client) rewriteReference(ref Reference) Reference {
+	// NOTE: It's rather unclear why we need to do this dance manually and why
+	// docker.io simply doesn't just redirect us
+	if ref.Domain == "docker.io" {
+		ref.Domain = "registry-1.docker.io"
+	}
+
+	return ref
 }
