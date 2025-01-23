@@ -20,6 +20,61 @@ func GetLatestReference() workflow.Step {
 				return nil, err
 			}
 
+			// If the tag is not adhering to semver, try to identify whether or not
+			// the underlying manifest has changed if we have a digest to compare to
+			if reference.HasTag && reference.HasDigest {
+				_, err := semver.ParseVersion(reference.Tag)
+				isSemver := err == nil
+				if !isSemver {
+					// Remove the digest and only look up the tag
+					ref := reference
+					ref.HasDigest = false
+					ref.Digest = ""
+					manifest, err := registryClient.GetManifest(ctx, ref)
+					if err != nil {
+						return nil, err
+					}
+
+					switch m := manifest.(type) {
+					// If we got a single image, we can be pretty sure it's what's
+					// actually used by the runtime
+					// TODO: We don't know if this is just one manifest from the same fat
+					// manifest already in use by the user (just look up the reference's
+					// manifest and see if its either the same, or in the case of index,
+					// contains this manifest?) That way we always try to use the fat
+					// manifest if possible, probably what's used by most users / systems
+					// anyway?
+					case *oci.ImageManifest:
+						ref := reference
+						ref.HasDigest = true
+						ref.Digest = m.Digest
+						return workflow.SetOutput("reference", &ref), nil
+					case *oci.ImageIndex:
+						// We don't know if this is just the fat manifest for the same
+						// manifest the user is already using, look it up
+						currentDigestFound := false
+						for _, manifest := range m.Manifests {
+							if manifest.Digest == reference.Digest {
+								currentDigestFound = true
+								break
+							}
+						}
+						if currentDigestFound {
+							return workflow.SetOutput("reference", &reference), nil
+						}
+
+						// If we got a "fat" manifest, we don't necessarily know what digest
+						// is actually used by the runtime as it can vary by platform /
+						// architecture, but the version itself can still be referred to by
+						// the fat manifest, use it
+						ref := reference
+						ref.HasDigest = true
+						ref.Digest = m.Digest
+						return workflow.SetOutput("reference", &ref), nil
+					}
+				}
+			}
+
 			tags, err := registryClient.GetTags(ctx, reference, &oci.GetTagsOptions{
 				AllPages: true,
 			})

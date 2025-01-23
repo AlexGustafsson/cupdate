@@ -106,13 +106,16 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 
 	versionDiffSortable := semver.PackInt64(nil)
 
-	// If no new version was defined and the current version is using the "latest"
-	// convention, the latest available reference is the current reference
-	if reference.Version() == "latest" {
-		r := reference
-		data.LatestReference = &r
-		versionDiffSortable = 0
-	}
+	// TODO: This should be removed, right?
+	// Fixed tags are handled now, latest should work?
+	// Should all fixed tags' diffSortable be set to 0?
+	// // If no new version was defined and the current version is using the "latest"
+	// // convention, the latest available reference is the current reference
+	// if reference.Version() == "latest" {
+	// 	r := reference
+	// 	data.LatestReference = &r
+	// 	versionDiffSortable = 0
+	// }
 
 	// Add some basic tags
 	if data.LatestReference != nil {
