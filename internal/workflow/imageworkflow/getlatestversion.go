@@ -1,6 +1,8 @@
 package imageworkflow
 
 import (
+	"log/slog"
+
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
@@ -48,8 +50,10 @@ func GetLatestReference() workflow.Step {
 						ref := reference
 						ref.HasDigest = true
 						ref.Digest = m.Digest
+						slog.Debug("Identified fixed tag and found an image manifest", slog.String("reference", reference.String()), slog.String("latestReference", ref.String()))
 						return workflow.SetOutput("reference", &ref), nil
 					case *oci.ImageIndex:
+						slog.Debug("Identified fixed tag and found an image index", slog.String("reference", reference.String()))
 						// We don't know if this is just the fat manifest for the same
 						// manifest the user is already using, look it up
 						currentDigestFound := false
@@ -60,6 +64,7 @@ func GetLatestReference() workflow.Step {
 							}
 						}
 						if currentDigestFound {
+							slog.Debug("Fixed tag in use was found in index", slog.String("reference", reference.String()))
 							return workflow.SetOutput("reference", &reference), nil
 						}
 
@@ -70,6 +75,7 @@ func GetLatestReference() workflow.Step {
 						ref := reference
 						ref.HasDigest = true
 						ref.Digest = m.Digest
+						slog.Debug("Fixed tag in use was not found in index, assuming index is an updated version", slog.String("reference", reference.String()), slog.String("latestReference", ref.String()))
 						return workflow.SetOutput("reference", &ref), nil
 					}
 				}
