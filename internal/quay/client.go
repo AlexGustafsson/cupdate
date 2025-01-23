@@ -29,8 +29,8 @@ func (c *Client) GetScan(ctx context.Context, reference oci.Reference, digest st
 
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var scan Scan

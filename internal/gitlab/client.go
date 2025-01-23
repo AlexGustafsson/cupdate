@@ -50,8 +50,8 @@ func (c *Client) GetRepositoryDescription(ctx context.Context, fullPath string) 
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return "", err
 	}
 
 	var result struct {
@@ -85,8 +85,8 @@ func (c *Client) GetRepositoryREADMEBlob(ctx context.Context, fullPath string) (
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	html, err := io.ReadAll(res.Body)
@@ -124,8 +124,8 @@ func (c *Client) GetBlob(ctx context.Context, href string, includeRaw bool) (*Bl
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var blob Blob
@@ -151,8 +151,8 @@ func (c *Client) GetBlob(ctx context.Context, href string, includeRaw bool) (*Bl
 		}
 		defer res.Body.Close()
 
-		if res.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+		if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+			return nil, err
 		}
 
 		raw, err := io.ReadAll(res.Body)
@@ -189,8 +189,8 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 		return "", err
 	}
 
-	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return "", err
 	}
 
 	var result struct {
@@ -265,8 +265,8 @@ func (c *Client) GetProjectContainerRepositories(ctx context.Context, fullPath s
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var result struct {
@@ -335,8 +335,8 @@ func (c *Client) GetProjectContainerRepositoryTags(ctx context.Context, id strin
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var result struct {

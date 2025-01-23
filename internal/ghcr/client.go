@@ -37,8 +37,8 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 		return "", err
 	}
 
-	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return "", err
 	}
 
 	var result struct {

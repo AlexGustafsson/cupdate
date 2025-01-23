@@ -40,8 +40,8 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 		return "", err
 	}
 
-	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code: %s", res.Status)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return "", err
 	}
 
 	var result struct {
@@ -85,8 +85,8 @@ func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repos
 	defer res.Body.Close()
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var result Repository
@@ -110,8 +110,8 @@ func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser s
 	defer res.Body.Close()
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var result Entity
@@ -154,8 +154,8 @@ func (c *Client) GetVulnerabilityReport(ctx context.Context, repo string, digest
 	defer res.Body.Close()
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
-	} else if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %s", res.Status)
+	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var result struct {

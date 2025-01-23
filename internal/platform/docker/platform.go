@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
+	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 )
@@ -101,8 +102,8 @@ func (p *Platform) GetVersion(ctx context.Context) (string, string, error) {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return "", "", fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return "", "", err
 	}
 
 	var body struct {
@@ -146,8 +147,8 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var result []Container

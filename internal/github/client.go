@@ -44,8 +44,8 @@ func (c *Client) GetRelease(ctx context.Context, owner string, repository string
 
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
-	} else if res.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected status: %s - %d", res.Status, res.StatusCode)
+	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	release, err := parseRelease(res.Body)
@@ -81,8 +81,8 @@ func (c *Client) GetDescription(ctx context.Context, owner string, repository st
 
 	if res.StatusCode == http.StatusNotFound {
 		return "", nil
-	} else if res.StatusCode != 200 {
-		return "", fmt.Errorf("unexpected status: %s - %d", res.Status, res.StatusCode)
+	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return "", err
 	}
 
 	return parseAbout(res.Body)
@@ -102,8 +102,8 @@ func (c *Client) GetPackage(ctx context.Context, reference oci.Reference) (*Pack
 
 	if res.StatusCode == http.StatusNotFound {
 		return nil, nil
-	} else if res.StatusCode != 200 {
-		return nil, fmt.Errorf("unexpected status: %s - %d", res.Status, res.StatusCode)
+	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	owner, _, _ := strings.Cut(reference.Path, "/")
@@ -124,8 +124,8 @@ func (c *Client) GetREADME(ctx context.Context, url string) (string, error) {
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status code when getting GitHub README: %d", res.StatusCode)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return "", err
 	}
 
 	readme, err := io.ReadAll(res.Body)
