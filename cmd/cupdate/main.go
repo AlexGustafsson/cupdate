@@ -264,7 +264,7 @@ func main() {
 				for _, image := range images {
 					reference, err := oci.ParseReference(image.Reference)
 					if err != nil {
-						slog.ErrorContext(ctx, "Unexpectedly failed to parse reference from store", slog.Any("error", err))
+						slog.ErrorContext(ctx, "Unexpectedly failed to parse reference from store", slog.Any("error", err), slog.String("reference", image.Reference))
 						cancel()
 						return err
 					}
