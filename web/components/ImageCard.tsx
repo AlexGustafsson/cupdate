@@ -68,7 +68,7 @@ export function ImageCard({
           <div className="flex flex-row items-center gap-x-2">
             {/* Digests are formatted like <algo>:<digest>, such as sha256:<digest>. Show a maximum of 5 hex digits before truncating with ellipsis (hence 15ch) */}
             {latestVersion ? (
-              currentVersion === latestVersion ? (
+              fullCurrentVersion === fullLatestVersion ? (
                 <p
                   className="text-green-600 max-w-[15ch] truncate"
                   title={fullLatestVersion}
