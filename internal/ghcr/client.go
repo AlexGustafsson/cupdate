@@ -53,7 +53,9 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 
 func (c *Client) HandleAuth(r *http.Request) error {
 	name := oci.NameFromAPI(r.URL.Path)
-	if r.Host != "ghcr.io" || name == "" {
+	// lscr.io is a pseudo-registry that forwards to one of multiple backends,
+	// among them ghcr.io
+	if (r.Host != "ghcr.io" && r.Host != "lscr.io") || name == "" {
 		return nil
 	}
 

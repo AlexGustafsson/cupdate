@@ -207,7 +207,9 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 
 func (c *Client) HandleAuth(r *http.Request) error {
 	name := oci.NameFromAPI(r.URL.Path)
-	if r.Host != "registry.gitlab.com" || name == "" {
+	// lscr.io is a pseudo-registry that forwards to one of multiple backends,
+	// among them registry.gitlab.com
+	if (r.Host != "registry.gitlab.com" && r.Host != "lscr.io") || name == "" {
 		return nil
 	}
 
