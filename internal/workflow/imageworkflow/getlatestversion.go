@@ -99,8 +99,24 @@ func GetLatestReference() workflow.Step {
 					l.Tag = latest
 					// Remove the digest of the latest reference in all cases as we don't
 					// know the new image's digest
-					l.Digest = ""
 					l.HasDigest = false
+					l.Digest = ""
+
+					// Try to find the actual digest
+					manifest, err := registryClient.GetManifest(ctx, l)
+					if err == nil {
+						switch m := manifest.(type) {
+						case *oci.ImageManifest:
+							l.HasDigest = true
+							l.Digest = m.Digest
+						case *oci.ImageIndex:
+							l.HasDigest = true
+							l.Digest = m.Digest
+						}
+					} else {
+						slog.Warn("Failed to look up the manifest of the latest reference, falling back to no digest", slog.Any("error", err))
+					}
+
 					latestReference = &l
 				}
 			}
