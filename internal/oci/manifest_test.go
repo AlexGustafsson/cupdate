@@ -357,3 +357,315 @@ func TestManifestFromBlob(t *testing.T) {
 		})
 	}
 }
+
+func TestManifestsMaybeEqual(t *testing.T) {
+	testCases := []struct {
+		Name       string
+		ManifestA  any
+		ManifestB  any
+		Platform   *Platform
+		MaybeEqual bool
+	}{
+		{
+			Name: "Identical image manifests",
+			ManifestA: &ImageManifest{
+				Digest: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+			},
+			ManifestB: &ImageManifest{
+				Digest: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+			},
+			Platform:   nil,
+			MaybeEqual: true,
+		},
+		{
+			Name: "Different image manifests",
+			ManifestA: &ImageManifest{
+				Digest: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+			},
+			ManifestB: &ImageManifest{
+				Digest: "4ed993c7c28d18538eb6e42e6727f637e0021108f8901e616511a87671400468",
+			},
+			Platform:   nil,
+			MaybeEqual: false,
+		},
+		{
+			Name: "Image manifest found in index",
+			ManifestA: &ImageManifest{
+				Digest: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+			},
+			ManifestB: &ImageIndex{
+				Digest: "5564ee5fbe988d6ff476b7b037343c46a114e2638959e49654cd876c60ac6661",
+				Manifests: []ImageManifest{
+					{
+						Digest: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+					},
+				},
+			},
+			Platform:   nil,
+			MaybeEqual: true,
+		},
+		{
+			Name: "Image index contains in manifest",
+			ManifestA: &ImageIndex{
+				Digest: "5564ee5fbe988d6ff476b7b037343c46a114e2638959e49654cd876c60ac6661",
+				Manifests: []ImageManifest{
+					{
+						Digest: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+					},
+				},
+			},
+			ManifestB: &ImageManifest{
+				Digest: "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+			},
+			Platform:   nil,
+			MaybeEqual: true,
+		},
+		{
+			Name: "Image indexes equal",
+			ManifestA: &ImageIndex{
+				Digest: "5564ee5fbe988d6ff476b7b037343c46a114e2638959e49654cd876c60ac6661",
+			},
+			ManifestB: &ImageIndex{
+				Digest: "5564ee5fbe988d6ff476b7b037343c46a114e2638959e49654cd876c60ac6661",
+			},
+			Platform:   nil,
+			MaybeEqual: true,
+		},
+		{
+			Name: "Different image indexes contain identical images",
+			ManifestA: &ImageIndex{
+				Digest: "5564ee5fbe988d6ff476b7b037343c46a114e2638959e49654cd876c60ac6661",
+				Manifests: []ImageManifest{
+					{
+						Digest: "2cbffe11c9853bdb44577d480183e8f1ede76cc9bfb01168b9838a626cbb6026",
+					},
+					{
+						Digest: "68734cfc63ae7b386b47571ef3f4f5ef1395a73823db56c54919e0adb8dd2c2a",
+					},
+				},
+			},
+			ManifestB: &ImageIndex{
+				Digest: "bd179a032d9b85aa3577e155a536ab388904bacbb905cf7b1a946360e8ce565c",
+				Manifests: []ImageManifest{
+					{
+						Digest: "2cbffe11c9853bdb44577d480183e8f1ede76cc9bfb01168b9838a626cbb6026",
+					},
+					{
+						Digest: "68734cfc63ae7b386b47571ef3f4f5ef1395a73823db56c54919e0adb8dd2c2a",
+					},
+				},
+			},
+			Platform:   nil,
+			MaybeEqual: true,
+		},
+		{
+			Name: "Different image indexes contain different images",
+			ManifestA: &ImageIndex{
+				Digest: "5564ee5fbe988d6ff476b7b037343c46a114e2638959e49654cd876c60ac6661",
+				Manifests: []ImageManifest{
+					{
+						Digest: "2cbffe11c9853bdb44577d480183e8f1ede76cc9bfb01168b9838a626cbb6026",
+					},
+					{
+						Digest: "68734cfc63ae7b386b47571ef3f4f5ef1395a73823db56c54919e0adb8dd2c2a",
+					},
+				},
+			},
+			ManifestB: &ImageIndex{
+				Digest: "bd179a032d9b85aa3577e155a536ab388904bacbb905cf7b1a946360e8ce565c",
+				Manifests: []ImageManifest{
+					{
+						Digest: "4ee5e80bb16a134ef95c50314b22c295068507ee1dd8bf5bb4e1dc8c5448cc0c",
+					},
+					{
+						Digest: "d628021d8d8c29f934568f844fc02a7602e5fbd690e45030be1552b096583000",
+					},
+				},
+			},
+			Platform:   nil,
+			MaybeEqual: false,
+		},
+		{
+			Name: "Different image indexes contain identical images for platform",
+			ManifestA: &ImageIndex{
+				Digest: "5564ee5fbe988d6ff476b7b037343c46a114e2638959e49654cd876c60ac6661",
+				Manifests: []ImageManifest{
+					{
+						Digest: "2cbffe11c9853bdb44577d480183e8f1ede76cc9bfb01168b9838a626cbb6026",
+						Platform: &Platform{
+							Architecture: "arm64",
+							OS:           "linux",
+							Variant:      "v8",
+						},
+					},
+					{
+						// Only different for the amd64 platform, but checking for arm
+						Digest: "68734cfc63ae7b386b47571ef3f4f5ef1395a73823db56c54919e0adb8dd2c2a",
+						Platform: &Platform{
+							Architecture: "amd64",
+							OS:           "linux",
+						},
+					},
+				},
+			},
+			ManifestB: &ImageIndex{
+				Digest: "bd179a032d9b85aa3577e155a536ab388904bacbb905cf7b1a946360e8ce565c",
+				Manifests: []ImageManifest{
+					{
+						Digest: "2cbffe11c9853bdb44577d480183e8f1ede76cc9bfb01168b9838a626cbb6026",
+						Platform: &Platform{
+							Architecture: "arm64",
+							OS:           "linux",
+							Variant:      "v8",
+						},
+					},
+					{
+						// Only different for the amd64 platform, but checking for arm
+						Digest: "d628021d8d8c29f934568f844fc02a7602e5fbd690e45030be1552b096583000",
+						Platform: &Platform{
+							Architecture: "amd64",
+							OS:           "linux",
+						},
+					},
+				},
+			},
+			Platform: &Platform{
+				Architecture: "arm64",
+				OS:           "linux",
+				Variant:      "v8",
+			},
+			MaybeEqual: true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			actual := ManifestsMaybeEqual(testCase.ManifestA, testCase.ManifestB, testCase.Platform)
+			assert.Equal(t, testCase.MaybeEqual, actual)
+		})
+	}
+}
+
+func TestFilterManifestsByPlatform(t *testing.T) {
+	manifests := []ImageManifest{
+		{
+			Digest:   "1",
+			Platform: nil,
+		},
+		{
+			Digest:   "2",
+			Platform: &Platform{},
+		},
+		{
+			Digest: "3",
+			Platform: &Platform{
+				Architecture: "amd64",
+			},
+		},
+		{
+			Digest: "4",
+			Platform: &Platform{
+				Architecture: "amd64",
+				OS:           "linux",
+			},
+		},
+		{
+			Digest: "5",
+			Platform: &Platform{
+				Architecture: "unknown",
+				OS:           "unknown",
+			},
+		},
+		{
+			Digest: "6",
+			Platform: &Platform{
+				Architecture: "arm64",
+			},
+		},
+		{
+			Digest: "7",
+			Platform: &Platform{
+				Architecture: "arm64",
+				OS:           "linux",
+			},
+		},
+		{
+			Digest: "8",
+			Platform: &Platform{
+				Architecture: "arm64",
+				OS:           "linux",
+				Variant:      "v8",
+			},
+		},
+	}
+
+	testCases := []struct {
+		Name           string
+		Platform       *Platform
+		MatchedDigests []string
+	}{
+		{
+			Name:     "No platform specified",
+			Platform: nil,
+			MatchedDigests: []string{
+				"1", "2", "3", "4", "5", "6", "7", "8",
+			},
+		},
+		{
+			Name:     "Empty values specified",
+			Platform: &Platform{},
+			MatchedDigests: []string{
+				"2", "3", "4", "5", "6", "7", "8",
+			},
+		},
+		{
+			Name: "Architecture specified (arm64)",
+			Platform: &Platform{
+				Architecture: "arm64",
+			},
+			MatchedDigests: []string{
+				"6", "7", "8",
+			},
+		},
+		{
+			Name: "Architecture specified (amd64)",
+			Platform: &Platform{
+				Architecture: "amd64",
+			},
+			MatchedDigests: []string{
+				"3", "4",
+			},
+		},
+		{
+			Name: "OS specified",
+			Platform: &Platform{
+				OS: "linux",
+			},
+			MatchedDigests: []string{
+				"4", "7", "8",
+			},
+		},
+		{
+			Name: "Everything specified",
+			Platform: &Platform{
+				Architecture: "arm64",
+				OS:           "linux",
+				Variant:      "v8",
+			},
+			MatchedDigests: []string{
+				"8",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			matchedDigests := make([]string, 0)
+			for _, matched := range filterManifestsByPlatform(manifests, testCase.Platform) {
+				matchedDigests = append(matchedDigests, matched.Digest)
+			}
+
+			assert.Equal(t, testCase.MatchedDigests, matchedDigests)
+		})
+	}
+}

@@ -22,87 +22,37 @@ func GetLatestReference() workflow.Step {
 				return nil, err
 			}
 
-			// If the tag is not adhering to semver, try to identify whether or not
-			// the underlying manifest has changed if we have a digest to compare to
-			if reference.HasTag && reference.HasDigest {
-				_, err := semver.ParseVersion(reference.Tag)
-				isSemver := err == nil
-				if !isSemver {
-					// Remove the digest and only look up the tag
-					ref := reference
-					ref.HasDigest = false
-					ref.Digest = ""
-					manifest, err := registryClient.GetManifest(ctx, ref)
-					if err != nil {
-						return nil, err
-					}
-
-					switch m := manifest.(type) {
-					// If we got a single image, we can be pretty sure it's what's
-					// actually used by the runtime
-					// TODO: We don't know if this is just one manifest from the same fat
-					// manifest already in use by the user (just look up the reference's
-					// manifest and see if its either the same, or in the case of index,
-					// contains this manifest?) That way we always try to use the fat
-					// manifest if possible, probably what's used by most users / systems
-					// anyway?
-					case *oci.ImageManifest:
-						ref := reference
-						ref.HasDigest = true
-						ref.Digest = m.Digest
-						slog.Debug("Identified fixed tag and found an image manifest", slog.String("reference", reference.String()), slog.String("latestReference", ref.String()))
-						return workflow.SetOutput("reference", &ref), nil
-					case *oci.ImageIndex:
-						slog.Debug("Identified fixed tag and found an image index", slog.String("reference", reference.String()))
-						// We don't know if this is just the fat manifest for the same
-						// manifest the user is already using, look it up
-						currentDigestFound := false
-						for _, manifest := range m.Manifests {
-							if manifest.Digest == reference.Digest {
-								currentDigestFound = true
-								break
-							}
-						}
-						if currentDigestFound {
-							slog.Debug("Fixed tag in use was found in index", slog.String("reference", reference.String()))
-							return workflow.SetOutput("reference", &reference), nil
-						}
-
-						// If we got a "fat" manifest, we don't necessarily know what digest
-						// is actually used by the runtime as it can vary by platform /
-						// architecture, but the version itself can still be referred to by
-						// the fat manifest, use it
-						ref := reference
-						ref.HasDigest = true
-						ref.Digest = m.Digest
-						slog.Debug("Fixed tag in use was not found in index, assuming index is an updated version", slog.String("reference", reference.String()), slog.String("latestReference", ref.String()))
-						return workflow.SetOutput("reference", &ref), nil
-					}
-				}
-			}
-
-			tags, err := registryClient.GetTags(ctx, reference, &oci.GetTagsOptions{
-				AllPages: true,
-			})
-			if err != nil {
-				return nil, err
-			}
-
 			var latestReference *oci.Reference
-			if tags != nil && reference.Tag != "" {
+
+			_, err = semver.ParseVersion(reference.Tag)
+			isSemver := err == nil
+
+			// If the tag is adhering to semver, try to identify the latest available
+			// tag
+			if isSemver {
+				tags, err := registryClient.GetTags(ctx, reference, &oci.GetTagsOptions{
+					AllPages: true,
+				})
+				if err != nil {
+					return nil, err
+				}
+
 				// We only want to specify a latest reference when we're certain of it,
 				// for example, when it has been seen in the list of tags
 				latest, ok := semver.LatestOpinionatedVersionString(reference.Tag, tags)
 				if ok {
 					l := reference
+
+					// Set the latest tag
 					l.HasTag = true
 					l.Tag = latest
+
 					// Remove the digest of the latest reference in all cases as we don't
-					// know the new image's digest
+					// know the new image's digest (yet)
 					l.HasDigest = false
 					l.Digest = ""
 
-					// Try to find the actual digest
+					// Try to find the digest
 					manifest, err := registryClient.GetManifest(ctx, l)
 					if err == nil {
 						switch m := manifest.(type) {
@@ -118,6 +68,40 @@ func GetLatestReference() workflow.Step {
 					}
 
 					latestReference = &l
+				}
+			}
+
+			// As the latest reference could very well match the same semantic version
+			// as the current, always compare the current manifest with the latest to
+			// see if the underlying manifests have changed
+			if reference.HasTag && reference.HasDigest {
+				currentManifest, err := registryClient.GetManifest(ctx, reference)
+				if err != nil {
+					return nil, err
+				}
+
+				var latestManifest any
+				if latestReference == nil {
+					// Remove the digest and only look up the latest information for the
+					// current tag instead
+					ref := reference
+					ref.HasDigest = false
+					ref.Digest = ""
+					latestManifest, err = registryClient.GetManifest(ctx, ref)
+				} else {
+					latestManifest, err = registryClient.GetManifest(ctx, *latestReference)
+				}
+				if err != nil {
+					return nil, err
+				}
+
+				// Doing an as good job as we can, try to see if the manifest in use is
+				// equal to the new one, if it is, just assume the current reference is
+				// the latest
+				// TODO: Specify an actual platform
+				maybeEqual := oci.ManifestsMaybeEqual(currentManifest, latestManifest, nil)
+				if maybeEqual {
+					latestReference = &reference
 				}
 			}
 

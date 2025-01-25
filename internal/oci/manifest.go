@@ -274,3 +274,81 @@ func manifestFromBlob(blob Blob) (any, error) {
 		return nil, fmt.Errorf("unsupported manifest content type")
 	}
 }
+
+// ManifestsMaybeEqual returns true if the manifests may be equal when resolved
+// on the (optionally) specified platform.
+func ManifestsMaybeEqual(a any, b any, platform *Platform) bool {
+	digestA, manifestsA := normalizeManifest(a)
+	digestB, manifestsB := normalizeManifest(b)
+
+	// The manifests are reported by the server as being equal
+	if digestA == digestB {
+		return true
+	}
+
+	// Filter out manifests for the platform (or do nothing if it's not provided)
+	manifestsA = filterManifestsByPlatform(manifestsA, platform)
+	manifestsB = filterManifestsByPlatform(manifestsB, platform)
+
+	// As we can't be sure what manifest will be used by the underlying engine,
+	// play it safe and assume they're equal if any image is referenced in both
+	for _, manifestA := range manifestsA {
+		for _, manifestB := range manifestsB {
+			if manifestA.Digest == manifestB.Digest {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func normalizeManifest(manifest any) (string, []ImageManifest) {
+	if manifest == nil {
+		return "", nil
+	}
+
+	switch m := manifest.(type) {
+	case *ImageIndex:
+		return m.Digest, m.Manifests
+	case *ImageManifest:
+		return m.Digest, []ImageManifest{*m}
+	}
+
+	return "", nil
+}
+
+// filterManifestsByPlatform filters manifests based on matching platform.
+func filterManifestsByPlatform(manifests []ImageManifest, platform *Platform) []ImageManifest {
+	filtered := make([]ImageManifest, 0)
+	for _, manifest := range manifests {
+		if platform == nil {
+			filtered = append(filtered, manifest)
+		}
+
+		if manifest.Platform == nil || platform == nil {
+			continue
+		}
+
+		// Sometimes image authors set the fields to "unknown". Normalize such cases
+		// by clearing them
+		if manifest.Platform.Architecture == "unknown" {
+			manifest.Platform.Architecture = ""
+		}
+		if manifest.Platform.OS == "unknown" {
+			manifest.Platform.OS = ""
+		}
+		if manifest.Platform.Variant == "unknown" {
+			manifest.Platform.Variant = ""
+		}
+
+		architectureMatches := platform.OS == "" || manifest.Platform.OS == platform.OS
+		osMatches := platform.Architecture == "" || manifest.Platform.Architecture == platform.Architecture
+		variantMatches := platform.Variant == "" || manifest.Platform.Variant == platform.Variant
+
+		if architectureMatches && osMatches && variantMatches {
+			filtered = append(filtered, manifest)
+		}
+	}
+	return filtered
+}
