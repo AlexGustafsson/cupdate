@@ -116,6 +116,10 @@ func (v *Version) Equals(other *Version) bool {
 // ParseVersion parses a [Version].
 // Returns ErrUnsupportedVersionFormat if the version is not parsable.
 func ParseVersion(version string) (*Version, error) {
+	if version == "" {
+		return nil, ErrUnsupportedVersionFormat
+	}
+
 	if commitHashPattern.MatchString(version) && !numericPattern.MatchString(version) {
 		return nil, ErrUnsupportedVersionFormat
 	}

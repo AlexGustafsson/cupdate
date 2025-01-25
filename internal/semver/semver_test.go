@@ -15,6 +15,12 @@ import (
 // SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/generic.ts#L18
 // SEE: https://github.com/renovatebot/renovate/blob/4a9b489b71f19443c352cd5ae045d93264204120/lib/modules/versioning/docker/index.spec.ts
 
+func TestParseVersion(t *testing.T) {
+	v, err := ParseVersion("")
+	assert.Nil(t, v)
+	assert.Error(t, err)
+}
+
 func TestVersionIsCompatible(t *testing.T) {
 	testCases := []struct {
 		Version  string
