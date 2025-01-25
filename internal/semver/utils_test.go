@@ -238,6 +238,13 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 }
 
 func TestPackInt64(t *testing.T) {
+	// Assert that the zero value is a non-zero value (to differ from an unset
+	// value)
+	assert.Equal(t, uint64(1), PackInt64(nil))
+
+	// Assert that 1 patch diff is 1, skipping the zero value
+	assert.Equal(t, uint64(2), PackedSingleDigitPatchDiff)
+
 	expected := []string{
 		"0",
 		"0.0",

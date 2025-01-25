@@ -101,3 +101,5 @@ func PackInt64(version *Version) uint64 {
 
 	return packed
 }
+
+var PackedSingleDigitPatchDiff = PackInt64(&Version{Release: []int{1, 0, 1}}) - PackInt64(&Version{Release: []int{1, 0, 0}})
