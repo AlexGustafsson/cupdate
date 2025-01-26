@@ -87,12 +87,25 @@ func GetLatestReference() workflow.Step {
 					ref := reference
 					ref.HasDigest = false
 					ref.Digest = ""
+
 					latestManifest, err = registryClient.GetManifest(ctx, ref)
+					if err != nil {
+						return nil, err
+					}
+
+					ref.HasDigest = true
+					switch m := latestManifest.(type) {
+					case *oci.ImageIndex:
+						ref.Digest = m.Digest
+					case *oci.ImageManifest:
+						ref.Digest = m.Digest
+					}
+					latestReference = &ref
 				} else {
 					latestManifest, err = registryClient.GetManifest(ctx, *latestReference)
-				}
-				if err != nil {
-					return nil, err
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				// Doing an as good job as we can, try to see if the manifest in use is
