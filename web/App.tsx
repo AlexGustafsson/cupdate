@@ -4,7 +4,10 @@ import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { type Event, RSSFeedEndpoint, useEvents } from './api'
 import { Toast } from './components/Toast'
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
+import { FluentWeatherMoon24Regular } from './components/icons/fluent-weather-moon-24-regular'
+import { FluentWeatherSunny24Regular } from './components/icons/fluent-weather-sunny-24-regular'
 import { SimpleIconsRss } from './components/icons/simple-icons-rss'
+import { useTheme } from './hooks/useTheme'
 import { Dashboard } from './pages/Dashboard'
 import { ImagePage } from './pages/ImagePage'
 
@@ -12,6 +15,8 @@ export function App(): JSX.Element {
   const location = useLocation()
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
+
+  const [theme, setTheme] = useTheme()
 
   const onEvent = useCallback((e: Event) => {
     switch (e.type) {
@@ -36,7 +41,27 @@ export function App(): JSX.Element {
             <h1 className="text-xl font-medium">Cupdate</h1>
           </NavLink>
         </div>
-        <div className="justify-self-end mr-5">
+        <div className="justify-self-end mr-5 flex items-center gap-x-2">
+          <button
+            type="button"
+            onClick={() =>
+              setTheme((current) =>
+                current === 'light'
+                  ? 'dark'
+                  : current === undefined
+                    ? 'light'
+                    : undefined
+              )
+            }
+          >
+            {theme === 'light' ? (
+              <FluentWeatherSunny24Regular />
+            ) : theme === 'dark' ? (
+              <FluentWeatherMoon24Regular />
+            ) : (
+              <FluentWeatherSunny24Regular />
+            )}
+          </button>
           <a target="_blank" href={RSSFeedEndpoint} rel="noreferrer">
             <SimpleIconsRss className="text-orange-400" />
           </a>

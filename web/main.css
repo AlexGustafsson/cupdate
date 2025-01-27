@@ -2,8 +2,18 @@
 
 @layer theme, base, components, utilities;
 
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 @theme {
   --shadow-around: 0 0 2px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 @layer base {
