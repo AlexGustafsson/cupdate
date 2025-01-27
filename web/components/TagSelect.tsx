@@ -70,7 +70,7 @@ export function TagSelect({
   // Use the nice native multi-select input on iOS
   if (IOS) {
     return (
-      <div className="relative border border-[#e5e5e5] dark:border-[#333333] rounded transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626]">
+      <div className="relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626]">
         <select
           multiple
           className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none"
@@ -113,7 +113,7 @@ export function TagSelect({
     <div
       onMouseDown={() => setIsOpen(true)}
       role="menu"
-      className="pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded transition-colors focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-sm bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer"
+      className="pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-xs bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer"
     >
       <p className="text-sm">
         {filter.length > 0 ? `${filter.length} selected` : 'Tags'}

@@ -20,7 +20,7 @@ export function Toast({
   secondaryAction,
 }: ToastProps): JSX.Element {
   return (
-    <div className="rounded bg-white dark:bg-[#1e1e1e] p-3 shadow-md text-sm max-w-[300px] border border-[#e5e5e5] dark:border-[#333333]">
+    <div className="rounded-sm bg-white dark:bg-[#1e1e1e] p-3 shadow-md text-sm max-w-[300px] border border-[#e5e5e5] dark:border-[#333333]">
       <p className="font-semibold">{title}</p>
       <p className="mt-1">{body}</p>
       <div className="flex items-center justify-end gap-x-2 mt-2">

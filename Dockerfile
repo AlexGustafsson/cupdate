@@ -7,7 +7,7 @@ COPY .yarn .yarn
 
 RUN yarn install
 
-COPY postcss.config.mjs tailwind.config.js tsconfig.json vite.config.ts .
+COPY tailwind.config.js tsconfig.json vite.config.ts .
 COPY web web
 
 ARG CUPDATE_VERSION="development build"

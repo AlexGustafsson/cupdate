@@ -116,7 +116,7 @@ export function Surface({
       ref={surfaceRef}
       className={`relative w-full h-full overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} touch-none`}
     >
-      <div className="absolute left-0 bottom-0 rounded bg-white dark:bg-[#1e1e1e] flex flex-col p-2 z-50 shadow-md gap-y-2 border border-[#e5e5e5] dark:border-[#333333]">
+      <div className="absolute left-0 bottom-0 rounded-sm bg-white dark:bg-[#1e1e1e] flex flex-col p-2 z-50 shadow-md gap-y-2 border border-[#e5e5e5] dark:border-[#333333]">
         <button type="button" onClick={() => onZoom(1)}>
           <FluentAdd16Regular />
         </button>

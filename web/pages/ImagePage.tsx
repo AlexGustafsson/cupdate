@@ -115,7 +115,7 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
   const [nodes, edges, bounds] = useNodesAndEdges(graph)
 
   return (
-    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-2 shadow h-[480px]">
+    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-2 shadow-sm h-[480px]">
       <GraphRenderer edges={edges} nodes={nodes} bounds={bounds} />
     </div>
   )
@@ -164,8 +164,7 @@ export function ImagePage(): JSX.Element {
       {/* Header */}
       <ImageLogo
         src={image.value.image}
-        width={90}
-        height={90}
+        className="w-[90px] h-[90px]"
         reference={image.value.reference}
       />
       {/* Image name */}

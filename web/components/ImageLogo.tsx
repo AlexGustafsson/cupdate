@@ -6,15 +6,13 @@ import CupdateLogoURL from '../favicon.png'
 export type ImageLogoProps = {
   reference: string
   src?: string
-  width: number
-  height: number
+  className?: string
 }
 
 export function ImageLogo({
   reference,
   src,
-  width,
-  height,
+  className,
 }: ImageLogoProps): JSX.Element {
   const ref = useRef<HTMLImageElement>(null)
   const [isLoading, setIsLoading] = useState(src !== undefined)
@@ -30,24 +28,19 @@ export function ImageLogo({
   }, [])
 
   return (
-    <div
-      className="shrink-0"
-      style={{ width: `${width}px`, height: `${height}px` }}
-    >
+    <div className={`shrink-0 ${className}`}>
       {src && (
         <img
           ref={ref}
           loading="lazy"
           alt="logo"
           src={src}
-          className={`w-full h-full rounded transition-opacity ${isLoading ? 'opacity-0' : 'opacity-1'}`}
-          width={width}
-          height={height}
+          className={`w-full h-full rounded-sm transition-opacity ${isLoading ? 'opacity-0' : 'opacity-100'}`}
           onLoad={onLoad}
         />
       )}
       {!src && (
-        <div className="flex items-center justify-center w-full h-full rounded bg-blue-400 dark:bg-blue-700">
+        <div className="flex items-center justify-center w-full h-full rounded-sm bg-blue-400 dark:bg-blue-700">
           <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
         </div>
       )}

@@ -135,7 +135,7 @@ export function Dashboard(): JSX.Element {
             onKeyUp={(e) =>
               e.key === 'Enter' ? e.currentTarget.blur() : undefined
             }
-            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded flex-grow shrink-0 w-full sm:w-min border border-[#e5e5e5] dark:border-[#333333]"
+            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full sm:w-min border border-[#e5e5e5] dark:border-[#333333]"
           />
 
           <Select
@@ -163,7 +163,7 @@ export function Dashboard(): JSX.Element {
             <option value="desc">Descending</option>
           </Select>
           <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
-          <div className="grid grid-cols-2 divide-x dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-sm focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
+          <div className="grid grid-cols-2 divide-x dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
             <button
               type="button"
               title="Enable list view"
@@ -202,7 +202,7 @@ export function Dashboard(): JSX.Element {
             to={`image?reference=${encodeURIComponent(x.reference)}`}
           >
             <ImageCard
-              className={`hover:shadow-md transition-shadow cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
+              className={`hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
               reference={x.reference}
               name={name(x.reference)}
               currentVersion={version(x.reference)}
@@ -249,7 +249,7 @@ export function Dashboard(): JSX.Element {
                 // TODO
                 key={index}
                 to={`/?page=${index}`}
-                className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
+                className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
               >
                 <p>{label}</p>
               </NavLink>

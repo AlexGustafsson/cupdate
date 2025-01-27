@@ -13,7 +13,7 @@ export function InfoTooltip({
         role="tooltip"
         className="absolute hidden group-hover:block bottom-full p-2 left-2/4 -translate-x-2/4 z-50 text-black dark:text-[#dddddd]"
       >
-        <div className="p-2 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d9d9d9] dark:border-[#454545] rounded w-60 text-xs text-left font-normal shadow-around">
+        <div className="p-2 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d9d9d9] dark:border-[#454545] rounded-sm w-60 text-xs text-left font-normal shadow-around">
           {children}
         </div>
       </span>

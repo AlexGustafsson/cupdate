@@ -1,8 +1,10 @@
-@import '../node_modules/github-markdown-css/github-markdown.css';
+@import 'tailwindcss';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer theme, base, components, utilities;
+
+@theme {
+  --shadow-around: 0 0 2px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.28);
+}
 
 @layer base {
   html {
@@ -42,6 +44,8 @@
 }
 
 @layer components {
+  @import '../node_modules/github-markdown-css/github-markdown.css';
+
   .markdown-body {
     --fgColor-default: light-dark(#000000, #dddddd);
     --bgColor-default: light-dark(#ffffff, #1e1e1e);

@@ -1,4 +1,5 @@
 import { resolve } from 'node:path'
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { type UserConfigExport, defineConfig } from 'vite'
 
@@ -13,7 +14,7 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
   }
 
   return defineConfig({
-    plugins: [react()],
+    plugins: [react(), tailwindcss()],
     root: 'web',
     base: process.env.VITE_BASE_PATH,
     build: {

@@ -44,9 +44,13 @@ export function ImageCard({
 
   return (
     <div
-      className={`flex gap-x-4 bg-white dark:bg-[#1e1e1e] rounded-lg shadow ${compact ? 'p-3' : 'p-4 md:p-6'} ${className || ''}`}
+      className={`flex gap-x-4 bg-white dark:bg-[#1e1e1e] rounded-lg shadow-sm ${compact ? 'p-3' : 'p-4 md:p-6'} ${className || ''}`}
     >
-      <ImageLogo src={logo} width={48} height={48} reference={reference} />
+      <ImageLogo
+        src={logo}
+        reference={reference}
+        className="w-[48px] h-[48px]"
+      />
       <div className="flex flex-col w-full">
         <div
           className={`${compact ? '' : 'flex flex-col sm:flex-row w-full sm:items-center sm:justify-between'}`}
