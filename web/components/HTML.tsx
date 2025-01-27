@@ -13,10 +13,12 @@ export function HTML({
 
     purify.addHook('afterSanitizeElements', async (node) => {
       if (node instanceof HTMLElement) {
+        // Set referrer-policy for elements with src
         switch (node.tagName.toLowerCase()) {
           case 'a':
           case 'area':
           case 'img':
+          case 'video':
           case 'iframe':
           case 'script':
             node.setAttribute('referrer-policy', 'no-referrer')
