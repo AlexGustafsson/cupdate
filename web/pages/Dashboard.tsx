@@ -226,6 +226,7 @@ export function Dashboard(): JSX.Element {
             <Link
               key={x.reference}
               to={`image?reference=${encodeURIComponent(x.reference)}`}
+              state={window.location.href}
             >
               <ImageCard
                 className={`hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}

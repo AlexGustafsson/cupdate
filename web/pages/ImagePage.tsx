@@ -1,5 +1,5 @@
 import { type JSX, type ReactNode, useCallback, useState } from 'react'
-import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
 import {

@@ -17,7 +17,9 @@ export function App(): JSX.Element {
       <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow-sm bg-white dark:bg-[#1e1e1e] z-50">
         <div className="justify-self-start ml-5">
           {location.pathname !== '/' && (
-            <Link to="/">
+            <Link
+              to={typeof location.state === 'string' ? location.state : '/'}
+            >
               <FluentArrowLeft24Regular />
             </Link>
           )}
