@@ -1,5 +1,5 @@
 import { type JSX, useCallback, useEffect, useState } from 'react'
-import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
 import { useImages, usePagination, useTags } from '../api'
@@ -111,7 +111,7 @@ export function Dashboard(): JSX.Element {
       </div>
       <div className="flex flex-col items-center pt-6 pb-10 px-2">
         <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x dark:divide-[#333333]">
-          <NavLink
+          <Link
             to="/?tag=outdated"
             className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
           >
@@ -121,8 +121,8 @@ export function Dashboard(): JSX.Element {
                 {images.value.summary.outdated}
               </p>
             </div>
-          </NavLink>
-          <NavLink
+          </Link>
+          <Link
             to="/?tag=vulnerable"
             className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
           >
@@ -132,7 +132,7 @@ export function Dashboard(): JSX.Element {
                 {images.value.summary.vulnerable}
               </p>
             </div>
-          </NavLink>
+          </Link>
           <div className="py-2 px-4">
             <p className="text-sm">Queued images</p>
             <p className="text-3xl font-semibold">
@@ -223,7 +223,7 @@ export function Dashboard(): JSX.Element {
           className={`mt-2 w-full ${layout === 'list' ? 'flex flex-col max-w-[800px] gap-y-4' : 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1'}`}
         >
           {images.value.images.map((x) => (
-            <NavLink
+            <Link
               key={x.reference}
               to={`image?reference=${encodeURIComponent(x.reference)}`}
             >
@@ -247,7 +247,7 @@ export function Dashboard(): JSX.Element {
                 // TODO:
                 // updated={new Date(x.updated)}
               />
-            </NavLink>
+            </Link>
           ))}
         </div>
 
@@ -271,14 +271,14 @@ export function Dashboard(): JSX.Element {
                   {label}
                 </p>
               ) : (
-                <NavLink
+                <Link
                   // TODO
                   key={index}
                   to={`/?page=${index}`}
                   className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
                 >
                   <p>{label}</p>
-                </NavLink>
+                </Link>
               )
             )}
           </div>

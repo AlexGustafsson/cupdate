@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { TagsByName, compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
