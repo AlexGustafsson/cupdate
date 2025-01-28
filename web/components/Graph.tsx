@@ -34,13 +34,13 @@ type EdgesParams = {
 function Edges({ edges }: EdgesParams): JSX.Element {
   const beziers = useMemo(() => {
     return edges.map((edge) => {
-      const pathStart = `M${edge.start.x},${edge.start.y}`
-      const pathStartControl = `C${edge.start.x}, ${edge.start.y + 30}`
+      const pathStart = `M ${edge.start.x},${edge.start.y}`
+      const pathStartControl = `C ${edge.start.x},${edge.start.y + 30}`
 
       const pathEnd = `${edge.end.x},${edge.end.y}`
       const pathEndControl = `${edge.end.x},${edge.end.y - 30}`
 
-      return `${pathStart}, ${pathStartControl}, ${pathEndControl}, ${pathEnd}, `
+      return [pathStart, pathStartControl, pathEndControl, pathEnd].join(' ')
     })
   }, [edges])
 
