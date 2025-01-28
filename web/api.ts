@@ -76,10 +76,10 @@ export type Result<T> =
   | { status: 'resolved'; value: T }
   | { status: 'rejected'; error: unknown }
 
-export function useTags(): Result<Tag[]> {
+export function useTags(): [Result<Tag[]>, () => void] {
   const [result, setResult] = useState<Result<Tag[]>>({ status: 'idle' })
 
-  useEffect(() => {
+  const update = useCallback(() => {
     fetch(`${import.meta.env.VITE_API_ENDPOINT}/tags`)
       .then((res) => {
         if (res.status !== 200) {
@@ -97,7 +97,9 @@ export function useTags(): Result<Tag[]> {
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [])
 
-  return result
+  useEffect(() => update(), [update])
+
+  return [result, update]
 }
 
 interface UseImagesProps {
@@ -112,10 +114,12 @@ interface UseImagesProps {
   query?: string
 }
 
-export function useImages(options?: UseImagesProps): Result<ImagePage> {
+export function useImages(
+  options?: UseImagesProps
+): [Result<ImagePage>, () => void] {
   const [result, setResult] = useState<Result<ImagePage>>({ status: 'idle' })
 
-  useEffect(() => {
+  const update = useCallback(() => {
     const query = new URLSearchParams()
     if (options?.tags !== undefined) {
       for (const tag of options.tags) {
@@ -157,14 +161,20 @@ export function useImages(options?: UseImagesProps): Result<ImagePage> {
     options?.query,
   ])
 
-  return result
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
 }
 
 // TODO: Add query parameters
-export function useImage(reference: string): Result<Image | null> {
+export function useImage(
+  reference: string
+): [Result<Image | null>, () => void] {
   const [result, setResult] = useState<Result<Image | null>>({ status: 'idle' })
 
-  useEffect(() => {
+  const update = useCallback(() => {
     const query = new URLSearchParams({ reference })
     fetch(`${import.meta.env.VITE_API_ENDPOINT}/image?${query.toString()}`)
       .then((res) => {
@@ -180,18 +190,22 @@ export function useImage(reference: string): Result<Image | null> {
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [reference])
 
-  return result
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
 }
 
 // TODO: Add query parameters
 export function useImageDescription(
   reference: string
-): Result<ImageDescription | null> {
+): [Result<ImageDescription | null>, () => void] {
   const [result, setResult] = useState<Result<ImageDescription | null>>({
     status: 'idle',
   })
 
-  useEffect(() => {
+  const update = useCallback(() => {
     const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env.VITE_API_ENDPOINT}/image/description?${query.toString()}`
@@ -210,18 +224,22 @@ export function useImageDescription(
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [reference])
 
-  return result
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
 }
 
 // TODO: Add query parameters
 export function useImageReleaseNotes(
   reference: string
-): Result<ImageReleaseNotes | null> {
+): [Result<ImageReleaseNotes | null>, () => void] {
   const [result, setResult] = useState<Result<ImageReleaseNotes | null>>({
     status: 'idle',
   })
 
-  useEffect(() => {
+  const update = useCallback(() => {
     const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env.VITE_API_ENDPOINT}/image/release-notes?${query.toString()}`
@@ -240,16 +258,22 @@ export function useImageReleaseNotes(
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [reference])
 
-  return result
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
 }
 
 // TODO: Add query parameters
-export function useImageGraph(reference: string): Result<Graph | null> {
+export function useImageGraph(
+  reference: string
+): [Result<Graph | null>, () => void] {
   const [result, setResult] = useState<Result<Graph | null>>({
     status: 'idle',
   })
 
-  useEffect(() => {
+  const update = useCallback(() => {
     const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env.VITE_API_ENDPOINT}/image/graph?${query.toString()}`
@@ -268,7 +292,11 @@ export function useImageGraph(reference: string): Result<Graph | null> {
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [reference])
 
-  return result
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
 }
 
 export function usePagination<T extends { pagination: PaginationMetadata }>(
@@ -344,38 +372,3 @@ export async function scheduleScan(reference: string): Promise<void> {
 }
 
 export const RSSFeedEndpoint = `${import.meta.env.VITE_API_ENDPOINT}/feed.rss`
-
-export type ImageEvent = { type: 'imageUpdated'; reference: string }
-
-export type Event = ImageEvent
-
-export function useEvents(callback: (e: Event) => void) {
-  const onMessage = useCallback(
-    (e: MessageEvent) => {
-      try {
-        const data = JSON.parse(e.data)
-        if (
-          data !== null &&
-          typeof data === 'object' &&
-          typeof data.type === 'string'
-        ) {
-          callback(data as Event)
-        }
-      } catch {
-        // Do nothing
-      }
-    },
-    [callback]
-  )
-
-  useEffect(() => {
-    const eventSource = new EventSource(
-      `${import.meta.env.VITE_API_ENDPOINT}/events`
-    )
-
-    eventSource.addEventListener('message', onMessage)
-
-    return () => eventSource.close()
-  }, [onMessage])
-  return
-}

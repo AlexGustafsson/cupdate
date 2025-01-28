@@ -1,10 +1,12 @@
-import { type JSX, useEffect, useState } from 'react'
+import { type JSX, useCallback, useEffect, useState } from 'react'
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { type Event, useEvents } from '../EventProvider'
 import { useImages, usePagination, useTags } from '../api'
 import { ImageCard } from '../components/ImageCard'
 import { Select } from '../components/Select'
 import { TagSelect } from '../components/TagSelect'
+import { Toast } from '../components/Toast'
 import { FluentAlignSpaceEvenlyVertical20Filled } from '../components/icons/fluent-align-space-evenly-vertical-20-filled'
 import { FluentAlignSpaceEvenlyVertical20Regular } from '../components/icons/fluent-align-space-evenly-vertical-20-regular'
 import { FluentGrid20Filled } from '../components/icons/fluent-grid-20-filled'
@@ -41,7 +43,7 @@ export function Dashboard(): JSX.Element {
     setQueryInput(query || '')
   }, [query])
 
-  const images = useImages({
+  const [images, updateImages] = useImages({
     tags: filter,
     sort: sort,
     order: sortOrder,
@@ -70,7 +72,7 @@ export function Dashboard(): JSX.Element {
     }
   }, [images, navigate, searchParams])
 
-  const tags = useTags()
+  const [tags, updateTags] = useTags()
 
   // Go to the first page whenever the set of tags are changed
   // biome-ignore lint/correctness/useExhaustiveDependencies: Run every time tags is changed
@@ -78,185 +80,210 @@ export function Dashboard(): JSX.Element {
     navigate(`/?${searchParams.toString()}`)
   }, [tags, navigate, searchParams])
 
+  const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
+  const onEvent = useCallback((e: Event) => {
+    setIsUpdateAvailable(true)
+  }, [])
+
+  useEvents(onEvent)
+
   if (images.status !== 'resolved' || tags.status !== 'resolved') {
     return <></>
   }
 
   return (
-    <div className="flex flex-col items-center pt-6 pb-10 px-2">
-      <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x dark:divide-[#333333]">
-        <NavLink
-          to="/?tag=outdated"
-          className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
-        >
-          <div className="py-2 px-4">
-            <p className="text-sm">Outdated images</p>
-            <p className="text-3xl font-semibold text-red-600">
-              {images.value.summary.outdated}
-            </p>
-          </div>
-        </NavLink>
-        <NavLink
-          to="/?tag=vulnerable"
-          className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
-        >
-          <div className="py-2 px-4">
-            <p className="text-sm">Vulnerable images</p>
-            <p className="text-3xl font-semibold text-red-600">
-              {images.value.summary.vulnerable}
-            </p>
-          </div>
-        </NavLink>
-        <div className="py-2 px-4">
-          <p className="text-sm">Queued images</p>
-          <p className="text-3xl font-semibold">
-            {images.value.summary.processing}
-          </p>
-        </div>
-        <div className="py-2 px-4">
-          <p className="text-sm">Total images</p>
-          <p className="text-3xl font-semibold">
-            {images.value.summary.images}
-          </p>
-        </div>
-      </div>
-
-      <hr className="my-6 w-3/4" />
-
-      {/* Filters / controls */}
-      <div className="flex justify-between items-center w-full mt-2 max-w-[800px]">
-        <div className="flex items-center flex-wrap gap-x-1 sm:gap-x-2 gap-y-2 w-full">
-          <input
-            type="text"
-            placeholder="Search"
-            enterKeyHint="search"
-            value={queryInput}
-            onChange={(e) => setQueryInput(e.target.value)}
-            onKeyUp={(e) =>
-              e.key === 'Enter' ? e.currentTarget.blur() : undefined
-            }
-            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full sm:w-min border border-[#e5e5e5] dark:border-[#333333]"
+    <>
+      <div className="fixed bottom-0 right-0 p-4 z-50">
+        {isUpdateAvailable && (
+          <Toast
+            title="New data available"
+            body="One or more images have been updated. Update to show the latest data."
+            secondaryAction="Dismiss"
+            onSecondaryAction={() => setIsUpdateAvailable(false)}
+            primaryAction="Update"
+            onPrimaryAction={() => {
+              setIsUpdateAvailable(false)
+              updateImages()
+              updateTags()
+            }}
           />
+        )}
+      </div>
+      <div className="flex flex-col items-center pt-6 pb-10 px-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 md:divide-x dark:divide-[#333333]">
+          <NavLink
+            to="/?tag=outdated"
+            className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+          >
+            <div className="py-2 px-4">
+              <p className="text-sm">Outdated images</p>
+              <p className="text-3xl font-semibold text-red-600">
+                {images.value.summary.outdated}
+              </p>
+            </div>
+          </NavLink>
+          <NavLink
+            to="/?tag=vulnerable"
+            className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+          >
+            <div className="py-2 px-4">
+              <p className="text-sm">Vulnerable images</p>
+              <p className="text-3xl font-semibold text-red-600">
+                {images.value.summary.vulnerable}
+              </p>
+            </div>
+          </NavLink>
+          <div className="py-2 px-4">
+            <p className="text-sm">Queued images</p>
+            <p className="text-3xl font-semibold">
+              {images.value.summary.processing}
+            </p>
+          </div>
+          <div className="py-2 px-4">
+            <p className="text-sm">Total images</p>
+            <p className="text-3xl font-semibold">
+              {images.value.summary.images}
+            </p>
+          </div>
+        </div>
 
-          <Select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            defaultValue=""
-          >
-            <option value="" disabled hidden>
-              Sort by
-            </option>
-            <option value="bump">Bump</option>
-            <option value="reference">Name</option>
-          </Select>
-          <Select
-            value={sortOrder}
-            onChange={(e) =>
-              setSortOrder(e.target.value as 'asc' | 'desc' | undefined)
-            }
-            defaultValue=""
-          >
-            <option value="" disabled hidden>
-              Sort order
-            </option>
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </Select>
-          <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
-          <div className="grid grid-cols-2 divide-x dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
-            <button
-              type="button"
-              title="Enable list view"
-              className="pl-2 pr-1"
-              onClick={() => setLayout('list')}
+        <hr className="my-6 w-3/4" />
+
+        {/* Filters / controls */}
+        <div className="flex justify-between items-center w-full mt-2 max-w-[800px]">
+          <div className="flex items-center flex-wrap gap-x-1 sm:gap-x-2 gap-y-2 w-full">
+            <input
+              type="text"
+              placeholder="Search"
+              enterKeyHint="search"
+              value={queryInput}
+              onChange={(e) => setQueryInput(e.target.value)}
+              onKeyUp={(e) =>
+                e.key === 'Enter' ? e.currentTarget.blur() : undefined
+              }
+              className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full sm:w-min border border-[#e5e5e5] dark:border-[#333333]"
+            />
+
+            <Select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              defaultValue=""
             >
-              {layout === 'list' ? (
-                <FluentAlignSpaceEvenlyVertical20Filled />
-              ) : (
-                <FluentAlignSpaceEvenlyVertical20Regular />
-              )}
-            </button>
-            <button
-              type="button"
-              title="Enable grid view"
-              className="pl-1 pr-2"
-              onClick={() => setLayout('grid')}
+              <option value="" disabled hidden>
+                Sort by
+              </option>
+              <option value="bump">Bump</option>
+              <option value="reference">Name</option>
+            </Select>
+            <Select
+              value={sortOrder}
+              onChange={(e) =>
+                setSortOrder(e.target.value as 'asc' | 'desc' | undefined)
+              }
+              defaultValue=""
             >
-              {layout === 'grid' ? (
-                <FluentGrid20Filled />
+              <option value="" disabled hidden>
+                Sort order
+              </option>
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </Select>
+            <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
+            <div className="grid grid-cols-2 divide-x dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
+              <button
+                type="button"
+                title="Enable list view"
+                className="pl-2 pr-1"
+                onClick={() => setLayout('list')}
+              >
+                {layout === 'list' ? (
+                  <FluentAlignSpaceEvenlyVertical20Filled />
+                ) : (
+                  <FluentAlignSpaceEvenlyVertical20Regular />
+                )}
+              </button>
+              <button
+                type="button"
+                title="Enable grid view"
+                className="pl-1 pr-2"
+                onClick={() => setLayout('grid')}
+              >
+                {layout === 'grid' ? (
+                  <FluentGrid20Filled />
+                ) : (
+                  <FluentGrid20Regular />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Images */}
+        <div
+          className={`mt-2 w-full ${layout === 'list' ? 'flex flex-col max-w-[800px] gap-y-4' : 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1'}`}
+        >
+          {images.value.images.map((x) => (
+            <NavLink
+              key={x.reference}
+              to={`image?reference=${encodeURIComponent(x.reference)}`}
+            >
+              <ImageCard
+                className={`hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
+                reference={x.reference}
+                name={name(x.reference)}
+                currentVersion={version(x.reference)}
+                fullCurrentVersion={fullVersion(x.reference)}
+                latestVersion={
+                  x.latestReference ? version(x.latestReference) : undefined
+                }
+                fullLatestVersion={
+                  x.latestReference ? fullVersion(x.latestReference) : undefined
+                }
+                vulnerabilities={x.vulnerabilities.length}
+                logo={x.image}
+                description={x.description}
+                tags={x.tags}
+                compact={layout === 'grid'}
+                // TODO:
+                // updated={new Date(x.updated)}
+              />
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Pagination footer */}
+        <div className="mt-4 flex flex-col md:flex-row items-center justify-center md:justify-between w-full max-w-[800px]">
+          <p className="text-sm">
+            Showing{' '}
+            {Math.max(
+              images.value.pagination.page * images.value.pagination.size,
+              1
+            )}
+            -
+            {images.value.pagination.page * images.value.pagination.size +
+              images.value.images.length}{' '}
+            of {images.value.pagination.total} entries
+          </p>
+          <div className="flex items-center justify-center text-sm">
+            {pages.map(({ index, label, current }) =>
+              index === undefined ? (
+                <p key={index} className="m-1 cursor-default">
+                  {label}
+                </p>
               ) : (
-                <FluentGrid20Regular />
-              )}
-            </button>
+                <NavLink
+                  // TODO
+                  key={index}
+                  to={`/?page=${index}`}
+                  className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
+                >
+                  <p>{label}</p>
+                </NavLink>
+              )
+            )}
           </div>
         </div>
       </div>
-
-      {/* Images */}
-      <div
-        className={`mt-2 w-full ${layout === 'list' ? 'flex flex-col max-w-[800px] gap-y-4' : 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1'}`}
-      >
-        {images.value.images.map((x) => (
-          <NavLink
-            key={x.reference}
-            to={`image?reference=${encodeURIComponent(x.reference)}`}
-          >
-            <ImageCard
-              className={`hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
-              reference={x.reference}
-              name={name(x.reference)}
-              currentVersion={version(x.reference)}
-              fullCurrentVersion={fullVersion(x.reference)}
-              latestVersion={
-                x.latestReference ? version(x.latestReference) : undefined
-              }
-              fullLatestVersion={
-                x.latestReference ? fullVersion(x.latestReference) : undefined
-              }
-              vulnerabilities={x.vulnerabilities.length}
-              logo={x.image}
-              description={x.description}
-              tags={x.tags}
-              compact={layout === 'grid'}
-              // TODO:
-              // updated={new Date(x.updated)}
-            />
-          </NavLink>
-        ))}
-      </div>
-
-      {/* Pagination footer */}
-      <div className="mt-4 flex flex-col md:flex-row items-center justify-center md:justify-between w-full max-w-[800px]">
-        <p className="text-sm">
-          Showing{' '}
-          {Math.max(
-            images.value.pagination.page * images.value.pagination.size,
-            1
-          )}
-          -
-          {images.value.pagination.page * images.value.pagination.size +
-            images.value.images.length}{' '}
-          of {images.value.pagination.total} entries
-        </p>
-        <div className="flex items-center justify-center text-sm">
-          {pages.map(({ index, label, current }) =>
-            index === undefined ? (
-              <p key={index} className="m-1 cursor-default">
-                {label}
-              </p>
-            ) : (
-              <NavLink
-                // TODO
-                key={index}
-                to={`/?page=${index}`}
-                className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
-              >
-                <p>{label}</p>
-              </NavLink>
-            )
-          )}
-        </div>
-      </div>
-    </div>
+    </>
   )
 }
