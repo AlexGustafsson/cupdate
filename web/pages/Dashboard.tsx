@@ -64,7 +64,7 @@ export function Dashboard(): JSX.Element {
     sort: sort,
     order: sortOrder,
     page: page,
-    limit: 1,
+    limit: 30,
     query: query,
   })
 
