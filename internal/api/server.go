@@ -110,7 +110,17 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 		}
 
 		response, err := api.ListImages(ctx, listOptions)
-		s.handleJSONResponse(w, r, response, err)
+		if err != nil {
+			s.handleGenericResponse(w, r, err)
+			return
+		}
+
+		if response.Pagination.Page > 0 && len(response.Images) == 0 {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
+
+		s.handleJSONResponse(w, r, response, nil)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/image", func(w http.ResponseWriter, r *http.Request) {
