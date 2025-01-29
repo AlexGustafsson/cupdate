@@ -206,11 +206,11 @@ export function Dashboard(): JSX.Element {
               <option value="desc">Descending</option>
             </Select>
             <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
-            <div className="grid grid-cols-2 divide-x dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
+            <div className="grid grid-cols-2 divide-x divide-[#e5e5e5] dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
               <button
                 type="button"
                 title="Enable list view"
-                className="pl-2 pr-1"
+                className="pl-2 pr-1 cursor-pointer"
                 onClick={() => setLayout('list')}
               >
                 {layout === 'list' ? (
@@ -222,7 +222,7 @@ export function Dashboard(): JSX.Element {
               <button
                 type="button"
                 title="Enable grid view"
-                className="pl-1 pr-2"
+                className="pl-1 pr-2 cursor-pointer"
                 onClick={() => setLayout('grid')}
               >
                 {layout === 'grid' ? (
