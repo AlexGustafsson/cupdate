@@ -947,7 +947,8 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	}
 
 	result.Pagination.Size = limit
-	result.Pagination.Page = page
+	// Page index starts at 1
+	result.Pagination.Page = page + 1
 
 	for i := range result.Images {
 		image, err := s.GetImage(ctx, result.Images[i].Reference)

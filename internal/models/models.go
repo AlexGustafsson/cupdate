@@ -16,7 +16,8 @@ type ImagePageSummary struct {
 }
 
 type PaginationMetadata struct {
-	Total    int    `json:"total"`
+	Total int `json:"total"`
+	// Page index. Starts at 1.
 	Page     int    `json:"page"`
 	Size     int    `json:"size"`
 	Next     string `json:"next,omitempty"`

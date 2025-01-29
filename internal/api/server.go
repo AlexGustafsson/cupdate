@@ -70,6 +70,7 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 			return
 		}
 
+		// Parse the page index, if given
 		pageString := query.Get("page")
 		var page int64 = 0
 		if pageString != "" {
@@ -79,6 +80,13 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 				s.handleGenericResponse(w, r, err)
 				return
 			}
+
+			// Page index starts at 1
+			if page < 1 {
+				s.handleGenericResponse(w, r, ErrBadRequest)
+				return
+			}
+			page -= 1
 		}
 
 		limitString := query.Get("limit")

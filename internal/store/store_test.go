@@ -263,7 +263,7 @@ func TestListImages(t *testing.T) {
 		},
 		Pagination: models.PaginationMetadata{
 			Total:    2,
-			Page:     0,
+			Page:     1,
 			Size:     1,
 			Next:     "",
 			Previous: "",
@@ -283,7 +283,7 @@ func TestListImages(t *testing.T) {
 		},
 		Pagination: models.PaginationMetadata{
 			Total:    2,
-			Page:     1,
+			Page:     2,
 			Size:     1,
 			Next:     "",
 			Previous: "",
@@ -342,7 +342,7 @@ func TestListImagesQuery(t *testing.T) {
 		},
 		Pagination: models.PaginationMetadata{
 			Total:    1,
-			Page:     0,
+			Page:     1,
 			Size:     30,
 			Next:     "",
 			Previous: "",
@@ -422,7 +422,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 		},
 		Pagination: models.PaginationMetadata{
 			Total: 1,
-			Page:  0,
+			Page:  1,
 			Size:  30,
 		},
 	}

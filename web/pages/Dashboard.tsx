@@ -1,4 +1,4 @@
-import { type JSX, useCallback, useEffect, useState } from 'react'
+import { type JSX, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
@@ -30,6 +30,22 @@ export function Dashboard(): JSX.Element {
   const [queryInput, setQueryInput] = useState('')
 
   const [searchParams, _] = useSearchParams()
+  const page = useMemo(() => {
+    const value = searchParams.get('page')
+    if (!value) {
+      return undefined
+    }
+
+    const number = Number(value)
+    // Page index starts at 1
+    if (Number.isNaN(number) || number < 1) {
+      searchParams.delete('page')
+      return undefined
+    }
+
+    // Page index starts at 1
+    return number - 1
+  }, [searchParams])
 
   const [layout, setLayout] = useLayout()
 
@@ -47,8 +63,8 @@ export function Dashboard(): JSX.Element {
     tags: filter,
     sort: sort,
     order: sortOrder,
-    page: searchParams.get('page') ? Number(searchParams.get('page')) : 0,
-    limit: 30,
+    page: page,
+    limit: 1,
     query: query,
   })
 
@@ -66,7 +82,8 @@ export function Dashboard(): JSX.Element {
     const totalPages = Math.ceil(
       images.value.pagination.total / images.value.pagination.size
     )
-    if (images.value.pagination.page >= totalPages) {
+    // Page index in the API starts at 1.
+    if (images.value.pagination.page - 1 >= totalPages) {
       searchParams.delete('page')
       navigate(`/?${searchParams.toString()}`)
     }
@@ -257,11 +274,11 @@ export function Dashboard(): JSX.Element {
           <p className="text-sm">
             Showing{' '}
             {Math.max(
-              images.value.pagination.page * images.value.pagination.size,
+              (images.value.pagination.page - 1) * images.value.pagination.size,
               1
             )}
             -
-            {images.value.pagination.page * images.value.pagination.size +
+            {(images.value.pagination.page - 1) * images.value.pagination.size +
               images.value.images.length}{' '}
             of {images.value.pagination.total} entries
           </p>
@@ -273,9 +290,8 @@ export function Dashboard(): JSX.Element {
                 </p>
               ) : (
                 <Link
-                  // TODO
                   key={index}
-                  to={`/?page=${index}`}
+                  to={`/?page=${index + 1}`}
                   className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
                 >
                   <p>{label}</p>

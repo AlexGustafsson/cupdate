@@ -46,7 +46,7 @@ paths:
             enum: ["asc", "desc"]
         - in: query
           name: page
-          description: Page to view.
+          description: Page to view. Indexes start at 1.
           schema:
             type: integer
           required: false
@@ -212,7 +212,7 @@ components:
           description: Total entries.
           type: integer
         page:
-          description: Page index.
+          description: Page index. Indexes start at 1.
           type: integer
         size:
           description: Requested page size.

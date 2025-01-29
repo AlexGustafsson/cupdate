@@ -17,6 +17,7 @@ export interface ImagePageSummary {
 
 export interface PaginationMetadata {
   total: number
+  /** Page index. Starts at 1. */
   page: number
   size: number
   next?: string
@@ -133,7 +134,8 @@ export function useImages(
       query.set('order', options.order)
     }
     if (options?.page !== undefined) {
-      query.set('page', options.page.toString())
+      // Page index starts at 1
+      query.set('page', (options.page + 1).toString())
     }
     if (options?.limit !== undefined) {
       query.set('limit', options.limit.toString())
@@ -307,19 +309,19 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
       return []
     }
 
+    // Page index in the API starts at 1.
+    const pageIndex = Math.max(page.pagination.page - 1, 0)
+
     const totalPages = Math.ceil(page.pagination.total / page.pagination.size)
 
     // Try to keep 9 pages displayed at all times, with 4 pages allocated
     // for previous pages and 5 for next pages
-    let rangeStart = Math.max(0, page.pagination.page - 4)
+    let rangeStart = Math.max(0, pageIndex - 4)
     const rangeEnd = Math.min(
       totalPages,
-      page.pagination.page + 9 - (page.pagination.page - rangeStart)
+      pageIndex + 9 - (pageIndex - rangeStart)
     )
-    rangeStart = Math.max(
-      0,
-      page.pagination.page - 9 - (page.pagination.page - rangeEnd)
-    )
+    rangeStart = Math.max(0, pageIndex - 9 - (pageIndex - rangeEnd))
     const range = rangeEnd - rangeStart
 
     const pages: {
@@ -329,10 +331,10 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
     }[] = new Array(range).fill('').map((_, i) => ({
       index: rangeStart + i,
       label: (rangeStart + i + 1).toString(),
-      current: rangeStart + i === page.pagination.page,
+      current: rangeStart + i === pageIndex,
     }))
 
-    if (pages[8]?.index && pages[8].index < totalPages - 2) {
+    if (pages[8]?.index && pages[8].index < totalPages - 1) {
       pages[7] = { index: undefined, label: '...', current: false }
       pages[8] = {
         index: totalPages - 1,
