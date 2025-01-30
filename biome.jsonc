@@ -20,19 +20,19 @@
         // Fine for small mapping functions. Catch on a review basis rather than
         // enforcing
         "noParameterAssign": {
-          "level": "info"
+          "level": "off" // Should be info. Biome LSP throws errors regardless of level.
         },
         // Type inference can't always deal with things like filtering arrays
         // and then using the filtered property. Catch on a review basis rather
         // than enforcing
         "noNonNullAssertion": {
-          "level": "info"
+          "level": "off" // Should be info. Biome LSP throws errors regardless of level.
         },
         // To allow error handling to be neat and concise, it can sometimes be
         // clearer to have a "useless" else to clearly state that all branches
         // are considered. Catch on a review basis rather than enforcing
         "noUselessElse": {
-          "level": "info"
+          "level": "off" // Should be info. Biome LSP throws errors regardless of level.
         }
       }
     }
