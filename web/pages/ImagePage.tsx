@@ -1,18 +1,8 @@
-import {
-  type JSX,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
-import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import { type JSX, useCallback, useState } from 'react'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
 import {
-  type Graph,
-  type GraphNode,
-  scheduleScan,
   useImage,
   useImageDescription,
   useImageGraph,
@@ -20,154 +10,22 @@ import {
   useTags,
 } from '../api'
 import { Badge } from '../components/Badge'
-import { DependencyGraphNode } from '../components/DependencyGraphNode'
-import { GraphRenderer } from '../components/GraphRenderer'
 import { HTML } from '../components/HTML'
 import { ImageLogo } from '../components/ImageLogo'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { Markdown } from '../components/Markdown'
 import { Toast } from '../components/Toast'
-import { FluentArrowSync16Regular } from '../components/icons/fluent-arrow-sync-16-regular'
-import { FluentBookQuestionMark24Filled } from '../components/icons/fluent-book-question-mark-24-filled'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
-import { FluentLink24Filled } from '../components/icons/fluent-link-24-filled'
 import { FluentShieldError24Filled } from '../components/icons/fluent-shield-error-24-filled'
 import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
-import { Quay } from '../components/icons/quay'
-import { SimpleIconsDocker } from '../components/icons/simple-icons-docker'
-import { SimpleIconsGit } from '../components/icons/simple-icons-git'
-import { SimpleIconsGithub } from '../components/icons/simple-icons-github'
-import { SimpleIconsGitlab } from '../components/icons/simple-icons-gitlab'
-import { useGraphLayout } from '../graph'
 import { fullVersion, name, version } from '../oci'
 import { formatRelativeTimeTo } from '../time'
-
-const titles: Record<string, string | undefined> = {
-  github: "Project's page on GitHub",
-  ghcr: "Project's package page on GHCR",
-  gitlab: "Project's page on GitLab",
-  docker: "Project's page on Docker Hub",
-  quay: "Project's page on Quay.io",
-  git: "Project's git page",
-  docs: "Project's documentation",
-  'oci-registry': "Project's OCI registry",
-}
-
-function unique<T>(previousValue: T[], currentValue: T): T[] {
-  if (previousValue.includes(currentValue)) {
-    return previousValue
-  }
-
-  previousValue.push(currentValue)
-  return previousValue
-}
-
-function flattened<T>(previousValue: T[], currentValue: T[]): T[] {
-  previousValue.push(...currentValue)
-  return previousValue
-}
-
-export function ImageLink({
-  type,
-  url,
-}: {
-  type: string
-  url: string
-}): JSX.Element {
-  const title = titles[type] || url
-  let icon: ReactNode
-  switch (type) {
-    case 'github':
-    case 'ghcr':
-      icon = (
-        <SimpleIconsGithub className="text-black dark:dark:text-[#dddddd]" />
-      )
-      break
-    case 'gitlab':
-      icon = <SimpleIconsGitlab className="text-orange-500" />
-      break
-    case 'docker':
-      icon = <SimpleIconsDocker className="text-blue-500" />
-      break
-    case 'quay':
-      icon = <Quay className="text-blue-700" />
-      break
-    case 'git':
-      icon = <SimpleIconsGit className="text-orange-500" />
-      break
-    case 'svc':
-      if (url.includes('github.com')) {
-        return <ImageLink type="github" url={url} />
-      } else if (url.includes('gitlab')) {
-        return <ImageLink type="gitlab" url={url} />
-      } else {
-        return <ImageLink type="git" url={url} />
-      }
-    case 'docs':
-      icon = <FluentBookQuestionMark24Filled />
-      break
-    default:
-      icon = <FluentLink24Filled />
-  }
-
-  return (
-    <a title={title} href={url} target="_blank" rel="noreferrer">
-      {icon}
-    </a>
-  )
-}
-
-type GraphCardProps = {
-  graph: Graph
-}
-
-function GraphCard({ graph }: GraphCardProps): JSX.Element {
-  const [formattedGraph, options] = useMemo(() => {
-    return [
-      {
-        nodes: Object.entries(graph.nodes).map(([id, data]) => ({
-          id,
-          width: 250,
-          height: 75,
-          data,
-        })),
-        edges: Object.entries(graph.edges)
-          .map(([from, adjacent]) =>
-            Object.entries(adjacent)
-              .filter(([_, isParent]) => isParent)
-              .map(([to, _]) => ({
-                id: `${from}->${to}`,
-                // Reverse the tree order
-                from: to,
-                to: from,
-              }))
-          )
-          .flat(2),
-      },
-      {
-        'elk.algorithm': 'mrtree',
-        'elk.spacing.nodeNode': '50',
-      },
-    ]
-  }, [graph])
-
-  const [nodes, edges, bounds] = useGraphLayout<GraphNode>(
-    formattedGraph,
-    options
-  )
-
-  return (
-    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-2 shadow-sm h-[480px]">
-      <GraphRenderer
-        edges={edges}
-        nodes={nodes}
-        bounds={bounds}
-        NodeElement={DependencyGraphNode}
-      />
-    </div>
-  )
-}
+import { GraphCard } from './image-page/GraphCard'
+import { ImageLink } from './image-page/ImageLink'
+import { ProcessStatus } from './image-page/ProcessStatus'
+import { SettingsCard } from './image-page/SettingsCard'
+import { VulnerabilitiesCard } from './image-page/VulnerabilitiesCard'
 
 export function ImagePage(): JSX.Element {
   const [params, _] = useSearchParams()
@@ -345,86 +203,12 @@ export function ImagePage(): JSX.Element {
         <main className="min-w-[200px] max-w-[800px] w-full box-border space-y-6 mt-6">
           {/* Cupdate settings */}
           {image.value?.reference === 'ghcr.io/alexgustafsson/cupdate' && (
-            <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
-              <p>
-                Cupdate version:{' '}
-                {import.meta.env.VITE_CUPDATE_VERSION || 'development build'}.
-              </p>
-            </div>
+            <SettingsCard />
           )}
 
           {/* Vulnerability report */}
           {image.value.vulnerabilities.length > 0 && (
-            <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
-              <div className="markdown-body">
-                <h1>Vulnerabilities</h1>
-                <ul>
-                  <li>
-                    Critical:{' '}
-                    {
-                      image.value.vulnerabilities.filter(
-                        (x) => x.severity === 'critical'
-                      ).length
-                    }
-                  </li>
-                  <li>
-                    High:{' '}
-                    {
-                      image.value.vulnerabilities.filter(
-                        (x) => x.severity === 'high'
-                      ).length
-                    }
-                  </li>
-                  <li>
-                    Medium:{' '}
-                    {
-                      image.value.vulnerabilities.filter(
-                        (x) => x.severity === 'medium'
-                      ).length
-                    }
-                  </li>
-                  <li>
-                    Low:{' '}
-                    {
-                      image.value.vulnerabilities.filter(
-                        (x) => x.severity === 'low'
-                      ).length
-                    }
-                  </li>
-                  <li>
-                    Unspecified:{' '}
-                    {
-                      image.value.vulnerabilities.filter(
-                        (x) => x.severity === 'unspecified'
-                      ).length
-                    }
-                  </li>
-                </ul>
-
-                <h2>Authorities</h2>
-                <ul>
-                  {image.value.vulnerabilities
-                    .map((x) => x.authority)
-                    .reduce(unique<string>, [])
-                    .map((x) => (
-                      <li key={x}>{x}</li>
-                    ))}
-                </ul>
-
-                <h2>Links</h2>
-                <ul>
-                  {image.value.vulnerabilities
-                    .map((x) => x.links)
-                    .reduce(flattened<string>, [])
-                    .reduce(unique<string>, [])
-                    .map((x) => (
-                      <li key={x}>
-                        <a href={x}>{x}</a>
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            </div>
+            <VulnerabilitiesCard image={image.value} />
           )}
 
           {/* Release notes */}
@@ -462,58 +246,6 @@ export function ImagePage(): JSX.Element {
           </div>
         </main>
       </div>
-    </>
-  )
-}
-
-type ProcessStatusProps = {
-  lastModified: string
-  reference: string
-}
-
-function ProcessStatus({
-  lastModified,
-  reference,
-}: ProcessStatusProps): JSX.Element {
-  const [status, setStatus] = useState<
-    'idle' | 'in-flight' | 'successful' | 'failed'
-  >('idle')
-
-  const onSchedule = useCallback(() => {
-    setStatus('in-flight')
-    scheduleScan(reference)
-      .then(() => setStatus('successful'))
-      .catch(() => setStatus('failed'))
-  }, [reference])
-
-  return (
-    <>
-      {status !== 'successful' && (
-        <p>
-          Last processed{' '}
-          <span title={new Date(lastModified).toLocaleString()}>
-            {formatRelativeTimeTo(new Date(lastModified))}
-          </span>
-        </p>
-      )}
-      <p>{status === 'successful' && 'Image is scheduled for processing'}</p>
-      <button
-        type="button"
-        title={status === 'idle' ? 'Schedule update' : ''}
-        onClick={onSchedule}
-        disabled={status !== 'idle'}
-      >
-        {(status === 'idle' || status === 'in-flight') && (
-          <FluentArrowSync16Regular
-            className={`ml-1 hover:opacity-90 active:opacity-80 disabled:opacity-70 ${status === 'in-flight' ? 'animate-spin' : ''}`}
-          />
-        )}
-        {status === 'failed' && (
-          <InfoTooltip icon={<FluentWarning16Filled />}>
-            Failed to schedule image. Cupdate is likely busy. Try again later.
-          </InfoTooltip>
-        )}
-      </button>
     </>
   )
 }
