@@ -39,7 +39,8 @@ export function ImagePage(): JSX.Element {
   const [graph, updateGraph] = useImageGraph(reference)
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
-  const onEvent = useCallback(
+
+  useEvents(
     (e: Event) => {
       if (e.reference === reference && e.type === 'imageUpdated') {
         setIsUpdateAvailable(true)
@@ -47,8 +48,6 @@ export function ImagePage(): JSX.Element {
     },
     [reference]
   )
-
-  useEvents(onEvent)
 
   if (
     tags.status === 'idle' ||

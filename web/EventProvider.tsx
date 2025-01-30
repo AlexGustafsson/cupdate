@@ -1,4 +1,5 @@
 import {
+  type DependencyList,
   type JSX,
   type PropsWithChildren,
   createContext,
@@ -6,7 +7,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
 } from 'react'
 
 export type ImageEvent = { type: 'imageUpdated'; reference: string }
@@ -75,11 +75,13 @@ export function EventProvider({ children }: PropsWithChildren): JSX.Element {
   )
 }
 
-export function useEvents(callback: EventHandler) {
+export function useEvents(callback: EventHandler, deps: DependencyList) {
   const context = use(EventContext)
 
+  const memoizedCallback = useCallback(callback, deps)
+
   useEffect(() => {
-    context.addCallback(callback)
-    return () => context.removeCallback(callback)
-  }, [context.addCallback, context.removeCallback, callback])
+    context.addCallback(memoizedCallback)
+    return () => context.removeCallback(memoizedCallback)
+  }, [context.addCallback, context.removeCallback, memoizedCallback])
 }

@@ -98,11 +98,10 @@ export function Dashboard(): JSX.Element {
   }, [tags, navigate, searchParams])
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
-  const onEvent = useCallback((e: Event) => {
+
+  useEvents((e: Event) => {
     setIsUpdateAvailable(true)
   }, [])
-
-  useEvents(onEvent)
 
   if (images.status !== 'resolved' || tags.status !== 'resolved') {
     return <></>
