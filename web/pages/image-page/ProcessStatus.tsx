@@ -1,4 +1,5 @@
-import { type JSX, useCallback, useState } from 'react'
+import { type JSX, useCallback, useEffect, useRef, useState } from 'react'
+import { useEvents } from '../../EventProvider'
 import { scheduleScan } from '../../api'
 import { InfoTooltip } from '../../components/InfoTooltip'
 import { FluentArrowSync16Regular } from '../../components/icons/fluent-arrow-sync-16-regular'
@@ -11,12 +12,17 @@ type ProcessStatusProps = {
 }
 
 export function ProcessStatus({
-  lastModified,
+  lastModified: initialLastModified,
   reference,
 }: ProcessStatusProps): JSX.Element {
   const [status, setStatus] = useState<
     'idle' | 'in-flight' | 'successful' | 'failed'
   >('idle')
+
+  // Get the time from the image once, then rely on events to update it
+  const [lastModified, setLastModified] = useState(
+    new Date(initialLastModified)
+  )
 
   const onSchedule = useCallback(() => {
     setStatus('in-flight')
@@ -25,13 +31,29 @@ export function ProcessStatus({
       .catch(() => setStatus('failed'))
   }, [reference])
 
+  useEvents(
+    (e) => {
+      if (e.reference === reference && e.type === 'imageProcessed') {
+        // TODO: Use time from event rather then the current time
+        setLastModified(new Date())
+
+        // If we successfully queued the image for processing, clear the state
+        // when the reference was processed
+        if (status === 'successful') {
+          setStatus('idle')
+        }
+      }
+    },
+    [reference, status]
+  )
+
   return (
     <>
       {status !== 'successful' && (
         <p>
           Last processed{' '}
-          <span title={new Date(lastModified).toLocaleString()}>
-            {formatRelativeTimeTo(new Date(lastModified))}
+          <span title={lastModified.toLocaleString()}>
+            {formatRelativeTimeTo(lastModified)}
           </span>
         </p>
       )}

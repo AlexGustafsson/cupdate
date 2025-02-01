@@ -293,6 +293,8 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue cha
 			switch event.Type {
 			case worker.EventTypeUpdated:
 				eventType = models.EventTypeImageUpdated
+			case worker.EventTypeProcessed:
+				eventType = models.EventTypeImageProcessed
 			}
 
 			data, err := json.Marshal(models.ImageEvent{

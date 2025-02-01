@@ -9,7 +9,10 @@ import {
   useRef,
 } from 'react'
 
-export type ImageEvent = { type: 'imageUpdated'; reference: string }
+export type ImageEvent = {
+  type: 'imageUpdated' | 'imageProcessed'
+  reference: string
+}
 
 export type Event = ImageEvent
 

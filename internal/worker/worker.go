@@ -223,28 +223,21 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		log.DebugContext(ctx, "Updated image date", slog.Int("changes", len(changes)))
 		// TODO: Group changes, create an event specifying the time. That way the
 		// browser can ignore the event if it already updated after the time?
-		// w.Broadcast(ctx, Event{
-		// 	Reference: reference.String(),
-		// 	Type:      EventTypeUpdated,
-		// })
+		w.Broadcast(ctx, Event{
+			Reference: reference.String(),
+			Type:      EventTypeUpdated,
+		})
 
 		// TODO: Have another readonly job for going over the changes made to
 		// references to identify updates every now and then for third-party alerts.
 		// For now, just do it on the RSS field? Perhaps try to use the change time
 		// as the article time if the time of release is not found.
+		// TODO: Instead of readonly job, just watch the events instead?
 	}
 
-	// TODO: Mechanism to spread updates, the UI could react on scheduled update
-	// and refresh the state of the button when the reference has been processed
-	// w.Broadcast(ctx, Event{
-	// 	Reference: reference.String(),
-	// 	Type:      EventTypeProcessed,
-	// })
-
-	// TODO: This is the existing behavior for backwards compatibility, replace it
 	w.Broadcast(ctx, Event{
 		Reference: reference.String(),
-		Type:      EventTypeUpdated,
+		Type:      EventTypeProcessed,
 	})
 
 	return nil
