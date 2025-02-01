@@ -13,6 +13,7 @@ import (
 func TestStoreInsertRawImage(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	expected := models.RawImage{
 		Reference: "mongo:4",
@@ -45,6 +46,7 @@ func TestStoreInsertRawImage(t *testing.T) {
 func TestStoreInsertImage(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	expected := &models.Image{
 		Reference:       "mongo:4",
@@ -93,6 +95,7 @@ func TestStoreInsertImage(t *testing.T) {
 func TestStoreTags(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
@@ -113,6 +116,7 @@ func TestStoreTags(t *testing.T) {
 func TestStoreImageDescription(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	expected := models.ImageDescription{
 		Markdown: "# Release",
@@ -139,6 +143,7 @@ func TestStoreImageDescription(t *testing.T) {
 func TestStoreImageReleaseNotes(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	expected := models.ImageReleaseNotes{
 		Title:    "Release",
@@ -167,6 +172,7 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 func TestStoreImageGraph(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	expected := models.Graph{
 		Edges: map[string]map[string]bool{
@@ -209,6 +215,7 @@ func TestStoreImageGraph(t *testing.T) {
 func TestListImages(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	expectedImages := []models.Image{
 		{
@@ -297,6 +304,7 @@ func TestListImages(t *testing.T) {
 func TestListImagesQuery(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	images := []models.Image{
 		{
@@ -370,6 +378,7 @@ func TestListImagesQuery(t *testing.T) {
 func TestStoreDeleteNonPresent(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
+	defer store.Close()
 
 	images := []*models.Image{
 		{
