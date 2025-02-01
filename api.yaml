@@ -374,7 +374,7 @@ components:
           type: string
         type:
           type: string
-          enum: ["imageUpdated"]
+          enum: ["imageUpdated", "imageProcessed", "imageNewVersionAvailable"]
 
     Summary:
       type: object
