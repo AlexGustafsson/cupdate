@@ -54,7 +54,6 @@ export interface ImageLink {
 }
 
 export interface ImageVulnerability {
-  id: number
   severity: string
   authority: string
   links: string[]

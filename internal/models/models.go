@@ -63,7 +63,6 @@ type ImageLink struct {
 }
 
 type ImageVulnerability struct {
-	ID          int      `json:"id"`
 	Severity    string   `json:"severity"`
 	Authority   string   `json:"authority"`
 	Description string   `json:"description,omitempty"`

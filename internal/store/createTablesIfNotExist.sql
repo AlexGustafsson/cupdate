@@ -45,11 +45,13 @@ CREATE TABLE IF NOT EXISTS images_tags (
   PRIMARY KEY (reference, tag)
 );
 
-CREATE TABLE IF NOT EXISTS images_links (
+-- TODO: Rename in v1. This was done as an easy way to migrate somewhat
+-- gracefully without having to drop the entire database
+DROP TABLE IF EXISTS images_links;
+CREATE TABLE IF NOT EXISTS images_linksv2 (
   reference TEXT NOT NULL,
-  url TEXT NOT NULL,
-  type TEXT NOT NULL,
-  PRIMARY KEY (reference, url),
+  links BLOB NOT NULL,
+  PRIMARY KEY (reference),
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
@@ -78,12 +80,13 @@ CREATE TABLE IF NOT EXISTS images_graphs (
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS images_vulnerabilities (
-  id INTEGER PRIMARY KEY,
+-- TODO: Rename in v1. This was done as an easy way to migrate somewhat
+-- gracefully without having to drop the entire database
+DROP TABLE IF EXISTS images_vulnerabilities;
+CREATE TABLE IF NOT EXISTS images_vulnerabilitiesv2 (
   reference TEXT NOT NULL,
-  severity TEXT NOT NULL,
-  authority TEXT NOT NULL,
-  description TEXT NOT NULL,
-  links TEXT NOT NULL,
+  count INT NOT NULL,
+  vulnerabilities BLOB NOT NULL,
+  PRIMARY KEY (reference),
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
-)
+);

@@ -307,8 +307,6 @@ components:
     ImageVulnerability:
       type: object
       properties:
-        id:
-          type: int
         severity:
           type: string
           enum: ["critical", "high", "medium", "low", "unspecified"]

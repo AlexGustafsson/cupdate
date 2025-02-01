@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -96,8 +95,7 @@ func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) (boo
 			tags=excluded.tags,
 			graph=excluded.graph,
 			lastProcessed=coalesce(excluded.lastProcessed, lastProcessed)
-		RETURNING lastProcessed;
-		;`)
+		RETURNING lastProcessed;`)
 	if err != nil {
 		return false, err
 	}
@@ -313,52 +311,26 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		}
 	}
 
-	// First clear out links for an easy way of removing those that are no longer
-	// referenced
-	statement, err = tx.PrepareContext(ctx, `DELETE FROM images_links WHERE reference = ?;`)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	_, err = statement.ExecContext(ctx, image.Reference)
-	statement.Close()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	// Add links
-	for _, link := range image.Links {
-		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_links
-		(reference, type, url)
-		VALUES
-		(?, ?, ?)
-		ON CONFLICT(reference, url) DO UPDATE SET
-			type=excluded.type
-		;`)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-
-		_, err = statement.ExecContext(ctx, image.Reference, link.Type, link.URL)
-		statement.Close()
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-
-	// First clear out vulnerabilities for the image as they cannot be uniquely
-	// identified (i.e. must be replaced)
-	statement, err = tx.PrepareContext(ctx, `DELETE FROM images_vulnerabilities WHERE reference = ?;`)
+	serializedLinks, err := json.Marshal(image.Links)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	_, err = statement.ExecContext(ctx, image.Reference)
+	statement, err = tx.PrepareContext(ctx, `INSERT INTO images_linksv2
+		(reference, links)
+		VALUES
+		(?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			links=excluded.links
+		;`)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, image.Reference, serializedLinks)
 	statement.Close()
 	if err != nil {
 		tx.Rollback()
@@ -366,24 +338,29 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 	}
 
 	// Add vulnerabilities
-	for _, vulnerability := range image.Vulnerabilities {
-		statement, err := tx.PrepareContext(ctx, `INSERT INTO images_vulnerabilities
-		(reference, severity, authority, description, links)
-		VALUES
-		(?, ?, ?, ?, ?);`)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
+	serializedVulnerabilities, err := json.Marshal(image.Vulnerabilities)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-		// Store links as a space-separated list
-		links := strings.Join(slices.Sorted(slices.Values(vulnerability.Links)), " ")
-		_, err = statement.ExecContext(ctx, image.Reference, vulnerability.Severity, vulnerability.Authority, vulnerability.Description, links)
-		statement.Close()
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
+	statement, err = tx.PrepareContext(ctx, `INSERT INTO images_vulnerabilitiesv2
+		(reference, count, vulnerabilities)
+		VALUES
+		(?, ?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			count=excluded.count,
+			vulnerabilities=vulnerabilities
+		;`)
+	if err != nil {
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, image.Reference, len(image.Vulnerabilities), serializedVulnerabilities)
+	statement.Close()
+	if err != nil {
+		tx.Rollback()
+		return err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -480,7 +457,7 @@ func (s *Store) GetImagesTags(ctx context.Context, reference string) ([]string, 
 }
 
 func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.ImageLink, error) {
-	statement, err := s.db.PrepareContext(ctx, `SELECT type, url FROM images_links WHERE reference = ?;`)
+	statement, err := s.db.PrepareContext(ctx, `SELECT links FROM images_linksv2 WHERE reference = ?;`)
 	if err != nil {
 		return nil, err
 	}
@@ -491,18 +468,20 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 		return nil, err
 	}
 
-	links := make([]models.ImageLink, 0)
-	for res.Next() {
-		var link models.ImageLink
-		err := res.Scan(&link.Type, &link.URL)
-		if err != nil {
-			res.Close()
-			return nil, err
-		}
-		links = append(links, link)
+	if !res.Next() {
+		res.Close()
+		return nil, res.Err()
 	}
+
+	var serializedLinks []byte
+	err = res.Scan(&serializedLinks)
 	res.Close()
-	if err := res.Err(); err != nil {
+	if err != nil {
+		return nil, err
+	}
+
+	var links []models.ImageLink
+	if err := json.Unmarshal(serializedLinks, &links); err != nil {
 		return nil, err
 	}
 
@@ -510,7 +489,7 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 }
 
 func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) ([]models.ImageVulnerability, error) {
-	statement, err := s.db.PrepareContext(ctx, `SELECT id, severity, authority, description, links FROM images_vulnerabilities WHERE reference = ?;`)
+	statement, err := s.db.PrepareContext(ctx, `SELECT vulnerabilities FROM images_vulnerabilitiesv2 WHERE reference = ?;`)
 	if err != nil {
 		return nil, err
 	}
@@ -521,20 +500,20 @@ func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) (
 		return nil, err
 	}
 
-	vulnerabilities := make([]models.ImageVulnerability, 0)
-	for res.Next() {
-		var vulnerability models.ImageVulnerability
-		var links string
-		err := res.Scan(&vulnerability.ID, &vulnerability.Severity, &vulnerability.Authority, &vulnerability.Description, &links)
-		if err != nil {
-			res.Close()
-			return nil, err
-		}
-		vulnerability.Links = strings.Split(links, " ")
-		vulnerabilities = append(vulnerabilities, vulnerability)
+	if !res.Next() {
+		res.Close()
+		return nil, res.Err()
 	}
+
+	var serializedVulnerabilities []byte
+	err = res.Scan(&serializedVulnerabilities)
 	res.Close()
-	if err := res.Err(); err != nil {
+	if err != nil {
+		return nil, err
+	}
+
+	var vulnerabilities []models.ImageVulnerability
+	if err := json.Unmarshal(serializedVulnerabilities, &vulnerabilities); err != nil {
 		return nil, err
 	}
 
@@ -1057,7 +1036,7 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 	res.Close()
 
 	// Total vulnerable images
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(DISTINCT reference) FROM images_vulnerabilities;`)
+	res, err = s.db.QueryContext(ctx, `SELECT SUM(count) FROM images_vulnerabilitiesv2;`)
 	if err != nil {
 		return nil, err
 	}

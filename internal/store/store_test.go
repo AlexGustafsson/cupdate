@@ -61,7 +61,6 @@ func TestStoreInsertImage(t *testing.T) {
 		},
 		Vulnerabilities: []models.ImageVulnerability{
 			{
-				ID:          1234, // Should not be respected
 				Severity:    "low",
 				Authority:   "test",
 				Description: "Some CVE",
@@ -79,9 +78,6 @@ func TestStoreInsertImage(t *testing.T) {
 
 	err = store.InsertImage(context.TODO(), expected)
 	require.NoError(t, err)
-
-	// ID should not be respected
-	expected.Vulnerabilities[0].ID = 1
 
 	actual, err := store.GetImage(context.TODO(), "mongo:4")
 	require.NoError(t, err)
