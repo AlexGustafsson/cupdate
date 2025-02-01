@@ -86,6 +86,33 @@ func TestStoreInsertImage(t *testing.T) {
 	// Make sure triggers don't complain when upserting
 	err = store.InsertImage(context.TODO(), expected)
 	require.NoError(t, err)
+
+	updates, err := store.GetReferenceUpdates(context.TODO())
+	require.NoError(t, err)
+	assert.EqualValues(t, []ImageReferenceUpdate{}, updates)
+
+	changes, err := store.GetChanges(context.TODO(), nil)
+	require.NoError(t, err)
+	assert.EqualValues(t, []Change{
+		{
+			Reference:    "mongo:4",
+			Time:         changes[0].Time,
+			Type:         "insert",
+			ChangedBasic: true,
+		},
+		{
+			Reference:    "mongo:4",
+			Time:         changes[1].Time,
+			Type:         "insert",
+			ChangedLinks: true,
+		},
+		{
+			Reference:              "mongo:4",
+			Time:                   changes[2].Time,
+			Type:                   "insert",
+			ChangedVulnerabilities: true,
+		},
+	}, changes)
 }
 
 func TestStoreTags(t *testing.T) {
@@ -134,6 +161,35 @@ func TestStoreImageDescription(t *testing.T) {
 	actual, err := store.GetImageDescription(context.TODO(), "mongo:4")
 	require.NoError(t, err)
 	assert.Equal(t, &expected, actual)
+
+	changes, err := store.GetChanges(context.TODO(), nil)
+	require.NoError(t, err)
+	assert.EqualValues(t, []Change{
+		{
+			Reference:    "mongo:4",
+			Time:         changes[0].Time,
+			Type:         "insert",
+			ChangedBasic: true,
+		},
+		{
+			Reference:    "mongo:4",
+			Time:         changes[1].Time,
+			Type:         "insert",
+			ChangedLinks: true,
+		},
+		{
+			Reference:              "mongo:4",
+			Time:                   changes[2].Time,
+			Type:                   "insert",
+			ChangedVulnerabilities: true,
+		},
+		{
+			Reference:          "mongo:4",
+			Time:               changes[3].Time,
+			Type:               "insert",
+			ChangedDescription: true,
+		},
+	}, changes)
 }
 
 func TestStoreImageReleaseNotes(t *testing.T) {
@@ -163,6 +219,35 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 	actual, err := store.GetImageReleaseNotes(context.TODO(), "mongo:4")
 	require.NoError(t, err)
 	assert.Equal(t, &expected, actual)
+
+	changes, err := store.GetChanges(context.TODO(), nil)
+	require.NoError(t, err)
+	assert.EqualValues(t, []Change{
+		{
+			Reference:    "mongo:4",
+			Time:         changes[0].Time,
+			Type:         "insert",
+			ChangedBasic: true,
+		},
+		{
+			Reference:    "mongo:4",
+			Time:         changes[1].Time,
+			Type:         "insert",
+			ChangedLinks: true,
+		},
+		{
+			Reference:              "mongo:4",
+			Time:                   changes[2].Time,
+			Type:                   "insert",
+			ChangedVulnerabilities: true,
+		},
+		{
+			Reference:           "mongo:4",
+			Time:                changes[3].Time,
+			Type:                "insert",
+			ChangedReleaseNotes: true,
+		},
+	}, changes)
 }
 
 func TestStoreImageGraph(t *testing.T) {
@@ -206,6 +291,35 @@ func TestStoreImageGraph(t *testing.T) {
 	actual, err := store.GetImageGraph(context.TODO(), "mongo:4")
 	require.NoError(t, err)
 	assert.Equal(t, &expected, actual)
+
+	changes, err := store.GetChanges(context.TODO(), nil)
+	require.NoError(t, err)
+	assert.EqualValues(t, []Change{
+		{
+			Reference:    "mongo:4",
+			Time:         changes[0].Time,
+			Type:         "insert",
+			ChangedBasic: true,
+		},
+		{
+			Reference:    "mongo:4",
+			Time:         changes[1].Time,
+			Type:         "insert",
+			ChangedLinks: true,
+		},
+		{
+			Reference:              "mongo:4",
+			Time:                   changes[2].Time,
+			Type:                   "insert",
+			ChangedVulnerabilities: true,
+		},
+		{
+			Reference:    "mongo:4",
+			Time:         changes[3].Time,
+			Type:         "insert",
+			ChangedGraph: true,
+		},
+	}, changes)
 }
 
 func TestListImages(t *testing.T) {
@@ -449,4 +563,85 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 	actual, err := store.ListImages(context.TODO(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, expected, actual)
+}
+
+func TestStoreUpdateImageReference(t *testing.T) {
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
+	require.NoError(t, err)
+	defer store.Close()
+
+	image := &models.Image{
+		Reference:       "mongo:4",
+		LatestReference: "mongo:4",
+		Description:     "Mongo is a database",
+		Tags:            []string{"docker"},
+		Links: []models.ImageLink{
+			{
+				Type: "docker",
+				URL:  "https://docker.com/_/mongo",
+			},
+		},
+		Vulnerabilities: []models.ImageVulnerability{
+			{
+				Severity:    "low",
+				Authority:   "test",
+				Description: "Some CVE",
+				Links:       []string{"https://example.com"},
+			},
+		},
+		LastModified: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		Image:        "https://example.com/logo.png",
+	}
+
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: image.Reference,
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImage(context.TODO(), image)
+	require.NoError(t, err)
+
+	image.LatestReference = "mongo:5"
+	err = store.InsertImage(context.TODO(), image)
+	require.NoError(t, err)
+
+	updates, err := store.GetReferenceUpdates(context.TODO())
+	require.NoError(t, err)
+	assert.EqualValues(t, []ImageReferenceUpdate{
+		{
+			Reference:          "mongo:4",
+			Time:               updates[0].Time,
+			OldLatestReference: "mongo:4",
+			NewLatestReference: "mongo:5",
+		},
+	}, updates)
+
+	changes, err := store.GetChanges(context.TODO(), nil)
+	require.NoError(t, err)
+	assert.EqualValues(t, []Change{
+		{
+			Reference:    "mongo:4",
+			Time:         changes[0].Time,
+			Type:         "insert",
+			ChangedBasic: true,
+		},
+		{
+			Reference:    "mongo:4",
+			Time:         changes[1].Time,
+			Type:         "insert",
+			ChangedLinks: true,
+		},
+		{
+			Reference:              "mongo:4",
+			Time:                   changes[2].Time,
+			Type:                   "insert",
+			ChangedVulnerabilities: true,
+		},
+		{
+			Reference:    "mongo:4",
+			Time:         changes[3].Time,
+			Type:         "update",
+			ChangedBasic: true,
+		},
+	}, changes)
 }

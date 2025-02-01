@@ -20,6 +20,9 @@ import (
 //go:embed createTablesIfNotExist.sql
 var createTablesIfNotExist string
 
+//go:embed trackChanges.sql
+var trackChanges string
+
 type EventType string
 
 const (
@@ -56,6 +59,12 @@ func New(uri string, readonly bool) (*Store, error) {
 	if !readonly {
 		// SEE: docs/architecture/database.md
 		_, err = db.Exec(createTablesIfNotExist)
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+
+		_, err = db.Exec(trackChanges)
 		if err != nil {
 			db.Close()
 			return nil, err
@@ -1075,6 +1084,167 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 		Vulnerable: totalVulnerableImages,
 		Processing: totalRawImages - totalImages,
 	}, nil
+}
+
+type ImageReferenceUpdate struct {
+	Reference string
+	Time      time.Time
+
+	OldLatestReference string
+	NewLatestReference string
+}
+
+func (s *Store) GetReferenceUpdates(ctx context.Context) ([]ImageReferenceUpdate, error) {
+	res, err := s.db.QueryContext(ctx, `SELECT reference, time, oldLatestReference, newLatestReference FROM images_reference_updates;`)
+	if err != nil {
+		return nil, err
+	}
+
+	updates := make([]ImageReferenceUpdate, 0)
+	for res.Next() {
+		var update ImageReferenceUpdate
+		err := res.Scan(
+			&update.Reference,
+			&update.Time,
+			&update.OldLatestReference,
+			&update.NewLatestReference,
+		)
+		if err != nil {
+			res.Close()
+			return nil, err
+		}
+		updates = append(updates, update)
+	}
+	res.Close()
+	if err := res.Err(); err != nil {
+		return nil, err
+	}
+
+	return updates, nil
+}
+
+type Change struct {
+	Reference string
+	Time      time.Time
+	Type      string
+
+	ChangedBasic           bool
+	ChangedLinks           bool
+	ChangedReleaseNotes    bool
+	ChangedDescription     bool
+	ChangedGraph           bool
+	ChangedVulnerabilities bool
+}
+
+type GetChangesOptions struct {
+	Reference string
+	After     time.Time
+	Before    time.Time
+}
+
+func (s *Store) GetChanges(ctx context.Context, options *GetChangesOptions) ([]Change, error) {
+	whereClauses := make([]string, 0)
+	parameters := make([]any, 0)
+
+	if options != nil && options.Reference != "" {
+		whereClauses = append(whereClauses, "reference = ?")
+		parameters = append(parameters, options.Reference)
+	}
+
+	if options != nil && !options.After.IsZero() {
+		whereClauses = append(whereClauses, "time >= ?")
+		parameters = append(parameters, options.After.Round(time.Second))
+	}
+
+	if options != nil && !options.Before.IsZero() {
+		whereClauses = append(whereClauses, "time <= ?")
+		parameters = append(parameters, options.Before.Round(time.Second))
+	}
+
+	whereClause := strings.Join(whereClauses, " AND ")
+
+	query := `SELECT reference, time, type, changedBasic, changedLinks, changedReleaseNotes, changedDescription, changedGraph, changedVulnerabilities FROM images_changes`
+	if whereClause != "" {
+		query += " WHERE " + whereClause
+	}
+
+	statement, err := s.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := statement.QueryContext(ctx, parameters...)
+	statement.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	updates := make([]Change, 0)
+	for res.Next() {
+		var update Change
+		err := res.Scan(
+			&update.Reference,
+			&update.Time,
+			&update.Type,
+			&update.ChangedBasic,
+			&update.ChangedLinks,
+			&update.ChangedReleaseNotes,
+			&update.ChangedDescription,
+			&update.ChangedGraph,
+			&update.ChangedVulnerabilities,
+		)
+		if err != nil {
+			res.Close()
+			return nil, err
+		}
+		updates = append(updates, update)
+	}
+	res.Close()
+	if err := res.Err(); err != nil {
+		return nil, err
+	}
+
+	return updates, nil
+}
+
+type DeleteChangesOptions struct {
+	After  time.Time
+	Before time.Time
+}
+
+func (s *Store) DeleteChanges(ctx context.Context, options *DeleteChangesOptions) error {
+	whereClauses := make([]string, 0)
+	parameters := make([]any, 0)
+
+	if options != nil && !options.After.IsZero() {
+		whereClauses = append(whereClauses, "time > ?")
+		parameters = append(parameters, options.After)
+	}
+
+	if options != nil && !options.Before.IsZero() {
+		whereClauses = append(whereClauses, "time < ?")
+		parameters = append(parameters, options.Before)
+	}
+
+	whereClause := strings.Join(whereClauses, " AND ")
+
+	query := `DELETE FROM images_changes`
+	if whereClause != "" {
+		query += " WHERE " + whereClause
+	}
+
+	statement, err := s.db.PrepareContext(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, parameters...)
+	statement.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Store) Close() error {
