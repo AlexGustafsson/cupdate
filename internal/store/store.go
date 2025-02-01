@@ -1005,7 +1005,7 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 	res.Close()
 
 	// Total vulnerable images
-	res, err = s.db.QueryContext(ctx, `SELECT SUM(count) FROM images_vulnerabilitiesv2;`)
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images_vulnerabilitiesv2 WHERE count > 0;`)
 	if err != nil {
 		return nil, err
 	}
