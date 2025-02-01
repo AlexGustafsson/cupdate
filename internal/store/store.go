@@ -1046,43 +1046,6 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 	}, nil
 }
 
-type ImageReferenceUpdate struct {
-	Reference string
-	Time      time.Time
-
-	OldLatestReference string
-	NewLatestReference string
-}
-
-func (s *Store) GetReferenceUpdates(ctx context.Context) ([]ImageReferenceUpdate, error) {
-	res, err := s.db.QueryContext(ctx, `SELECT reference, time, oldLatestReference, newLatestReference FROM images_reference_updates;`)
-	if err != nil {
-		return nil, err
-	}
-
-	updates := make([]ImageReferenceUpdate, 0)
-	for res.Next() {
-		var update ImageReferenceUpdate
-		err := res.Scan(
-			&update.Reference,
-			&update.Time,
-			&update.OldLatestReference,
-			&update.NewLatestReference,
-		)
-		if err != nil {
-			res.Close()
-			return nil, err
-		}
-		updates = append(updates, update)
-	}
-	res.Close()
-	if err := res.Err(); err != nil {
-		return nil, err
-	}
-
-	return updates, nil
-}
-
 type Change struct {
 	Reference string
 	Time      time.Time

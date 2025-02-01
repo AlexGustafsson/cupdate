@@ -22,8 +22,9 @@ var _ prometheus.Collector = (*Worker)(nil)
 type EventType string
 
 const (
-	EventTypeUpdated   EventType = "updated"
-	EventTypeProcessed EventType = "processed"
+	EventTypeUpdated             EventType = "updated"
+	EventTypeProcessed           EventType = "processed"
+	EventTypeNewVersionAvailable EventType = "newVersionAvailable"
 )
 
 type Event struct {
@@ -233,6 +234,13 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		// For now, just do it on the RSS field? Perhaps try to use the change time
 		// as the article time if the time of release is not found.
 		// TODO: Instead of readonly job, just watch the events instead?
+	}
+
+	if result.LatestReference != "" && result.LatestReference != result.Reference {
+		w.Broadcast(ctx, Event{
+			Reference: reference.String(),
+			Type:      EventTypeNewVersionAvailable,
+		})
 	}
 
 	w.Broadcast(ctx, Event{

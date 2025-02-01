@@ -77,10 +77,6 @@ func TestStoreInsertImage(t *testing.T) {
 	err = store.InsertImage(context.TODO(), expected)
 	require.NoError(t, err)
 
-	updates, err := store.GetReferenceUpdates(context.TODO())
-	require.NoError(t, err)
-	assert.EqualValues(t, []ImageReferenceUpdate{}, updates)
-
 	changes, err := store.GetChanges(context.TODO(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, []Change{
@@ -594,17 +590,6 @@ func TestStoreUpdateImageReference(t *testing.T) {
 	image.LatestReference = "mongo:5"
 	err = store.InsertImage(context.TODO(), image)
 	require.NoError(t, err)
-
-	updates, err := store.GetReferenceUpdates(context.TODO())
-	require.NoError(t, err)
-	assert.EqualValues(t, []ImageReferenceUpdate{
-		{
-			Reference:          "mongo:4",
-			Time:               updates[0].Time,
-			OldLatestReference: "mongo:4",
-			NewLatestReference: "mongo:5",
-		},
-	}, updates)
 
 	changes, err := store.GetChanges(context.TODO(), nil)
 	require.NoError(t, err)

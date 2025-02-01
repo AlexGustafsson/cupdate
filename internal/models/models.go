@@ -88,6 +88,7 @@ type ImageEvent struct {
 type EventType string
 
 const (
-	EventTypeImageUpdated   EventType = "imageUpdated"
-	EventTypeImageProcessed EventType = "imageProcessed"
+	EventTypeImageUpdated             EventType = "imageUpdated"
+	EventTypeImageProcessed           EventType = "imageProcessed"
+	EventTypeImageNewVersionAvailable EventType = "imageNewVersionAvailable"
 )
