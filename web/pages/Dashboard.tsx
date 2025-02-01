@@ -100,7 +100,9 @@ export function Dashboard(): JSX.Element {
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
 
   useEvents((e: Event) => {
-    setIsUpdateAvailable(true)
+    if (e.type === 'imageUpdated') {
+      setIsUpdateAvailable(true)
+    }
   }, [])
 
   if (images.status !== 'resolved' || tags.status !== 'resolved') {
