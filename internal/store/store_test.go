@@ -25,22 +25,12 @@ func TestStoreInsertRawImage(t *testing.T) {
 		LastProcessed: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
 
-	ctx, cancel := context.WithCancel(context.TODO())
-	go func() {
-		defer cancel()
-		ch := store.Subscribe(ctx)
-
-		assert.Equal(t, Event{Reference: "mongo:4", Type: EventTypeUpdated}, <-ch)
-	}()
-
 	_, err = store.InsertRawImage(context.TODO(), &expected)
 	require.NoError(t, err)
 
 	actual, err := store.ListRawImages(context.TODO(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, expected, actual[0])
-
-	<-ctx.Done()
 }
 
 func TestStoreInsertImage(t *testing.T) {

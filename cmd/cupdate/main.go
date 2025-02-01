@@ -281,14 +281,14 @@ func main() {
 		}
 	})
 
+	httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
+	httpClient.UserAgent = config.HTTP.UserAgent
+	prometheus.DefaultRegisterer.MustRegister(httpClient)
+
+	worker := worker.New(httpClient, writeStore, registryAuth)
+	prometheus.DefaultRegisterer.MustRegister(worker)
+
 	wg.Go(func() error {
-		httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
-		httpClient.UserAgent = config.HTTP.UserAgent
-		prometheus.DefaultRegisterer.MustRegister(httpClient)
-
-		worker := worker.New(httpClient, writeStore, registryAuth)
-		prometheus.DefaultRegisterer.MustRegister(worker)
-
 		gauge := prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: "cupdate",
 			Subsystem: "worker",
@@ -457,7 +457,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	apiServer := api.NewServer(readStore, writeStore.Hub, processQueue)
+	apiServer := api.NewServer(readStore, worker.Hub, processQueue)
 	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
 	mux.Handle("/metrics", promhttp.Handler())

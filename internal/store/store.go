@@ -12,7 +12,6 @@ import (
 
 	_ "embed" // Embed SQL files
 
-	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	_ "modernc.org/sqlite"
 )
@@ -23,20 +22,7 @@ var createTablesIfNotExist string
 //go:embed trackChanges.sql
 var trackChanges string
 
-type EventType string
-
-const (
-	EventTypeUpdated EventType = "updated"
-)
-
-type Event struct {
-	Reference string
-	Type      EventType
-}
-
 type Store struct {
-	*events.Hub[Event]
-
 	// mutex must be held when performing write operations
 	mutex sync.Mutex
 	db    *sql.DB
@@ -72,8 +58,7 @@ func New(uri string, readonly bool) (*Store, error) {
 	}
 
 	return &Store{
-		db:  db,
-		Hub: events.NewHub[Event](),
+		db: db,
 	}, nil
 }
 
@@ -121,11 +106,6 @@ func (s *Store) InsertRawImage(ctx context.Context, image *models.RawImage) (boo
 	if err != nil {
 		return false, err
 	}
-
-	_ = s.Broadcast(ctx, Event{
-		Reference: image.Reference,
-		Type:      EventTypeUpdated,
-	})
 
 	return lastProcessed == nil, nil
 }
@@ -376,11 +356,6 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		return err
 	}
 
-	_ = s.Broadcast(ctx, Event{
-		Reference: image.Reference,
-		Type:      EventTypeUpdated,
-	})
-
 	return nil
 }
 
@@ -581,11 +556,6 @@ func (s *Store) InsertImageDescription(ctx context.Context, reference string, de
 		return err
 	}
 
-	_ = s.Broadcast(ctx, Event{
-		Reference: reference,
-		Type:      EventTypeUpdated,
-	})
-
 	return nil
 }
 
@@ -639,11 +609,6 @@ func (s *Store) InsertImageReleaseNotes(ctx context.Context, reference string, r
 	if err != nil {
 		return err
 	}
-
-	_ = s.Broadcast(ctx, Event{
-		Reference: reference,
-		Type:      EventTypeUpdated,
-	})
 
 	return nil
 }
@@ -701,11 +666,6 @@ func (s *Store) InsertImageGraph(ctx context.Context, reference string, graph *m
 	if err != nil {
 		return err
 	}
-
-	_ = s.Broadcast(ctx, Event{
-		Reference: reference,
-		Type:      EventTypeUpdated,
-	})
 
 	return nil
 }
@@ -1153,12 +1113,12 @@ func (s *Store) GetChanges(ctx context.Context, options *GetChangesOptions) ([]C
 
 	if options != nil && !options.After.IsZero() {
 		whereClauses = append(whereClauses, "time >= ?")
-		parameters = append(parameters, options.After.Round(time.Second))
+		parameters = append(parameters, options.After.UTC())
 	}
 
 	if options != nil && !options.Before.IsZero() {
 		whereClauses = append(whereClauses, "time <= ?")
-		parameters = append(parameters, options.Before.Round(time.Second))
+		parameters = append(parameters, options.Before.UTC())
 	}
 
 	whereClause := strings.Join(whereClauses, " AND ")

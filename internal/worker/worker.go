@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -18,7 +19,21 @@ import (
 
 var _ prometheus.Collector = (*Worker)(nil)
 
+type EventType string
+
+const (
+	EventTypeUpdated   EventType = "updated"
+	EventTypeProcessed EventType = "processed"
+)
+
+type Event struct {
+	Reference string
+	Type      EventType
+}
+
 type Worker struct {
+	*events.Hub[Event]
+
 	httpClient   *httputil.Client
 	store        *store.Store
 	registryAuth *httputil.AuthMux
@@ -30,6 +45,8 @@ type Worker struct {
 
 func New(httpClient *httputil.Client, store *store.Store, registryAuth *httputil.AuthMux) *Worker {
 	return &Worker{
+		Hub: events.NewHub[Event](),
+
 		httpClient:   httpClient,
 		store:        store,
 		registryAuth: registryAuth,
@@ -146,6 +163,8 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		}
 	}
 
+	timeBeforeInsert := time.Now()
+
 	result := models.Image{
 		Reference:           data.ImageReference.String(),
 		Created:             data.Created,
@@ -186,9 +205,48 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		// Fallthrough - try to insert what we have
 	}
 
-	log.DebugContext(ctx, "Updated data")
+	timeAfterInsert := time.Now()
+
+	log.DebugContext(ctx, "Processed image")
 	w.processedCounter.Inc()
 	w.processingDuration.Add(time.Since(start).Seconds())
+
+	// Try to identify what changed
+	changes, err := w.store.GetChanges(ctx, &store.GetChangesOptions{
+		Reference: reference.String(),
+		After:     timeBeforeInsert,
+		Before:    timeAfterInsert,
+	})
+	if err != nil {
+		log.ErrorContext(ctx, "Failed to identify changes", slog.Any("error", err))
+	} else if len(changes) > 0 {
+		log.DebugContext(ctx, "Updated image date", slog.Int("changes", len(changes)))
+		// TODO: Group changes, create an event specifying the time. That way the
+		// browser can ignore the event if it already updated after the time?
+		// w.Broadcast(ctx, Event{
+		// 	Reference: reference.String(),
+		// 	Type:      EventTypeUpdated,
+		// })
+
+		// TODO: Have another readonly job for going over the changes made to
+		// references to identify updates every now and then for third-party alerts.
+		// For now, just do it on the RSS field? Perhaps try to use the change time
+		// as the article time if the time of release is not found.
+	}
+
+	// TODO: Mechanism to spread updates, the UI could react on scheduled update
+	// and refresh the state of the button when the reference has been processed
+	// w.Broadcast(ctx, Event{
+	// 	Reference: reference.String(),
+	// 	Type:      EventTypeProcessed,
+	// })
+
+	// TODO: This is the existing behavior for backwards compatibility, replace it
+	w.Broadcast(ctx, Event{
+		Reference: reference.String(),
+		Type:      EventTypeUpdated,
+	})
+
 	return nil
 }
 

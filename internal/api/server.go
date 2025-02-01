@@ -16,6 +16,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/rss"
 	"github.com/AlexGustafsson/cupdate/internal/store"
+	"github.com/AlexGustafsson/cupdate/internal/worker"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 )
 
@@ -26,13 +27,13 @@ var (
 
 type Server struct {
 	api *store.Store
-	hub *events.Hub[store.Event]
+	hub *events.Hub[worker.Event]
 	mux *http.ServeMux
 
 	WebAddress string
 }
 
-func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan<- oci.Reference) *Server {
+func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue chan<- oci.Reference) *Server {
 	s := &Server{
 		api: api,
 		hub: hub,
@@ -290,7 +291,7 @@ func NewServer(api *store.Store, hub *events.Hub[store.Event], processQueue chan
 		for event := range s.hub.Subscribe(ctx) {
 			var eventType models.EventType
 			switch event.Type {
-			case store.EventTypeUpdated:
+			case worker.EventTypeUpdated:
 				eventType = models.EventTypeImageUpdated
 			}
 
