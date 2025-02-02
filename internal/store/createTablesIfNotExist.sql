@@ -42,7 +42,8 @@ END;
 CREATE TABLE IF NOT EXISTS images_tags (
   reference TEXT NOT NULL,
   tag TEXT NOT NULL,
-  PRIMARY KEY (reference, tag)
+  PRIMARY KEY (reference, tag),
+  FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
 -- TODO: Rename in v1. This was done as an easy way to migrate somewhat

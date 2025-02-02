@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -689,4 +691,94 @@ func TestInsertWorkflowRun(t *testing.T) {
 	actual, err = store.GetLatestWorkflowRun(context.TODO(), "mongo:4")
 	require.NoError(t, err)
 	assert.EqualValues(t, &expected, actual)
+}
+
+func TestCascadeDelete(t *testing.T) {
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
+	require.NoError(t, err)
+	defer store.Close()
+
+	image := &models.Image{
+		Reference: "mongo:4",
+		Tags:      []string{"docker"},
+		Links: []models.ImageLink{
+			{
+				Type: "docker",
+				URL:  "https://docker.com/_/mongo",
+			},
+		},
+		Vulnerabilities: []models.ImageVulnerability{
+			{
+				Severity:    "low",
+				Authority:   "test",
+				Description: "Some CVE",
+				Links:       []string{"https://example.com"},
+			},
+		},
+	}
+
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: image.Reference,
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImage(context.TODO(), image)
+	require.NoError(t, err)
+
+	err = store.InsertImageDescription(context.TODO(), image.Reference, &models.ImageDescription{
+		Markdown: "# Image",
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImageReleaseNotes(context.TODO(), image.Reference, &models.ImageReleaseNotes{
+		Markdown: "# Release",
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImageGraph(context.TODO(), image.Reference, &models.Graph{
+		Edges: make(map[string]map[string]bool),
+		Nodes: make(map[string]models.GraphNode),
+	})
+	require.NoError(t, err)
+
+	err = store.InsertWorkflowRun(context.TODO(), image.Reference, models.WorkflowRun{
+		TraceID: "1234",
+	})
+	require.NoError(t, err)
+
+	// Remove the raw image and expect all data to be removed with it
+	removed, err := store.DeleteNonPresent(context.TODO(), []string{})
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), removed)
+
+	res, err := store.db.Query("SELECT name FROM sqlite_master WHERE type='table';")
+	require.NoError(t, err)
+
+	ftsTables := []string{"images_fts"}
+
+	for res.Next() {
+		var tableName string
+		require.NoError(t, res.Scan(&tableName))
+
+		// Ignore tables created and used by FTS
+		isFTS := false
+		for _, ftsTable := range ftsTables {
+			if strings.HasPrefix(tableName, ftsTable+"_") {
+				isFTS = true
+				break
+			}
+		}
+		if isFTS {
+			continue
+		}
+
+		res := store.db.QueryRow(fmt.Sprintf("SELECT COUNT(1) FROM %s;", tableName))
+
+		var count int
+		require.NoError(t, res.Scan(&count))
+
+		assert.Equal(t, 0, count, "Table %s should be empty", tableName)
+	}
+	require.NoError(t, res.Err())
+	require.NoError(t, res.Close())
 }
