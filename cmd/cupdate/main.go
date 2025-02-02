@@ -463,7 +463,6 @@ func main() {
 	wg.Go(func() error {
 		ticker := time.NewTicker(config.Workflow.CleanupInterval)
 		defer ticker.Stop()
-		defer close(processQueue)
 
 		for {
 			select {
