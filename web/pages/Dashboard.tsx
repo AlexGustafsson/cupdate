@@ -135,7 +135,9 @@ export function Dashboard(): JSX.Element {
           >
             <div className="py-2 px-4">
               <p className="text-sm">Outdated images</p>
-              <p className="text-3xl font-semibold text-red-600">
+              <p
+                className={`text-3xl font-semibold ${images.value.summary.outdated === 0 ? 'text-green-600' : 'text-red-600'}`}
+              >
                 {images.value.summary.outdated}
               </p>
             </div>
@@ -146,7 +148,9 @@ export function Dashboard(): JSX.Element {
           >
             <div className="py-2 px-4">
               <p className="text-sm">Vulnerable images</p>
-              <p className="text-3xl font-semibold text-red-600">
+              <p
+                className={`text-3xl font-semibold ${images.value.summary.vulnerable === 0 ? 'text-green-600' : 'text-red-600'}`}
+              >
                 {images.value.summary.vulnerable}
               </p>
             </div>
@@ -157,7 +161,9 @@ export function Dashboard(): JSX.Element {
           >
             <div className="py-2 px-4">
               <p className="text-sm">Failed images</p>
-              <p className="text-3xl font-semibold text-red-600">
+              <p
+                className={`text-3xl font-semibold ${images.value.summary.failed === 0 ? 'text-green-600' : 'text-red-600'}`}
+              >
                 {images.value.summary.failed}
               </p>
             </div>
