@@ -445,11 +445,11 @@ func main() {
 
 			slog.DebugContext(ctx, "Cleaning up removed images")
 			removed, err := writeStore.DeleteNonPresent(context.TODO(), allReferences)
-			if err != nil {
+			if err == nil {
+				slog.DebugContext(ctx, "Cleaned up removed images successfully", slog.Int64("removed", removed))
+			} else {
 				slog.ErrorContext(ctx, "Failed to clean up removed images", slog.Any("error", err))
-				return err
 			}
-			slog.DebugContext(ctx, "Cleaned up removed images successfully", slog.Int64("removed", removed))
 		}
 
 		return nil
