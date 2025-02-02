@@ -128,7 +128,7 @@ export function Dashboard(): JSX.Element {
         )}
       </div>
       <div className="flex flex-col items-center pt-6 pb-10 px-2">
-        <div className="grid grid-cols-2 md:grid-cols-5">
+        <div className="grid grid-cols-3 sm:grid-cols-5">
           <Link
             to="/?tag=outdated"
             className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
