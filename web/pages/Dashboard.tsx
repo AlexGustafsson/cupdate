@@ -134,7 +134,7 @@ export function Dashboard(): JSX.Element {
             className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
           >
             <div className="py-2 px-4">
-              <p className="text-sm">Outdated images</p>
+              <p className="text-sm">Outdated</p>
               <p
                 className={`text-3xl font-semibold ${images.value.summary.outdated === 0 ? 'text-green-600' : 'text-red-600'}`}
               >
@@ -147,7 +147,7 @@ export function Dashboard(): JSX.Element {
             className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
           >
             <div className="py-2 px-4">
-              <p className="text-sm">Vulnerable images</p>
+              <p className="text-sm">Vulnerable</p>
               <p
                 className={`text-3xl font-semibold ${images.value.summary.vulnerable === 0 ? 'text-green-600' : 'text-red-600'}`}
               >
@@ -160,7 +160,7 @@ export function Dashboard(): JSX.Element {
             className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
           >
             <div className="py-2 px-4">
-              <p className="text-sm">Failed images</p>
+              <p className="text-sm">Failed</p>
               <p
                 className={`text-3xl font-semibold ${images.value.summary.failed === 0 ? 'text-green-600' : 'text-red-600'}`}
               >
@@ -169,13 +169,13 @@ export function Dashboard(): JSX.Element {
             </div>
           </Link>
           <div className="py-2 px-4">
-            <p className="text-sm">Queued images</p>
+            <p className="text-sm">Queued</p>
             <p className="text-3xl font-semibold">
               {images.value.summary.processing}
             </p>
           </div>
           <div className="py-2 px-4">
-            <p className="text-sm">Total images</p>
+            <p className="text-sm">Total</p>
             <p className="text-3xl font-semibold">
               {images.value.summary.images}
             </p>
