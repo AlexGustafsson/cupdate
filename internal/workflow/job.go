@@ -107,12 +107,13 @@ func (j Job) Run(ctx Context) (Context, error) {
 		}
 	}
 
-	if len(errs) > 0 {
+	if err := errors.Join(errs...); err != nil {
 		jobSpan.SetStatus(codes.Error, "One or more steps failed")
 		return ctx, errors.Join(errs...)
 	}
 
 	jobSpan.SetStatus(codes.Ok, "")
+	ctx.Outputs = outputs
 	return ctx, nil
 }
 
