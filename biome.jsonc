@@ -34,6 +34,9 @@
         "noUselessElse": {
           "level": "off" // Should be info. Biome LSP throws errors regardless of level.
         }
+      },
+      "correctness": {
+        "noUnusedImports": "error"
       }
     }
   },

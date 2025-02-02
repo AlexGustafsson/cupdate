@@ -1,9 +1,8 @@
-import { type JSX, useCallback, useState } from 'react'
+import type { JSX } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 
 import { EventProvider } from './EventProvider'
 import { RSSFeedEndpoint } from './api'
-import { Toast } from './components/Toast'
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
 import { SimpleIconsRss } from './components/icons/simple-icons-rss'
 import { Dashboard } from './pages/Dashboard'

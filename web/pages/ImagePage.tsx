@@ -1,4 +1,4 @@
-import { type JSX, useCallback, useState } from 'react'
+import { type JSX, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'

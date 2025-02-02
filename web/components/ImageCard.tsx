@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { TagsByName, compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
@@ -8,7 +8,6 @@ import { ImageLogo } from './ImageLogo'
 import { InfoTooltip } from './InfoTooltip'
 import { FluentShieldError24Filled } from './icons/fluent-shield-error-24-filled'
 import { FluentWarning16Filled } from './icons/fluent-warning-16-filled'
-import { SimpleIconsOci } from './icons/simple-icons-oci'
 
 export type ImageCardProps = {
   reference: string

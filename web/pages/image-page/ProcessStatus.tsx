@@ -1,4 +1,4 @@
-import { type JSX, useCallback, useEffect, useRef, useState } from 'react'
+import { type JSX, useCallback, useState } from 'react'
 import { useEvents } from '../../EventProvider'
 import { scheduleScan } from '../../api'
 import { InfoTooltip } from '../../components/InfoTooltip'
