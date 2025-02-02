@@ -15,13 +15,6 @@ func Batch(commands ...Command) Command {
 	}
 }
 
-// SetValue returns a [Command] that will store value in key.
-func SetValue(key string, value any) Command {
-	return func(ctx Context) {
-		ctx.Values[key] = value
-	}
-}
-
 // SetOutput returns a [Command] that will store an output.
 // Setting an output from a step without an ID is a no-op.
 // Outputs are named depending on their scope. Within the same job, a step will
