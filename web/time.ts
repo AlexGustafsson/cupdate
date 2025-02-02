@@ -6,33 +6,42 @@ export function formatRelativeTimeTo(date: Date): string {
 
   diff = Math.floor(Math.abs(diff) / 1000)
 
-  const seconds = diff
-  if (seconds === 0) {
+  if (diff === 0) {
     return 'just now'
-  } else if (seconds < 60) {
-    return `${prefix}${Math.floor(seconds)} second${seconds > 1 ? 's' : ''}${suffix}`
+  }
+
+  return prefix + formatDuration(diff) + suffix
+}
+
+export function formatDuration(seconds: number): string {
+  if (seconds < 1) {
+    return 'less than a second'
+  }
+
+  if (seconds < 60) {
+    return `${Math.floor(seconds)} second${seconds > 1 ? 's' : ''}`
   }
 
   const minutes = Math.floor(seconds / 60)
   if (minutes < 60) {
-    return `${prefix}${Math.floor(minutes)} minute${minutes > 1 ? 's' : ''}${suffix}`
+    return `${Math.floor(minutes)} minute${minutes > 1 ? 's' : ''}`
   }
 
   const hours = Math.floor(minutes / 60)
   if (hours < 24) {
-    return `${prefix}${Math.floor(hours)} hour${hours > 1 ? 's' : ''}${suffix}`
+    return `${Math.floor(hours)} hour${hours > 1 ? 's' : ''}`
   }
 
   const days = Math.floor(hours / 24)
   if (days < 30) {
-    return `${prefix}${Math.floor(days)} day${days > 1 ? 's' : ''}${suffix}`
+    return `${Math.floor(days)} day${days > 1 ? 's' : ''}`
   }
 
   const months = Math.floor(days / 30)
   if (months < 12) {
-    return `${prefix}${Math.floor(months)} month${months > 1 ? 's' : ''}${suffix}`
+    return `${Math.floor(months)} month${months > 1 ? 's' : ''}`
   }
 
   const years = Math.floor(days / 365)
-  return `${prefix}${Math.floor(years)} year${years > 1 ? 's' : ''}${suffix}`
+  return `${Math.floor(years)} year${years > 1 ? 's' : ''}`
 }
