@@ -454,7 +454,15 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 
 	if !res.Next() {
 		res.Close()
-		return nil, res.Err()
+		err := res.Err()
+		if err == nil {
+			// No entry found. This likely due to the move to images_linksv2 where no
+			// data will be found until the image is scanned again.
+			// SEE: cfa40d7da268f94fb87a0fdbe9c38faf27973e79
+			return make([]models.ImageLink, 0), nil
+		} else {
+			return nil, res.Err()
+		}
 	}
 
 	var serializedLinks []byte
@@ -486,7 +494,15 @@ func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) (
 
 	if !res.Next() {
 		res.Close()
-		return nil, res.Err()
+		err := res.Err()
+		if err == nil {
+			// No entry found. This likely due to the move to images_vulnerabilitiesv2
+			// where no data will be found until the image is scanned again.
+			// SEE: cfa40d7da268f94fb87a0fdbe9c38faf27973e79
+			return make([]models.ImageVulnerability, 0), nil
+		} else {
+			return nil, res.Err()
+		}
 	}
 
 	var serializedVulnerabilities []byte
