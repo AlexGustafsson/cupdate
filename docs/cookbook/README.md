@@ -86,6 +86,8 @@ gethomepage.dev/widget.mappings.2.label: vulnerable
 gethomepage.dev/widget.mappings.2.field: vulnerable
 gethomepage.dev/widget.mappings.3.label: processing
 gethomepage.dev/widget.mappings.3.field: processing
+gethomepage.dev/widget.mappings.4.label: failed
+gethomepage.dev/widget.mappings.4.field: failed
 ```
 
 The same support exists in Docker, but looks a little bit different:
@@ -112,5 +114,7 @@ labels:
   - homepage.widget.mappings[2].field=vulnerable
   - homepage.widget.mappings[3].label=processing
   - homepage.widget.mappings[3].field=processing
+  - homepage.widget.mappings[4].label=failed
+  - homepage.widget.mappings[4].field=failed
 ``
 ```
