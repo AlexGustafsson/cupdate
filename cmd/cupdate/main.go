@@ -73,6 +73,11 @@ type Config struct {
 		QueueRate  time.Duration `env:"QUEUE_RATE" envDefault:"1m"`
 	} `envPrefix:"PROCESSING_"`
 
+	Workflow struct {
+		CleanupMaxAge   time.Duration `env:"CLEANUP_MAX_AGE" envDefault:"48h"`
+		CleanupInterval time.Duration `env:"CLEANUP_INTERVAL" envDefault:"1h"`
+	} `envPrefix:"WORKFLOW_"`
+
 	Kubernetes struct {
 		Host                  string `env:"HOST"`
 		IncludeOldReplicaSets bool   `env:"INCLUDE_OLD_REPLICAS"`
@@ -456,8 +461,7 @@ func main() {
 	})
 
 	wg.Go(func() error {
-		// TODO: Make configurable?
-		ticker := time.NewTicker(1 * time.Hour)
+		ticker := time.NewTicker(config.Workflow.CleanupInterval)
 		defer ticker.Stop()
 		defer close(processQueue)
 
@@ -468,8 +472,7 @@ func main() {
 			case <-ticker.C:
 				ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 				slog.DebugContext(ctx, "Cleaning up old workflow runs")
-				// TODO: Make configurable?
-				removed, err := writeStore.DeleteWorkflowRuns(context.TODO(), time.Now().Add(2*24*time.Hour))
+				removed, err := writeStore.DeleteWorkflowRuns(context.TODO(), time.Now().Add(-config.Workflow.CleanupMaxAge))
 				cancel()
 				if err == nil {
 					slog.DebugContext(ctx, "Cleaned up old workflow runs successfully", slog.Int64("removed", removed))
