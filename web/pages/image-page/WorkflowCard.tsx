@@ -129,6 +129,8 @@ function JobRunDialog({
       status = ''
   }
 
+  traceId = 'fe39288ccaa21e41c764bc74466a48ad'
+
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: The dialog element already handles ESC
     <dialog
@@ -139,7 +141,6 @@ function JobRunDialog({
       <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow w-screen max-w-[800px] max-h-[80vh] overflow-y-scroll">
         <p className="font-bold">{jobRun?.jobName}</p>
         <p className="text-sm opacity-60">{status}</p>
-        <p className="text-sm opacity-60">{traceId}</p>
         <div className="mt-4 flex flex-col gap-y-4 overflow-y-scroll">
           {jobRun?.steps
             .filter((x) => x.stepName)
@@ -147,6 +148,11 @@ function JobRunDialog({
               <StepRunListItem key={i.toString()} stepRun={x} />
             ))}
         </div>
+        {traceId && (
+          <p className="text-sm opacity-60 text-center mt-4">
+            Trace id: {traceId}
+          </p>
+        )}
       </div>
     </dialog>
   )
