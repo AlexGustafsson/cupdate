@@ -912,6 +912,9 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 // DeleteNonPresent deletes all images that are not referenced.
 // Returns the number of affected rows.
 func (s *Store) DeleteNonPresent(ctx context.Context, references []string) (int64, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
@@ -1136,6 +1139,9 @@ type DeleteChangesOptions struct {
 }
 
 func (s *Store) DeleteChanges(ctx context.Context, options *DeleteChangesOptions) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
 	whereClauses := make([]string, 0)
 	parameters := make([]any, 0)
 
