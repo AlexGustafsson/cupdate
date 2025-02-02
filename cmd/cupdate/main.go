@@ -455,6 +455,31 @@ func main() {
 		return nil
 	})
 
+	wg.Go(func() error {
+		// TODO: Make configurable?
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		defer close(processQueue)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-ticker.C:
+				ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+				slog.DebugContext(ctx, "Cleaning up old workflow runs")
+				// TODO: Make configurable?
+				removed, err := writeStore.DeleteWorkflowRuns(context.TODO(), time.Now().Add(2*24*time.Hour))
+				cancel()
+				if err == nil {
+					slog.DebugContext(ctx, "Cleaned up old workflow runs successfully", slog.Int64("removed", removed))
+				} else {
+					slog.ErrorContext(ctx, "Failed to clean up old workflow runs", slog.Any("error", err))
+				}
+			}
+		}
+	})
+
 	mux := http.NewServeMux()
 
 	apiServer := api.NewServer(readStore, worker.Hub, processQueue)
