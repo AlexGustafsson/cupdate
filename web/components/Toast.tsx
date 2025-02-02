@@ -26,14 +26,14 @@ export function Toast({
       <div className="flex items-center justify-end gap-x-2 mt-2">
         <button
           type="button"
-          className="text-blue-500 hover:underline"
+          className="text-blue-500 hover:underline cursor-pointer"
           onClick={() => onSecondaryAction?.()}
         >
           {secondaryAction}
         </button>
         <button
           type="button"
-          className="text-blue-500 hover:underline"
+          className="text-blue-500 hover:underline cursor-pointer"
           onClick={() => onPrimaryAction?.()}
         >
           {primaryAction}
