@@ -98,6 +98,11 @@ export const Tags: Tag[] = [
     color: palette.red2,
   },
   {
+    name: 'failed',
+    description: 'Failed images',
+    color: palette.red2,
+  },
+  {
     name: 'vulnerable',
     description: 'Vulnerable images',
     color: palette.red2,

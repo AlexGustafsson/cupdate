@@ -1125,11 +1125,29 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 	}
 	res.Close()
 
+	// Total raw images
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images_tags WHERE tag='failed';`)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		return nil, res.Err()
+	}
+
+	var totalFailedImages int
+	if err := res.Scan(&totalFailedImages); err != nil {
+		res.Close()
+		return nil, err
+	}
+	res.Close()
+
 	return &models.ImagePageSummary{
 		Images:     totalImages,
 		Outdated:   totalOutdatedImages,
 		Vulnerable: totalVulnerableImages,
 		Processing: totalRawImages - totalImages,
+		Failed:     totalFailedImages,
 	}, nil
 }
 

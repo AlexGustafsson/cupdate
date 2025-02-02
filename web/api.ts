@@ -13,6 +13,7 @@ export interface ImagePageSummary {
   outdated: number
   vulnerable: number
   processing: number
+  failed: number
 }
 
 export interface PaginationMetadata {

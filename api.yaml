@@ -408,11 +408,15 @@ components:
         processing:
           description: Total number of unprocessed images
           type: number
+        failed:
+          description: Total number of failed images
+          type: number
       required:
         - images
         - outdated
         - vulnerable
         - processing
+        - failed
 
     WorkflowRun:
       type: object

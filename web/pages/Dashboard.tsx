@@ -128,7 +128,7 @@ export function Dashboard(): JSX.Element {
         )}
       </div>
       <div className="flex flex-col items-center pt-6 pb-10 px-2">
-        <div className="grid grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-2 md:grid-cols-5">
           <Link
             to="/?tag=outdated"
             className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
@@ -148,6 +148,17 @@ export function Dashboard(): JSX.Element {
               <p className="text-sm">Vulnerable images</p>
               <p className="text-3xl font-semibold text-red-600">
                 {images.value.summary.vulnerable}
+              </p>
+            </div>
+          </Link>
+          <Link
+            to="/?tag=failed"
+            className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+          >
+            <div className="py-2 px-4">
+              <p className="text-sm">Failed images</p>
+              <p className="text-3xl font-semibold text-red-600">
+                {images.value.summary.failed}
               </p>
             </div>
           </Link>

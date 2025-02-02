@@ -120,6 +120,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	workflowRun, err := workflow.Run(ctx)
 	if err != nil {
 		log.ErrorContext(ctx, "Failed to run pipeline for image", slog.Any("error", err))
+		data.InsertTag("failed")
 		// Fallthrough - insert what we have
 	}
 

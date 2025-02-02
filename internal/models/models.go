@@ -13,6 +13,7 @@ type ImagePageSummary struct {
 	Outdated   int `json:"outdated"`
 	Vulnerable int `json:"vulnerable"`
 	Processing int `json:"processing"`
+	Failed     int `json:"failed"`
 }
 
 type PaginationMetadata struct {
