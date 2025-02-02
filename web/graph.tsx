@@ -59,7 +59,7 @@ async function graphLayout<T>(
     })
   }
 
-  // Add edges (centering their connection points on the node)
+  // Add edges
   for (const edge of root.edges || []) {
     const startNode = nodes.find((x) => x.id === edge.sources[0])
     const endNode = nodes.find((x) => x.id === edge.targets[0])
@@ -70,10 +70,17 @@ async function graphLayout<T>(
     const start = { x: startNode.x || 0, y: startNode.y || 0 }
     const end = { x: endNode.x || 0, y: endNode.y || 0 }
 
-    start.x += (startNode.width || 0) / 2
-    start.y += startNode.height || 0
+    if (layoutOptions?.['elk.direction'] === 'RIGHT') {
+      start.x += startNode.width || 0
+      start.y += (startNode.height || 0) / 2
 
-    end.x += (startNode.width || 0) / 2
+      end.y += (endNode.height || 0) / 2
+    } else {
+      start.x += (startNode.width || 0) / 2
+      start.y += startNode.height || 0
+
+      end.x += (startNode.width || 0) / 2
+    }
 
     edges.push({
       id: edge.id,

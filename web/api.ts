@@ -71,6 +71,32 @@ export interface GraphNode {
   name: string
 }
 
+export interface WorkflowRun {
+  jobs: JobRun[]
+  traceId?: string
+}
+
+export type JobRun = {
+  jobId?: string
+  jobName?: string
+  dependsOn: string[]
+  steps: StepRun[]
+} & (
+  | {
+      result: 'succeeded' | 'failed'
+      started: string
+      duration: number
+    }
+  | { result: 'skipped' }
+)
+
+export interface StepRun {
+  stepName?: string
+  result: 'succeeded' | 'skipped' | 'failed'
+  error?: string
+  duration?: number
+}
+
 export type Result<T> =
   | { status: 'idle' }
   | { status: 'resolved'; value: T }
@@ -278,6 +304,40 @@ export function useImageGraph(
     const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env.VITE_API_ENDPOINT}/image/graph?${query.toString()}`
+    )
+      .then((res) => {
+        if (res.status === 404) {
+          return null
+        }
+        if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [reference])
+
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
+}
+
+// TODO: Add query parameters
+export function useLatestWorkflowRun(
+  reference: string
+): [Result<WorkflowRun | null>, () => void] {
+  const [result, setResult] = useState<Result<WorkflowRun | null>>({
+    status: 'idle',
+  })
+
+  const update = useCallback(() => {
+    const query = new URLSearchParams({ reference })
+    fetch(
+      `${import.meta.env.VITE_API_ENDPOINT}/image/workflows/latest?${query.toString()}`
     )
       .then((res) => {
         if (res.status === 404) {

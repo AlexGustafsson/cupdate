@@ -7,6 +7,7 @@ import {
   useImageDescription,
   useImageGraph,
   useImageReleaseNotes,
+  useLatestWorkflowRun,
   useTags,
 } from '../api'
 import { Badge } from '../components/Badge'
@@ -26,6 +27,7 @@ import { ImageLink } from './image-page/ImageLink'
 import { ProcessStatus } from './image-page/ProcessStatus'
 import { SettingsCard } from './image-page/SettingsCard'
 import { VulnerabilitiesCard } from './image-page/VulnerabilitiesCard'
+import { WorkflowCard } from './image-page/WorkflowCard'
 
 export function ImagePage(): JSX.Element {
   const [params, _] = useSearchParams()
@@ -37,12 +39,18 @@ export function ImagePage(): JSX.Element {
   const [description, updateDescription] = useImageDescription(reference)
   const [releaseNotes, updateReleaseNotes] = useImageReleaseNotes(reference)
   const [graph, updateGraph] = useImageGraph(reference)
+  const [workflowRun, updateWorkflowRun] = useLatestWorkflowRun(reference)
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
 
   useEvents(
     (e: Event) => {
-      if (e.reference === reference && e.type === 'imageUpdated') {
+      // All data but the workflow runs are covered by the image updated event,
+      // include the image processed event to cover workflow runs changing
+      if (
+        e.reference === reference &&
+        (e.type === 'imageUpdated' || e.type === 'imageProcessed')
+      ) {
         setIsUpdateAvailable(true)
       }
     },
@@ -54,7 +62,8 @@ export function ImagePage(): JSX.Element {
     image.status === 'idle' ||
     description.status === 'idle' ||
     releaseNotes.status === 'idle' ||
-    graph.status === 'idle'
+    graph.status === 'idle' ||
+    workflowRun.status === 'idle'
   ) {
     return <></>
   }
@@ -64,7 +73,8 @@ export function ImagePage(): JSX.Element {
     image.status === 'rejected' ||
     description.status === 'rejected' ||
     releaseNotes.status === 'rejected' ||
-    graph.status === 'rejected'
+    graph.status === 'rejected' ||
+    workflowRun.status === 'rejected'
   ) {
     return <p>Error</p>
   }
@@ -93,6 +103,7 @@ export function ImagePage(): JSX.Element {
               updateDescription()
               updateReleaseNotes()
               updateGraph()
+              updateWorkflowRun()
             }}
           />
         )}
@@ -236,6 +247,11 @@ export function ImagePage(): JSX.Element {
 
           {/* Graph */}
           {graph.value && <GraphCard graph={graph.value} />}
+
+          {/* Workflow summary */}
+          {workflowRun.value && (
+            <WorkflowCard workflowRun={workflowRun.value} />
+          )}
 
           <div className="flex justify-center gap-x-2 items-center">
             <ProcessStatus
