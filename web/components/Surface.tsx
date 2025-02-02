@@ -129,7 +129,7 @@ export function Surface({
       </div>
       <div
         ref={contentRef}
-        className="pointer-events-none w-fit h-fit"
+        className="w-fit h-fit"
         style={{
           transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale}, ${scale})`,
         }}

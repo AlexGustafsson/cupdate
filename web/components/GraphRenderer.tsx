@@ -19,6 +19,7 @@ type GraphRendererProps<T> = {
   nodes: Node<T>[]
   edges: Edge[]
   bounds: { width: number; height: number }
+  onNodeClick?: (node: Node<T>) => void
   NodeElement: ComponentType<NodeProps<T>>
 }
 
@@ -26,6 +27,7 @@ export function GraphRenderer<T>({
   nodes,
   edges,
   bounds: { width, height },
+  onNodeClick,
   NodeElement,
 }: GraphRendererProps<T>): JSX.Element {
   return (
@@ -37,9 +39,11 @@ export function GraphRenderer<T>({
         >
           <EdgeRenderer edges={edges} />
           {nodes.map((node) => (
+            // biome-ignore lint/a11y/useKeyWithClickEvents: Nodes cannot be focused using keyboard
             <div
               key={node.id}
               className="absolute"
+              onClick={() => onNodeClick?.(node)}
               style={{
                 top: node.y === undefined ? undefined : `${node.y}px`,
                 left: node.x === undefined ? undefined : `${node.x}px`,
