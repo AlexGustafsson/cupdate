@@ -47,10 +47,7 @@ func (j Job) Run(ctx Context) (Context, error) {
 	ctx.Context, jobSpan = otel.Tracer(otelutil.DefaultScope).Start(ctx.Context, otelutil.CupdateWorkflowJobRunSpanName, trace.WithAttributes(otelutil.CupdateWorkflowJobName(j.Name)))
 	defer jobSpan.End()
 
-	outputs := make(map[string]any)
-	for k, v := range ctx.Outputs {
-		outputs[k] = v
-	}
+	outputs := maps.Clone(ctx.Outputs)
 
 	errs := make([]error, len(j.Steps)*2)
 
