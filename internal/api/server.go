@@ -197,6 +197,20 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue cha
 		}
 	})
 
+	// NOTE: For now, there's no use case of exposing multiple workflows, but
+	// let's have room for it in the APIs
+	s.mux.HandleFunc("GET /api/v1/image/workflows/latest", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/workflows/latest"))
+
+		query := r.URL.Query()
+
+		reference := query.Get("reference")
+
+		response, err := api.GetLatestWorkflowRun(ctx, reference)
+		s.handleJSONResponse(w, r, response, err)
+	})
+
 	s.mux.HandleFunc("GET /api/v1/feed.rss", func(w http.ResponseWriter, r *http.Request) {
 		ctx, span := httputil.SpanFromRequest(r)
 		span.SetAttributes(semconv.HTTPRoute("/api/v1/feed.rss"))

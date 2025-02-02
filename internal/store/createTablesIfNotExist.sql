@@ -90,3 +90,11 @@ CREATE TABLE IF NOT EXISTS images_vulnerabilitiesv2 (
   PRIMARY KEY (reference),
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS images_workflow_runs (
+  reference TEXT NOT NULL,
+  started DATETIME NOT NULL,
+  result TEXT NOT NULL,
+  blob BLOB NOT NULL,
+  FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
+)

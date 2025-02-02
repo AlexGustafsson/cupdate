@@ -620,3 +620,69 @@ func TestStoreUpdateImageReference(t *testing.T) {
 		},
 	}, changes)
 }
+
+func TestInsertWorkflowRun(t *testing.T) {
+	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
+	require.NoError(t, err)
+	defer store.Close()
+
+	rawImage := &models.RawImage{
+		Reference: "mongo:4",
+	}
+
+	_, err = store.InsertRawImage(context.TODO(), rawImage)
+	require.NoError(t, err)
+
+	image := &models.Image{
+		Reference:       "mongo:4",
+		Tags:            []string{},
+		Links:           []models.ImageLink{},
+		Vulnerabilities: []models.ImageVulnerability{},
+		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+	}
+
+	err = store.InsertImage(context.TODO(), image)
+	require.NoError(t, err)
+
+	expected := models.WorkflowRun{
+		TraceID:         "trace-123",
+		Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local),
+		DurationSeconds: 25.0,
+		Result:          models.WorkflowRunResultSucceeded,
+		Jobs: []models.JobRun{
+			{
+				Result: models.JobRunResultSucceeded,
+				Steps: []models.StepRun{
+					{
+						Result:          models.StepRunResultSucceeded,
+						StepName:        "test step",
+						Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local),
+						DurationSeconds: 25.0,
+					},
+				},
+				DependsOn:       []string{},
+				JobID:           "test-job",
+				JobName:         "test job",
+				Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local),
+				DurationSeconds: 25.0,
+			},
+		},
+	}
+
+	err = store.InsertWorkflowRun(context.TODO(), "mongo:4", expected)
+	require.NoError(t, err)
+
+	actual, err := store.GetLatestWorkflowRun(context.TODO(), "mongo:4")
+	require.NoError(t, err)
+	assert.EqualValues(t, &expected, actual)
+
+	// Insert a later job, expect it to be the latest
+	expected.Started = time.Date(2025, 02, 01, 17, 40, 0, 0, time.Local)
+
+	err = store.InsertWorkflowRun(context.TODO(), "mongo:4", expected)
+	require.NoError(t, err)
+
+	actual, err = store.GetLatestWorkflowRun(context.TODO(), "mongo:4")
+	require.NoError(t, err)
+	assert.EqualValues(t, &expected, actual)
+}

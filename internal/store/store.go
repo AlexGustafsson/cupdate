@@ -702,6 +702,90 @@ func (s *Store) GetImageGraph(ctx context.Context, reference string) (*models.Gr
 	return graph, nil
 }
 
+func (s *Store) InsertWorkflowRun(ctx context.Context, reference string, workflowRun models.WorkflowRun) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_workflow_runs
+		(reference, started, result, blob)
+		VALUES
+		(?, ?, ?, ?);`)
+	if err != nil {
+		return err
+	}
+
+	blob, err := json.Marshal(workflowRun)
+	if err != nil {
+		statement.Close()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, reference, workflowRun.Started, workflowRun.Result, blob)
+	statement.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// NOTE: For now there's no use case of having multiple runs available, so let's
+// start off by just exposing the latest run.
+func (s *Store) GetLatestWorkflowRun(ctx context.Context, reference string) (*models.WorkflowRun, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT blob FROM images_workflow_runs WHERE reference = ? ORDER BY started DESC LIMIT 1;`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	res, err := statement.QueryContext(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		res.Close()
+		return nil, res.Err()
+	}
+
+	var blob []byte
+	err = res.Scan(&blob)
+	res.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var workflowRun *models.WorkflowRun
+	if err := json.Unmarshal(blob, &workflowRun); err != nil {
+		return nil, err
+	}
+
+	return workflowRun, nil
+}
+
+func (s *Store) DeleteWorkflowRuns(ctx context.Context, olderThan time.Time) (int64, error) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	statement, err := s.db.PrepareContext(ctx, `DELETE FROM images_workflow_runs WHERE started < ?;`)
+	if err != nil {
+		return 0, err
+	}
+	defer statement.Close()
+
+	res, err := statement.ExecContext(ctx, olderThan)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return rowsAffected, nil
+}
+
 type Order string
 
 const (

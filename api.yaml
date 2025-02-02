@@ -142,6 +142,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/Graph"
 
+  /image/workflows/latest:
+    get:
+      summary: Returns an image's latest workflow run
+      parameters:
+        - in: query
+          name: reference
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: The latest workflow run for the image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowRun"
+
   /events:
     get:
       summary: Server-sent events.
@@ -396,3 +413,77 @@ components:
         - outdated
         - vulnerable
         - processing
+
+    WorkflowRun:
+      type: object
+      properties:
+        started:
+          type: string
+          format: datetime
+        duration:
+          type: number
+        result:
+          type: string
+          enum: ["succeeded", "failed"]
+        jobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/JobRun"
+        traceId:
+          type: string
+      required:
+        - started
+        - duration
+        - result
+        - jobs
+
+    JobRun:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: ["succeeded", "skipped", "failed"]
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/StepRun"
+        dependsOn:
+          type: array
+          items:
+            type: string
+        jobId:
+          type: string
+        jobName:
+          type: string
+        started:
+          type: string
+          format: datetime
+          description: Set if job was run (not skipped).
+        duration:
+          type: number
+          description: Set if job was run (not skipped).
+      required:
+        - result
+        - steps
+        - dependsOn
+
+    StepRun:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: ["succeeded", "skipped", "failed"]
+        stepName:
+          type: string
+        started:
+          type: string
+          format: datetime
+          description: Set if step was run (not skipped).
+        duration:
+          type: number
+          description: Set if step was run (not skipped).
+        error:
+          type: string
+          description: Set if step failed.
+      required:
+        - result
