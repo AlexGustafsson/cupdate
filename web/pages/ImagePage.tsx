@@ -24,6 +24,7 @@ import { fullVersion, name, version } from '../oci'
 import { formatRelativeTimeTo } from '../time'
 import { GraphCard } from './image-page/GraphCard'
 import { ImageLink } from './image-page/ImageLink'
+import { ImageSkeleton } from './image-page/ImageSkeleton'
 import { ProcessStatus } from './image-page/ProcessStatus'
 import { SettingsCard } from './image-page/SettingsCard'
 import { VulnerabilitiesCard } from './image-page/VulnerabilitiesCard'
@@ -58,25 +59,14 @@ export function ImagePage(): JSX.Element {
   )
 
   if (
-    tags.status === 'idle' ||
-    image.status === 'idle' ||
-    description.status === 'idle' ||
-    releaseNotes.status === 'idle' ||
-    graph.status === 'idle' ||
-    workflowRun.status === 'idle'
+    tags.status !== 'resolved' ||
+    image.status !== 'resolved' ||
+    description.status !== 'resolved' ||
+    releaseNotes.status !== 'resolved' ||
+    graph.status !== 'resolved' ||
+    workflowRun.status !== 'resolved'
   ) {
-    return <></>
-  }
-
-  if (
-    tags.status === 'rejected' ||
-    image.status === 'rejected' ||
-    description.status === 'rejected' ||
-    releaseNotes.status === 'rejected' ||
-    graph.status === 'rejected' ||
-    workflowRun.status === 'rejected'
-  ) {
-    return <p>Error</p>
+    return <ImageSkeleton />
   }
 
   // Redirect if image was not found

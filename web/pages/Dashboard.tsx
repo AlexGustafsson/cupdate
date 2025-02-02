@@ -19,6 +19,7 @@ import {
   useSort,
 } from '../hooks'
 import { fullVersion, name, version } from '../oci'
+import { DashboardSkeleton } from './dashboard-page/DashboardSkeleton'
 
 export function Dashboard(): JSX.Element {
   const [filter, setFilter] = useFilter()
@@ -106,7 +107,7 @@ export function Dashboard(): JSX.Element {
   }, [])
 
   if (images.status !== 'resolved' || tags.status !== 'resolved') {
-    return <></>
+    return <DashboardSkeleton />
   }
 
   return (
