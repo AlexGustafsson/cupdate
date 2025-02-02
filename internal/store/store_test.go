@@ -621,6 +621,10 @@ func TestStoreUpdateImageReference(t *testing.T) {
 	}, changes)
 }
 
+// TODO: Times are set to a fixed zone as there are issues when comparing the
+// times cross-platform. Using the local time will not work if tested with UTC.
+// Use time.Local).UTC() as a workaround.
+// SEE: https://github.com/stretchr/testify/issues/843#issuecomment-1952362012
 func TestInsertWorkflowRun(t *testing.T) {
 	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
 	require.NoError(t, err)
@@ -638,7 +642,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 		Tags:            []string{},
 		Links:           []models.ImageLink{},
 		Vulnerabilities: []models.ImageVulnerability{},
-		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local).UTC(),
 	}
 
 	err = store.InsertImage(context.TODO(), image)
@@ -646,7 +650,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 
 	expected := models.WorkflowRun{
 		TraceID:         "trace-123",
-		Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local),
+		Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local).UTC(),
 		DurationSeconds: 25.0,
 		Result:          models.WorkflowRunResultSucceeded,
 		Jobs: []models.JobRun{
@@ -656,14 +660,14 @@ func TestInsertWorkflowRun(t *testing.T) {
 					{
 						Result:          models.StepRunResultSucceeded,
 						StepName:        "test step",
-						Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local),
+						Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local).UTC(),
 						DurationSeconds: 25.0,
 					},
 				},
 				DependsOn:       []string{},
 				JobID:           "test-job",
 				JobName:         "test job",
-				Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local),
+				Started:         time.Date(2025, 02, 01, 17, 35, 0, 0, time.Local).UTC(),
 				DurationSeconds: 25.0,
 			},
 		},
@@ -677,7 +681,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 	assert.EqualValues(t, &expected, actual)
 
 	// Insert a later job, expect it to be the latest
-	expected.Started = time.Date(2025, 02, 01, 17, 40, 0, 0, time.Local)
+	expected.Started = time.Date(2025, 02, 01, 17, 40, 0, 0, time.Local).UTC()
 
 	err = store.InsertWorkflowRun(context.TODO(), "mongo:4", expected)
 	require.NoError(t, err)
