@@ -86,11 +86,11 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
       <div className="flex w-full gap-x-2 items-center">
         {icon}
         <p
-          className={`flex-grow text-sm ${stepRun.result === 'skipped' ? 'opacity-60' : ''}`}
+          className={`flex-grow truncate text-sm ${stepRun.result === 'skipped' ? 'opacity-60' : ''}`}
         >
           {stepRun.stepName}
         </p>
-        <p className="text-sm opacity-60">
+        <p className="truncate text-sm opacity-60">
           {stepRun.duration ? formatDuration(stepRun.duration) : ''}
         </p>
       </div>
@@ -138,7 +138,7 @@ function JobRunDialog({
       className="backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-transparent m-auto"
       onClick={(e) => e.target === ref.current && ref.current.close()}
     >
-      <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow w-screen max-w-[800px] max-h-[80vh] overflow-y-scroll">
+      <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll">
         <p className="font-bold">{jobRun?.jobName}</p>
         <p className="text-sm opacity-60">{status}</p>
         <div className="mt-4 flex flex-col gap-y-4 overflow-y-scroll">
