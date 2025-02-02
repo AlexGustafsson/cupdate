@@ -95,7 +95,7 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
         </p>
       </div>
       {stepRun.error && (
-        <pre className="p-4 rounded-lg bg-[#fafafa] dark:bg-[#121212] text-xs">
+        <pre className="p-4 rounded-lg bg-[#fafafa] dark:bg-[#121212] text-xs overflow-x-scroll">
           <code>{stepRun.error}</code>
         </pre>
       )}
