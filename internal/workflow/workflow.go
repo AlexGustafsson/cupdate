@@ -65,7 +65,6 @@ func (w Workflow) Run(ctx context.Context) error {
 						case <-done[index]:
 							if errs[index] != nil {
 								log.WarnContext(ctx, "Skipping job as dependent job failed", slog.String("dependency", dependency))
-								errs[i] = fmt.Errorf("failed to run job - dependent job failed: %w", errs[index])
 								return
 							}
 							// Do nothing
@@ -83,12 +82,17 @@ func (w Workflow) Run(ctx context.Context) error {
 				Outputs: outputs,
 			}
 
-			jobOutputs, err := job.Run(ctx)
+			ctx, err := job.Run(ctx)
+			if err == ErrSkipped {
+				return
+			} else if err != nil {
+				errs[i] = err
+				return
+			}
 
 			mutex.Lock()
-			errs[i] = err
 			if job.ID != "" {
-				for k, v := range jobOutputs {
+				for k, v := range ctx.Outputs {
 					outputs["job."+job.ID+"."+k] = v
 				}
 			}
