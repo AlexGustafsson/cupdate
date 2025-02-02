@@ -43,8 +43,9 @@ func TestWorkflow(t *testing.T) {
 	}
 
 	workflow := New(httpClient, data)
+	_, err = workflow.Run(context.TODO())
 
-	require.NoError(t, workflow.Run(context.TODO()))
+	require.NoError(t, err)
 
 	json.NewEncoder(os.Stderr).Encode(data)
 }

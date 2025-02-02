@@ -7,7 +7,9 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
@@ -19,7 +21,9 @@ type Workflow struct {
 	Jobs []Job
 }
 
-func (w Workflow) Run(ctx context.Context) error {
+// Run executes a workflow and (always) returns a run description and any error
+// that caused the workflow to fail.
+func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 	ctx, span := otel.Tracer(otelutil.DefaultScope).Start(ctx, otelutil.CupdateWorkflowRunSpanName, trace.WithAttributes(otelutil.CupdateWorkflowName(w.Name)))
 	defer span.End()
 
@@ -33,6 +37,42 @@ func (w Workflow) Run(ctx context.Context) error {
 	done := make([]chan struct{}, len(w.Jobs))
 	for i := range w.Jobs {
 		done[i] = make(chan struct{})
+	}
+
+	// Set all known information for all jobs and steps as we want to report all
+	// jobs and steps even if they haven't run (skipped or premature failures)
+	// NOTE: workflowRun is generally safe for concurrent writes as accessing a
+	// slice by index is thread-safe
+	workflowRun := models.WorkflowRun{
+		Started: time.Now(),
+		Result:  models.WorkflowRunResultSucceeded,
+		Jobs:    make([]models.JobRun, len(w.Jobs)),
+	}
+
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if spanCtx.HasTraceID() {
+		workflowRun.TraceID = spanCtx.TraceID().String()
+	}
+
+	for i, job := range w.Jobs {
+		workflowRun.Jobs[i] = models.JobRun{
+			Result:    models.JobRunResultSkipped,
+			Steps:     make([]models.StepRun, len(job.Steps)),
+			DependsOn: append([]string{}, job.DependsOn...),
+			JobID:     job.ID,
+			JobName:   job.Name,
+		}
+
+		for j, step := range job.Steps {
+			workflowRun.Jobs[i].Steps[j] = models.StepRun{
+				Result:   models.StepRunResultSkipped,
+				StepName: step.Name,
+			}
+		}
+
+		// TODO: How do we represent post run steps?
+		// Everything has room for it except that we don't really know how to
+		// address the jobs so that we can assign to them here?
 	}
 
 	var wg sync.WaitGroup
@@ -76,19 +116,30 @@ func (w Workflow) Run(ctx context.Context) error {
 			ctx := Context{
 				Context: ctx,
 
-				Workflow: w,
-				Job:      job,
+				Workflow:    w,
+				WorkflowRun: workflowRun,
+				Job:         job,
+				JobIndex:    i,
 
 				Outputs: outputs,
 			}
 
+			started := time.Now()
 			ctx, err := job.Run(ctx)
 			if err == ErrSkipped {
 				return
-			} else if err != nil {
+			}
+
+			workflowRun.Jobs[i].Started = started
+			workflowRun.Jobs[i].DurationSeconds = time.Since(workflowRun.Jobs[i].Started).Seconds()
+
+			if err != nil {
 				errs[i] = err
+				workflowRun.Jobs[i].Result = models.JobRunResultFailed
 				return
 			}
+
+			workflowRun.Jobs[i].Result = models.JobRunResultSucceeded
 
 			mutex.Lock()
 			if job.ID != "" {
@@ -108,7 +159,7 @@ func (w Workflow) Run(ctx context.Context) error {
 	} else {
 		span.SetStatus(codes.Error, "One or more jobs failed")
 	}
-	return err
+	return workflowRun, err
 }
 
 func (w Workflow) Describe() string {

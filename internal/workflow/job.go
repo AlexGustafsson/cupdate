@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"maps"
 	"strings"
+	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
@@ -60,23 +62,35 @@ func (j Job) Run(ctx Context) (Context, error) {
 		ctx := Context{
 			Context: ctx.Context,
 
-			Workflow: ctx.Workflow,
-			Job:      ctx.Job,
-			Step:     step,
+			Workflow:    ctx.Workflow,
+			WorkflowRun: ctx.WorkflowRun,
+			Job:         ctx.Job,
+			JobIndex:    ctx.JobIndex,
+			Step:        step,
+			StepIndex:   i,
 
 			Outputs: outputs,
 
 			Error: errors.Join(errs...),
 		}
 
+		started := time.Now()
 		ctx, err := step.Run(ctx)
 		if err == ErrSkipped {
 			continue
-		} else if err != nil {
+		}
+
+		ctx.WorkflowRun.Jobs[ctx.JobIndex].Steps[i].Started = started
+		ctx.WorkflowRun.Jobs[ctx.JobIndex].Steps[i].DurationSeconds = time.Since(started).Seconds()
+
+		if err != nil {
 			errs[i] = err
+			ctx.WorkflowRun.Jobs[ctx.JobIndex].Steps[i].Result = models.StepRunResultFailed
+			ctx.WorkflowRun.Jobs[ctx.JobIndex].Steps[i].Error = err.Error()
 			continue
 		}
 
+		ctx.WorkflowRun.Jobs[ctx.JobIndex].Steps[i].Result = models.StepRunResultSucceeded
 		outputs = maps.Clone(ctx.Outputs)
 	}
 
@@ -98,6 +112,7 @@ func (j Job) Run(ctx Context) (Context, error) {
 			Error: errors.Join(errs...),
 		}
 
+		// TODO: Represent in workflow run somehow
 		err := step.RunPost(ctx)
 		if err == ErrSkipped {
 			continue

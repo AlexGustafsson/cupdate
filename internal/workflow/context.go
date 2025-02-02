@@ -3,6 +3,8 @@ package workflow
 import (
 	"context"
 	"fmt"
+
+	"github.com/AlexGustafsson/cupdate/internal/models"
 )
 
 var _ context.Context = (*Context)(nil)
@@ -12,10 +14,14 @@ type Context struct {
 
 	// Workflow is the current workflow.
 	Workflow Workflow
+	// WorkflowRun describes the current invocation.
+	WorkflowRun models.WorkflowRun
 	// Job is the current job.
-	Job Job
+	Job      Job
+	JobIndex int
 	// Step is the current step.
-	Step Step
+	Step      Step
+	StepIndex int
 
 	// Outputs holds the outputs of steps and jobs, mapped by their path.
 	// Outputs should not be written directly, as they are managed by the workflow

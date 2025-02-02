@@ -18,9 +18,14 @@ func Always(ctx Context) (bool, error) {
 	return true, nil
 }
 
-// ValueExists will evaluate to true if the given key has a value.
+// ValueExists will evaluate to true if the given key has a value AND the job
+// has not already failed.
 func ValueExists(key string) Condition {
 	return ConditionFunc(func(ctx Context) (bool, error) {
+		if ctx.Error != nil {
+			return false, nil
+		}
+
 		_, ok := GetAnyValue(ctx, key)
 		return ok, nil
 	})

@@ -117,7 +117,8 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	workflow := imageworkflow.New(w.httpClient, data)
-	if err := workflow.Run(ctx); err != nil {
+	workflowRun, err := workflow.Run(ctx)
+	if err != nil {
 		log.ErrorContext(ctx, "Failed to run pipeline for image", slog.Any("error", err))
 		// Fallthrough - insert what we have
 	}
@@ -203,6 +204,11 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 
 	if err := w.store.InsertImageGraph(ctx, reference.String(), &data.Graph); err != nil {
 		log.ErrorContext(ctx, "Failed to insert image graph", slog.Any("error", err))
+		// Fallthrough - try to insert what we have
+	}
+
+	if err := w.store.InsertWorkflowRun(ctx, reference.String(), workflowRun); err != nil {
+		log.ErrorContext(ctx, "Failed to insert workflow run", slog.Any("error", err))
 		// Fallthrough - try to insert what we have
 	}
 
