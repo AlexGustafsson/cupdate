@@ -60,7 +60,7 @@ export function Dashboard(): JSX.Element {
     setQueryInput(query || '')
   }, [query])
 
-  const [images, updateImages] = useImages({
+  const [images, imageSearchParams, updateImages] = useImages({
     tags: filter,
     sort: sort,
     order: sortOrder,
@@ -70,7 +70,8 @@ export function Dashboard(): JSX.Element {
   })
 
   const pages = usePagination(
-    images.status === 'resolved' ? images.value : undefined
+    images.status === 'resolved' ? images.value : undefined,
+    imageSearchParams
   )
 
   // Go to the first page if the current page exceeds the available number of
@@ -302,18 +303,18 @@ export function Dashboard(): JSX.Element {
             of {images.value.pagination.total} entries
           </p>
           <div className="flex items-center justify-center text-sm">
-            {pages.map(({ index, label, current }) =>
-              index === undefined ? (
-                <p key={index} className="m-1 cursor-default">
-                  {label}
+            {pages.map((page) =>
+              page.index === undefined ? (
+                <p key={page.index} className="m-1 cursor-default">
+                  {page.label}
                 </p>
               ) : (
                 <Link
-                  key={index}
-                  to={`/?page=${index + 1}`}
-                  className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
+                  key={page.index}
+                  to={page.href}
+                  className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${page.current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
                 >
-                  <p>{label}</p>
+                  <p>{page.label}</p>
                 </Link>
               )
             )}

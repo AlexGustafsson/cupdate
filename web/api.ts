@@ -143,34 +143,45 @@ interface UseImagesProps {
 
 export function useImages(
   options?: UseImagesProps
-): [Result<ImagePage>, () => void] {
+): [Result<ImagePage>, URLSearchParams, () => void] {
   const [result, setResult] = useState<Result<ImagePage>>({ status: 'idle' })
 
-  const update = useCallback(() => {
-    const query = new URLSearchParams()
+  const searchParams = useMemo(() => {
+    const searchParams = new URLSearchParams()
     if (options?.tags !== undefined) {
       for (const tag of options.tags) {
-        query.append('tag', tag)
+        searchParams.append('tag', tag)
       }
     }
+
     if (options?.sort !== undefined) {
-      query.set('sort', options.sort)
-    }
-    if (options?.order !== undefined) {
-      query.set('order', options.order)
-    }
-    if (options?.page !== undefined) {
-      // Page index starts at 1
-      query.set('page', (options.page + 1).toString())
-    }
-    if (options?.limit !== undefined) {
-      query.set('limit', options.limit.toString())
-    }
-    if (options?.query !== undefined) {
-      query.set('query', options.query)
+      searchParams.set('sort', options.sort)
     }
 
-    fetch(`${import.meta.env.VITE_API_ENDPOINT}/images?${query.toString()}`)
+    if (options?.order !== undefined) {
+      searchParams.set('order', options.order)
+    }
+
+    if (options?.page !== undefined) {
+      // Page index starts at 1
+      searchParams.set('page', (options.page + 1).toString())
+    }
+
+    if (options?.limit !== undefined) {
+      searchParams.set('limit', options.limit.toString())
+    }
+
+    if (options?.query !== undefined) {
+      searchParams.set('query', options.query)
+    }
+
+    return searchParams
+  }, [options])
+
+  const update = useCallback(() => {
+    fetch(
+      `${import.meta.env.VITE_API_ENDPOINT}/images?${searchParams.toString()}`
+    )
       .then((res) => {
         if (res.status !== 200) {
           throw new Error(`unexpected status code ${res.status}`)
@@ -180,20 +191,13 @@ export function useImages(
       })
       .then((value) => setResult({ status: 'resolved', value }))
       .catch((error) => setResult({ status: 'rejected', error }))
-  }, [
-    options?.tags,
-    options?.sort,
-    options?.order,
-    options?.page,
-    options?.limit,
-    options?.query,
-  ])
+  }, [searchParams])
 
   useEffect(() => {
     update()
   }, [update])
 
-  return [result, update]
+  return [result, searchParams, update]
 }
 
 // TODO: Add query parameters
@@ -362,11 +366,25 @@ export function useLatestWorkflowRun(
 }
 
 export function usePagination<T extends { pagination: PaginationMetadata }>(
-  page: T | undefined
-): { index: number | undefined; label: string; current: boolean }[] {
+  page: T | undefined,
+  searchParams: URLSearchParams
+): (
+  | {
+      label: string
+      current: boolean
+      index: undefined
+    }
+  | { label: string; current: boolean; index: number; href: string }
+)[] {
   const pages = useMemo(() => {
     if (!page) {
       return []
+    }
+
+    const hrefForPage = (page: number) => {
+      const params = new URLSearchParams(searchParams)
+      params.set('page', page.toString())
+      return `/?${params.toString()}`
     }
 
     // Page index in the API starts at 1.
@@ -384,36 +402,42 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
     rangeStart = Math.max(0, pageIndex - 9 - (pageIndex - rangeEnd))
     const range = rangeEnd - rangeStart
 
-    const pages: {
-      index: number | undefined
-      label: string
-      current: boolean
-    }[] = new Array(range).fill('').map((_, i) => ({
-      index: rangeStart + i,
+    const pages: (
+      | {
+          label: string
+          current: boolean
+          index: undefined
+        }
+      | { label: string; current: boolean; index: number; href: string }
+    )[] = new Array(range).fill('').map((_, i) => ({
       label: (rangeStart + i + 1).toString(),
       current: rangeStart + i === pageIndex,
+      index: rangeStart + i,
+      href: hrefForPage(rangeStart + i + 1),
     }))
 
     if (pages[8]?.index && pages[8].index < totalPages - 1) {
       pages[7] = { index: undefined, label: '...', current: false }
       pages[8] = {
-        index: totalPages - 1,
         label: totalPages.toString(),
         current: false,
+        index: totalPages - 1,
+        href: hrefForPage(totalPages),
       }
     }
 
     if (pages[0]?.index && pages[0].index > 0) {
       pages[1] = { index: undefined, label: '...', current: false }
       pages[0] = {
-        index: 0,
         label: '1',
         current: false,
+        index: 0,
+        href: hrefForPage(0),
       }
     }
 
     return pages
-  }, [page])
+  }, [page, searchParams])
 
   return pages
 }
