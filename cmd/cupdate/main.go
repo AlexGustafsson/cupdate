@@ -20,7 +20,6 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
-	"github.com/AlexGustafsson/cupdate/internal/ratelimit"
 	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/web"
@@ -241,12 +240,13 @@ func main() {
 
 	var wg errgroup.Group
 
-	processQueue := make(chan oci.Reference, config.Processing.QueueSize)
+	processQueue := worker.NewQueue[oci.Reference](config.Processing.QueueBurst, config.Processing.QueueRate)
+	prometheus.DefaultRegisterer.MustRegister(processQueue)
 
 	wg.Go(func() error {
 		ticker := time.NewTicker(config.Processing.Interval)
 		defer ticker.Stop()
-		defer close(processQueue)
+		defer processQueue.Close()
 
 		for {
 			select {
@@ -274,11 +274,7 @@ func main() {
 						return err
 					}
 
-					select {
-					case <-ctx.Done():
-						slog.ErrorContext(ctx, "Failed to queue old references")
-					case processQueue <- reference:
-					}
+					processQueue.Push(reference)
 				}
 
 				cancel()
@@ -294,16 +290,7 @@ func main() {
 	prometheus.DefaultRegisterer.MustRegister(worker)
 
 	wg.Go(func() error {
-		gauge := prometheus.NewGauge(prometheus.GaugeOpts{
-			Namespace: "cupdate",
-			Subsystem: "worker",
-			Name:      "available_burst",
-		})
-		prometheus.DefaultRegisterer.MustRegister(gauge)
-
-		for reference, burst := range ratelimit.Channel(ctx, config.Processing.QueueBurst, config.Processing.QueueRate, processQueue) {
-			gauge.Set(float64(burst))
-
+		for reference := range processQueue.Pull() {
 			ctx, cancel := context.WithTimeout(ctx, config.Processing.Timeout)
 			err := worker.ProcessRawImage(ctx, reference)
 			cancel()
@@ -434,11 +421,7 @@ func main() {
 				// Try to schedule the image for processing
 				if inserted {
 					slog.DebugContext(ctx, "Raw image inserted for first time - scheduling for processing")
-					select {
-					case processQueue <- imageNode.Reference:
-					default:
-						slog.WarnContext(ctx, "Failed to schedule inserted raw image for processing - queue full")
-					}
+					processQueue.Push(imageNode.Reference)
 				}
 			}
 

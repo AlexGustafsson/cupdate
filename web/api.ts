@@ -424,7 +424,6 @@ export async function scheduleScan(reference: string): Promise<void> {
     `${import.meta.env.VITE_API_ENDPOINT}/image/scans?${query.toString()}`,
     {
       method: 'POST',
-      signal: AbortSignal.timeout(5000),
     }
   )
 

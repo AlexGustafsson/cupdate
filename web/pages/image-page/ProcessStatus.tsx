@@ -72,7 +72,7 @@ export function ProcessStatus({
         )}
         {status === 'failed' && (
           <InfoTooltip icon={<FluentWarning16Filled />}>
-            Failed to schedule image. Cupdate is likely busy. Try again later.
+            Failed to schedule image. Try again later.
           </InfoTooltip>
         )}
       </button>

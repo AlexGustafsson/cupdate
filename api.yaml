@@ -405,6 +405,8 @@ components:
         vulnerable:
           description: Total number of vulnerable images
           type: number
+        # TODO in v1: rename this to "unprocessed"
+        # TODO in v1: expose actual queue size from worker queue?
         processing:
           description: Total number of unprocessed images
           type: number

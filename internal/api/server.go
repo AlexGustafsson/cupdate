@@ -33,7 +33,7 @@ type Server struct {
 	WebAddress string
 }
 
-func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue chan<- oci.Reference) *Server {
+func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference]) *Server {
 	s := &Server{
 		api: api,
 		hub: hub,
@@ -178,7 +178,7 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue cha
 	})
 
 	s.mux.HandleFunc("POST /api/v1/image/scans", func(w http.ResponseWriter, r *http.Request) {
-		ctx, span := httputil.SpanFromRequest(r)
+		_, span := httputil.SpanFromRequest(r)
 		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/scans"))
 
 		query := r.URL.Query()
@@ -189,12 +189,8 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue cha
 			return
 		}
 
-		select {
-		case <-ctx.Done():
-			w.WriteHeader(http.StatusRequestTimeout)
-		case processQueue <- reference:
-			w.WriteHeader(http.StatusAccepted)
-		}
+		processQueue.Push(reference)
+		w.WriteHeader(http.StatusAccepted)
 	})
 
 	// NOTE: For now, there's no use case of exposing multiple workflows, but
