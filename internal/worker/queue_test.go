@@ -6,7 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestQueueBacklog(t *testing.T) {
@@ -115,4 +117,24 @@ func TestQueueEmptiedOnClose(t *testing.T) {
 	assert.Equal(t, 5, q.Len())
 	q.Close()
 	assert.Equal(t, 0, q.Len())
+}
+
+func TestQueueDeduplication(t *testing.T) {
+	q := NewQueue[oci.Reference](2, 0)
+	defer q.Close()
+
+	assert.Equal(t, 0, q.Len())
+
+	ref, err := oci.ParseReference("mongo:4")
+	require.NoError(t, err)
+
+	q.Push(ref)
+	assert.Equal(t, 1, q.Len())
+
+	q.Push(ref)
+	assert.Equal(t, 1, q.Len())
+
+	ref.Tag = "5"
+	q.Push(ref)
+	assert.Equal(t, 2, q.Len())
 }
