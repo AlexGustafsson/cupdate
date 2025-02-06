@@ -82,7 +82,71 @@
           "refId": "A"
         }
       ],
-      "title": "Processing images",
+      "title": "Processing",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${Prometheus}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 2,
+        "x": 2,
+        "y": 0
+      },
+      "id": 14,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${Prometheus}"
+          },
+          "editorMode": "code",
+          "expr": "cupdate_worker_queue_length",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Queued",
       "type": "gauge"
     },
     {
@@ -118,8 +182,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 3,
-        "x": 2,
+        "w": 4,
+        "x": 4,
         "y": 0
       },
       "id": 10,
@@ -182,7 +246,7 @@
       "gridPos": {
         "h": 6,
         "w": 3,
-        "x": 5,
+        "x": 8,
         "y": 0
       },
       "id": 7,
@@ -231,66 +295,6 @@
               "viz": false
             }
           },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 4,
-        "x": 8,
-        "y": 0
-      },
-      "id": 4,
-      "options": {
-        "displayLabels": ["percent", "name"],
-        "legend": {
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": true,
-          "values": ["percent"]
-        },
-        "pieType": "pie",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "sum(cupdate_http_requests_total) by (code)",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "HTTP codes",
-      "type": "piechart"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${Prometheus}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            }
-          },
           "mappings": [],
           "unit": "percentunit"
         },
@@ -299,7 +303,7 @@
       "gridPos": {
         "h": 6,
         "w": 3,
-        "x": 12,
+        "x": 11,
         "y": 0
       },
       "id": 1,
@@ -377,7 +381,7 @@
       "gridPos": {
         "h": 6,
         "w": 3,
-        "x": 15,
+        "x": 14,
         "y": 0
       },
       "id": 2,
@@ -436,7 +440,7 @@
       "gridPos": {
         "h": 6,
         "w": 3,
-        "x": 18,
+        "x": 17,
         "y": 0
       },
       "id": 9,
@@ -494,8 +498,8 @@
       },
       "gridPos": {
         "h": 6,
-        "w": 3,
-        "x": 21,
+        "w": 4,
+        "x": 20,
         "y": 0
       },
       "id": 8,
@@ -526,6 +530,66 @@
       ],
       "title": "Memory usage",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${Prometheus}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 3,
+        "x": 0,
+        "y": 6
+      },
+      "id": 4,
+      "options": {
+        "displayLabels": ["percent", "name"],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "values": ["percent"]
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "sum(cupdate_http_requests_total) by (code)",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP codes",
+      "type": "piechart"
     },
     {
       "datasource": {
@@ -618,8 +682,8 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 15,
-        "x": 0,
+        "w": 12,
+        "x": 3,
         "y": 6
       },
       "id": 3,
