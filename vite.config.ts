@@ -1,7 +1,32 @@
 import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { type UserConfigExport, defineConfig } from 'vite'
+import { type Plugin, type UserConfigExport, defineConfig } from 'vite'
+
+// Markdown can have imgs using the "height" attribute. This is overridden by
+// tailwind's defaults as it has a higher specificity. The rule is unused by us
+// and can be introduced manually when needed instead.
+// SEE: https://github.com/tailwindlabs/tailwindcss/pull/7742#issuecomment-1061332148
+const uselessRules = [
+  `  img, video {
+    max-width: 100%;
+    height: auto;
+  }
+ `,
+  'img,video{max-width:100%;height:auto}',
+]
+
+const removeUselessRule: Plugin = {
+  name: 'remove useless rule',
+  transform(code, id) {
+    if (id.endsWith('.css')) {
+      for (const rule of uselessRules) {
+        code = code.replace(rule, '')
+      }
+      return code
+    }
+  },
+}
 
 export default ({ mode }: { mode: string }): UserConfigExport => {
   // The dev server listens on port 8080, use it during development with vite
@@ -14,7 +39,7 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
   }
 
   return defineConfig({
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), removeUselessRule],
     root: 'web',
     base: process.env.VITE_BASE_PATH,
     build: {
