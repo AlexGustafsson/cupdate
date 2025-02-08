@@ -176,7 +176,14 @@ export function useImages(
     }
 
     return searchParams
-  }, [options])
+  }, [
+    options?.tags,
+    options?.sort,
+    options?.order,
+    options?.page,
+    options?.limit,
+    options?.query,
+  ])
 
   const update = useCallback(() => {
     fetch(
