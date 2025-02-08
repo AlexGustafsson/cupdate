@@ -197,6 +197,16 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 				continue
 			}
 
+			// Just when Kubernetes has started a pod, the runtime won't have resolved
+			// the reference, meaning the digest is empty. Immediately after, the
+			// digest is resolved and the change is processed by the informer again.
+			// Therefore ignore references without digests and assume that we'll get
+			// them soon, with a digest
+			if !ref.HasDigest {
+				slog.Debug("Ignoring reference without digest", slog.String("reference", ref.Reference()), slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
+				continue
+			}
+
 			graph.InsertTree(
 				platform.ImageNode{
 					Reference: ref,
