@@ -202,9 +202,9 @@ export function ImagePage(): JSX.Element {
 
         <main className="min-w-[200px] max-w-[800px] w-full box-border space-y-6 mt-6">
           {/* Cupdate settings */}
-          {image.value?.reference === 'ghcr.io/alexgustafsson/cupdate' && (
-            <SettingsCard />
-          )}
+          {image.value?.reference.startsWith(
+            'ghcr.io/alexgustafsson/cupdate'
+          ) && <SettingsCard />}
 
           {/* Vulnerability report */}
           {image.value.vulnerabilities.length > 0 && (
