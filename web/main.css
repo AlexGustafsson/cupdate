@@ -20,7 +20,8 @@
   input:focus,
   select:focus,
   textarea:focus,
-  button:focus {
+  button:focus,
+  dialog:focus {
     outline: none;
   }
 
