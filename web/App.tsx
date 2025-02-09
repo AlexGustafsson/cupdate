@@ -13,7 +13,7 @@ export function App(): JSX.Element {
 
   return (
     <>
-      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow-sm bg-white dark:bg-[#1e1e1e] z-100">
+      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow-sm bg-white/90 dark:bg-[#1e1e1e]/70 z-100 backdrop-blur-md">
         <div className="justify-self-start ml-5">
           {location.pathname !== '/' && (
             <Link
