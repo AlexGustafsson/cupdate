@@ -11,7 +11,7 @@
 # do so.
 
 # CUPDATE_API must be set to the URL where your Cupdate instance is reachable
-CUPDATE_API="https://cupdate.home.local/api/v1/image"
+CUPDATE_API="https://cupdate.home.local/api/v1/images"
 # MANIFEST_FILE_NAME is the name of kustomization files. All files by this name
 # in current directory will be checked
 MANIFEST_FILE_NAME="kustomization.yaml"
@@ -47,8 +47,8 @@ while read -r kustomization; do
     fi
 
     # Use the Cupdate API to find the latest reference
-    latestReference="$(curl --silent --get "$CUPDATE_API" --data-urlencode "reference=$reference" | jq -rc .latestReference 2>/dev/null)"
-    if [[ ! $! -eq 0 ]] || [[ -z "$latestReference" ]] || [[ "$latestReference" = "$reference" ]]; then
+    latestReference="$(curl --silent --get "$CUPDATE_API?query=$reference" | jq -rc .images[0].latestReference 2>/dev/null | sed 's/@sha256:.*//')"
+    if [[ ! $! -eq 0 ]] || [[ -z "$latestReference" ]] || [[ "$latestReference" = "$reference" ]] || [[ "$latestReference" = "null" ]]; then
       continue
     fi
 
