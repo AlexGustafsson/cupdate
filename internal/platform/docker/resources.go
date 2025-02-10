@@ -24,10 +24,13 @@ type Resource interface {
 	String() string
 }
 
+var _ Resource = (*resource)(nil)
+
 type resource struct {
-	id   string
-	kind ResourceKind
-	name string
+	id     string
+	kind   ResourceKind
+	name   string
+	labels platform.Labels
 }
 
 func (r resource) ID() string {
@@ -44,6 +47,10 @@ func (r resource) Kind() ResourceKind {
 
 func (r resource) Name() string {
 	return r.name
+}
+
+func (r resource) Labels() platform.Labels {
+	return r.labels
 }
 
 func (r resource) String() string {

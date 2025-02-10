@@ -40,6 +40,11 @@ func (m *TestNode) Type() string {
 	return m.nodeType
 }
 
+// Labels implements Node.
+func (m *TestNode) Labels() Labels {
+	return nil
+}
+
 func TestCompoundGrapherHappyPath(t *testing.T) {
 	graph1 := NewGraph()
 	graph1.InsertTree(

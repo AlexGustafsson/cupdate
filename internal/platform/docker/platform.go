@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net"
 	"net/http"
 	"net/url"
@@ -226,9 +227,10 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 				Reference: ref,
 			},
 			resource{
-				kind: ResourceKindContainer,
-				id:   fmt.Sprintf("docker/containers/%s", container.ID),
-				name: container.Name(),
+				kind:   ResourceKindContainer,
+				id:     fmt.Sprintf("docker/containers/%s", container.ID),
+				name:   container.Name(),
+				labels: maps.Clone(container.Labels),
 			},
 		}
 

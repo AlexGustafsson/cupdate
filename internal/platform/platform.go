@@ -15,9 +15,26 @@ import (
 type Node interface {
 	ID() string
 	Type() string
+	Labels() Labels
+}
+
+type Labels map[string]string
+
+func (l Labels) Ignore() bool {
+	if v, ok := l["config.cupdate/ignore"]; ok {
+		return v == "true"
+	}
+
+	if v, ok := l["cupdate.config.ignore"]; ok {
+		return v == "true"
+	}
+
+	return false
 }
 
 type Graph = *graph.Graph[Node]
+
+var _ Node = (*ImageNode)(nil)
 
 type ImageNode struct {
 	Reference oci.Reference
@@ -29,6 +46,10 @@ func (n ImageNode) ID() string {
 
 func (n ImageNode) Type() string {
 	return "image"
+}
+
+func (n ImageNode) Labels() Labels {
+	return nil
 }
 
 func (n ImageNode) String() string {

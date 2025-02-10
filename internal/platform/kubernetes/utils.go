@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
@@ -118,45 +119,52 @@ func mapObjectToResource(object v1.Object) resource {
 	switch o := object.(type) {
 	case *appsv1.Deployment:
 		return resource{
-			kind: ResourceKindAppsV1Deployment,
-			id:   fmt.Sprintf("kubernetes/%s", o.UID),
-			name: o.Name,
+			kind:   ResourceKindAppsV1Deployment,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
 		}
 	case *appsv1.DaemonSet:
 		return resource{
-			kind: ResourceKindAppsV1DaemonSet,
-			id:   fmt.Sprintf("kubernetes/%s", o.UID),
-			name: o.Name,
+			kind:   ResourceKindAppsV1DaemonSet,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
 		}
 	case *appsv1.ReplicaSet:
 		return resource{
-			kind: ResourceKindAppsV1ReplicaSet,
-			id:   fmt.Sprintf("kubernetes/%s", o.UID),
-			name: o.Name,
+			kind:   ResourceKindAppsV1ReplicaSet,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
 		}
 	case *appsv1.StatefulSet:
 		return resource{
-			kind: ResourceKindAppsV1StatefulSet,
-			id:   fmt.Sprintf("kubernetes/%s", o.UID),
-			name: o.Name,
+			kind:   ResourceKindAppsV1StatefulSet,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
 		}
 	case *batchv1.CronJob:
 		return resource{
-			kind: ResourceKindBatchV1CronJob,
-			id:   fmt.Sprintf("kubernetes/%s", o.UID),
-			name: o.Name,
+			kind:   ResourceKindBatchV1CronJob,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
 		}
 	case *batchv1.Job:
 		return resource{
-			kind: ResourceKindBatchV1Job,
-			id:   fmt.Sprintf("kubernetes/%s", o.UID),
-			name: o.Name,
+			kind:   ResourceKindBatchV1Job,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
 		}
 	case *corev1.Pod:
 		return resource{
-			kind: ResourceKindCoreV1Pod,
-			id:   fmt.Sprintf("kubernetes/%s", o.UID),
-			name: o.Name,
+			kind:   ResourceKindCoreV1Pod,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
 		}
 	default:
 		// The object is not something common that we support, return a catch all
