@@ -67,6 +67,9 @@ func (g *Graph[T]) InsertGraph(other *Graph[T]) {
 // insertNode inserts the node into the graph.
 func (g *Graph[T]) insertNode(n T) {
 	g.nodes[n.ID()] = n
+	if _, ok := g.edges[n.ID()]; !ok {
+		g.edges[n.ID()] = make(map[string]bool)
+	}
 }
 
 // insertEdge inserts an edge from a to b with the specified direction.
@@ -208,4 +211,57 @@ func (g *Graph[T]) traverse(rootID string) [][]string {
 	}
 
 	return paths
+}
+
+// DeleteFunc deletes all nodes for which del returns true.
+// If removing a node causes the graph to change, the deletion is recursive,
+// removing all nodes that are no longer referenced.
+func (g *Graph[T]) DeleteFunc(del func(T) bool) {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+
+	// Delete all nodes (and their edges) matching by the func
+	for id, node := range g.nodes {
+		if del(node) {
+			g.deleteNodeRecursive(id)
+		}
+	}
+}
+
+func (g *Graph[T]) deleteNodeRecursive(id string) {
+	// Delete the node itself
+	delete(g.nodes, id)
+
+	for adjacent, removedParentFromChild := range g.edges[id] {
+		// Delete all relationships the node had
+		delete(g.edges[adjacent], id)
+
+		// Recursively delete adjacent nodes if their relationships changed
+		if removedParentFromChild {
+			hasAdditionalParent := false
+			for _, isParent := range g.edges[adjacent] {
+				if !isParent {
+					hasAdditionalParent = true
+					break
+				}
+			}
+			if !hasAdditionalParent {
+				g.deleteNodeRecursive(adjacent)
+			}
+		} else {
+			hasAdditionalChild := false
+			for _, isParent := range g.edges[adjacent] {
+				if isParent {
+					hasAdditionalChild = true
+					break
+				}
+			}
+			if !hasAdditionalChild {
+				g.deleteNodeRecursive(adjacent)
+			}
+		}
+	}
+
+	// Delete the map of relationships
+	delete(g.edges, id)
 }
