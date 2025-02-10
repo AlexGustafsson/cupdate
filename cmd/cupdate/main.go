@@ -322,6 +322,12 @@ func main() {
 
 		for graph := range graphs {
 			slog.DebugContext(ctx, "Got updated platform graph")
+
+			// Delete ignored images / trees
+			graph.DeleteFunc(func(n platform.Node) bool {
+				return n.Labels().Ignore()
+			})
+
 			roots := graph.Roots()
 
 			for _, root := range roots {

@@ -30,3 +30,37 @@ done using environment variables.
 | `CUPDATE_OTEL_TARGET`                   | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                 | Required to use Open Telemetry. |
 | `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                         |
 | `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.         | None                            |
+
+### Labels
+
+Cupdate can take additional resource-specific configuration via the use of
+labels. For Docker, this means annotating the container image or the container /
+service itself. In Kubernetes, any resource in the image's tree can be annotated
+to configure Cupdate. See below for examples.
+
+Each label has two aliases to follow both the Docker and Kubernetes conventions.
+
+| Label                                              | Description                                                          | Default |
+| -------------------------------------------------- | -------------------------------------------------------------------- | ------- |
+| `config.cupdate/ignore` or `cupdate.config.ignore` | Set to `true` to ignore the resource subtree (e.g. container / pod). | `false` |
+
+#### Examples
+
+```yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cupdate
+    config.cupdate/ignore: "true"
+# ...
+```
+
+```yaml
+# compose.yaml
+services:
+  cupdate:
+    labels:
+      - cupdate.config.ignore: "true"
+```

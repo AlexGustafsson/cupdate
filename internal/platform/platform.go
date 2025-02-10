@@ -21,6 +21,10 @@ type Node interface {
 type Labels map[string]string
 
 func (l Labels) Ignore() bool {
+	if l == nil {
+		return false
+	}
+
 	if v, ok := l["config.cupdate/ignore"]; ok {
 		return v == "true"
 	}
