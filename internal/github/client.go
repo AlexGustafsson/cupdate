@@ -241,7 +241,7 @@ func parseAbout(r io.Reader) (string, error) {
 	description := match(about, func(node *html.Node) bool {
 		return node.Data == "p"
 	})
-	if node == nil {
+	if description == nil {
 		return "", nil
 	}
 
