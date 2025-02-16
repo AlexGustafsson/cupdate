@@ -1,6 +1,8 @@
 import type { JSX, ReactNode } from 'react'
 import type { GraphNode } from '../api'
 import type { NodeProps } from './GraphRenderer'
+import { InfoTooltip } from './InfoTooltip'
+import { FluentTag16Regular } from './icons/fluent-tag-16-regular'
 import { SimpleIconsDocker } from './icons/simple-icons-docker'
 import { SimpleIconsKubernetes } from './icons/simple-icons-kubernetes'
 import { SimpleIconsOci } from './icons/simple-icons-oci'
@@ -47,14 +49,22 @@ export function DependencyGraphNode({
   }
 
   return (
-    <div className="px-4 py-2 shadow-md rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333]">
+    <div className="px-4 py-2 cursor-pointer shadow-md rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333]">
       <div className="flex">
         <div className="rounded-full w-12 h-12 flex justify-center items-center bg-gray-100 dark:bg-[#363a3a] shrink-0">
           {label}
         </div>
         <div className="ml-2 grow min-w-0">
-          <div className="text-lg font-bold truncate">
-            {titles[data.domain]?.[data.type] || data.type}
+          <div className="flex items-center">
+            <div className="text-lg font-bold truncate flex-grow">
+              {titles[data.domain]?.[data.type] || data.type}
+            </div>
+            {data.labels && Object.keys(data.labels).length > 0 && (
+              <InfoTooltip icon={<FluentTag16Regular />}>
+                This node has labels that might affect how the image is
+                processed.
+              </InfoTooltip>
+            )}
           </div>
           <div className="text-gray-500 truncate">{data.name}</div>
         </div>

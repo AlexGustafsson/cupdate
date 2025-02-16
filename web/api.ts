@@ -70,6 +70,7 @@ export interface GraphNode {
   domain: string
   type: string
   name: string
+  labels?: Record<string, string>
 }
 
 export interface WorkflowRun {
