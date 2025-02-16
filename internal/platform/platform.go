@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
+	"strings"
 	"sync"
 	"time"
 
@@ -34,6 +36,17 @@ func (l Labels) Ignore() bool {
 	}
 
 	return false
+}
+
+// RemoveUnsupported removes unsupported labels.
+func (l Labels) RemoveUnsupported() Labels {
+	clone := maps.Clone(l)
+	for k := range l {
+		if !strings.HasPrefix(k, "config.cupdate/") && !strings.HasPrefix(k, "cupdate.config.") {
+			delete(clone, k)
+		}
+	}
+	return clone
 }
 
 type Graph = *graph.Graph[Node]

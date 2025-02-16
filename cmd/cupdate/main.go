@@ -348,6 +348,7 @@ func main() {
 							Domain: "kubernetes",
 							Type:   string(n.Kind()),
 							Name:   n.Name(),
+							Labels: n.Labels().RemoveUnsupported(),
 						}
 						if node.Type() == "kubernetes/"+kubernetes.ResourceKindCoreV1Namespace {
 							namespaceNode = &node
@@ -357,6 +358,7 @@ func main() {
 							Domain: "docker",
 							Type:   string(n.Kind()),
 							Name:   n.Name(),
+							Labels: n.Labels().RemoveUnsupported(),
 						}
 						if node.Type() == "docker/"+docker.ResourceKindSwarmNamespace || node.Type() == "docker/"+docker.ResourceKindComposeProject {
 							namespaceNode = &node

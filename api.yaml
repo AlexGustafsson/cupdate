@@ -374,6 +374,10 @@ components:
         name:
           type: string
           example: default
+        labels:
+          type: object
+          additionalProperties:
+            type: string
       required:
         - domain
         - type

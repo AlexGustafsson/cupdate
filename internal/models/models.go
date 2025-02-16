@@ -125,9 +125,10 @@ type Graph struct {
 }
 
 type GraphNode struct {
-	Domain string `json:"domain"`
-	Type   string `json:"type"`
-	Name   string `json:"name"`
+	Domain string            `json:"domain"`
+	Type   string            `json:"type"`
+	Name   string            `json:"name"`
+	Labels map[string]string `json:"labels,omitempty"`
 }
 
 type ImageEvent struct {
