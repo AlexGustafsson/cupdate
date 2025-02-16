@@ -54,6 +54,22 @@ func (l Labels) Pin() bool {
 	return false
 }
 
+func (l Labels) StayOnCurrentMajor() bool {
+	if l == nil {
+		return false
+	}
+
+	if v, ok := l["config.cupdate/stay-on-current-major"]; ok {
+		return v == "true"
+	}
+
+	if v, ok := l["cupdate.config.stay-on-current-major"]; ok {
+		return v == "true"
+	}
+
+	return false
+}
+
 // RemoveUnsupported removes unsupported labels.
 func (l Labels) RemoveUnsupported() Labels {
 	clone := maps.Clone(l)

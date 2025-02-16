@@ -141,15 +141,23 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 	}
 
 	testCases := []struct {
-		Version  string
-		Expected string
-		OK       bool
+		Version            string
+		StayOnCurrentMajor bool
+		Expected           string
+		OK                 bool
 	}{
 		{
 			// End of major, expected latest major
 			Version:  "5",
 			Expected: "7",
 			OK:       true,
+		},
+		{
+			// End of major, expected same major
+			Version:            "5",
+			StayOnCurrentMajor: true,
+			Expected:           "5",
+			OK:                 true,
 		},
 		{
 			// Patch on same major track
@@ -202,6 +210,13 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 			OK:       true,
 		},
 		{
+			// Apparent end of same major track - recommend newest
+			Version:            "6.0.19",
+			StayOnCurrentMajor: true,
+			Expected:           "6.0.19",
+			OK:                 true,
+		},
+		{
 			// Latest available
 			Version:  "8.0.4",
 			Expected: "8.0.4",
@@ -230,7 +245,7 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Version, func(t *testing.T) {
-			actual, ok := LatestOpinionatedVersionString(testCase.Version, versions)
+			actual, ok := LatestOpinionatedVersionString(testCase.Version, versions, testCase.StayOnCurrentMajor)
 			assert.Equal(t, testCase.Expected, actual)
 			assert.Equal(t, testCase.OK, ok)
 		})

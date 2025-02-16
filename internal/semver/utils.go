@@ -14,7 +14,7 @@ func CompareVersions(a *Version, b *Version) int {
 // If the current version is the newest version of the major, the latest version
 // is returned. This allows more graceful handling of version tracks for things
 // like databases where multiple majors are supported concurrently.
-func LatestOpinionatedVersionString(current string, versions []string) (string, bool) {
+func LatestOpinionatedVersionString(current string, versions []string, stayOnCurrentMajor bool) (string, bool) {
 	if current == "latest" {
 		return current, true
 	}
@@ -66,8 +66,9 @@ func LatestOpinionatedVersionString(current string, versions []string) (string, 
 		}
 	}
 
-	// End of major track, return the latest version
-	if latestVersionOfSameMajor.Equals(currentVersion) {
+	// End of major track, return the latest version unless we want to stay on the
+	// current major
+	if latestVersionOfSameMajor.Equals(currentVersion) && !stayOnCurrentMajor {
 		return latestVersion.raw, compatibleFound
 	}
 

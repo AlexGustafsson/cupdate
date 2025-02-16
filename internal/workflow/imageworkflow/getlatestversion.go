@@ -52,7 +52,7 @@ func GetLatestReference() workflow.Step {
 
 				// We only want to specify a latest reference when we're certain of it,
 				// for example, when it has been seen in the list of tags
-				latest, ok := semver.LatestOpinionatedVersionString(reference.Tag, tags)
+				latest, ok := semver.LatestOpinionatedVersionString(reference.Tag, tags, labels.StayOnCurrentMajor())
 				if ok {
 					l := reference
 
