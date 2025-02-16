@@ -3,7 +3,9 @@ package imageworkflow
 import (
 	"log/slog"
 
+	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -22,14 +24,25 @@ func GetLatestReference() workflow.Step {
 				return nil, err
 			}
 
+			graph, err := workflow.GetInput[models.Graph](ctx, "graph", true)
+			if err != nil {
+				return nil, err
+			}
+
+			// NOTE: The id of nodes is defined in the platform code
+			var labels platform.Labels
+			if root, ok := graph.Nodes["oci/image/"+reference.String()]; ok {
+				labels = root.Labels
+			}
+
 			var latestReference *oci.Reference
 
 			_, err = semver.ParseVersion(reference.Tag)
 			isSemver := err == nil
 
 			// If the tag is adhering to semver, try to identify the latest available
-			// tag
-			if isSemver {
+			// tag. If tag is pinned, don't look for newer semantic versions
+			if isSemver && !labels.Pin() {
 				tags, err := registryClient.GetTags(ctx, reference, &oci.GetTagsOptions{
 					AllPages: true,
 				})

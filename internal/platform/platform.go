@@ -38,6 +38,22 @@ func (l Labels) Ignore() bool {
 	return false
 }
 
+func (l Labels) Pin() bool {
+	if l == nil {
+		return false
+	}
+
+	if v, ok := l["config.cupdate/pin"]; ok {
+		return v == "true"
+	}
+
+	if v, ok := l["cupdate.config.pin"]; ok {
+		return v == "true"
+	}
+
+	return false
+}
+
 // RemoveUnsupported removes unsupported labels.
 func (l Labels) RemoveUnsupported() Labels {
 	clone := maps.Clone(l)

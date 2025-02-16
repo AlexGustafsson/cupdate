@@ -39,7 +39,8 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					GetLatestReference().
 						WithID("latest").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
-						With("reference", data.ImageReference),
+						With("reference", data.ImageReference).
+						With("graph", data.Graph),
 					GetManifest().
 						WithID("latest-manifest").
 						WithCondition(workflow.ValueExists("step.latest.reference")).
