@@ -36,13 +36,70 @@ done using environment variables.
 Cupdate can take additional resource-specific configuration via the use of
 labels. For Docker, this means annotating the container image or the container /
 service itself. In Kubernetes, any resource in the image's tree can be annotated
-to configure Cupdate. See below for examples.
+to configure Cupdate.
 
 Each label has two aliases to follow both the Docker and Kubernetes conventions.
 
-| Label                                              | Description                                                          | Default |
-| -------------------------------------------------- | -------------------------------------------------------------------- | ------- |
-| `config.cupdate/ignore` or `cupdate.config.ignore` | Set to `true` to ignore the resource subtree (e.g. container / pod). | `false` |
+The web UI can be used to see what labels are used for a given image on the
+image's page, in the graph view. Nodes that have labels configured will have an
+icon / tooltip indicating that the behavior might differ from the defaults. The
+exact labels used can be seen by clicking on a node, which shows a dialog.
+
+#### `ignore`
+
+- Kubernetes: `config.cupdate/ignore`
+- Docker: `cupdate.config.ignore`
+
+Set to `true` to ignore the resource subtree (e.g. deployment, pod, or container
+). Defaults to `false`.
+
+#### `stay-on-current-major`
+
+- Kubernetes: `config.cupdate/stay-on-current-major`
+- Docker: `cupdate.config.stay-on-current-major`
+
+Set to `true` to stay on the current major track specified by images' semantic
+tags.
+
+Examples of updates made by Cupdate by default:
+
+- `alpine:3.21.2` -> `alpine:3.21.3` (patch on current major track)
+- `node:22.14.0` -> `node:23.8.0` (end of current major track, new major available)
+
+With `stay-on-current-major` set to `true`, Cupdate wouldn't recommend node to
+be updated as the newer version is no longer on the same major.
+
+This is useful for databases where updating to a newer major version can take a
+lot of time and require changes to applications.
+
+#### `pin`
+
+- Kubernetes: `config.cupdate/pin`
+- Docker: `cupdate.config.pin`
+
+Set to `true` to pin images' tags, meaning Cupdate will only recommend updates
+to the underlying manifest identified by the tag, as opposed to semantic
+updates.
+
+Examples of updates made by Cupdate by default:
+
+- `alpine:3.21.2` -> `alpine:3.21.3` (patch on current major track)
+- `node:22.14.0` -> `node:23.8.0` (end of current major track, new major available)
+
+With `pin` set to `true`, neither update would be recommended. However, Cupdate
+would still recommend updates like the following, if their tags have been
+overwritten, pointing to a newer manifest.
+
+- `latest` -> `latest`
+- `alpine:3` -> `alpine:3`
+
+This is useful for databases where updating to a newer version can take a lot of
+time and require changes to applications. It is recommended to only use `pin` if
+necessary, preferring the use of `stay-on-current-major` alongside a tag that
+specifies an as granular version as possible (i.e. `alpine:3.21.2` as opposed to
+`alpine:3`). But in cases where the tag is not necessarily semantic, such as
+where `12.0.0` -> `12.1.0` would mean a major change, `pin` can be used to force
+the tag to not change.
 
 #### Examples
 
