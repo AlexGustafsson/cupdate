@@ -364,14 +364,37 @@ func main() {
 							namespaceNode = &node
 						}
 					case platform.ImageNode:
-						mappedNodes[node.ID()] = models.GraphNode{
-							Domain: "oci",
-							Type:   "image",
-							Name:   imageNode.Reference.String(),
-						}
+						// This node is added later on
 					default:
 						panic(fmt.Sprintf("mapping unimplemented node type: %s", node.Type()))
 					}
+				}
+
+				// Resolve labels for the image node. The nearest label takes precedence
+				resolvedImageLabels := make(map[string]string)
+				queue := []string{root.ID()}
+				for len(queue) > 0 {
+					id := queue[0]
+					queue = queue[1:]
+
+					for k, v := range mappedNodes[id].Labels {
+						_, ok := resolvedImageLabels[k]
+						if !ok {
+							resolvedImageLabels[k] = v
+						}
+					}
+
+					for adjacent, isChild := range edges[id] {
+						if isChild {
+							queue = append(queue, adjacent)
+						}
+					}
+				}
+				mappedNodes[root.ID()] = models.GraphNode{
+					Domain: "oci",
+					Type:   "image",
+					Name:   imageNode.Reference.String(),
+					Labels: resolvedImageLabels,
 				}
 
 				tags := []string{}
