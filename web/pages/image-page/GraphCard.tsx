@@ -13,6 +13,7 @@ import { SimpleIconsDocker } from '../../components/icons/simple-icons-docker'
 import { SimpleIconsKubernetes } from '../../components/icons/simple-icons-kubernetes'
 import { SimpleIconsOci } from '../../components/icons/simple-icons-oci'
 import { useGraphLayout } from '../../graph'
+import { parse } from '../../oci'
 
 const titles: Record<string, Record<string, string | undefined> | undefined> = {
   oci: {
@@ -58,6 +59,11 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
       label = <SimpleIconsDocker className="text-blue-500" />
   }
 
+  const oci =
+    graphNode?.domain === 'oci' && graphNode.type === 'image'
+      ? parse(graphNode.name)
+      : null
+
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: The dialog element already handles ESC
     <dialog
@@ -71,7 +77,36 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
             ? titles[graphNode.domain]?.[graphNode.type] || graphNode.type
             : ''}
         </p>
-        <p className="text-sm opacity-60 break-all">{graphNode?.name}</p>
+        {graphNode?.domain !== 'oci' && (
+          <p className="text-sm opacity-60 break-all">{graphNode?.name}</p>
+        )}
+        {oci && (
+          <>
+            <p className="mt-2">Details</p>
+            <ul className="text-sm">
+              <li>
+                <code>
+                  Registry:{' '}
+                  {oci.name.substring(0, oci.name.indexOf('/')) || 'docker.io'}
+                </code>
+              </li>
+              <li>
+                <code>
+                  Name:{' '}
+                  {oci.name.includes('.')
+                    ? oci.name.substring(oci.name.indexOf('/') + 1)
+                    : oci.name}
+                </code>
+              </li>
+              <li>
+                <code>Tag: {oci.tag}</code>
+              </li>
+              <li>
+                <code className="break-all">Digest: {oci.digest}</code>
+              </li>
+            </ul>
+          </>
+        )}
         {graphNode?.labels && (
           <>
             <p className="mt-2">Labels</p>
