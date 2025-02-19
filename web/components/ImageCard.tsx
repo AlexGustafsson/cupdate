@@ -122,7 +122,7 @@ export function ImageCard({
           {description}
         </p>
         {!compact && (
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap gap-1 mt-4">
             {tags
               .toSorted((a, b) => compareTags(a, b))
               .map((x) => (
