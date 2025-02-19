@@ -90,7 +90,7 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
         >
           {stepRun.stepName}
         </p>
-        <p className="truncate text-sm opacity-60">
+        <p className="text-nowrap text-sm opacity-60">
           {stepRun.duration ? formatDuration(stepRun.duration) : ''}
         </p>
       </div>
