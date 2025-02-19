@@ -73,6 +73,9 @@ jobs:
         run: yarn install --immutable
 
       - name: Run go tests
+        env:
+          # Use the toolchain specified in go.mod, or newer
+          GOTOOLCHAIN: auto
         run: go test -short -v ./...
 
       - name: Run web tests
@@ -119,4 +122,7 @@ jobs:
           path: internal/web/public
 
       - name: Build cupdate
+        env:
+          # Use the toolchain specified in go.mod, or newer
+          GOTOOLCHAIN: auto
         run: go build -o cupdate cmd/cupdate/*.go

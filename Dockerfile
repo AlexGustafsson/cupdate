@@ -13,13 +13,15 @@ COPY web web
 ARG CUPDATE_VERSION="development build"
 RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
-FROM --platform=${BUILDPLATFORM} golang:1.23 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.24 AS builder
 
 WORKDIR /src
 
-COPY go.mod go.sum .
+# Use the toolchain specified in go.mod, or newer
+ENV GOTOOLCHAIN=auto
 
-RUN go mod download
+COPY go.mod go.sum .
+RUN go mod download && go mod verify
 
 COPY cmd cmd
 COPY internal internal

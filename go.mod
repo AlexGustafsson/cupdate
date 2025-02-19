@@ -1,8 +1,8 @@
 module github.com/AlexGustafsson/cupdate
 
-go 1.23.0
+go 1.24
 
-toolchain go1.23.2
+toolchain go1.24.0
 
 require (
 	github.com/caarlos0/env/v10 v10.0.0
