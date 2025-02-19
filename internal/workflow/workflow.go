@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +16,8 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
+
+var ErrDependentJobFailed = errors.New("dependent job failed")
 
 type Workflow struct {
 	Name string
@@ -105,6 +108,9 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 						case <-done[index]:
 							if errs[index] != nil {
 								log.WarnContext(ctx, "Skipping job as dependent job failed", slog.String("dependency", dependency))
+								// Propagate error so that jobs fail if a dependency's
+								// dependency fails.
+								errs[i] = ErrDependentJobFailed
 								return
 							}
 							// Do nothing
@@ -152,6 +158,11 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 	}
 
 	wg.Wait()
+
+	// Remove unnecessary errors
+	slices.DeleteFunc(errs, func(err error) bool {
+		return err == ErrDependentJobFailed || err == ErrSkipped
+	})
 
 	err := errors.Join(errs...)
 	if err == nil {
