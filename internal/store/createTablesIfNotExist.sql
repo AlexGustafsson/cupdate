@@ -45,6 +45,12 @@ CREATE TABLE IF NOT EXISTS images_tags (
   PRIMARY KEY (reference, tag),
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
+-- TODO: Remove in v1.
+-- There was previously an issue with a missing cascade on images_tags, which
+-- could cause images_tags to have rows not related to an entry in images, which
+-- would result in counts like "vulnerable images" or "failed images" being off.
+-- To remediate this issue, remove all entries without references.
+DELETE FROM images_tags WHERE reference NOT IN (SELECT reference FROM images);
 
 -- TODO: Rename in v1. This was done as an easy way to migrate somewhat
 -- gracefully without having to drop the entire database
