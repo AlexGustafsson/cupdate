@@ -71,23 +71,20 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
             ? titles[graphNode.domain]?.[graphNode.type] || graphNode.type
             : ''}
         </p>
-        <p className="text-sm opacity-60">{graphNode?.name}</p>
+        <p className="text-sm opacity-60 break-all">{graphNode?.name}</p>
         {graphNode?.labels && (
           <>
             <p className="mt-2">Labels</p>
-            <dl className="grid grid-cols-2">
+            <ul className="text-sm">
               {graphNode?.labels &&
                 Object.entries(graphNode.labels).map(([k, v]) => (
-                  <>
-                    <dt key={`${k}-dt`} className="text-sm">
-                      <code>{k}</code>
-                    </dt>
-                    <dd key={`${k}-dd`} className="text-sm">
-                      <code>{v}</code>
-                    </dd>
-                  </>
+                  <li key={`${k}`}>
+                    <code>
+                      {k}: {v}
+                    </code>
+                  </li>
                 ))}
-            </dl>
+            </ul>
           </>
         )}
       </div>
