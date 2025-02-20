@@ -142,6 +142,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/Graph"
 
+  /image/scorecard:
+    get:
+      summary: Returns an image's OpenSSF scorecard report
+      parameters:
+        - in: query
+          name: reference
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: The image's OpenSSF scorecard report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageScorecard"
+
   /image/workflows/latest:
     get:
       summary: Returns an image's latest workflow run
@@ -267,6 +284,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ImageLink"
+        # In v1, let this be a object with counts instead, no need to have the
+        # full results here. Request vulnerabilities like graphs and other
+        # things instead?
         vulnerabilities:
           type: array
           items:
@@ -343,6 +363,29 @@ components:
         - severity
         - authority
         - links
+
+    ImageScorecard:
+      type: object
+      description: An OpenSSF scorecard report
+      properties:
+        reportUrl:
+          type: string
+          format: url
+          description: URL to full report
+        score:
+          type: number
+          description: Score 0-10 where higher is better
+        risk:
+          type: string
+          enum: ["critical", "high", "medium", "low"]
+        generatedAt:
+          type: string
+          format: date
+      required:
+        - reportUrl
+        - score
+        - risk
+        - generatedAt
 
     Graph:
       type: object

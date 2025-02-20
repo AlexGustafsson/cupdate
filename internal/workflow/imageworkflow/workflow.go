@@ -440,6 +440,75 @@ func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
 					}),
 				},
 			},
+			{
+				ID:        "openssf",
+				Name:      "Get OpenSSF Scorecard",
+				DependsOn: []string{"github", "gitlab"},
+				If: func(ctx workflow.Context) (bool, error) {
+					githubRepository, err := workflow.GetValue[string](ctx, "job.github.step.repository.repository")
+					if err != nil {
+						return false, err
+					}
+
+					gitlabRepository := ""
+					if data.ImageReference.Domain == "registry.gitlab.com" {
+						// The repository path is <owner>/<group>/<project>
+						parts := strings.Split(data.ImageReference.Path, "/")
+						if len(parts) < 3 {
+							return false, nil
+						}
+
+						gitlabRepository = "gitlab.com/" + strings.Join(parts[0:3], "/")
+					}
+
+					return githubRepository != "" || gitlabRepository != "", nil
+				},
+				Steps: []workflow.Step{
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						githubRepository, err := workflow.GetValue[string](ctx, "job.github.step.repository.repository")
+						if err != nil {
+							return nil, err
+						}
+
+						if githubRepository != "" {
+							return workflow.SetOutput("repository", githubRepository), nil
+						}
+
+						if data.ImageReference.Domain == "registry.gitlab.com" {
+							// The repository path is <owner>/<group>/<project>
+							parts := strings.Split(data.ImageReference.Path, "/")
+							if len(parts) < 3 {
+								return nil, nil
+							}
+
+							gitlabRepository := "gitlab.com/" + strings.Join(parts[0:3], "/")
+							return workflow.SetOutput("repository", gitlabRepository), nil
+						}
+
+						return nil, nil
+					}).WithID("repository"),
+					GetOpenSSFScorecard().
+						WithID("scorecard").
+						With("httpClient", httpClient).
+						With("repository", workflow.Ref{Key: "step.repository.repository"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						scorecard, err := workflow.GetValue[*models.ImageScorecard](ctx, "step.scorecard.scorecard")
+						if err != nil {
+							return nil, err
+						}
+
+						if scorecard != nil {
+							data.Scorecard = scorecard
+							data.InsertLink(models.ImageLink{
+								Type: "openssf-scorecard",
+								URL:  scorecard.ReportURL,
+							})
+						}
+
+						return nil, nil
+					}),
+				},
+			},
 		},
 	}
 }

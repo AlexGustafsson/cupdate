@@ -3,7 +3,7 @@ CREATE TABLE revision (
   id INTEGER PRIMARY KEY CHECK (id = 0),
   revision INT NOT NULL
 );
-INSERT INTO revision (id, revision) VALUES (0, 1);
+INSERT INTO revision (id, revision) VALUES (0, 2);
 
 CREATE TABLE raw_images (
   reference TEXT PRIMARY KEY NOT NULL,
@@ -83,7 +83,15 @@ CREATE TABLE images_vulnerabilitiesv2 (
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
-CREATE TABLE images_workflow_runs (
+CREATE TABLE images_scorecards (
+  reference TEXT NOT NULL,
+  score REAL NOT NULL,
+  scorecard BLOB NOT NULL,
+  PRIMARY KEY (reference),
+  FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS images_workflow_runs (
   reference TEXT NOT NULL,
   started DATETIME NOT NULL,
   result TEXT NOT NULL,

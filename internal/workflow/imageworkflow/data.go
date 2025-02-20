@@ -24,6 +24,7 @@ type Data struct {
 	Links           []models.ImageLink
 	Vulnerabilities []models.ImageVulnerability
 	Graph           models.Graph
+	Scorecard       *models.ImageScorecard
 	RegistryAuth    *httputil.AuthMux
 }
 

@@ -70,6 +70,22 @@ type ImageVulnerability struct {
 	Links       []string `json:"links"`
 }
 
+type ImageScorecardRisk string
+
+const (
+	ImageScorecardRiskCritical ImageScorecardRisk = "critical"
+	ImageScorecardRiskHigh     ImageScorecardRisk = "high"
+	ImageScorecardRiskMedium   ImageScorecardRisk = "medium"
+	ImageScorecardRiskLow      ImageScorecardRisk = "low"
+)
+
+type ImageScorecard struct {
+	ReportURL  string             `json:"reportUrl"`
+	Score      float32            `json:"score"`
+	Risk       ImageScorecardRisk `json:"risk"`
+	GenerateAt time.Time          `json:"generatedAt"`
+}
+
 type WorkflowRunResult string
 
 const (

@@ -73,6 +73,13 @@ export interface GraphNode {
   labels?: Record<string, string>
 }
 
+export interface ImageScorecard {
+  reportUrl: string
+  score: number
+  risk: 'critical' | 'high' | 'medium' | 'low'
+  generatedAt: string
+}
+
 export interface WorkflowRun {
   jobs: JobRun[]
   traceId?: string
@@ -317,6 +324,40 @@ export function useImageGraph(
     const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env.VITE_API_ENDPOINT}/image/graph?${query.toString()}`
+    )
+      .then((res) => {
+        if (res.status === 404) {
+          return null
+        }
+        if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [reference])
+
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
+}
+
+// TODO: Add query parameters
+export function useImageScorecard(
+  reference: string
+): [Result<ImageScorecard | null>, () => void] {
+  const [result, setResult] = useState<Result<ImageScorecard | null>>({
+    status: 'idle',
+  })
+
+  const update = useCallback(() => {
+    const query = new URLSearchParams({ reference })
+    fetch(
+      `${import.meta.env.VITE_API_ENDPOINT}/image/scorecard?${query.toString()}`
     )
       .then((res) => {
         if (res.status === 404) {

@@ -46,6 +46,7 @@ func GetGitHubRepsitory() workflow.Step {
 					workflow.SetOutput("endpoint", endpoint),
 					workflow.SetOutput("owner", owner),
 					workflow.SetOutput("name", repository),
+					workflow.SetOutput("repository", fmt.Sprintf("%s/%s/%s", strings.TrimPrefix(endpoint, "https://"), owner, repository)),
 				), nil
 			}
 

@@ -7,6 +7,7 @@ import {
   useImageDescription,
   useImageGraph,
   useImageReleaseNotes,
+  useImageScorecard,
   useLatestWorkflowRun,
   useTags,
 } from '../api'
@@ -26,6 +27,7 @@ import { GraphCard } from './image-page/GraphCard'
 import { ImageLink } from './image-page/ImageLink'
 import { ImageSkeleton } from './image-page/ImageSkeleton'
 import { ProcessStatus } from './image-page/ProcessStatus'
+import { ScorecardCard } from './image-page/ScorecardCard'
 import { SettingsCard } from './image-page/SettingsCard'
 import { VulnerabilitiesCard } from './image-page/VulnerabilitiesCard'
 import { WorkflowCard } from './image-page/WorkflowCard'
@@ -40,6 +42,7 @@ export function ImagePage(): JSX.Element {
   const [description, updateDescription] = useImageDescription(reference)
   const [releaseNotes, updateReleaseNotes] = useImageReleaseNotes(reference)
   const [graph, updateGraph] = useImageGraph(reference)
+  const [scorecard, updateScorecard] = useImageScorecard(reference)
   const [workflowRun, updateWorkflowRun] = useLatestWorkflowRun(reference)
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
@@ -64,6 +67,7 @@ export function ImagePage(): JSX.Element {
     description.status !== 'resolved' ||
     releaseNotes.status !== 'resolved' ||
     graph.status !== 'resolved' ||
+    scorecard.status !== 'resolved' ||
     workflowRun.status !== 'resolved'
   ) {
     return <ImageSkeleton />
@@ -93,6 +97,7 @@ export function ImagePage(): JSX.Element {
               updateDescription()
               updateReleaseNotes()
               updateGraph()
+              updateScorecard()
               updateWorkflowRun()
             }}
           />
@@ -205,6 +210,9 @@ export function ImagePage(): JSX.Element {
           {image.value?.reference.startsWith(
             'ghcr.io/alexgustafsson/cupdate'
           ) && <SettingsCard />}
+
+          {/* Scorecard report */}
+          {scorecard.value && <ScorecardCard scorecard={scorecard.value} />}
 
           {/* Vulnerability report */}
           {image.value.vulnerabilities.length > 0 && (

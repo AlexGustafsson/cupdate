@@ -704,6 +704,69 @@ func (s *Store) GetImageGraph(ctx context.Context, reference string) (*models.Gr
 	return graph, nil
 }
 
+func (s *Store) InsertImageScorecard(ctx context.Context, reference string, scorecard *models.ImageScorecard) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_scorecards
+		(reference, score, scorecard)
+		VALUES
+		(?, ?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			score=excluded.score,
+			scorecard=excluded.scorecard
+		;`)
+	if err != nil {
+		return err
+	}
+
+	serializedScorecard, err := json.Marshal(scorecard)
+	if err != nil {
+		statement.Close()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, reference, scorecard.Score, serializedScorecard)
+	statement.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) GetImageScorecard(ctx context.Context, reference string) (*models.ImageScorecard, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT scorecard FROM images_scorecards WHERE reference = ?;`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	res, err := statement.QueryContext(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		res.Close()
+		return nil, res.Err()
+	}
+
+	var serializedScorecard []byte
+	err = res.Scan(&serializedScorecard)
+	res.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var scorecard *models.ImageScorecard
+	if err := json.Unmarshal(serializedScorecard, &scorecard); err != nil {
+		return nil, err
+	}
+
+	return scorecard, nil
+}
+
 func (s *Store) InsertWorkflowRun(ctx context.Context, reference string, workflowRun models.WorkflowRun) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -1164,6 +1227,7 @@ type Change struct {
 	ChangedDescription     bool
 	ChangedGraph           bool
 	ChangedVulnerabilities bool
+	ChangedScorecard       bool
 }
 
 type GetChangesOptions struct {
@@ -1193,7 +1257,7 @@ func (s *Store) GetChanges(ctx context.Context, options *GetChangesOptions) ([]C
 
 	whereClause := strings.Join(whereClauses, " AND ")
 
-	query := `SELECT reference, time, type, changedBasic, changedLinks, changedReleaseNotes, changedDescription, changedGraph, changedVulnerabilities FROM images_changes`
+	query := `SELECT reference, time, type, changedBasic, changedLinks, changedReleaseNotes, changedDescription, changedGraph, changedVulnerabilities, changedScorecard FROM images_changes`
 	if whereClause != "" {
 		query += " WHERE " + whereClause
 	}
@@ -1222,6 +1286,7 @@ func (s *Store) GetChanges(ctx context.Context, options *GetChangesOptions) ([]C
 			&update.ChangedDescription,
 			&update.ChangedGraph,
 			&update.ChangedVulnerabilities,
+			&update.ChangedScorecard,
 		)
 		if err != nil {
 			res.Close()

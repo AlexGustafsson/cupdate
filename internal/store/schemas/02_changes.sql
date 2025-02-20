@@ -10,6 +10,7 @@ CREATE TABLE images_changes (
   changedDescription BOOLEAN NOT NULL DEFAULT FALSE,
   changedGraph BOOLEAN NOT NULL DEFAULT FALSE,
   changedVulnerabilities BOOLEAN NOT NULL DEFAULT FALSE,
+  changedScorecard BOOLEAN NOT NULL DEFAULT FALSE,
 
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
@@ -230,6 +231,44 @@ CREATE TRIGGER images_changes_images_vulnerabilities_update AFTER UPDATE ON imag
     type,
 
     changedVulnerabilities
+  ) VALUES (
+    new.reference,
+    datetime('now', 'subsecond'),
+    "update",
+
+    TRUE
+  );
+END;
+
+-- Update changes on INSERT to images_scorecards table
+DROP TRIGGER IF EXISTS images_changes_images_scorecards_insert;
+CREATE TRIGGER images_changes_images_scorecards_insert AFTER INSERT ON images_scorecards BEGIN
+  INSERT INTO images_changes(
+    reference,
+    time,
+    type,
+
+    changedScorecard
+  ) VALUES (
+    new.reference,
+    datetime('now', 'subsecond'),
+    "insert",
+
+    TRUE
+  );
+END;
+
+-- Update images_updates on UPDATE to images_scorecards table
+DROP TRIGGER IF EXISTS images_changes_images_scorecards_update;
+CREATE TRIGGER images_changes_images_scorecards_update AFTER UPDATE ON images_scorecards WHEN
+    old.scorecard <> new.scorecard
+  BEGIN
+  INSERT INTO images_changes(
+    reference,
+    time,
+    type,
+
+    changedScorecard
   ) VALUES (
     new.reference,
     datetime('now', 'subsecond'),

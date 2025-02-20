@@ -166,6 +166,14 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		}
 	}
 
+	// Add risk task based on OpenSSF score
+	if data.Scorecard != nil {
+		// Don't add a label for low risk components
+		if data.Scorecard.Risk != models.ImageScorecardRiskLow {
+			data.InsertTag("risk:" + string(data.Scorecard.Risk))
+		}
+	}
+
 	timeBeforeInsert := time.Now()
 
 	result := models.Image{
@@ -206,6 +214,13 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	if err := w.store.InsertImageGraph(ctx, reference.String(), &data.Graph); err != nil {
 		log.ErrorContext(ctx, "Failed to insert image graph", slog.Any("error", err))
 		// Fallthrough - try to insert what we have
+	}
+
+	if data.Scorecard != nil {
+		if err := w.store.InsertImageScorecard(ctx, reference.String(), data.Scorecard); err != nil {
+			log.ErrorContext(ctx, "Failed to insert image scorecard", slog.Any("error", err))
+			// Fallthrough - try to insert what we have
+		}
 	}
 
 	if err := w.store.InsertWorkflowRun(ctx, reference.String(), workflowRun); err != nil {
