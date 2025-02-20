@@ -12,7 +12,8 @@ import (
 )
 
 type Client struct {
-	Client *httputil.Client
+	Client        *httputil.Client
+	TokenAuthFunc func(*http.Request) error
 }
 
 func (c *Client) GetRegistryToken(ctx context.Context, repository string) (string, error) {
@@ -30,6 +31,12 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return "", err
+	}
+
+	if f := c.TokenAuthFunc; f != nil {
+		if err := f(req); err != nil {
+			return "", err
+		}
 	}
 
 	res, err := c.Client.Do(req)

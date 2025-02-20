@@ -35,9 +35,6 @@ func SetupRegistryClient() workflow.Step {
 			baseAuth.Handle("*.docker.io", &dockerhub.Client{
 				Client: httpClient,
 			})
-			baseAuth.Handle("ghcr.io", &ghcr.Client{
-				Client: httpClient,
-			})
 			// Linux Server mirrors images, but the default is GitHub and I've never
 			// seen any other backend being used. For now, assume GitHub
 			baseAuth.Handle("lscr.io", &ghcr.Client{
@@ -49,6 +46,13 @@ func SetupRegistryClient() workflow.Step {
 
 			// Apply user configuration
 			baseAuth.Copy(registryAuth)
+
+			// Handle GHCR specially as they use the auth on their own token endpoint,
+			// which is always required no matter if authenticated or anonoymous
+			baseAuth.Handle("ghcr.io", &ghcr.Client{
+				Client:        httpClient,
+				TokenAuthFunc: registryAuth.HandleAuth,
+			})
 
 			client := &oci.Client{
 				Client:   httpClient,
