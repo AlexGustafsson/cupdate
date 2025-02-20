@@ -101,13 +101,22 @@ func (c *Client) GetPackage(ctx context.Context, reference oci.Reference) (*Pack
 	defer res.Body.Close()
 
 	if res.StatusCode == http.StatusNotFound {
-		return nil, nil
+		return nil, fmt.Errorf("cannot get GHCR package information - page not found (might require additional authentication)")
 	} else if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
 		return nil, err
 	}
 
 	owner, _, _ := strings.Cut(reference.Path, "/")
-	return parsePackage(res.Body, owner)
+	pkg, err := parsePackage(res.Body, owner)
+	if err != nil {
+		return nil, err
+	}
+
+	if pkg == nil {
+		return nil, fmt.Errorf("failed to parse GHCR package information")
+	}
+
+	return pkg, nil
 }
 
 func (c *Client) GetREADME(ctx context.Context, url string) (string, error) {
