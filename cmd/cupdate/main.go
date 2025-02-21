@@ -227,6 +227,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := store.Initialize(ctx, "file://"+absoluteDatabasePath); err != nil {
+		slog.ErrorContext(ctx, "Failed to initialize database", slog.Any("error", err))
+		os.Exit(1)
+	}
+
 	readStore, err := store.New("file://"+absoluteDatabasePath, true)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to load database", slog.Any("error", err))

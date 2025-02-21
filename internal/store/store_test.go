@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -12,9 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestStoreInsertRawImage(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
+func newStore(t *testing.T, readOnly bool) *Store {
+	uri := "file://" + t.TempDir() + "/sqlite.db"
+
+	err := Initialize(context.TODO(), uri)
 	require.NoError(t, err)
+
+	store, err := New(uri, readOnly)
+	require.NoError(t, err)
+
+	return store
+}
+
+func TestStoreInsertRawImage(t *testing.T) {
+	store := newStore(t, false)
 	defer store.Close()
 
 	expected := models.RawImage{
@@ -27,7 +39,7 @@ func TestStoreInsertRawImage(t *testing.T) {
 		LastProcessed: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &expected)
+	_, err := store.InsertRawImage(context.TODO(), &expected)
 	require.NoError(t, err)
 
 	actual, err := store.ListRawImages(context.TODO(), nil)
@@ -36,8 +48,7 @@ func TestStoreInsertRawImage(t *testing.T) {
 }
 
 func TestStoreInsertImage(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	expected := &models.Image{
@@ -63,7 +74,7 @@ func TestStoreInsertImage(t *testing.T) {
 		Image:        "https://example.com/logo.png",
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: expected.Reference,
 	})
 	require.NoError(t, err)
@@ -104,11 +115,10 @@ func TestStoreInsertImage(t *testing.T) {
 }
 
 func TestStoreTags(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -125,15 +135,14 @@ func TestStoreTags(t *testing.T) {
 }
 
 func TestStoreImageDescription(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	expected := models.ImageDescription{
 		Markdown: "# Release",
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -181,8 +190,7 @@ func TestStoreImageDescription(t *testing.T) {
 }
 
 func TestStoreImageReleaseNotes(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	expected := models.ImageReleaseNotes{
@@ -191,7 +199,7 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 		Released: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -239,8 +247,7 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 }
 
 func TestStoreImageGraph(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	expected := models.Graph{
@@ -263,7 +270,7 @@ func TestStoreImageGraph(t *testing.T) {
 		},
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
@@ -311,8 +318,7 @@ func TestStoreImageGraph(t *testing.T) {
 }
 
 func TestListImages(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	expectedImages := []models.Image{
@@ -400,8 +406,7 @@ func TestListImages(t *testing.T) {
 }
 
 func TestListImagesQuery(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	images := []models.Image{
@@ -474,8 +479,7 @@ func TestListImagesQuery(t *testing.T) {
 }
 
 func TestStoreDeleteNonPresent(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	images := []*models.Image{
@@ -554,8 +558,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 }
 
 func TestStoreUpdateImageReference(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	image := &models.Image{
@@ -581,7 +584,7 @@ func TestStoreUpdateImageReference(t *testing.T) {
 		Image:        "https://example.com/logo.png",
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: image.Reference,
 	})
 	require.NoError(t, err)
@@ -628,15 +631,14 @@ func TestStoreUpdateImageReference(t *testing.T) {
 // Use time.Local).UTC() as a workaround.
 // SEE: https://github.com/stretchr/testify/issues/843#issuecomment-1952362012
 func TestInsertWorkflowRun(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	rawImage := &models.RawImage{
 		Reference: "mongo:4",
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), rawImage)
+	_, err := store.InsertRawImage(context.TODO(), rawImage)
 	require.NoError(t, err)
 
 	image := &models.Image{
@@ -694,8 +696,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 }
 
 func TestCascadeDelete(t *testing.T) {
-	store, err := New("file://"+t.TempDir()+"/sqlite.db", false)
-	require.NoError(t, err)
+	store := newStore(t, false)
 	defer store.Close()
 
 	image := &models.Image{
@@ -717,7 +718,7 @@ func TestCascadeDelete(t *testing.T) {
 		},
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
 		Reference: image.Reference,
 	})
 	require.NoError(t, err)
@@ -755,10 +756,15 @@ func TestCascadeDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	ftsTables := []string{"images_fts"}
+	ignoredTables := []string{"revision"}
 
 	for res.Next() {
 		var tableName string
 		require.NoError(t, res.Scan(&tableName))
+
+		if slices.Contains(ignoredTables, tableName) {
+			continue
+		}
 
 		// Ignore tables created and used by FTS
 		isFTS := false

@@ -10,17 +10,9 @@ import (
 	"sync"
 	"time"
 
-	_ "embed" // Embed SQL files
-
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	_ "modernc.org/sqlite"
 )
-
-//go:embed createTablesIfNotExist.sql
-var createTablesIfNotExist string
-
-//go:embed trackChanges.sql
-var trackChanges string
 
 type Store struct {
 	// mutex must be held when performing write operations
@@ -42,19 +34,13 @@ func New(uri string, readonly bool) (*Store, error) {
 		return nil, err
 	}
 
-	if !readonly {
-		// SEE: docs/architecture/database.md
-		_, err = db.Exec(createTablesIfNotExist)
-		if err != nil {
-			db.Close()
-			return nil, err
-		}
+	revision, err := getStoreRevision(context.TODO(), db)
+	if err != nil {
+		return nil, err
+	}
 
-		_, err = db.Exec(trackChanges)
-		if err != nil {
-			db.Close()
-			return nil, err
-		}
+	if revision != Revision {
+		return nil, fmt.Errorf("database revision mismatch")
 	}
 
 	return &Store{

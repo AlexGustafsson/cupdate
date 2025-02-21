@@ -1,11 +1,18 @@
-CREATE TABLE IF NOT EXISTS raw_images (
+CREATE TABLE revision (
+  -- Ensure only a single row can exist
+  id INTEGER PRIMARY KEY CHECK (id = 0),
+  revision INT NOT NULL
+);
+INSERT INTO revision (id, revision) VALUES (0, 1);
+
+CREATE TABLE raw_images (
   reference TEXT PRIMARY KEY NOT NULL,
   tags BLOB NOT NULL,
   graph BLOB NOT NULL,
   lastProcessed DATETIME
 );
 
-CREATE TABLE IF NOT EXISTS images (
+CREATE TABLE images (
   reference TEXT PRIMARY KEY NOT NULL,
   created DATETIME,
   latestReference TEXT,
@@ -17,29 +24,7 @@ CREATE TABLE IF NOT EXISTS images (
   FOREIGN KEY(reference) REFERENCES raw_images(reference) ON DELETE CASCADE
 );
 
-CREATE VIRTUAL TABLE IF NOT EXISTS images_fts USING FTS5(
-  content='images',
-  reference,
-  description
-);
-
-DROP TRIGGER IF EXISTS images_fts_insert;
-CREATE TRIGGER images_fts_insert AFTER INSERT ON images BEGIN
-  INSERT INTO images_fts(rowid, reference, description) VALUES (new.rowid, new.reference, new.description);
-END;
-
-DROP TRIGGER IF EXISTS images_fts_delete;
-CREATE TRIGGER images_fts_delete AFTER DELETE ON images BEGIN
-  INSERT INTO images_fts(images_fts, rowid, reference, description) VALUES('delete', old.rowid, old.reference, old.description);
-END;
-
-DROP TRIGGER IF EXISTS images_fts_update;
-CREATE TRIGGER images_fts_update AFTER UPDATE ON images BEGIN
-  INSERT INTO images_fts(images_fts, rowid, reference, description) VALUES('delete', old.rowid, old.reference, old.description);
-  INSERT INTO images_fts(rowid, reference, description) VALUES (new.rowid, new.reference, new.description);
-END;
-
-CREATE TABLE IF NOT EXISTS images_tags (
+CREATE TABLE images_tags (
   reference TEXT NOT NULL,
   tag TEXT NOT NULL,
   PRIMARY KEY (reference, tag),
@@ -55,14 +40,14 @@ DELETE FROM images_tags WHERE reference NOT IN (SELECT reference FROM images);
 -- TODO: Rename in v1. This was done as an easy way to migrate somewhat
 -- gracefully without having to drop the entire database
 DROP TABLE IF EXISTS images_links;
-CREATE TABLE IF NOT EXISTS images_linksv2 (
+CREATE TABLE images_linksv2 (
   reference TEXT NOT NULL,
   links BLOB NOT NULL,
   PRIMARY KEY (reference),
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS images_release_notes (
+CREATE TABLE images_release_notes (
   reference TEXT NOT NULL,
   title TEXT NOT NULL,
   html TEXT NOT NULL,
@@ -72,7 +57,7 @@ CREATE TABLE IF NOT EXISTS images_release_notes (
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS images_descriptions (
+CREATE TABLE images_descriptions (
   reference TEXT NOT NULL,
   html TEXT NOT NULL,
   markdown TEXT NOT NULL,
@@ -80,7 +65,7 @@ CREATE TABLE IF NOT EXISTS images_descriptions (
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS images_graphs (
+CREATE TABLE images_graphs (
   reference TEXT NOT NULL,
   graph BLOB NOT NULL,
   PRIMARY KEY (reference),
@@ -90,7 +75,7 @@ CREATE TABLE IF NOT EXISTS images_graphs (
 -- TODO: Rename in v1. This was done as an easy way to migrate somewhat
 -- gracefully without having to drop the entire database
 DROP TABLE IF EXISTS images_vulnerabilities;
-CREATE TABLE IF NOT EXISTS images_vulnerabilitiesv2 (
+CREATE TABLE images_vulnerabilitiesv2 (
   reference TEXT NOT NULL,
   count INT NOT NULL,
   vulnerabilities BLOB NOT NULL,
@@ -98,7 +83,7 @@ CREATE TABLE IF NOT EXISTS images_vulnerabilitiesv2 (
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS images_workflow_runs (
+CREATE TABLE images_workflow_runs (
   reference TEXT NOT NULL,
   started DATETIME NOT NULL,
   result TEXT NOT NULL,

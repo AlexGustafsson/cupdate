@@ -1,5 +1,5 @@
 -- Track changes
-CREATE TABLE IF NOT EXISTS images_changes (
+CREATE TABLE images_changes (
   reference TEXT NOT NULL,
   time DATETIME NOT NULL,
   type TEXT NOT NULL,
@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS images_changes (
 -- delete, at which point we already remove the images_changes entry
 
 -- Update changes on INSERT to images table
-DROP TRIGGER IF EXISTS images_changes_images_insert;
 CREATE TRIGGER images_changes_images_insert AFTER INSERT ON images BEGIN
   INSERT INTO images_changes(
     reference,
@@ -36,7 +35,6 @@ CREATE TRIGGER images_changes_images_insert AFTER INSERT ON images BEGIN
 END;
 
 -- Update images_updates on UPDATE to images table
-DROP TRIGGER IF EXISTS images_changes_images_update;
 CREATE TRIGGER images_changes_images_update AFTER UPDATE ON images WHEN
     old.latestReference <> new.latestReference
     OR old.description <> new.description
@@ -58,7 +56,6 @@ CREATE TRIGGER images_changes_images_update AFTER UPDATE ON images WHEN
 END;
 
 -- Update changes on INSERT to images_links table
-DROP TRIGGER IF EXISTS images_changes_images_links_insert;
 CREATE TRIGGER images_changes_images_links_insert AFTER INSERT ON images_linksv2 BEGIN
   INSERT INTO images_changes(
     reference,
@@ -76,7 +73,6 @@ CREATE TRIGGER images_changes_images_links_insert AFTER INSERT ON images_linksv2
 END;
 
 -- Update images_updates on UPDATE to images_links table
-DROP TRIGGER IF EXISTS images_changes_images_links_update;
 CREATE TRIGGER images_changes_images_links_update AFTER UPDATE ON images_linksv2 WHEN
     old.links <> new.links
   BEGIN
@@ -96,7 +92,6 @@ CREATE TRIGGER images_changes_images_links_update AFTER UPDATE ON images_linksv2
 END;
 
 -- Update changes on INSERT to images_release_notes table
-DROP TRIGGER IF EXISTS images_changes_images_release_notes_insert;
 CREATE TRIGGER images_changes_images_release_notes_insert AFTER INSERT ON images_release_notes BEGIN
   INSERT INTO images_changes(
     reference,
@@ -114,7 +109,6 @@ CREATE TRIGGER images_changes_images_release_notes_insert AFTER INSERT ON images
 END;
 
 -- Update images_updates on UPDATE to images_release_notes table
-DROP TRIGGER IF EXISTS images_changes_images_release_notes_update;
 CREATE TRIGGER images_changes_images_release_notes_update AFTER UPDATE ON images_release_notes WHEN
     old.title <> new.title
     OR old.html <> new.html
@@ -137,7 +131,6 @@ CREATE TRIGGER images_changes_images_release_notes_update AFTER UPDATE ON images
 END;
 
 -- Update changes on INSERT to images_descriptions table
-DROP TRIGGER IF EXISTS images_changes_images_descriptions_insert;
 CREATE TRIGGER images_changes_images_descriptions_insert AFTER INSERT ON images_descriptions BEGIN
   INSERT INTO images_changes(
     reference,
@@ -155,7 +148,6 @@ CREATE TRIGGER images_changes_images_descriptions_insert AFTER INSERT ON images_
 END;
 
 -- Update images_updates on UPDATE to images_descriptions table
-DROP TRIGGER IF EXISTS images_changes_images_descriptions_update;
 CREATE TRIGGER images_changes_images_descriptions_update AFTER UPDATE ON images_descriptions WHEN
     old.html <> new.html
     OR old.markdown <> new.markdown
@@ -176,7 +168,6 @@ CREATE TRIGGER images_changes_images_descriptions_update AFTER UPDATE ON images_
 END;
 
 -- Update changes on INSERT to images_graphs table
-DROP TRIGGER IF EXISTS images_changes_images_graphs_insert;
 CREATE TRIGGER images_changes_images_graphs_insert AFTER INSERT ON images_graphs BEGIN
   INSERT INTO images_changes(
     reference,
@@ -194,7 +185,6 @@ CREATE TRIGGER images_changes_images_graphs_insert AFTER INSERT ON images_graphs
 END;
 
 -- Update images_updates on UPDATE to images_graphs table
-DROP TRIGGER IF EXISTS images_changes_images_graphs_update;
 CREATE TRIGGER images_changes_images_graphs_update AFTER UPDATE ON images_graphs WHEN
     old.graph <> new.graph
   BEGIN
@@ -214,7 +204,6 @@ CREATE TRIGGER images_changes_images_graphs_update AFTER UPDATE ON images_graphs
 END;
 
 -- Update changes on INSERT to images_vulnerabilities table
-DROP TRIGGER IF EXISTS images_changes_images_vulnerabilities_insert;
 CREATE TRIGGER images_changes_images_vulnerabilities_insert AFTER INSERT ON images_vulnerabilitiesv2 BEGIN
   INSERT INTO images_changes(
     reference,
@@ -232,7 +221,6 @@ CREATE TRIGGER images_changes_images_vulnerabilities_insert AFTER INSERT ON imag
 END;
 
 -- Update images_updates on UPDATE to images_vulnerabilities table
-DROP TRIGGER IF EXISTS images_changes_images_vulnerabilities_update;
 CREATE TRIGGER images_changes_images_vulnerabilities_update AFTER UPDATE ON images_vulnerabilitiesv2 WHEN
     old.vulnerabilities <> new.vulnerabilities
   BEGIN
