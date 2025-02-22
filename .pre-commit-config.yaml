@@ -13,3 +13,9 @@ repos:
         language: system
         types: [text]
         files: \.(md|yml|yaml)$
+      - id: store
+        name: Lint store migrations
+        entry: ./tools/ci/lint-store-migrations.sh
+        language: system
+        types: [text]
+        files: internal/store/*

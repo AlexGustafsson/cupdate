@@ -56,6 +56,9 @@ jobs:
       - name: Lint
         run: yarn run lint
 
+      - name: Lint store migrations
+        run: ./tools/ci/lint-store-migrations.sh
+
   test:
     name: Test
     runs-on: ubuntu-latest
