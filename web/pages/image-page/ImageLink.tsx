@@ -25,6 +25,8 @@ export function ImageLink({
   type: string
   url: string
 }): JSX.Element {
+  const { hostname } = new URL(url)
+
   const title = titles[type] || url
   let icon: ReactNode
   switch (type) {
@@ -47,12 +49,13 @@ export function ImageLink({
       icon = <SimpleIconsGit className="text-orange-500" />
       break
     case 'svc':
-      if (url.includes('github.com')) {
-        return <ImageLink type="github" url={url} />
-      } else if (url.includes('gitlab')) {
-        return <ImageLink type="gitlab" url={url} />
-      } else {
-        return <ImageLink type="git" url={url} />
+      switch (hostname) {
+        case 'github.com':
+          return <ImageLink type="github" url={url} />
+        case 'gitlab.com':
+          return <ImageLink type="gitlab" url={url} />
+        default:
+          return <ImageLink type="git" url={url} />
       }
     case 'docs':
       icon = <FluentBookQuestionMark24Filled />
