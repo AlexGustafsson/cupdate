@@ -241,7 +241,6 @@ CREATE TRIGGER images_changes_images_vulnerabilities_update AFTER UPDATE ON imag
 END;
 
 -- Update changes on INSERT to images_scorecards table
-DROP TRIGGER IF EXISTS images_changes_images_scorecards_insert;
 CREATE TRIGGER images_changes_images_scorecards_insert AFTER INSERT ON images_scorecards BEGIN
   INSERT INTO images_changes(
     reference,
@@ -259,7 +258,6 @@ CREATE TRIGGER images_changes_images_scorecards_insert AFTER INSERT ON images_sc
 END;
 
 -- Update images_updates on UPDATE to images_scorecards table
-DROP TRIGGER IF EXISTS images_changes_images_scorecards_update;
 CREATE TRIGGER images_changes_images_scorecards_update AFTER UPDATE ON images_scorecards WHEN
     old.scorecard <> new.scorecard
   BEGIN
