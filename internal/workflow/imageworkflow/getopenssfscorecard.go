@@ -1,7 +1,6 @@
 package imageworkflow
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -24,8 +23,6 @@ func GetOpenSSFScorecard() workflow.Step {
 			if err != nil {
 				return nil, err
 			}
-
-			fmt.Println(repository)
 
 			if !scorecard.RepositoryIsSupported(repository) {
 				return nil, nil
