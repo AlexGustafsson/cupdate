@@ -10,7 +10,7 @@ import (
 
 func TestInitializeNew(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
-	uri := "file:///Users/alex/Documents/GitHub/cupdate/dbv1-2.sqlite"
+	uri := "file://" + t.TempDir() + "/sqlite.db"
 
 	err := Initialize(context.TODO(), uri)
 	require.NoError(t, err)
