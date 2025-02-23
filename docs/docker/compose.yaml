@@ -1,6 +1,6 @@
 services:
   cupdate:
-    image: ghcr.io/alexgustafsson/cupdate:0.16.0
+    image: ghcr.io/alexgustafsson/cupdate:0.17.0
     ports:
       - 8080:8080
     environment:
