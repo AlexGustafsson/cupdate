@@ -91,14 +91,15 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		}
 
 		limitString := query.Get("limit")
-		var limit int64 = 30
+		var limit int = 30
 		if limitString != "" {
 			var err error
-			limit, err = strconv.ParseInt(limitString, 10, 64)
+			l, err := strconv.ParseInt(limitString, 10, 32)
 			if err != nil {
 				s.handleGenericResponse(w, r, err)
 				return
 			}
+			limit = int(l)
 		}
 
 		listOptions := &store.ListImageOptions{
