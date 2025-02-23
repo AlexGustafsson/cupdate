@@ -138,16 +138,14 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 			versionDiffSortable = semver.PackedSingleDigitPatchDiff
 		}
 
-		// Add tags based on version diff
 		currentVersion, currentVersionErr := semver.ParseVersion(data.ImageReference.Version())
 		newVersion, newVersionErr := semver.ParseVersion(data.LatestReference.Version())
 		if currentVersion != nil && currentVersionErr == nil && newVersion != nil && newVersionErr == nil {
 			diff := currentVersion.Diff(newVersion)
 			if diff != "" {
 				data.InsertTag(diff)
+				versionDiffSortable = semver.PackInt64(newVersion) - semver.PackInt64(currentVersion)
 			}
-
-			versionDiffSortable = semver.PackInt64(newVersion) - semver.PackInt64(currentVersion)
 		}
 	}
 
