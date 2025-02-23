@@ -36,6 +36,9 @@ on:
       - vite.config.ts
       - yarn.lock
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint
