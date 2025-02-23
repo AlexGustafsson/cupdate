@@ -109,6 +109,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		Links:           make([]models.ImageLink, 0),
 		Vulnerabilities: make([]models.ImageVulnerability, 0),
 		Graph:           image.Graph,
+		Scorecard:       nil,
 		RegistryAuth:    w.registryAuth,
 	}
 
