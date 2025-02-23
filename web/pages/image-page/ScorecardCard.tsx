@@ -66,7 +66,7 @@ export function ScorecardCard({ scorecard }: ScorecardCardProps): JSX.Element {
         ? 'text-red-400'
         : scorecard.score <= 7.5
           ? 'text-orange-400'
-          : 'text-yellow-400'
+          : 'text-green-400'
 
   return (
     <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
