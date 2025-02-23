@@ -33,7 +33,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
+      packages: write # Publish OCI image
 
     steps:
       - name: Checkout code

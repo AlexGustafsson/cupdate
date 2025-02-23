@@ -16,7 +16,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
+      packages: write # Publish vulndb OCI artifact
 
     steps:
       - name: Checkout code
