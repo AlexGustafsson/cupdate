@@ -46,7 +46,7 @@ func GetOpenSSFScorecard() workflow.Step {
 
 			reportTime, err := scorecard.Time()
 			if err != nil {
-				slog.Warn("Failed to parse date scorecard report was gathered", slog.Any("error", err))
+				slog.WarnContext(ctx, "Failed to parse date scorecard report was gathered", slog.Any("error", err))
 				return nil, nil
 			}
 

@@ -77,7 +77,7 @@ func GetLatestReference() workflow.Step {
 							l.Digest = m.Digest
 						}
 					} else {
-						slog.Warn("Failed to look up the manifest of the latest reference, falling back to no digest", slog.Any("error", err))
+						slog.WarnContext(ctx, "Failed to look up the manifest of the latest reference, falling back to no digest", slog.Any("error", err))
 					}
 
 					latestReference = &l

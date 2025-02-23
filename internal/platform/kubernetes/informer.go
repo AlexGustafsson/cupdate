@@ -193,7 +193,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 
 			ref, err := getImageReference(specImage, statusImage, statusImageID)
 			if err != nil {
-				slog.Error("Failed to identify a valid image reference for container", slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
+				slog.ErrorContext(ctx, "Failed to identify a valid image reference for container", slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
 				continue
 			}
 
@@ -203,7 +203,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 			// Therefore ignore references without digests and assume that we'll get
 			// them soon, with a digest
 			if !ref.HasDigest {
-				slog.Debug("Ignoring reference without digest", slog.String("reference", ref.Reference()), slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
+				slog.DebugContext(ctx, "Ignoring reference without digest", slog.String("reference", ref.Reference()), slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
 				continue
 			}
 

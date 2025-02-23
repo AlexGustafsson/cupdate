@@ -218,7 +218,7 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 
 		ref, err := getImageReference(container.Image, repoDigests)
 		if err != nil {
-			slog.Error("Failed to identify a valid image reference for container", slog.String("container", container.ID))
+			slog.ErrorContext(ctx, "Failed to identify a valid image reference for container", slog.String("container", container.ID))
 			continue
 		}
 
