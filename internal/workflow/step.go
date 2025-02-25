@@ -136,7 +136,8 @@ func (s Step) RunPost(ctx Context) error {
 	return nil
 }
 
-// Describe returns a mermaid flowchart describing the step.
+// Describe returns part of a mermaid flowchart describing the step.
+// See [Workflow.Describe].
 func (s Step) Describe(namespace string) string {
 	var builder strings.Builder
 
