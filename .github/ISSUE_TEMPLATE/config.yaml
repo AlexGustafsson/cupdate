@@ -6,5 +6,5 @@ contact_links:
     about: Please ask and answer questions here.
 
   - name: Cupdate Security Issues
-    url: https://bounty.github.com/
+    url: https://github.com/AlexGustafsson/cupdate/security/advisories/new
     about: Please report security vulnerabilities here.

@@ -7,6 +7,11 @@ body:
     attributes:
       value: >
         Thanks for taking the time to request a new feature!
+        To keep Cupdate's scope in a size that's maintainable, not all features
+        are accepted. Additionally, as Cupdate's feature set grows, it becomes
+        harder to test. Therefore, the best way to help out is for you to be
+        available to discuss the feature request and test the feature during its
+        development.
   - type: textarea
     id: stories
     attributes:

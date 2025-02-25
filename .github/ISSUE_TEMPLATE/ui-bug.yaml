@@ -7,6 +7,7 @@ body:
     attributes:
       value: >
         Thanks for taking the time to fill out this bug report!
+        Testing Cupdate, finding and filing bugs is a great way to contribute.
   - type: textarea
     id: what-happened
     attributes:
