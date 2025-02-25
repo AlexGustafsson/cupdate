@@ -9,6 +9,7 @@ import {
   useRef,
 } from 'react'
 
+/** ImageEvent holds event information for image events. */
 export type ImageEvent = {
   type: 'imageUpdated' | 'imageProcessed'
   reference: string
@@ -28,6 +29,10 @@ const EventContext = createContext<EventContextType>({
   removeCallback: () => {},
 })
 
+/**
+ * EventProvider provides the context with means to consume events from the
+ * backend.
+ */
 export function EventProvider({ children }: PropsWithChildren): JSX.Element {
   const callbacksRef = useRef<EventHandler[]>([])
 
@@ -78,6 +83,7 @@ export function EventProvider({ children }: PropsWithChildren): JSX.Element {
   )
 }
 
+/** useEvents will invoke the callback whenever an event is received. */
 export function useEvents(callback: EventHandler, deps: DependencyList) {
   const context = use(EventContext)
 

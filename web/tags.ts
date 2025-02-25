@@ -1,6 +1,12 @@
+/** Tag holds information about a label / tag used to categorize images. */
 export interface Tag {
+  /** Name is the human-readable name of the tag. */
   name: string
+  /** Description optionally holds a description for the tag. */
   description?: string
+  /**
+   * Color optionally holds a CSS color or light/dark color combo for the tag.
+   */
   color?: string | { light: string; dark: string }
 }
 
@@ -26,6 +32,7 @@ const palette: Record<string, string | { light: string; dark: string }> = {
   yellow: { light: '#e8c600', dark: '#998200' },
 }
 
+/** Holds known / well-defined tags. */
 export const Tags: Tag[] = [
   {
     name: 'pod',
@@ -124,6 +131,7 @@ export const Tags: Tag[] = [
   },
 ]
 
+/** Holds known / well-defined tags, mapped by their name. */
 export const TagsByName: Record<string, Tag> = Object.fromEntries(
   Tags.map((x) => [x.name, x])
 )

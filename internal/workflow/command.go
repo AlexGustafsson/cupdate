@@ -7,6 +7,7 @@ import "fmt"
 // completes. This enables a step to define outputs, values and more.
 type Command func(ctx Context)
 
+// Batch batches several commands, running them in sequence.
 func Batch(commands ...Command) Command {
 	return func(ctx Context) {
 		for _, command := range commands {

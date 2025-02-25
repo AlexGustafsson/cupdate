@@ -5,6 +5,8 @@ import (
 	"net/url"
 )
 
+// ResolveRequestURL resolves the URL in request using common headers like
+// X-Forwarded-Host and X-Forwarded-Proto.
 func ResolveRequestURL(r *http.Request) (*url.URL, error) {
 	scheme := "http"
 	if r.TLS != nil {

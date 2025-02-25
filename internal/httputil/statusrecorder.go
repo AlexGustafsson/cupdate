@@ -7,6 +7,8 @@ import (
 var _ http.ResponseWriter = (*StatusRecorder)(nil)
 var _ http.Flusher = (*StatusRecorder)(nil)
 
+// StatusRecorder is a [http.ResponseWriter] and [http.Flusher] that records the
+// status code.
 type StatusRecorder struct {
 	Writer http.ResponseWriter
 
@@ -36,6 +38,7 @@ func (s *StatusRecorder) WriteHeader(statusCode int) {
 	s.Writer.WriteHeader(statusCode)
 }
 
+// StatusCode returns the recorded status code.
 func (s *StatusRecorder) StatusCode() int {
 	return s.statusCode
 }

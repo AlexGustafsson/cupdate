@@ -6,6 +6,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 )
 
+// ResourceKind defines the types of resources exposed by the platform.
 type ResourceKind string
 
 const (
@@ -17,10 +18,26 @@ const (
 	ResourceKindComposeService = "compose/service"
 )
 
+// IsSupported returns whether or not the resource is supported.
+func (r ResourceKind) IsSupported() bool {
+	switch r {
+	case ResourceKindContainer, ResourceKindSwarmTask,
+		ResourceKindSwarmService, ResourceKindSwarmNamespace,
+		ResourceKindComposeProject, ResourceKindComposeService:
+		return true
+	default:
+		return false
+	}
+}
+
+// Resource is a Docker resource found on the platform.
 type Resource interface {
 	platform.Node
+	// Kind returns the type of resource.
 	Kind() ResourceKind
+	// Name returns the name of the resource.
 	Name() string
+	// String returns a textual representation of the resource.
 	String() string
 }
 
@@ -33,30 +50,38 @@ type resource struct {
 	labels platform.Labels
 }
 
+// ID implements platform.Node.
 func (r resource) ID() string {
 	return r.id
 }
 
+// Type implements platform.Node.
 func (r resource) Type() string {
 	return "docker/" + string(r.kind)
 }
 
+// Kind implements Resource.
 func (r resource) Kind() ResourceKind {
 	return r.kind
 }
 
+// Name implements Resource.
 func (r resource) Name() string {
 	return r.name
 }
 
+// Labels implements platform.Node.
 func (r resource) Labels() platform.Labels {
 	return r.labels
 }
 
+// String implements Resource.
 func (r resource) String() string {
 	return fmt.Sprintf("%s<%s>", r.kind, r.name)
 }
 
+// TagName returns the human-readable name of a tag representing the resource.
+// Panics if [ResourceKind.IsSupported] returns false.
 func TagName(kind ResourceKind) string {
 	switch kind {
 	case ResourceKindContainer:

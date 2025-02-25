@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 )
 
+// NewDeterministicGUID returns a new GUID based on the provided values.
+// Always returns the same input for any given input.
 func NewDeterministicGUID(values ...string) string {
 	digest := sha256.New()
 	for _, value := range values {

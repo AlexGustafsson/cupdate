@@ -14,8 +14,13 @@ type Client struct {
 	Client *httputil.Client
 }
 
-func (c *Client) GetScan(ctx context.Context, reference oci.Reference, digest string) (*Scan, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://quay.io/api/v1/repository/%s/manifest/%s/security?vulnerabilities=true", reference.Path, digest), nil)
+// GetScan retrieves a scan of a manifest referenced by its digest.
+func (c *Client) GetScan(ctx context.Context, reference oci.Reference) (*Scan, error) {
+	if reference.Digest == "" {
+		return nil, fmt.Errorf("reference has no digest")
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://quay.io/api/v1/repository/%s/manifest/%s/security?vulnerabilities=true", reference.Path, reference.Digest), nil)
 	if err != nil {
 		return nil, err
 	}

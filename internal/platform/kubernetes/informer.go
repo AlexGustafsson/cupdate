@@ -16,6 +16,10 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+var _ cache.ResourceEventHandler = (*InformerGrapher)(nil)
+
+// InformerGrapher is a Kubernetes "informer" that reacts on changes made to
+// resources, graphing them continuously.
 type InformerGrapher struct {
 	clientset       *kubernetes.Clientset
 	informerFactory informers.SharedInformerFactory
@@ -30,6 +34,10 @@ type InformerGrapher struct {
 	mutex sync.Mutex
 }
 
+// NewInformerGrapher returns a new [InformerGrapher].
+//
+//   - includeOldReplicaSets can be set to true to include all replica sets, no
+//     matter their age
 func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets bool) (*InformerGrapher, error) {
 	grapher := &InformerGrapher{
 		clientset: clientset,
@@ -58,6 +66,7 @@ func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets b
 	return grapher, nil
 }
 
+// Starts graphing continuously.
 func (g *InformerGrapher) Start() {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -95,6 +104,8 @@ func (g *InformerGrapher) Start() {
 	g.informerFactory.Start(g.close)
 }
 
+// Stop stops the grapher and cleans up resources.
+// A stopped grapher cannot be started again.
 func (g *InformerGrapher) Stop() {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -112,6 +123,7 @@ func (g *InformerGrapher) Stop() {
 	}
 }
 
+// Graph implements platform.Platform.
 func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 	resources := make(map[types.UID]v1.Object)
 
@@ -237,6 +249,8 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 	return graph, nil
 }
 
+// Graphs returns a channel which will receive all graphs produced by the
+// grapher asynchronously. The returned channel is shared among all consumers.
 func (g *InformerGrapher) Graphs() <-chan platform.Graph {
 	return g.ch
 }
@@ -249,14 +263,17 @@ func (g *InformerGrapher) onEvent(isInitialList bool) {
 	g.events <- struct{}{}
 }
 
+// OnAdd implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnAdd(object any, isInitialList bool) {
 	g.onEvent(isInitialList)
 }
 
+// OnUpdate implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnUpdate(oldObject any, newObject any) {
 	g.onEvent(false)
 }
 
+// OnDelete implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnDelete(object any) {
 	g.onEvent(false)
 }

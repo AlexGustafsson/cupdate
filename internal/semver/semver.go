@@ -22,14 +22,22 @@ var commitHashPattern = regexp.MustCompile(`^[a-f0-9]{7,40}$`)
 var numericPattern = regexp.MustCompile(`^[0-9]+$`)
 
 var (
+	// ErrUnsupportedVersionFormat is returned is a version is of an unsupported
+	// format (i.e. likely not semantic).
 	ErrUnsupportedVersionFormat = errors.New("unsupported version format")
 )
 
+// Version is a semantic version.
 type Version struct {
-	Release    []int
-	Suffix     string
+	// Release holds the digits (likely major, minor, patch), as many as
+	// available.
+	Release []int
+	// Suffix is the suffix of the version, if any, such as -alpine.
+	Suffix string
+	// Prerelease is the prerelease of the version, such as rc1.
 	Prerelease string
 
+	// raw holds the raw value of the version when parsed.
 	raw string
 }
 

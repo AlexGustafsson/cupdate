@@ -6,6 +6,7 @@
 const ReferenceRegexp =
   /^((?:(?:(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])(?:\.(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]))*|\[(?:[a-fA-F0-9:]+)\])(?::[0-9]+)?\/)?[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*(?:\/[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*)*)(?::([\w][\w.-]{0,127}))?(?:@([A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][0-9A-Fa-f]{32,}))?$/
 
+/** Parse an OCI reference. Returns null for invalid references.  */
 export function parse(reference: string): {
   name: string
   tag: string
@@ -23,6 +24,10 @@ export function parse(reference: string): {
   }
 }
 
+/**
+ * Returns a string representing the reference's version in a way users would
+ * normally associate with an image.
+ */
 export function version(reference: string): string {
   const result = parse(reference)
   if (!result) {
@@ -39,6 +44,10 @@ export function version(reference: string): string {
   }
 }
 
+/**
+ * Returns a string representing the reference's version, including both tag and
+ * digest, if available.
+ */
 export function fullVersion(reference: string): string {
   const result = parse(reference)
   if (!result) {
@@ -58,6 +67,7 @@ export function fullVersion(reference: string): string {
   }
 }
 
+/** Name returns the name of the reference. I.e. its registry and path combo. */
 export function name(reference: string): string {
   const result = parse(reference)
   if (!result) {

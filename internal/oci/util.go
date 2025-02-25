@@ -9,7 +9,7 @@ import (
 // Assumes name has at least two components.
 // SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#endpoints
 func NameFromAPI(path string) string {
-	// /v2/<name>/[blobs,manifests,tags,referrers
+	// /v2/<name>/[blobs,manifests,tags,referrers]
 	parts := strings.Split(path, "/")
 	if len(parts) < 4 {
 		return ""

@@ -18,6 +18,8 @@ type Client struct {
 	Client *httputil.Client
 }
 
+// GetRegistryToken returns a token for use with Docker Hub with pull
+// permissions on the specified repository.
 func (c *Client) GetRegistryToken(ctx context.Context, repository string) (string, error) {
 	// TODO: Registries expose the realm and scheme via Www-Authenticate if 403
 	// is given
@@ -56,6 +58,7 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 	return result.Token, nil
 }
 
+// HandleAuth authenticates a request to the Docker Hub registry.
 func (c *Client) HandleAuth(r *http.Request) error {
 	name := oci.NameFromAPI(r.URL.Path)
 	// lscr.io is a pseudo-registry that forwards to one of multiple backends,
@@ -99,6 +102,8 @@ func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repos
 	return &result, nil
 }
 
+// GetOrganizationOrUser retrieves information about a Docker Hub user or
+// organization by name.
 func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser string) (*Entity, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://hub.docker.com/v2/orgs/"+url.PathEscape(organizationOrUser), nil)
 	if err != nil {
@@ -124,6 +129,8 @@ func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser s
 	return &result, nil
 }
 
+// GetVulnerabilityReport retrieves a Docker Scout vulnerability report for a
+// repository and image digest.
 func (c *Client) GetVulnerabilityReport(ctx context.Context, repo string, digest string) (*VulnerabilityReport, error) {
 	body, err := json.Marshal(map[string]any{
 		"query": "query imageSummariesByDigest($v1:Context!,$v2:[String!]!,$v3:ScRepositoryInput){imageSummariesByDigest(context:$v1,digests:$v2,repository:$v3){digest,sbomState,vulnerabilityReport{critical,high,medium,low,unspecified,total}}}",
@@ -178,103 +185,4 @@ func (c *Client) GetVulnerabilityReport(ctx context.Context, repo string, digest
 	}
 
 	return result.Data.ImageSummariesByDigest[0].VulnerabilityReport, nil
-}
-
-type Page[T any] struct {
-	Count    int     `json:"count"`
-	Next     *string `json:"next"`
-	Previous *string `json:"previous"`
-	Results  []T     `json:"results"`
-}
-
-type Tag struct {
-	Creator             int       `json:"creator"`
-	ID                  int       `json:"id"`
-	LastUpdated         time.Time `json:"last_updated"`
-	LastUpdater         int       `json:"last_updater"`
-	LastUpdaterUsername string    `json:"last_updater_username"`
-	Name                string    `json:"name"`
-	Repository          int       `json:"repository"`
-	FullSize            int       `json:"full_size"`
-	V2                  bool      `json:"v2"`
-	TagStatus           string    `json:"tag_status"`
-	TagLastPulled       time.Time `json:"tag_last_pulled"`
-	TagLastPushed       time.Time `json:"tag_last_pushed"`
-	MediaType           string    `json:"media_type"`
-	ContentType         string    `json:"content_type"`
-	Digest              string    `json:"digest"`
-	Images              []Image   `json:"images"`
-}
-
-type Image struct {
-	Architecture string    `json:"architecture"`
-	Features     string    `json:"features"`
-	Variant      *string   `json:"variant"`
-	Digest       string    `json:"digest"`
-	OS           string    `json:"os"`
-	OSFeatures   string    `json:"os_features"`
-	OSVersion    *string   `json:"os_version"`
-	Size         int       `json:"size"`
-	Status       string    `json:"status"`
-	LastPulled   time.Time `json:"last_pulled"`
-	LastPushed   time.Time `json:"last_pushed"`
-}
-
-type Repository struct {
-	User              string          `json:"user"`
-	Name              string          `json:"name"`
-	Namespace         string          `json:"namespace"`
-	Type              string          `json:"repository_type"`
-	Status            int             `json:"status"`
-	StatusDescription string          `json:"status_description"`
-	Description       string          `json:"description"`
-	IsPrivate         bool            `json:"is_private"`
-	IsAutomated       bool            `json:"is_automated"`
-	StarCount         int             `json:"star_count"`
-	PullCount         int             `json:"pull_count"`
-	LastUpdated       time.Time       `json:"last_updated"`
-	DateRegistered    time.Time       `json:"date_registered"`
-	CollaboratorCount int             `json:"collaborator_count"`
-	Affiliation       json.RawMessage `json:"affiliation"` // Unknown
-	HubUser           string          `json:"hub_user"`
-	HasStarred        bool            `json:"has_starred"`
-	FullDescription   string          `json:"full_description"`
-	Permissions       struct {
-		Read  bool `json:"read"`
-		Write bool `json:"write"`
-		Admin bool `json:"admin"`
-	} `json:"permissions"`
-	MediaTypes   []string `json:"media_types"`
-	ContentTypes []string `json:"content_types"`
-	Categories   []struct {
-		Name string `json:"name"`
-		Slug string `json:"slug"`
-	} `json:"categories"`
-	ImmutableTags      bool   `json:"immutable_tags"`
-	ImmutableTagsRules string `json:"immutable_tags_rules"`
-}
-
-type Entity struct {
-	ID               string    `json:"id"`
-	UUID             string    `json:"uuid,omitempty"`
-	OrganizationName string    `json:"orgname"`
-	Username         string    `json:"username,omitempty"`
-	FullName         string    `json:"full_name"`
-	Location         string    `json:"location"`
-	Company          string    `json:"company"`
-	ProfileURL       string    `json:"profile_url"`
-	DateJoined       time.Time `json:"date_joined"`
-	GravatarURL      string    `json:"gravatar_url"`
-	GravatarEmail    string    `json:"gravatar_email"`
-	Type             string    `json:"type"`
-	Badge            string    `json:"badge,omitempty"`
-}
-
-type VulnerabilityReport struct {
-	Critical    int `json:"critical"`
-	High        int `json:"high"`
-	Medium      int `json:"medium"`
-	Low         int `json:"low"`
-	Unspecified int `json:"unspecified"`
-	Total       int `json:"total"`
 }

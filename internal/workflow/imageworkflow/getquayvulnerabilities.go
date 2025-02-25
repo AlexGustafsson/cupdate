@@ -19,33 +19,14 @@ func GetQuayVulnerabilities() workflow.Step {
 				return nil, err
 			}
 
-			manifest, err := workflow.GetInput[any](ctx, "manifest", true)
-			if err != nil {
-				return nil, err
-			}
-
 			httpClient, err := workflow.GetInput[*httputil.Client](ctx, "httpClient", true)
 			if err != nil {
 				return nil, err
 			}
 
-			// TODO: For now, use the first digest of a manifest
-			var digest string
-			switch m := manifest.(type) {
-			case *oci.ImageManifest:
-				digest = m.Digest
-			case *oci.ImageIndex:
-				for _, m := range m.Manifests {
-					if m.Digest != "" {
-						digest = m.Digest
-						break
-					}
-				}
-			}
-
 			// NOTE: For now, to not have to perform additional queries, only look up
 			// manifests that include the digest upfront
-			if digest == "" {
+			if reference.Digest == "" {
 				return nil, nil
 			}
 
@@ -53,7 +34,7 @@ func GetQuayVulnerabilities() workflow.Step {
 				Client: httpClient,
 			}
 
-			scan, err := client.GetScan(ctx, reference, digest)
+			scan, err := client.GetScan(ctx, reference)
 			if err != nil {
 				return nil, err
 			}

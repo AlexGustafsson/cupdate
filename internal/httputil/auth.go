@@ -8,7 +8,9 @@ import (
 	"sync"
 )
 
+// AuthHandler implements request authentication.
 type AuthHandler interface {
+	// HandleAuth authenticates a request.
 	HandleAuth(*http.Request) error
 }
 
@@ -20,6 +22,8 @@ func (f AuthHandlerFunc) HandleAuth(r *http.Request) error {
 
 var _ AuthHandler = (*BasicAuthHandler)(nil)
 
+// BasicAuthHandler auths requests using a username/password via the Basic
+// authorization scheme.
 type BasicAuthHandler struct {
 	Username string
 	Password string
@@ -32,6 +36,7 @@ func (h BasicAuthHandler) HandleAuth(r *http.Request) error {
 	return nil
 }
 
+// BearerToken auths requests using the Bearer authorization scheme.
 type BearerToken string
 
 func (t BearerToken) HandleAuth(r *http.Request) error {
@@ -40,6 +45,9 @@ func (t BearerToken) HandleAuth(r *http.Request) error {
 	return nil
 }
 
+// AuthMux is an HTTP auth multiplexer. It matches URLs of auth requests against
+// a list of registered patterns and calls the handler for the pattern that most
+// closely matches the request.
 type AuthMux struct {
 	mutex    sync.RWMutex
 	patterns map[string]AuthHandler
@@ -53,14 +61,17 @@ func NewAuthMux() *AuthMux {
 	}
 }
 
+// Handle registers handler for pattern.
 func (a *AuthMux) Handle(pattern string, handler AuthHandler) {
 	a.register(pattern, handler)
 }
 
+// Handle registers handler for pattern.
 func (a *AuthMux) HandleFunc(pattern string, handler func(*http.Request) error) {
 	a.register(pattern, AuthHandlerFunc(handler))
 }
 
+// HandleAuth implements [AuthHandler.HandleAuth].
 func (a *AuthMux) HandleAuth(r *http.Request) error {
 	a.mutex.RLock()
 
@@ -82,6 +93,7 @@ func (a *AuthMux) HandleAuth(r *http.Request) error {
 	return handler.HandleAuth(r)
 }
 
+// SetHeader sets a header to set on all requests.
 func (a *AuthMux) SetHeader(key string, value string) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -172,6 +184,7 @@ func (a *AuthMux) match(url *url.URL) AuthHandler {
 	return nil
 }
 
+// Copy copies all patterns from another [AuthMux] to this one.
 func (a *AuthMux) Copy(other *AuthMux) {
 	if other == nil {
 		return

@@ -10,8 +10,9 @@ import (
 )
 
 var _ platform.Grapher = (*Platform)(nil)
-var _ platform.ContinousGrapher = (*Platform)(nil)
+var _ platform.ContinuousGrapher = (*Platform)(nil)
 
+// Platform implements graphing for the Kubernetes platform.
 type Platform struct {
 	clientset *kubernetes.Clientset
 
@@ -19,9 +20,13 @@ type Platform struct {
 }
 
 type Options struct {
+	// IncludeOldReplicaSets will include all replica sets, no matter their age.
 	IncludeOldReplicaSets bool
 }
 
+// NewPlatform initializes a new [Platform].
+//
+//   - config hold information about how to connect to the Kubernetes APIs.
 func NewPlatform(config *rest.Config, options *Options) (*Platform, error) {
 	if options == nil {
 		options = &Options{}
@@ -39,13 +44,14 @@ func NewPlatform(config *rest.Config, options *Options) (*Platform, error) {
 	}, nil
 }
 
+// Graph implements platform.Platform.
 func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 	// TODO: Do we need to adhere to this interface if we only ever intend for
-	// GraphContinously to be used? Could Graph use GraphContinously once?
+	// GraphContinuously to be used? Could Graph use GraphContinuously once?
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (p *Platform) GraphContinously(ctx context.Context) (<-chan platform.Graph, error) {
+func (p *Platform) GraphContinuously(ctx context.Context) (<-chan platform.Graph, error) {
 	grapher, err := NewInformerGrapher(p.clientset, p.includeOldReplicaSets)
 	if err != nil {
 		return nil, err

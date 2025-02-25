@@ -13,6 +13,14 @@ type Client struct {
 	Client *httputil.Client
 }
 
+// GetScorecard retrieves a scorecard report for a repository.
+// A repository is formated like so: <hostname>/<path>.
+// See also [RepositoryIsSupported].
+//
+// Examples:
+//
+//	c.GetScorecard(ctx, "github.com/homeassistant/core")
+//	c.GetScorecard(ctx, "gitlab.com/baserow/baserow")
 func (c *Client) GetScorecard(ctx context.Context, repository string) (*Scorecard, error) {
 	if !RepositoryIsSupported(repository) {
 		return nil, fmt.Errorf("unsupported repository")

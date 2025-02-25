@@ -310,16 +310,16 @@ func main() {
 	wg.Go(func() error {
 		slog.InfoContext(ctx, "Starting platform grapher")
 
-		grapher, ok := targetPlatform.(platform.ContinousGrapher)
+		grapher, ok := targetPlatform.(platform.ContinuousGrapher)
 		if !ok {
-			slog.DebugContext(ctx, "Platform lacks native continous graphing support. Falling back to polling", slog.Duration("interval", config.Processing.Interval))
+			slog.DebugContext(ctx, "Platform lacks native continuous graphing support. Falling back to polling", slog.Duration("interval", config.Processing.Interval))
 			grapher = &platform.PollGrapher{
 				Grapher:  targetPlatform,
 				Interval: config.Processing.Interval,
 			}
 		}
 
-		graphs, err := grapher.GraphContinously(ctx)
+		graphs, err := grapher.GraphContinuously(ctx)
 		if err != nil {
 			slog.ErrorContext(ctx, "Failed to start graphing platform", slog.Any("error", err))
 			return err

@@ -11,6 +11,7 @@ const (
 
 const CupdateCacheStatusKey = attribute.Key("cupdate.cache.status")
 
+// CupdateWorkflowStepName returns an attribute for a cached entry's status.
 func CupdateCacheStatus(status string) attribute.KeyValue {
 	return CupdateCacheStatusKey.String(status)
 }
@@ -20,6 +21,7 @@ const (
 	CupdateWorkflowNameKey     = attribute.Key("cupdate.workflow.name")
 )
 
+// CupdateWorkflowStepName returns an attribute for a workflow's name.
 func CupdateWorkflowName(name string) attribute.KeyValue {
 	return CupdateWorkflowNameKey.String(name)
 }
@@ -29,6 +31,7 @@ const (
 	CupdateWorkflowJobNameKey     = attribute.Key("cupdate.workflow.job.name")
 )
 
+// CupdateWorkflowStepName returns an attribute for a workflow job's name.
 func CupdateWorkflowJobName(name string) attribute.KeyValue {
 	return CupdateWorkflowJobNameKey.String(name)
 }
@@ -39,6 +42,7 @@ const (
 	CupdateWorkflowStepNameKey         = attribute.Key("cupdate.workflow.step.name")
 )
 
+// CupdateWorkflowStepName returns an attribute for a workflow step's name.
 func CupdateWorkflowStepName(name string) attribute.KeyValue {
 	return CupdateWorkflowStepNameKey.String(name)
 }

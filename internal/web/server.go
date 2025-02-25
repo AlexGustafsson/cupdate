@@ -12,6 +12,7 @@ import (
 //go:embed public/*
 var public embed.FS
 
+// MustNewServer calls [NewServer] and panics on any error.
 func MustNewServer() http.Handler {
 	handler, err := NewServer()
 	if err != nil {

@@ -5,28 +5,54 @@ import (
 	"fmt"
 )
 
+// ImageManifest represents an image manifest.
+// This is an abstraction for all known image manifest formats (be it legacy
+// Docker manifests or standard OCI manifests).
 type ImageManifest struct {
-	ContentType   string
+	// ContentType is the MIME type as returned by the server providing the
+	// manifest.
+	ContentType string
+	// SchemaVersion specifies the image manifest schema version.
 	SchemaVersion int
-	MediaType     string
-	Platform      *Platform
-	Digest        string
-	Annotations   Annotations
+	// MediaType is the MIME type of the image manifest.
+	MediaType string
+	// Platform optionally holds details about the platform the image supports.
+	Platform *Platform
+	// Digest is the digest of the index, including the "sha256:" prefix.
+	Digest string
+	// Annotations contains user-defined labels of the manifest.
+	Annotations Annotations
 }
 
+// ImageIndex represents an group of images manifests.
+// This is an abstraction for all known image index formats (be it legacy Docker
+// manifests or standard OCI manifests).
 type ImageIndex struct {
-	ContentType   string
+	// ContentType is the MIME type as returned by the server providing the
+	// index.
+	ContentType string
+	// SchemaVersion specifies the image manifest schema version.
 	SchemaVersion int
-	MediaType     string
-	Manifests     []ImageManifest
-	Digest        string
-	Annotations   Annotations
+	// MediaType is the MIME type of the image index.
+	MediaType string
+	// Manifests contains the manifests provided by the index. Note that these may
+	// or may not hold the same information as if each manifest was retrieved
+	// individually.
+	Manifests []ImageManifest
+	// Digest is the digest of the index, including the "sha256:" prefix.
+	Digest string
+	// Annotations contains user-defined labels of the index.
+	Annotations Annotations
 }
 
 type Platform struct {
-	OS           string
+	// OS is the operating system supported by the manifest.
+	OS string
+	// Architecture is the architecture supported by the manifest.
 	Architecture string
-	Variant      string
+	// Variant is the architecture variant supported by the manifest.
+	// Typically a value such as "v8" for ARM images.
+	Variant string
 }
 
 func manifestFromBlob(blob Blob) (any, error) {

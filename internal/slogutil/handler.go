@@ -8,6 +8,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+// NewHandler initializes the default slog logger to use [Handler].
 func NewHandler(w io.Writer, opts *slog.HandlerOptions) slog.Handler {
 	return &Handler{
 		handler: slog.NewJSONHandler(w, opts),
@@ -16,6 +17,8 @@ func NewHandler(w io.Writer, opts *slog.HandlerOptions) slog.Handler {
 
 var _ (slog.Handler) = (*Handler)(nil)
 
+// Handler is a [slog.Handler] implementation supporting additions like trace
+// ids from context values.
 type Handler struct {
 	handler slog.Handler
 }

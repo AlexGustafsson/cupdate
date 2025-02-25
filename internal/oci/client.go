@@ -257,11 +257,17 @@ func (c *Client) GetAnnotations(ctx context.Context, ref Reference, options *Get
 }
 
 type GetTagsOptions struct {
-	Last     string
-	Count    int
+	// Last is the name of the last tag of the previous page. Used for pagination.
+	Last string
+	// Count is the number of tags to return.
+	// The server might not respect the choice.
+	Count int
+	// AllPages determines if the pagination is automatically handled to return
+	// all available tags.
 	AllPages bool
 }
 
+// GetTags retrieves available tags stored in a registry for a specific image.
 func (c *Client) GetTags(ctx context.Context, image Reference, options *GetTagsOptions) ([]string, error) {
 	tags, origin, linkHeader, err := c.getTags(ctx, image, options)
 	if err != nil {

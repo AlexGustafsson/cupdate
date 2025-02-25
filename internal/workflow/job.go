@@ -15,12 +15,22 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+// Job represents a series of steps.
+// The implementation mimics GitHub actions / workflows.
 type Job struct {
-	ID        string
-	Name      string
-	Steps     []Step
+	// ID is an optional ID by which to reference any outputs created by the job's
+	// steps.
+	ID string
+	// Name is a human-readable name of the job.
+	Name string
+	// Steps holds all the steps that are run as part of the job.
+	Steps []Step
+	// DependsOn optionally holds the ids of jobs that must complete for this job
+	// to run.
+	// Jobs will only run if its dependencies all succeeded.
 	DependsOn []string
-	If        Condition
+	// If holds a [Condition] that must pass for this job to run.
+	If Condition
 }
 
 // Run runs the job.
@@ -132,6 +142,8 @@ func (j Job) Run(ctx Context) (Context, error) {
 	return ctx, nil
 }
 
+// Describe returns part of a mermaid flowchart describing the job.
+// See [Workflow.Describe].
 func (j Job) Describe(namespace string) string {
 	var builder strings.Builder
 

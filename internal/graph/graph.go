@@ -104,6 +104,7 @@ func (g *Graph[T]) roots() []T {
 	return roots
 }
 
+// String returns a string describing the graph.
 func (g *Graph[T]) String() string {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -155,6 +156,8 @@ func (g *Graph[T]) children(nodeID string) []string {
 	return childrenIDs
 }
 
+// Subgraph returns a graph including all nodes and edges reachable from the
+// specified root.
 func (g *Graph[T]) Subgraph(rootID string) *Graph[T] {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
@@ -181,10 +184,12 @@ func (g *Graph[T]) Subgraph(rootID string) *Graph[T] {
 	return subgraph
 }
 
+// Edges returns all of the graph's edges.
 func (g *Graph[T]) Edges() map[string]map[string]bool {
 	return g.edges
 }
 
+// Nodes returns all of the graph's nodes.
 func (g *Graph[T]) Nodes() []T {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()

@@ -7,8 +7,11 @@ import (
 
 var _ error = (*Error)(nil)
 
+// Error is a base HTTP error useful for HTTP clients.
 type Error struct {
-	Status     string
+	// Status is the HTTP status of the response.
+	Status string
+	// StatusCode is the HTTP status code of the response.
 	StatusCode int
 }
 

@@ -11,6 +11,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+// Step represents a single unit of an operation.
+// The implementation mimics GitHub actions / workflows.
 type Step struct {
 	ID   string
 	Name string
@@ -134,6 +136,7 @@ func (s Step) RunPost(ctx Context) error {
 	return nil
 }
 
+// Describe returns a mermaid flowchart describing the step.
 func (s Step) Describe(namespace string) string {
 	var builder strings.Builder
 

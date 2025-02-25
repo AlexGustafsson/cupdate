@@ -1,3 +1,7 @@
+/**
+ * Returns a human-readable string representing the current relative time to
+ * the specified date.
+ */
 export function formatRelativeTimeTo(date: Date): string {
   let diff = Date.now() - date.getTime()
 
@@ -13,6 +17,7 @@ export function formatRelativeTimeTo(date: Date): string {
   return prefix + formatDuration(diff) + suffix
 }
 
+/** Returns a human-readable string representing the duration. */
 export function formatDuration(seconds: number): string {
   if (seconds < 1) {
     return 'less than a second'

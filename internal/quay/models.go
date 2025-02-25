@@ -7,6 +7,7 @@ const (
 	ScanStatusUnsupported            = "unsupported"
 )
 
+// Scan represents a scan result as defined by the Quay APIs.
 type Scan struct {
 	Status ScanStatus `json:"status"`
 	Data   *struct {

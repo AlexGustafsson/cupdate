@@ -8,7 +8,9 @@ import (
 	"golang.org/x/net/html"
 )
 
-// Resolve hrefs and srcs in input.
+// Resolve URLs in the input HTML document located at base.
+// Returns the same document, where all relative hrefs and srcs are replaced
+// with absolute URLs.
 func ResolveReferences(input string, base *url.URL) (string, error) {
 	node, err := html.Parse(strings.NewReader(input))
 	if err != nil {

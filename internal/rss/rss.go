@@ -7,6 +7,7 @@ import (
 
 var rfc2822 = "Mon, 02 Jan 2006 15:04:05 MST"
 
+// Feed is an RSS feed item.
 type Feed struct {
 	XMLName xml.Name `xml:"rss"`
 	Version string   `xml:"version,attr"`
@@ -14,6 +15,7 @@ type Feed struct {
 	Channels []Channel `xml:"channel"`
 }
 
+// Channel is an RSS Channel item.
 type Channel struct {
 	XMLName     xml.Name `xml:"channel"`
 	Title       string   `xml:"title"`
@@ -22,6 +24,7 @@ type Channel struct {
 	Items       []Item   `xml:"item"`
 }
 
+// Item is a feed item.
 type Item struct {
 	XMLName     xml.Name `xml:"item"`
 	GUID        string   `xml:"guid"`

@@ -15,12 +15,12 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 )
 
 var _ platform.Grapher = (*Platform)(nil)
 
+// Platform implements graphing for the Docker platform.
 type Platform struct {
 	client *http.Client
 
@@ -28,9 +28,15 @@ type Platform struct {
 }
 
 type Options struct {
+	// IncludeAllContainers will graph all containers, no matter their state.
+	// Defaults to false - only include running containers.
 	IncludeAllContainers bool
 }
 
+// NewPlatform initializes a new [Platform].
+//
+//   - dockerURI is the URI to the docker socket. Such as unix://docker.sock or
+//     tcp://127.0.0.1:8080.
 func NewPlatform(ctx context.Context, dockerURI string, options *Options) (*Platform, error) {
 	if options == nil {
 		options = &Options{}
@@ -91,6 +97,8 @@ func NewPlatform(ctx context.Context, dockerURI string, options *Options) (*Plat
 	return p, nil
 }
 
+// GetVersion returns the api version and minimum supported api version of the
+// Docker runtime.
 func (p *Platform) GetVersion(ctx context.Context) (string, string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/version", nil)
 	if err != nil {
@@ -119,10 +127,15 @@ func (p *Platform) GetVersion(ctx context.Context) (string, string, error) {
 }
 
 type GetContainersOptions struct {
-	All     bool
+	// All maps to the all query parameter of the containers API, returning all
+	// containers no matter their state.
+	All bool
+	// Filters maps to the filters query parameter of the containers API,
+	// filtering containers to include.
 	Filters map[string][]string
 }
 
+// GetContainers retrieves container information from the Docker runtime.
 func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOptions) ([]Container, error) {
 	query := make(url.Values)
 	if options != nil && options.All {
@@ -160,6 +173,8 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 	return result, nil
 }
 
+// GetImage retrieves container image information from the Docker runtime by
+// name or id. Returns an error if the image does not exist.
 func (p *Platform) GetImage(ctx context.Context, nameOrID string) (*Image, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/images/"+url.PathEscape(nameOrID)+"/json", nil)
 	if err != nil {
@@ -185,6 +200,7 @@ func (p *Platform) GetImage(ctx context.Context, nameOrID string) (*Image, error
 }
 
 // Graph implements platform.Platform.
+//
 // SEE: https://docs.docker.com/reference/api/engine/version/v1.47/
 func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], error) {
 	options := &GetContainersOptions{
@@ -289,6 +305,7 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 	return graph, nil
 }
 
+// Container is a container as defined by the Docker runtime API.
 type Container struct {
 	ID      string `json:"Id"`
 	Names   []string
@@ -299,6 +316,7 @@ type Container struct {
 	// ... other ignored fields
 }
 
+// Name returns the name of the container, or its ID if no name is found.
 func (c Container) Name() string {
 	for _, name := range c.Names {
 		// For whatever reason, names are prefixed with "/"
@@ -311,27 +329,11 @@ func (c Container) Name() string {
 	return c.ID
 }
 
+// Image is an image as defined by the Docker runtime API.
 type Image struct {
 	ID          string `json:"Id"`
 	RepoTags    []string
 	RepoDigests []string
 
 	// ... other ignored fields
-}
-
-func (i Image) Reference() (oci.Reference, bool) {
-	for _, tagged := range i.RepoTags {
-		ref, err := oci.ParseReference(tagged)
-		if err == nil {
-			return ref, true
-		}
-	}
-	for _, digested := range i.RepoDigests {
-		ref, err := oci.ParseReference(digested)
-		if err == nil {
-			return ref, true
-		}
-	}
-
-	return oci.Reference{}, false
 }

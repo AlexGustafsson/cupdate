@@ -25,6 +25,8 @@ import (
 
 var _ prometheus.Collector = (*Client)(nil)
 
+// Client provides a HTTP client with sane defaults, a centrally controllable
+// user agent, metrics, traces and caching.
 type Client struct {
 	http.Client
 
@@ -37,6 +39,7 @@ type Client struct {
 	cacheHitsCounter prometheus.Counter
 }
 
+// NewClient returns a [Client] with cache invalidated after maxAge.
 func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 	return &Client{
 		Client: http.Client{
@@ -235,6 +238,7 @@ func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
 	return res, nil
 }
 
+// CacheKey returns the key used when cacheing data for a request.
 func (c *Client) CacheKey(req *http.Request) string {
 	return fmt.Sprintf("httputil/v1/%s/%s", req.Method, req.URL.String())
 }

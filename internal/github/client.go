@@ -24,6 +24,7 @@ type Client struct {
 	Client   *httputil.Client
 }
 
+// GetRelease returns information about a release of a repository.
 func (c *Client) GetRelease(ctx context.Context, owner string, repository string, tag string) (*Release, error) {
 	endpoint := c.Endpoint
 	if endpoint == "" {
@@ -61,6 +62,7 @@ func (c *Client) GetRelease(ctx context.Context, owner string, repository string
 	return release, nil
 }
 
+// GetDescription returns the description of a repository.
 func (c *Client) GetDescription(ctx context.Context, owner string, repository string) (string, error) {
 	endpoint := c.Endpoint
 	if endpoint == "" {
@@ -88,6 +90,7 @@ func (c *Client) GetDescription(ctx context.Context, owner string, repository st
 	return parseAbout(res.Body)
 }
 
+// GetPackage returns information about a GHCR package.
 func (c *Client) GetPackage(ctx context.Context, reference oci.Reference) (*Package, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ghcr.PackagePath(reference), nil)
 	if err != nil {
@@ -119,6 +122,7 @@ func (c *Client) GetPackage(ctx context.Context, reference oci.Reference) (*Pack
 	return pkg, nil
 }
 
+// GetREADME retrieves the README at url.
 func (c *Client) GetREADME(ctx context.Context, url string) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {

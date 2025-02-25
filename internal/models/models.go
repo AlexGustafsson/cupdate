@@ -1,3 +1,4 @@
+// Package models holds all models defined in the Cupdate API specification.
 package models
 
 import "time"

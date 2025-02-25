@@ -9,6 +9,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 )
 
+// APIErrorCode holds known / well-defined OCI API errors.
 type APIErrorCode string
 
 const (
@@ -57,6 +58,7 @@ const (
 
 var _ error = (*APIError)(nil)
 
+// APIError is a common error type returned by [Client].
 type APIError struct {
 	Status     string
 	StatusCode int

@@ -19,8 +19,13 @@ import (
 
 var ErrDependentJobFailed = errors.New("dependent job failed")
 
+// Workflow is a generic way to represent running tasks with or without
+// dependencies. The implementation mimics GitHub actions / workflows.
 type Workflow struct {
+	// Name is the human-readable name of the workflow.
 	Name string
+	// Jobs holds all the jobs that the workflow should run.
+	// Jobs are started in the order defined by their dependencies.
 	Jobs []Job
 }
 
@@ -92,7 +97,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 				log.DebugContext(ctx, "Waiting for dependencies to complete before starting job")
 				for _, dependency := range job.DependsOn {
 					index := -1
-					for i := 0; i < len(w.Jobs); i++ {
+					for i := range len(w.Jobs) {
 						if w.Jobs[i].ID == dependency {
 							index = i
 							break
@@ -160,7 +165,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 	wg.Wait()
 
 	// Remove unnecessary errors
-	slices.DeleteFunc(errs, func(err error) bool {
+	errs = slices.DeleteFunc(errs, func(err error) bool {
 		return err == ErrDependentJobFailed || err == ErrSkipped
 	})
 
@@ -173,6 +178,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 	return workflowRun, err
 }
 
+// Describe returns a mermaid flowchart describing the workflow.
 func (w Workflow) Describe() string {
 	var builder strings.Builder
 

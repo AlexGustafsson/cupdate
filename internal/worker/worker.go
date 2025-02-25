@@ -19,19 +19,28 @@ import (
 
 var _ prometheus.Collector = (*Worker)(nil)
 
+// EventType is the type of an event.
 type EventType string
 
 const (
-	EventTypeUpdated             EventType = "updated"
-	EventTypeProcessed           EventType = "processed"
+	// EventTypeUpdated is emitted whenever data of an image is updated.
+	EventTypeUpdated EventType = "updated"
+	// EventTypeProcessed is emitted whenever an image was processed.
+	EventTypeProcessed EventType = "processed"
+	// EventTypeNewVersionAvailable is emitted whenever the latest available
+	// version of an image changes.
 	EventTypeNewVersionAvailable EventType = "newVersionAvailable"
 )
 
+// Event describes a Worker event.
 type Event struct {
 	Reference string
 	Type      EventType
 }
 
+// Worker processes raw container image entries, running the image workflow and
+// storing the result to the state store.
+// The worker produces events of the type [Event].
 type Worker struct {
 	*events.Hub[Event]
 
@@ -70,6 +79,7 @@ func New(httpClient *httputil.Client, store *store.Store, registryAuth *httputil
 	}
 }
 
+// ProcessRawImage processes a raw image by the specified reference.
 func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) error {
 	start := time.Now()
 	w.processingGauge.Inc()
@@ -272,14 +282,14 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	return nil
 }
 
-// Collect implements [prometheus.Collector].
+// Collect implements prometheus.Collector.
 func (w *Worker) Collect(ch chan<- prometheus.Metric) {
 	w.processedCounter.Collect(ch)
 	w.processingDuration.Collect(ch)
 	w.processingGauge.Collect(ch)
 }
 
-// Describe implements [prometheus.Collector].
+// Describe implements prometheus.Collector.
 func (w *Worker) Describe(descs chan<- *prometheus.Desc) {
 	prometheus.DescribeByCollect(w, descs)
 }

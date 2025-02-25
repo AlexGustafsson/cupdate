@@ -87,33 +87,3 @@ func TestGetRepositoryREADMEBlob(t *testing.T) {
 
 	fmt.Printf("%+s\n", res.Raw)
 }
-
-func TestGetProjectContainerRepositories(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	client := &Client{
-		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
-	}
-
-	res, err := client.GetProjectContainerRepositories(context.TODO(), "arm-research/smarter/smarter-device-manager")
-	require.NoError(t, err)
-
-	fmt.Printf("%+v\n", res)
-}
-
-func TestGetProjectContainerRepositoryTags(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	client := &Client{
-		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
-	}
-
-	res, err := client.GetProjectContainerRepositoryTags(context.TODO(), "gid://gitlab/ContainerRepository/1080664")
-	require.NoError(t, err)
-
-	fmt.Printf("%+v\n", res)
-}

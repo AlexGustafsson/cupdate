@@ -16,6 +16,8 @@ type Client struct {
 	TokenAuthFunc func(*http.Request) error
 }
 
+// GetRegistryToken returns a token for use with GHCR with pull permissions on
+// the specified repository.
 func (c *Client) GetRegistryToken(ctx context.Context, repository string) (string, error) {
 	// TODO: Registries expose the realm and scheme via Www-Authenticate if 403
 	// is given
@@ -58,6 +60,7 @@ func (c *Client) GetRegistryToken(ctx context.Context, repository string) (strin
 	return result.Token, nil
 }
 
+// HandleAuth authenticates a request to the GHCR registry.
 func (c *Client) HandleAuth(r *http.Request) error {
 	name := oci.NameFromAPI(r.URL.Path)
 	// lscr.io is a pseudo-registry that forwards to one of multiple backends,

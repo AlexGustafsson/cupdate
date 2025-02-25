@@ -14,14 +14,21 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
+// Node is a platform resource represented as a graph node.
 type Node interface {
+	// ID implements [graph.Node].
 	ID() string
+	// Type returns a type uniquely describing the node.
 	Type() string
+	// Labels returns labels set on the resource represented by the node.
 	Labels() Labels
 }
 
+// Labels holds labels / annotations found by platform implementations, which
+// map to things like Docker labels or Kubernetes resource annotations.
 type Labels map[string]string
 
+// Ignore returns true if the Cupdate ignore label is set to true.
 func (l Labels) Ignore() bool {
 	if l == nil {
 		return false
@@ -38,6 +45,7 @@ func (l Labels) Ignore() bool {
 	return false
 }
 
+// Ignore returns true if the Cupdate pin label is set to true.
 func (l Labels) Pin() bool {
 	if l == nil {
 		return false
@@ -54,6 +62,8 @@ func (l Labels) Pin() bool {
 	return false
 }
 
+// Ignore returns true if the Cupdate stay-on-current-major label is set to
+// true.
 func (l Labels) StayOnCurrentMajor() bool {
 	if l == nil {
 		return false
@@ -81,51 +91,62 @@ func (l Labels) RemoveUnsupported() Labels {
 	return clone
 }
 
+// Graph is a graph implementation holding [Nodes].
 type Graph = *graph.Graph[Node]
 
 var _ Node = (*ImageNode)(nil)
 
+// ImageNode represents resource common to all platforms - the OCI image.
 type ImageNode struct {
 	Reference oci.Reference
 }
 
+// ID implements Node.
 func (n ImageNode) ID() string {
 	return fmt.Sprintf("oci/image/%s", n.Reference)
 }
 
+// Type implements Node.
 func (n ImageNode) Type() string {
 	return "image"
 }
 
+// Labels implements Node.
 func (n ImageNode) Labels() Labels {
 	return nil
 }
 
+// String implements Node.
 func (n ImageNode) String() string {
 	return fmt.Sprintf("%s<%s>", n.Type(), n.Reference.String())
 }
 
+// Grapher provides graphs of resources in a platform.
 type Grapher interface {
 	// Graph returns a graph of all images found on the platform.
 	// The graph's roots are [ImageNode]s.
 	Graph(context.Context) (Graph, error)
 }
 
-type ContinousGrapher interface {
-	// GraphContinously returns a channel which will receive a graph of all
+// Grapher provides asynchronous updates of graphs of resources in a platform.
+type ContinuousGrapher interface {
+	// GraphContinuously returns a channel which will receive a graph of all
 	// images found on the platform whenever the graph changes.
 	// The graph's roots are [ImageNode]s.
-	GraphContinously(context.Context) (<-chan Graph, error)
+	GraphContinuously(context.Context) (<-chan Graph, error)
 }
 
-var _ (ContinousGrapher) = (*PollGrapher)(nil)
+var _ (ContinuousGrapher) = (*PollGrapher)(nil)
 
+// PollGrapher is a [ContinuousGrapher] implementation which polls an underlying
+// [Grapher] implementation.
 type PollGrapher struct {
 	Grapher  Grapher
 	Interval time.Duration
 }
 
-func (g *PollGrapher) GraphContinously(ctx context.Context) (<-chan Graph, error) {
+// GraphContinuously implements ContinuousGrapher.
+func (g *PollGrapher) GraphContinuously(ctx context.Context) (<-chan Graph, error) {
 	ch := make(chan Graph, 1)
 
 	slog.DebugContext(ctx, "Polling graph")
@@ -166,6 +187,7 @@ type CompoundGrapher struct {
 	Graphers []Grapher
 }
 
+// Graph implements Grapher.
 func (g *CompoundGrapher) Graph(ctx context.Context) (Graph, error) {
 	graphs := make([]Graph, len(g.Graphers))
 	errs := make([]error, len(g.Graphers))
@@ -194,6 +216,7 @@ func (g *CompoundGrapher) Graph(ctx context.Context) (Graph, error) {
 	return compoundGraph, nil
 }
 
+// NewGraph returns a new [Graph].
 func NewGraph() Graph {
 	return graph.New[Node]()
 }

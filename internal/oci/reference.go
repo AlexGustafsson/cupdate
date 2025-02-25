@@ -8,17 +8,28 @@ import (
 	"github.com/distribution/reference"
 )
 
+// Reference represents an OCI reference, i.e. an container image string.
 type Reference struct {
+	// Domain is the hostname of the registry.
 	Domain string
-	Path   string
+	// Path is the namespace / project path of the reference.
+	Path string
 
+	// HasTag is true if the reference includes a tag.
 	HasTag bool
-	Tag    string
+	// Tag holds the tag specified in the reference.
+	Tag string
 
+	// HasDigest is true if the reference includes a digest.
 	HasDigest bool
-	Digest    string
+	// Digest holds the digest specified in the reference.
+	Digest string
 }
 
+// Canonical converts the reference to its canonical form (i.e. with all fields
+// explicitly set to their implicit default value).
+// Panics if the refernece is invalid.
+// A reference returned by [ParseReference] is always canonical.
 func (r Reference) Canonical() Reference {
 	// ParseReference always canonicalizes the reference, reuse it
 	ref, err := ParseReference(r.String())
@@ -29,6 +40,8 @@ func (r Reference) Canonical() Reference {
 	return ref
 }
 
+// ParseReference parses a reference string.
+// The returned reference is always canonical.
 func ParseReference(v string) (Reference, error) {
 	ref, err := reference.ParseNormalizedNamed(v)
 	if err != nil {
@@ -64,6 +77,7 @@ func ParseReference(v string) (Reference, error) {
 	}, nil
 }
 
+// Name returns the name of the reference in a way typically used by users.
 func (r Reference) Name() string {
 	var builder strings.Builder
 
@@ -106,6 +120,7 @@ func (r Reference) Reference() string {
 	}
 }
 
+// String returns the most compact way of describing the reference.
 func (r Reference) String() string {
 	var builder strings.Builder
 
@@ -124,11 +139,13 @@ func (r Reference) String() string {
 	return builder.String()
 }
 
+// MarshalJSON implements json.Marshaler.
 func (r Reference) MarshalJSON() ([]byte, error) {
 	v := r.String()
 	return json.Marshal(v)
 }
 
+// MarshalJSON implements json.Unmarshaler.
 func (r *Reference) UnmarshalJSON(b []byte) error {
 	var v string
 	if err := json.Unmarshal(b, &v); err != nil {

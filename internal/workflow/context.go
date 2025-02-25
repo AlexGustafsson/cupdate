@@ -9,6 +9,8 @@ import (
 
 var _ context.Context = (*Context)(nil)
 
+// Context is a [context.Context] implementation holding additional context for
+// a workflow. The value should be seen as being immutable.
 type Context struct {
 	context.Context
 
