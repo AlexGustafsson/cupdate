@@ -47,14 +47,43 @@ async function graphLayout<T>(
     })),
   })
 
+  // ELK can return nodes that are offset from the top left and bounds that are
+  // larger than what's necessary. Recalculate offsets and bounds to return a
+  // minimum rect, making things like centering of the graph easier.
+  const leftOffset =
+    root.children?.reduce(
+      (leftOffset, x) => (x.x && x.x < leftOffset ? x.x : leftOffset),
+      Number.MAX_VALUE
+    ) || 0
+
+  const topOffset =
+    root.children?.reduce(
+      (topOffset, x) => (x.y && x.y < topOffset ? x.y : topOffset),
+      Number.MAX_VALUE
+    ) || 0
+
+  const width =
+    root.children?.reduce(
+      (width, x) =>
+        x.x && x.width && x.x + x.width > width ? x.x + x.width : width,
+      0
+    ) || 0
+
+  const height =
+    root.children?.reduce(
+      (height, x) =>
+        x.y && x.height && x.y + x.height > height ? x.y + x.height : height,
+      0
+    ) || 0
+
   // Add nodes
   for (const node of root.children || []) {
     nodes.push({
       id: node.id,
       width: node.width,
       height: node.height,
-      x: node.x,
-      y: node.y,
+      x: (node.x || 0) - leftOffset,
+      y: (node.y || 0) - topOffset,
       data: graph.nodes.find((x) => x.id === node.id)!.data,
     })
   }
@@ -89,7 +118,11 @@ async function graphLayout<T>(
     })
   }
 
-  return [nodes, edges, { width: root.width || 0, height: root.height || 0 }]
+  return [
+    nodes,
+    edges,
+    { width: width - leftOffset, height: height - topOffset },
+  ]
 }
 
 export function useGraphLayout<T>(
