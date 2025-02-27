@@ -12,7 +12,7 @@ import (
 )
 
 type Client struct {
-	Client        *httputil.Client
+	Client        httputil.Requester
 	TokenAuthFunc func(*http.Request) error
 }
 

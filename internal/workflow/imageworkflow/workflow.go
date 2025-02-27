@@ -14,7 +14,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func New(httpClient *httputil.Client, data *Data) workflow.Workflow {
+func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 	return workflow.Workflow{
 		Name: "Process image",
 		Jobs: []workflow.Job{

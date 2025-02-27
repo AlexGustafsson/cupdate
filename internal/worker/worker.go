@@ -44,7 +44,7 @@ type Event struct {
 type Worker struct {
 	*events.Hub[Event]
 
-	httpClient   *httputil.Client
+	httpClient   httputil.Requester
 	store        *store.Store
 	registryAuth *httputil.AuthMux
 
@@ -53,7 +53,7 @@ type Worker struct {
 	processingGauge    prometheus.Gauge
 }
 
-func New(httpClient *httputil.Client, store *store.Store, registryAuth *httputil.AuthMux) *Worker {
+func New(httpClient httputil.Requester, store *store.Store, registryAuth *httputil.AuthMux) *Worker {
 	return &Worker{
 		Hub: events.NewHub[Event](),
 

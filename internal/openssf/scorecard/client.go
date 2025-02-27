@@ -10,7 +10,7 @@ import (
 )
 
 type Client struct {
-	Client *httputil.Client
+	Client httputil.Requester
 }
 
 // GetScorecard retrieves a scorecard report for a repository.

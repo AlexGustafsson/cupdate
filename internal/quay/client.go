@@ -11,7 +11,7 @@ import (
 )
 
 type Client struct {
-	Client *httputil.Client
+	Client httputil.Requester
 }
 
 // GetScan retrieves a scan of a manifest referenced by its digest.

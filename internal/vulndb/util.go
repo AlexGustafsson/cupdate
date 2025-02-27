@@ -10,7 +10,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 )
 
-func AutoFetchAndOpen(ctx context.Context, path string, httpClient *httputil.Client, maxAge time.Duration) (*Conn, error) {
+func AutoFetchAndOpen(ctx context.Context, path string, httpClient httputil.Requester, maxAge time.Duration) (*Conn, error) {
 	stat, err := os.Stat(path)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return nil, err

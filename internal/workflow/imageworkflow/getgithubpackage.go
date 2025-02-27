@@ -11,7 +11,7 @@ func GetGithubPackage() workflow.Step {
 	return workflow.Step{
 		Name: "Get GitHub package",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
-			httpClient, err := workflow.GetInput[*httputil.Client](ctx, "httpClient", true)
+			httpClient, err := workflow.GetInput[httputil.Requester](ctx, "httpClient", true)
 			if err != nil {
 				return nil, err
 			}

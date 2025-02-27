@@ -18,7 +18,7 @@ import (
 var readmePathRegexp = regexp.MustCompile(`href="(.*?/blob/.*?)"`)
 
 type Client struct {
-	Client *httputil.Client
+	Client httputil.Requester
 }
 
 // GetRepositoryDescription retrieves the description of a repository.

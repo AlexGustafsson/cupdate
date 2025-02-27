@@ -14,7 +14,7 @@ import (
 )
 
 type Client struct {
-	Client   *httputil.Client
+	Client   httputil.Requester
 	AuthFunc func(*http.Request) error
 }
 

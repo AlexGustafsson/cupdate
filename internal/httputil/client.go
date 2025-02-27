@@ -23,10 +23,13 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+type Requester interface {
+	Do(*http.Request) (*http.Response, error)
+	DoCached(*http.Request) (*http.Response, error)
+}
+
 var _ prometheus.Collector = (*Client)(nil)
 
-// Client provides a HTTP client with sane defaults, a centrally controllable
-// user agent, metrics, traces and caching.
 type Client struct {
 	http.Client
 

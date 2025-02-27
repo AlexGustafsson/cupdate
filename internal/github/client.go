@@ -21,7 +21,7 @@ type Client struct {
 	// Endpoint is the GitHub endpoint. Useful for using an enterprise instance,
 	// for example. Defaults to "https://github.com".
 	Endpoint string
-	Client   *httputil.Client
+	Client   httputil.Requester
 }
 
 // GetRelease returns information about a release of a repository.

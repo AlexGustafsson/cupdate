@@ -12,7 +12,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
-func Fetch(ctx context.Context, httpClient *httputil.Client, destination string) error {
+func Fetch(ctx context.Context, httpClient httputil.Requester, destination string) error {
 	workdir, err := os.MkdirTemp(os.TempDir(), "cupdate-vulndb-oci-*")
 	if err != nil {
 		return err

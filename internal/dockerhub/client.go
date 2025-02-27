@@ -15,7 +15,7 @@ import (
 )
 
 type Client struct {
-	Client *httputil.Client
+	Client httputil.Requester
 }
 
 // GetRegistryToken returns a token for use with Docker Hub with pull
