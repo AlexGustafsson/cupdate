@@ -1,0 +1,199 @@
+{
+  "date": "2025-02-24",
+  "repo": {
+    "name": "github.com/jacobalberty/unifi-docker",
+    "commit": "38e41a969810d02de7035de861f3111e0d9d0ae7"
+  },
+  "scorecard": {
+    "version": "v5.1.1-9-gcb565cdc",
+    "commit": "cb565cdceb47d4a79054430dd3590decbb2afb54"
+  },
+  "score": 5.3,
+  "checks": [
+    {
+      "name": "Code-Review",
+      "score": 8,
+      "reason": "Found 20/25 approved changesets -- score normalized to 8",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the project requires human code review before pull requests (aka merge requests) are merged.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#code-review"
+      }
+    },
+    {
+      "name": "Binary-Artifacts",
+      "score": 10,
+      "reason": "no binaries found in the repo",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the project has generated executable (binary) artifacts in the source repository.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#binary-artifacts"
+      }
+    },
+    {
+      "name": "Maintained",
+      "score": 3,
+      "reason": "3 commit(s) and 1 issue activity found in the last 90 days -- score normalized to 3",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the project is \"actively maintained\".",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#maintained"
+      }
+    },
+    {
+      "name": "Dangerous-Workflow",
+      "score": 10,
+      "reason": "no dangerous workflow patterns detected",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the project's GitHub Action workflows avoid dangerous patterns.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#dangerous-workflow"
+      }
+    },
+    {
+      "name": "Token-Permissions",
+      "score": 0,
+      "reason": "detected GitHub workflow tokens with excessive permissions",
+      "details": [
+        "Warn: no topLevel permission defined: .github/workflows/build.yml:1",
+        "Warn: no topLevel permission defined: .github/workflows/docker.yml:1",
+        "Warn: no topLevel permission defined: .github/workflows/stale.yml:1",
+        "Info: no jobLevel write permissions found"
+      ],
+      "documentation": {
+        "short": "Determines if the project's workflows follow the principle of least privilege.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#token-permissions"
+      }
+    },
+    {
+      "name": "CII-Best-Practices",
+      "score": 0,
+      "reason": "no effort to earn an OpenSSF best practices badge detected",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#cii-best-practices"
+      }
+    },
+    {
+      "name": "Security-Policy",
+      "score": 0,
+      "reason": "security policy file not detected",
+      "details": [
+        "Warn: no security policy file detected",
+        "Warn: no security file to analyze",
+        "Warn: no security file to analyze",
+        "Warn: no security file to analyze"
+      ],
+      "documentation": {
+        "short": "Determines if the project has published a security policy.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#security-policy"
+      }
+    },
+    {
+      "name": "Fuzzing",
+      "score": 0,
+      "reason": "project is not fuzzed",
+      "details": ["Warn: no fuzzer integrations found"],
+      "documentation": {
+        "short": "Determines if the project uses fuzzing.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#fuzzing"
+      }
+    },
+    {
+      "name": "Vulnerabilities",
+      "score": 10,
+      "reason": "0 existing vulnerabilities detected",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the project has open, known unfixed vulnerabilities.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#vulnerabilities"
+      }
+    },
+    {
+      "name": "License",
+      "score": 10,
+      "reason": "license file detected",
+      "details": [
+        "Info: project has a license file: license:0",
+        "Info: FSF or OSI recognized license: MIT License: license:0"
+      ],
+      "documentation": {
+        "short": "Determines if the project has defined a license.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#license"
+      }
+    },
+    {
+      "name": "Signed-Releases",
+      "score": -1,
+      "reason": "no releases found",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the project cryptographically signs release artifacts.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#signed-releases"
+      }
+    },
+    {
+      "name": "Branch-Protection",
+      "score": -1,
+      "reason": "internal error: error during branchesHandler.setup: internal error: githubv4.Query: Resource not accessible by integration",
+      "details": null,
+      "documentation": {
+        "short": "Determines if the default and release branches are protected with GitHub's branch protection settings.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#branch-protection"
+      }
+    },
+    {
+      "name": "Pinned-Dependencies",
+      "score": 0,
+      "reason": "dependency not pinned by hash detected -- score normalized to 0",
+      "details": [
+        "Warn: GitHub-owned GitHubAction not pinned by hash: .github/workflows/build.yml:16: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/build.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/build.yml:46: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/build.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/build.yml:48: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/build.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/build.yml:50: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/build.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/build.yml:64: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/build.yml/master?enable=pin",
+        "Warn: GitHub-owned GitHubAction not pinned by hash: .github/workflows/docker.yml:20: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/docker.yml:22: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/docker.yml:26: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/docker.yml:28: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/docker.yml:34: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/docker.yml:39: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/docker.yml:54: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: third-party GitHubAction not pinned by hash: .github/workflows/docker.yml:66: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/docker.yml/master?enable=pin",
+        "Warn: GitHub-owned GitHubAction not pinned by hash: .github/workflows/stale.yml:10: update your workflow using https://app.stepsecurity.io/secureworkflow/jacobalberty/unifi-docker/stale.yml/master?enable=pin",
+        "Warn: containerImage not pinned by hash: Dockerfile:1",
+        "Warn: containerImage not pinned by hash: Dockerfile:7: pin your Docker image by updating ubuntu:20.04 to ubuntu:20.04@sha256:8e5c4f0285ecbb4ead070431d29b576a530d3166df73ec44affc1cd27555141b",
+        "Info:   0 out of   3 GitHub-owned GitHubAction dependencies pinned",
+        "Info:   0 out of  11 third-party GitHubAction dependencies pinned",
+        "Info:   0 out of   2 containerImage dependencies pinned"
+      ],
+      "documentation": {
+        "short": "Determines if the project has declared and pinned the dependencies of its build process.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#pinned-dependencies"
+      }
+    },
+    {
+      "name": "Packaging",
+      "score": 10,
+      "reason": "packaging workflow detected",
+      "details": [
+        "Info: Project packages its releases by way of GitHub Actions.: .github/workflows/build.yml:12"
+      ],
+      "documentation": {
+        "short": "Determines if the project is published as a package that others can easily download, install, easily update, and uninstall.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#packaging"
+      }
+    },
+    {
+      "name": "SAST",
+      "score": 0,
+      "reason": "SAST tool is not run on all commits -- score normalized to 0",
+      "details": ["Warn: 0 commits out of 28 are checked with a SAST tool"],
+      "documentation": {
+        "short": "Determines if the project uses static code analysis.",
+        "url": "https://github.com/ossf/scorecard/blob/cb565cdceb47d4a79054430dd3590decbb2afb54/docs/checks.md#sast"
+      }
+    }
+  ]
+}

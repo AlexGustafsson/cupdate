@@ -18,5 +18,4 @@ func (s *Scorecard) Time() (time.Time, error) {
 	}
 
 	return time.Parse(time.RFC3339, s.Date)
-
 }
