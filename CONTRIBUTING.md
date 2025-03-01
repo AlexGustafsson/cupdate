@@ -157,3 +157,37 @@ Start Cupdate targeting Docker, specifying the auth file.
 ```shell
 export CUPDATE_REGISTRY_SECRETS="integration/zot/docker-basic-auth.json"
 ```
+
+### Writing and running unit tests
+
+Some tests directly use APIs on the internet, for "system tests". These tests
+are by their nature flakey. As such, they don't run in the CI.
+
+These tests are identified by their naming convention, `TestIntegration...` and
+by the fact that they start by bailing if `-short` is specified when running the
+tests.
+
+As Cupdate has a lot of HTTP clients, there's a framework for writing table
+tests for HTTP APIs used throughout tests. This framework should allow for a
+near 100% test coverage in these clients. Additional tests may use the APIs
+directly, as stated previously, and in these cases the tests may print data for
+additional, manual, verification.
+
+Tests are run by using go:
+
+```shell
+# Run all unit tests that are run in the CI
+go test -race -short -v ./...
+
+# Run all tests, even those using external APIs
+go test -race -v ./...
+
+# Run specific tests
+go test -race -short -v ./internal/openssf/scorecard/...
+
+# Collect coverage
+go test -coverprofile coverage.out -race -v ./...
+
+# Show coverage on a web page
+go tool cover -html coverage.out
+```
