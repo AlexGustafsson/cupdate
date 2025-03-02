@@ -82,7 +82,7 @@ jobs:
         env:
           # Use the toolchain specified in go.mod, or newer
           GOTOOLCHAIN: auto
-        run: go test -short -v ./...
+        run: go test -race -short -v ./...
 
       - name: Run web tests
         run: yarn run test
