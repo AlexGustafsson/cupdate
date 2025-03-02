@@ -146,7 +146,13 @@ docker run --rm -it -p 9090:9090 --volume "$PWD/integration/zot:/etc/zot:ro" ghc
 Note that Zot's UI doesn't work on Safari ATM - you will just be logged out if
 you log in.
 
-Run an image using zot instead.
+Upload a simple image to Zot.
+
+```shell
+skopeo copy --override-os linux --dest-tls-verify=false docker://alpine:latest docker://localhost:9090/test/alpine:latest
+```
+
+Run the image from Zot.
 
 ```shell
 docker run --rm -it localhost:9090/alpine

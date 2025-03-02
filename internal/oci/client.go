@@ -9,13 +9,111 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 )
 
+var _ httputil.Requester = (*Client)(nil)
+
 type Client struct {
 	Client   httputil.Requester
 	AuthFunc func(*http.Request) error
+}
+
+// Do implements httputil.Requester, handling authentication challenges sent by
+// OCI registries.
+func (c *Client) Do(req *http.Request) (*http.Response, error) {
+	return c.do(req, c.Client.Do)
+}
+
+// DoCached implements httputil.Requester, handling authentication challenges
+// sent by OCI registries.
+func (c *Client) DoCached(req *http.Request) (*http.Response, error) {
+	return c.do(req, c.Client.DoCached)
+}
+
+func (c *Client) do(req *http.Request, do func(req *http.Request) (*http.Response, error)) (*http.Response, error) {
+	// TODO: For now, only nil-bodied requests are supported as we can't easily
+	// rerun the request with auth if there's a body which may have been consumed
+	// already
+	if req.Method != http.MethodGet && req.Method != http.MethodHead {
+		return nil, fmt.Errorf("oci: unsupported method")
+	}
+
+	// TODO: Use cached token immediately if possible
+	res, err := do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != http.StatusUnauthorized {
+		return res, nil
+	}
+
+	header := res.Header.Get("Www-Authenticate")
+	if header == "" {
+		return res, nil
+	}
+
+	scheme, params, err := httputil.ParseWWWAuthenticateHeader(header)
+	if err != nil {
+		return nil, fmt.Errorf("oci: invalid www-authenticate header: %w", err)
+	}
+
+	if scheme != "Bearer" {
+		return nil, fmt.Errorf("oci: invalid www-authenticate scheme: %s", scheme)
+	}
+
+	realm, realmOK := params["realm"]
+	service, serviceOK := params["service"]
+	scope, scopeOK := params["scope"]
+	if !realmOK || !serviceOK || !scopeOK {
+		return nil, fmt.Errorf("oci: missing required www-authenticate params")
+	}
+
+	u, err := url.Parse(realm)
+	if err != nil {
+		return nil, fmt.Errorf("oci: invalid www-authenticate realm")
+	}
+
+	query := u.Query()
+	query.Set("service", service)
+	query.Set("scope", scope)
+	u.RawQuery = query.Encode()
+
+	tokenReq, err := http.NewRequestWithContext(req.Context(), http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if f := c.AuthFunc; f != nil {
+		if err := f(tokenReq); err != nil {
+			return nil, err
+		}
+	}
+
+	tokenRes, err := do(tokenReq)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := httputil.AssertStatusCode(tokenRes, http.StatusOK); err != nil {
+		return nil, err
+	}
+
+	// TODO: Cache tokens
+	var result struct {
+		Token     string    `json:"token"`
+		ExpiresIn int       `json:"expires_in"`
+		IssuedAt  time.Time `json:"issued_at"`
+	}
+	if err := json.NewDecoder(tokenRes.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+result.Token)
+	return do(req)
 }
 
 // GetManifestBlob downloads a manifest from an OCI registry.
@@ -43,7 +141,7 @@ func (c *Client) GetManifestBlob(ctx context.Context, ref Reference) (Blob, erro
 		}
 	}
 
-	res, err := c.Client.DoCached(req)
+	res, err := c.DoCached(req)
 	if err != nil {
 		return nil, err
 	}
@@ -78,12 +176,6 @@ func (c *Client) GetBlob(ctx context.Context, ref Reference, digest string, cach
 		return nil, err
 	}
 
-	if f := c.AuthFunc; f != nil {
-		if err := f(req); err != nil {
-			return nil, err
-		}
-	}
-
 	req.Header.Set("Accept", strings.Join([]string{
 		"application/vnd.docker.distribution.manifest.list.v2+json",
 		"application/vnd.oci.image.index.v1+json",
@@ -93,9 +185,9 @@ func (c *Client) GetBlob(ctx context.Context, ref Reference, digest string, cach
 
 	var res *http.Response
 	if cache {
-		res, err = c.Client.DoCached(req)
+		res, err = c.DoCached(req)
 	} else {
-		res, err = c.Client.DoCached(req)
+		res, err = c.DoCached(req)
 	}
 	if err != nil {
 		return nil, err
@@ -124,7 +216,7 @@ func (c *Client) HeadBlob(ctx context.Context, ref Reference, digest string) (*B
 		}
 	}
 
-	res, err := c.Client.DoCached(req)
+	res, err := c.DoCached(req)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +447,7 @@ func (c *Client) getTags(ctx context.Context, ref Reference, options *GetTagsOpt
 		}
 	}
 
-	res, err := c.Client.DoCached(req)
+	res, err := c.DoCached(req)
 	if err != nil {
 		return nil, nil, "", err
 	}

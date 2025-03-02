@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/AlexGustafsson/cupdate/internal/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
@@ -21,9 +20,6 @@ func Fetch(ctx context.Context, httpClient httputil.Requester, destination strin
 
 	client := oci.Client{
 		Client: httpClient,
-		AuthFunc: (&ghcr.Client{
-			Client: httpClient,
-		}).HandleAuth,
 	}
 
 	ref, err := oci.ParseReference("ghcr.io/alexgustafsson/cupdate/vulndb:latest")

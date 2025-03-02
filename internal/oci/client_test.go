@@ -26,6 +26,9 @@ func TestClientGetManifest(t *testing.T) {
 		"quay.io/jetstack/cert-manager-startupapicheck:v1.16.2",
 		"registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.14.0",
 		"gcr.io/zenika-hub/alpine-chrome:123",
+		"postgres:12-alpine",
+		"ghcr.io/jmbannon/ytdl-sub:2024.10.09",
+		"registry.gitlab.com/arm-research/smarter/smarter-device-manager",
 	}
 
 	for _, reference := range references {
@@ -98,6 +101,8 @@ func TestClientGetAnnotations(t *testing.T) {
 
 	references := []string{
 		"quay.io/jetstack/cert-manager-startupapicheck:v1.16.2",
+		"homeassistant/home-assistant",
+		"ghcr.io/jmbannon/ytdl-sub",
 	}
 
 	for _, reference := range references {
@@ -127,6 +132,7 @@ func TestClientGetTags(t *testing.T) {
 		"quay.io/jetstack/cert-manager-startupapicheck",
 		"registry.k8s.io/kube-state-metrics/kube-state-metrics",
 		"gcr.io/zenika-hub/alpine-chrome",
+		"mongo",
 	}
 
 	for _, reference := range references {

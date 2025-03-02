@@ -69,3 +69,83 @@ func ParseLinkHeader(origin *url.URL, header string) ([]Link, error) {
 
 	return links, nil
 }
+
+// ParseWWWAuthenticateHeader parses a Www-Authenticate header.
+//
+// SEE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate.
+func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error) {
+	var scheme string
+	params := make(map[string]string)
+
+	state := "scheme"
+	paramKey := ""
+	paramValue := ""
+	gotParamDelimiter := false
+	for i, c := range header {
+		isAlpha := c >= 'a' && c <= 'z'
+		isNumeric := c >= '0' && c <= '0'
+		isAlphaNumeric := isAlpha || isNumeric || c == '-'
+		isEnd := i == len(header)-1
+
+		switch state {
+		case "scheme":
+			if c == ' ' {
+				if isEnd {
+					return "", nil, fmt.Errorf("httputil: invalid Www-Authenticate trailing whitespace")
+				} else {
+					state = "paramKey"
+				}
+			} else {
+				scheme += string(c)
+				if isEnd {
+					state = "end"
+				}
+			}
+		case "paramKey":
+			// Consume optional whitespace after params delimiter
+			if gotParamDelimiter && c == ' ' {
+				continue
+			} else {
+				gotParamDelimiter = false
+			}
+
+			if c == '=' {
+				state = "paramValue"
+			} else if paramKey == "" && isAlpha {
+				paramKey += string(c)
+			} else if paramKey != "" && isAlphaNumeric {
+				paramKey += string(c)
+			} else {
+				return "", nil, fmt.Errorf("httputil: invalid Www-Authenticate header param key")
+			}
+		case "paramValue":
+			if paramValue == "" && c == '"' {
+				// OK
+			} else if paramValue != "" && c == '"' {
+				params[paramKey] = paramValue
+				paramKey = ""
+				paramValue = ""
+				if isEnd {
+					state = "end"
+				} else {
+					state = "paramDelimiter"
+				}
+			} else {
+				paramValue += string(c)
+			}
+		case "paramDelimiter":
+			if c == ',' {
+				gotParamDelimiter = true
+				state = "paramKey"
+			}
+		default:
+			return "", nil, fmt.Errorf("httputil: invalid Www-Authenticate state")
+		}
+	}
+
+	if state != "end" {
+		return "", nil, fmt.Errorf("httputil: invalid Www-Authenticate state")
+	}
+
+	return scheme, params, nil
+}

@@ -45,6 +45,7 @@ Supported registries:
 - registry.k8s.io
 - k8s.gcr.io, gke.gcr.io, gcr.io
 - registry.gitlab.com
+- ... other OCI-compliant registries (Zot, Harbor, Gitea)
 
 Supported data sources:
 
@@ -52,6 +53,7 @@ Supported data sources:
 - GitHub, GitHub Container Registry
 - GitLab
 - Quay
+- OpenSSF Scorecard reports
 
 ## Getting started
 

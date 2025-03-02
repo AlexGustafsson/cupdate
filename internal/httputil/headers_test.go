@@ -155,6 +155,93 @@ func TestParseLinkHeader(t *testing.T) {
 	}
 }
 
+func TestParseWWWAuthenticateHeader(t *testing.T) {
+	testCases := []struct {
+		Header         string
+		ExpectedScheme string
+		ExpectedParams map[string]string
+		Error          bool
+	}{
+		{
+			Header:         `Basic realm="Dev", charset="UTF-8"`,
+			ExpectedScheme: "Basic",
+			ExpectedParams: map[string]string{
+				"realm":   "Dev",
+				"charset": "UTF-8",
+			},
+			Error: false,
+		},
+		{
+			Header:         `Basic realm="Dev",charset="UTF-8"`,
+			ExpectedScheme: "Basic",
+			ExpectedParams: map[string]string{
+				"realm":   "Dev",
+				"charset": "UTF-8",
+			},
+			Error: false,
+		},
+		{
+			Header:         `Basic realm="Dev",charset="ASCII",charset="UTF-8"`,
+			ExpectedScheme: "Basic",
+			ExpectedParams: map[string]string{
+				"realm":   "Dev",
+				"charset": "UTF-8",
+			},
+			Error: false,
+		},
+		{
+			Header:         `Bearer realm="https://auth.docker.io/token",service="registry.docker.io",scope="registry:catalog:*",error="insufficient_scope"`,
+			ExpectedScheme: "Bearer",
+			ExpectedParams: map[string]string{
+				"realm":   "https://auth.docker.io/token",
+				"service": "registry.docker.io",
+				"scope":   "registry:catalog:*",
+				"error":   "insufficient_scope",
+			},
+			Error: false,
+		},
+		{
+			Header: `Basic realm="Dev" charset="ASCII" charset="UTF-8"`,
+			Error:  true,
+		},
+		{
+			Header: `Basic realm="Dev" `,
+			Error:  true,
+		},
+		{
+			Header: `Basic realm="Dev",charset="UTF-8",`,
+			Error:  true,
+		},
+		{
+			Header: `Basic realm:"Dev"`,
+			Error:  true,
+		},
+		{
+			Header:         `Basic`,
+			ExpectedScheme: "Basic",
+			ExpectedParams: map[string]string{},
+			Error:          false,
+		},
+		{
+			Header: `Basic `,
+			Error:  true,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Header, func(t *testing.T) {
+			scheme, params, err := ParseWWWAuthenticateHeader(testCase.Header)
+			if testCase.Error {
+				assert.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, testCase.ExpectedScheme, scheme)
+			assert.Equal(t, testCase.ExpectedParams, params)
+		})
+	}
+}
+
 func mustParseURL(t *testing.T, u string) *url.URL {
 	v, err := url.Parse(u)
 	require.NoError(t, err)

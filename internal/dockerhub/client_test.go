@@ -14,75 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOCI(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	client := &Client{
-		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
-	}
-
-	ociClient := &oci.Client{
-		Client:   client.Client,
-		AuthFunc: client.HandleAuth,
-	}
-
-	references := []string{
-		"postgres:12-alpine",
-	}
-
-	for _, reference := range references {
-		t.Run(reference, func(t *testing.T) {
-			ref, err := oci.ParseReference(reference)
-			require.NoError(t, err)
-
-			manifest, err := ociClient.GetManifest(context.TODO(), ref)
-			require.NoError(t, err)
-			fmt.Printf("%+v\n", manifest)
-
-			// Rewrite ref to pin digest of manifst
-			ref.HasTag = false
-			ref.Tag = ""
-			ref.HasDigest = true
-			switch m := manifest.(type) {
-			case *oci.ImageManifest:
-				ref.Digest = m.Digest
-			case *oci.ImageIndex:
-				ref.Digest = m.Digest
-			}
-
-			// Expect it to exist
-			manifest, err = ociClient.GetManifest(context.TODO(), ref)
-			require.NoError(t, err)
-			fmt.Printf("%+v\n", manifest)
-		})
-	}
-}
-
-func TestClientGetAnnotations(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	client := &Client{
-		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
-	}
-
-	ref, err := oci.ParseReference("homeassistant/home-assistant")
-	require.NoError(t, err)
-
-	ociClient := &oci.Client{
-		Client:   client.Client,
-		AuthFunc: client.HandleAuth,
-	}
-
-	manifests, err := ociClient.GetAnnotations(context.TODO(), ref, nil)
-	require.NoError(t, err)
-
-	fmt.Println(manifests, manifests == nil)
-}
-
 func TestClientGetRepository(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
@@ -114,30 +45,4 @@ func TestGetVulnerabilityReport(t *testing.T) {
 	require.NoError(t, err)
 
 	json.NewEncoder(os.Stdout).Encode(report)
-}
-
-func TestGetTags(t *testing.T) {
-	if testing.Short() {
-		t.Skip()
-	}
-
-	client := &Client{
-		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
-	}
-
-	ociClient := oci.Client{
-		Client:   client.Client,
-		AuthFunc: client.HandleAuth,
-	}
-
-	ref, err := oci.ParseReference("mongo")
-	require.NoError(t, err)
-
-	tags, err := ociClient.GetTags(context.TODO(), ref, &oci.GetTagsOptions{
-		Count:    300,
-		AllPages: true,
-	})
-	require.NoError(t, err)
-
-	fmt.Println(tags)
 }

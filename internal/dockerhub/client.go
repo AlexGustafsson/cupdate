@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
-	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -16,65 +13,6 @@ import (
 
 type Client struct {
 	Client httputil.Requester
-}
-
-// GetRegistryToken returns a token for use with Docker Hub with pull
-// permissions on the specified repository.
-func (c *Client) GetRegistryToken(ctx context.Context, repository string) (string, error) {
-	// TODO: Registries expose the realm and scheme via Www-Authenticate if 403
-	// is given
-	u, err := url.Parse("https://auth.docker.io/token?service=registry.docker.io")
-	if err != nil {
-		return "", err
-	}
-
-	query := u.Query()
-	query.Set("scope", fmt.Sprintf("repository:%s:pull", repository))
-	u.RawQuery = query.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	if err != nil {
-		return "", err
-	}
-
-	res, err := c.Client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
-		return "", err
-	}
-
-	var result struct {
-		Token     string    `json:"token"`
-		ExpiresIn int       `json:"expires_in"`
-		IssuedAt  time.Time `json:"issued_at"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
-		return "", err
-	}
-
-	return result.Token, nil
-}
-
-// HandleAuth authenticates a request to the Docker Hub registry.
-func (c *Client) HandleAuth(r *http.Request) error {
-	name := oci.NameFromAPI(r.URL.Path)
-	// lscr.io is a pseudo-registry that forwards to one of multiple backends,
-	// among them docker.io
-	if (r.Host != "docker.io" && !strings.HasSuffix(r.Host, ".docker.io") && r.Host != "lscr.io") || name == "" {
-		return nil
-	}
-
-	token, err := c.GetRegistryToken(r.Context(), name)
-	if err != nil {
-		return err
-	}
-
-	r.Header.Set("Authorization", "Bearer "+token)
-
-	return nil
 }
 
 func (c *Client) GetRepository(ctx context.Context, image oci.Reference) (*Repository, error) {

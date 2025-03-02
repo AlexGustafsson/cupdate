@@ -1,9 +1,6 @@
 package imageworkflow
 
 import (
-	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
-	"github.com/AlexGustafsson/cupdate/internal/ghcr"
-	"github.com/AlexGustafsson/cupdate/internal/gitlab"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
@@ -28,35 +25,9 @@ func SetupRegistryClient() workflow.Step {
 				return nil, err
 			}
 
-			// TODO: Support the www-authenticate return header mandated by the OCI
-			// distribution spec. Would help support currently unknown registries that are
-			// well-behaved
-			baseAuth := httputil.NewAuthMux()
-			baseAuth.Handle("*.docker.io", &dockerhub.Client{
-				Client: httpClient,
-			})
-			// Linux Server mirrors images, but the default is GitHub and I've never
-			// seen any other backend being used. For now, assume GitHub
-			baseAuth.Handle("lscr.io", &ghcr.Client{
-				Client: httpClient,
-			})
-			baseAuth.Handle("registry.gitlab.com", &gitlab.Client{
-				Client: httpClient,
-			})
-
-			// Apply user configuration
-			baseAuth.Copy(registryAuth)
-
-			// Handle GHCR specially as they use the auth on their own token endpoint,
-			// which is always required no matter if authenticated or anonoymous
-			baseAuth.Handle("ghcr.io", &ghcr.Client{
-				Client:        httpClient,
-				TokenAuthFunc: registryAuth.HandleAuth,
-			})
-
 			client := &oci.Client{
 				Client:   httpClient,
-				AuthFunc: baseAuth.HandleAuth,
+				AuthFunc: registryAuth.HandleAuth,
 			}
 
 			return workflow.Batch(
