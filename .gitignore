@@ -7,3 +7,4 @@
 /*.boltdb
 /docker.sock
 /integration/zot/htpasswd
+/coverage.out
