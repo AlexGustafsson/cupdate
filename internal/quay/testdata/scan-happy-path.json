@@ -1,0 +1,55 @@
+{
+  "status": "scanned",
+  "data": {
+    "Layer": {
+      "Name": "sha256:7708f832ae02919f2cdb2798fdbc64e17ce7a576d1e3baabdd78a000d2d62f40",
+      "ParentName": "",
+      "NamespaceName": "",
+      "IndexedByVersion": 4,
+      "Features": [
+        {
+          "Name": "json-c",
+          "VersionFormat": "",
+          "NamespaceName": "",
+          "AddedBy": "sha256:ae0badd537673e93bcbcf384ce6acda3cdfef75d43bd2f7bc766ef5ffba3e51a",
+          "Version": "0.14-11.el9",
+          "BaseScores": [],
+          "CVEIds": [],
+          "Vulnerabilities": []
+        },
+        {
+          "Name": "libgomp",
+          "VersionFormat": "",
+          "NamespaceName": "",
+          "AddedBy": "sha256:ae0badd537673e93bcbcf384ce6acda3cdfef75d43bd2f7bc766ef5ffba3e51a",
+          "Version": "11.4.1-3.el9",
+          "BaseScores": [6.1],
+          "CVEIds": ["CVE-2020-11023"],
+          "Vulnerabilities": [
+            {
+              "Severity": "Medium",
+              "NamespaceName": "rhel-vex",
+              "Link": "https://access.redhat.com/security/cve/CVE-2020-11023 https://bugzilla.redhat.com/show_bug.cgi?id=1850004 https://www.cve.org/CVERecord?id=CVE-2020-11023 https://nvd.nist.gov/vuln/detail/CVE-2020-11023 https://blog.jquery.com/2020/04/10/jquery-3-5-0-released/ https://www.cisa.gov/known-exploited-vulnerabilities-catalog https://security.access.redhat.com/data/csaf/v2/vex/2020/cve-2020-11023.json https://access.redhat.com/errata/RHSA-2025:1304",
+              "FixedBy": "0:11.4.1-4.el9_4",
+              "Description": "A flaw was found in jQuery. HTML containing \\<option\\> elements from untrusted sources are passed, even after sanitizing, to one of jQuery's DOM manipulation methods, which may execute untrusted code. The highest threat from this vulnerability is to data confidentiality and integrity.",
+              "Name": "CVE-2020-11023",
+              "Metadata": {
+                "UpdatedBy": "rhel-vex",
+                "RepoName": "cpe:2.3:a:redhat:rhel_eus:9.4:*:appstream:*:*:*:*:*",
+                "RepoLink": null,
+                "DistroName": "",
+                "DistroVersion": "",
+                "NVD": {
+                  "CVSSv3": {
+                    "Vectors": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                    "Score": 6.1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
