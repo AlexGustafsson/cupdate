@@ -1,8 +1,6 @@
 package imageworkflow
 
 import (
-	"strings"
-
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -34,24 +32,19 @@ func GetQuayVulnerabilities() workflow.Step {
 				Client: httpClient,
 			}
 
-			scan, err := client.GetScan(ctx, reference)
+			scan, err := client.GetVulnerabilities(ctx, reference)
 			if err != nil {
 				return nil, err
 			}
 
 			vulnerabilities := make([]models.ImageVulnerability, 0)
-
-			if scan != nil && scan.Status == quay.ScanStatusScanned && scan.Data != nil {
-				for _, feature := range scan.Data.Layer.Features {
-					for _, vulnerability := range feature.Vulnerabilities {
-						vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-							Severity:    strings.Replace(strings.ToLower(string(vulnerability.Severity)), "unknown", "unspecified", 1),
-							Authority:   "Quay",
-							Description: vulnerability.Description,
-							Links:       strings.Split(vulnerability.Link, " "),
-						})
-					}
-				}
+			for _, vulnerability := range scan {
+				vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
+					Severity:    string(vulnerability.Severity),
+					Authority:   "Quay",
+					Description: vulnerability.Description,
+					Links:       vulnerability.Links,
+				})
 			}
 
 			return workflow.SetOutput("vulnerabilities", vulnerabilities), nil
