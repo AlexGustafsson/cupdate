@@ -38,5 +38,7 @@ func TestGetRepositoryREADMEBlob(t *testing.T) {
 	res, err := client.GetRepositoryREADMEBlob(context.TODO(), "/arm-research/smarter/smarter-device-manager/-/blob/master/README.md")
 	require.NoError(t, err)
 
-	fmt.Printf("%+s\n", res.Raw)
+	if res != nil {
+		fmt.Printf("%+s\n", res.Raw)
+	}
 }

@@ -3,6 +3,8 @@ package vulndb
 import (
 	"context"
 	"database/sql"
+
+	_ "modernc.org/sqlite"
 )
 
 type Conn struct {

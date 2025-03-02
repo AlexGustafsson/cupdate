@@ -40,6 +40,7 @@ func TestWorkflow(t *testing.T) {
 		FullDescription: nil,
 		ReleaseNotes:    nil,
 		Links:           make([]models.ImageLink, 0),
+		RegistryAuth:    httputil.NewAuthMux(),
 	}
 
 	workflow := New(httpClient, data)
