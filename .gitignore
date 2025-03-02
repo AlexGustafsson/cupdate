@@ -8,3 +8,4 @@
 /docker.sock
 /integration/zot/htpasswd
 /coverage.out
+/internal/vulndb/vulndb.sqlite
