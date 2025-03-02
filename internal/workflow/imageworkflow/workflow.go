@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
-	"github.com/AlexGustafsson/cupdate/internal/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/github"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
@@ -219,7 +218,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 
 						data.InsertLink(models.ImageLink{
 							Type: "ghcr",
-							URL:  ghcr.PackagePath(data.ImageReference),
+							URL:  github.PackageURL(data.ImageReference),
 						})
 						data.Description = description
 

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AlexGustafsson/cupdate/internal/ghcr"
 	"github.com/AlexGustafsson/cupdate/internal/htmlutil"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -92,7 +91,7 @@ func (c *Client) GetDescription(ctx context.Context, owner string, repository st
 
 // GetPackage returns information about a GHCR package.
 func (c *Client) GetPackage(ctx context.Context, reference oci.Reference) (*Package, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ghcr.PackagePath(reference), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, PackageURL(reference), nil)
 	if err != nil {
 		return nil, err
 	}
