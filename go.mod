@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.0
 
 require (
-	github.com/caarlos0/env/v10 v10.0.0
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/distribution/reference v0.6.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/prometheus/client_golang v1.21.1

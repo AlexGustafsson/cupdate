@@ -24,7 +24,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/web"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
-	"github.com/caarlos0/env/v10"
+	"github.com/caarlos0/env/v11"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sync/errgroup"
