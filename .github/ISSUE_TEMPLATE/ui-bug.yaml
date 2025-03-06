@@ -21,7 +21,7 @@ body:
     id: cupdate-version
     attributes:
       label: What version of Cupdate are you using?
-      placeholder: v0.17.0
+      placeholder: v0.18.0
     validations:
       required: true
   - type: dropdown
