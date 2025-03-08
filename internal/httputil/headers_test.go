@@ -242,6 +242,87 @@ func TestParseWWWAuthenticateHeader(t *testing.T) {
 	}
 }
 
+func TestAccepts(t *testing.T) {
+	testCases := []struct {
+		Header    string
+		MimeTypes []string
+		Expected  string
+	}{
+		{
+			Header:    "text/*; q=0.9,application/json; q=1;",
+			MimeTypes: []string{"text/plain", "application/json"},
+			Expected:  "application/json",
+		},
+		{
+			Header:    "text/*; q=0.9,application/json; q=1;",
+			MimeTypes: []string{"application/json"},
+			Expected:  "application/json",
+		},
+		{
+			Header:    "text/*; q=0.9,application/json; q=1;",
+			MimeTypes: []string{"application/xml"},
+			Expected:  "",
+		},
+		{
+			Header:    "text/*; q=1,application/json; q=1; charset=utf-8bm;",
+			MimeTypes: []string{"text/plain"},
+			Expected:  "text/plain",
+		},
+		{
+			Header:    "text/html; charset=utf-8; q=1,application/*; q=1; charset=cp1251;",
+			MimeTypes: []string{"text/html"},
+			Expected:  "text/html",
+		},
+		{
+			Header:    "text/html; charset=utf-8; q=1,application/*; q=1; charset=cp1251;",
+			MimeTypes: []string{"text/html"},
+			Expected:  "text/html",
+		},
+		{
+			Header:    "*/*",
+			MimeTypes: []string{"text/html"},
+			Expected:  "text/html",
+		},
+		{
+			Header:    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+			MimeTypes: []string{"text/html", "application/xml"},
+			Expected:  "text/html",
+		},
+		{
+			Header:    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+			MimeTypes: []string{"text/plain"},
+			Expected:  "text/plain",
+		},
+		{
+			Header:    "malformed",
+			MimeTypes: []string{"text/plain"},
+			Expected:  "",
+		},
+		{
+			Header:    "text/plain;mal:formed",
+			MimeTypes: []string{"text/plain"},
+			Expected:  "text/plain",
+		},
+		{
+			Header:    "text/plain;q=malformed",
+			MimeTypes: []string{"text/plain"},
+			Expected:  "",
+		},
+		{
+			Header:    "text/plain",
+			MimeTypes: []string{"malformed"},
+			Expected:  "",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Header, func(t *testing.T) {
+			actual := Accepts(testCase.Header, testCase.MimeTypes...)
+			assert.Equal(t, testCase.Expected, actual)
+		})
+	}
+}
+
 func mustParseURL(t *testing.T, u string) *url.URL {
 	v, err := url.Parse(u)
 	require.NoError(t, err)

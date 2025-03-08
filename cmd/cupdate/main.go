@@ -516,7 +516,7 @@ func main() {
 	}))
 
 	if !config.Web.Disabled {
-		mux.Handle("/", web.MustNewServer())
+		mux.Handle("/", web.MustNewEmbeddedServer())
 	}
 
 	httpServer := &http.Server{

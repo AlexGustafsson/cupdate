@@ -3,6 +3,7 @@ package httputil
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -148,4 +149,63 @@ func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error
 	}
 
 	return scheme, params, nil
+}
+
+// Accepts returns the most highly desired mime type supported by the server.
+// Ignores parameters like charsets.
+func Accepts(header string, mimeTypes ...string) string {
+	matched := ""
+	matchedWeight := 0.0
+
+	entries := strings.Split(strings.TrimSpace(header), ",")
+	for _, entry := range entries {
+		directives := strings.Split(strings.TrimSpace(entry), ";")
+
+		pattern := directives[0]
+		wantedLeft, wantedRight, ok := strings.Cut(pattern, "/")
+		if !ok {
+			// Malformed
+			continue
+		}
+
+		weight := 1.0
+		for _, directive := range directives[1:] {
+			k, v, ok := strings.Cut(strings.TrimSpace(directive), "=")
+			if !ok {
+				continue
+			}
+
+			if k == "q" {
+				var err error
+				weight, err = strconv.ParseFloat(v, 32)
+				if err != nil {
+					continue
+				}
+				break
+			}
+		}
+
+		if weight <= matchedWeight {
+			continue
+		}
+
+		for _, mimeType := range mimeTypes {
+			actualLeft, actualRight, ok := strings.Cut(mimeType, "/")
+			if !ok {
+				// Malformed
+				continue
+			}
+
+			matches := (wantedLeft == "*" || actualLeft == wantedLeft) && (wantedRight == "*" || actualRight == wantedRight)
+			if !matches {
+				continue
+			}
+
+			matched = mimeType
+			matchedWeight = weight
+			break
+		}
+	}
+
+	return matched
 }
