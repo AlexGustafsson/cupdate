@@ -77,12 +77,12 @@ export function ScorecardCard({ scorecard }: ScorecardCardProps): JSX.Element {
             className={color}
             percentage={scorecard.score / 10}
             value={scorecard.score.toString()}
-            label={scorecard.risk}
+            label={`${scorecard.risk} risk`}
           />
         </div>
         <p>
           The project associated with this image has been found to pose a{' '}
-          <span className="font-semibold">{scorecard.risk}</span> risk, scoring{' '}
+          <span className="font-semibold">{scorecard.risk} risk</span>, scoring{' '}
           <span className="font-semibold">
             {scorecard.score}
             /10
