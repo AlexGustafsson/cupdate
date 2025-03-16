@@ -120,9 +120,9 @@ func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error
 				return "", nil, fmt.Errorf("httputil: invalid Www-Authenticate header param key")
 			}
 		case "paramValue":
-			if paramValue == "" && c == '"' {
+			if !isEnd && paramValue == "" && c == '"' {
 				// OK
-			} else if paramValue != "" && c == '"' {
+			} else if (isEnd || paramValue != "") && c == '"' {
 				params[paramKey] = paramValue
 				paramKey = ""
 				paramValue = ""

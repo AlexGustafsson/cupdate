@@ -226,6 +226,15 @@ func TestParseWWWAuthenticateHeader(t *testing.T) {
 			Header: `Basic `,
 			Error:  true,
 		},
+		{
+			Header:         `Bearer realm="http://127.0.0.1:52225",service="zot",scope=""`,
+			ExpectedScheme: "Bearer",
+			ExpectedParams: map[string]string{
+				"realm":   "http://127.0.0.1:52225",
+				"service": "zot",
+				"scope":   "",
+			},
+		},
 	}
 
 	for _, testCase := range testCases {
