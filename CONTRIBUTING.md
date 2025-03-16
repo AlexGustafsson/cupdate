@@ -1,9 +1,14 @@
 # Contributing
 
-We are open for contributions, big or small. The best way to contribute is to
-open a bug report or feature request and testing fixes. If you want to poke
-around in Cupdate's code, the rest of this document contains some basic info to
-get you started.
+The best way to contribute to Cupdate is to by using and testing it. If you face
+issues, open a bug report and be ready to test fixes. If you have ideas for new
+features, open a feature request.
+
+If you want to poke around in Cupdate's code, the rest of this document contains
+some basic info to get you started. If you end up wanting to contribute a
+feature, please discuss the feature in a feature request issue first so that we
+can make sure that the feature aligns with Cupdate's scope (see README) and that
+no time is wasted developing features that might end up not being merged.
 
 ## Architecture
 
