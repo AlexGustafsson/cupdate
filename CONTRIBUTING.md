@@ -197,3 +197,12 @@ go test -coverprofile coverage.out -race -v ./...
 # Show coverage on a web page
 go tool cover -html coverage.out
 ```
+
+Some tests use containers to test integration with services. These should run
+just fine, but on macOS, when using Colima, you'll have to specify the following
+environment variables:
+
+```shell
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
+```

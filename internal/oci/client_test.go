@@ -1,8 +1,21 @@
 package oci
 
 import (
+	"bytes"
 	"context"
+	"crypto"
+	"crypto/ed25519"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/base64"
+	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"math/big"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -10,6 +23,8 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func TestClientGetManifest(t *testing.T) {
@@ -146,4 +161,226 @@ func TestClientGetTags(t *testing.T) {
 			fmt.Printf("%+v\n", tags)
 		})
 	}
+}
+
+func TestIntegrationClientZotBasicAuth(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	zotConfig := `{
+  "distSpecVersion": "1.0.1",
+  "storage": {
+    "rootDirectory": "/tmp/zot/storage"
+  },
+  "log": {
+    "level": "debug"
+  },
+  "http": {
+    "address": "0.0.0.0",
+    "port": "9090",
+    "auth": {
+      "htpasswd": {
+        "path": "/etc/zot/htpasswd"
+      },
+      "apikey": true
+    }
+  }
+}
+`
+	// htpasswd -bBn username password
+	htpasswd := `username:$2y$05$uAaTn0C6bgrELr8oDCGkaurrdjctUCnb2LHl7M6GMhRmw45fSJEHe`
+
+	zotRequest := testcontainers.ContainerRequest{
+		Image:        "ghcr.io/project-zot/zot:v2.1.3-rc3",
+		ExposedPorts: []string{"9090/tcp"},
+		Files: []testcontainers.ContainerFile{
+			{
+				Reader:            strings.NewReader(zotConfig),
+				ContainerFilePath: "/etc/zot/config.json",
+			},
+			{
+				Reader:            strings.NewReader(htpasswd),
+				ContainerFilePath: "/etc/zot/htpasswd",
+			},
+		},
+		WaitingFor: wait.ForHTTP("/v2/").WithPort("9090").WithStatusCodeMatcher(func(status int) bool { return true }),
+		LogConsumerCfg: &testcontainers.LogConsumerConfig{
+			Consumers: []testcontainers.LogConsumer{
+				&testcontainers.StdoutLogConsumer{},
+			},
+		},
+	}
+
+	zot, err := testcontainers.GenericContainer(context.TODO(), testcontainers.GenericContainerRequest{
+		ContainerRequest: zotRequest,
+		Started:          true,
+	})
+	testcontainers.CleanupContainer(t, zot)
+	require.NoError(t, err)
+
+	zotHost, err := zot.Host(context.TODO())
+	require.NoError(t, err)
+
+	zotPort, err := zot.MappedPort(context.TODO(), "9090/tcp")
+	require.NoError(t, err)
+
+	authMux := httputil.NewAuthMux()
+	authMux.Handle(fmt.Sprintf("%s:%s", zotHost, zotPort.Port()), httputil.BasicAuthHandler{
+		Username: "username",
+		Password: "password",
+	})
+
+	client := &Client{
+		Client:   httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+		AuthFunc: authMux.HandleAuth,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%s/v2/", zotHost, zotPort.Port()), nil)
+	require.NoError(t, err)
+
+	res, err := client.Do(req)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
+func TestIntegrationClientZotBearerAuth(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	// SEE: https://github.com/project-zot/zot/blob/2a4edde637509ae05da81a8e84c72ebc687e5c0c/pkg/api/bearer.go
+	// SEE: https://github.com/project-zot/zot/blob/2a4edde637509ae05da81a8e84c72ebc687e5c0c/pkg/api/authn.go#L404
+	// SEE: https://github.com/project-zot/zot/blob/2a4edde637509ae05da81a8e84c72ebc687e5c0c/pkg/api/authn.go#L905
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	template := x509.Certificate{
+		SerialNumber: big.NewInt(0),
+		Subject: pkix.Name{
+			Organization: []string{"Localhost IDP"},
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().Add(1 * time.Hour),
+
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		BasicConstraintsValid: true,
+
+		DNSNames: []string{"localhost"},
+	}
+
+	der, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey, privateKey)
+	require.NoError(t, err)
+
+	certificate := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: der,
+	})
+
+	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// username:password
+		if assert.Equal(t, "Basic dXNlcm5hbWU6cGFzc3dvcmQ=", r.Header.Get("Authorization")) {
+			var result struct {
+				Token     string    `json:"token"`
+				ExpiresIn int       `json:"expires_in"`
+				IssuedAt  time.Time `json:"issued_at"`
+			}
+
+			header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"EdDSA","typ":"JWT"}`))
+			payload := base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(`{"iat":%d,"access":[{"type":"registry","name":"catalog","action":"*"}]}`, time.Now().Unix())))
+
+			jwt := header + "." + payload
+
+			signature, err := privateKey.Sign(rand.Reader, []byte(jwt), crypto.Hash(0))
+			require.NoError(t, err)
+			jwt += "." + base64.RawURLEncoding.EncodeToString(signature)
+
+			result.Token = jwt
+			result.ExpiresIn = int(time.Now().Add(1 * time.Hour).Unix())
+			result.IssuedAt = time.Now()
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(&result)
+		} else {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+	}))
+	defer authServer.Close()
+
+	zotConfig := fmt.Sprintf(`{
+  "distSpecVersion": "1.0.1",
+  "storage": {
+    "rootDirectory": "/tmp/zot/storage"
+  },
+  "log": {
+    "level": "debug"
+  },
+  "http": {
+    "address": "0.0.0.0",
+    "port": "9090",
+    "auth": {
+      "bearer": {
+        "realm": "%s",
+        "service": "zot",
+        "cert": "/etc/zot/auth-service.crt"
+      },
+      "apikey": true
+    }
+  }
+}
+`, authServer.URL)
+
+	zotRequest := testcontainers.ContainerRequest{
+		Image:        "ghcr.io/project-zot/zot:v2.1.3-rc3",
+		ExposedPorts: []string{"9090/tcp"},
+		Files: []testcontainers.ContainerFile{
+			{
+				Reader:            strings.NewReader(zotConfig),
+				ContainerFilePath: "/etc/zot/config.json",
+			},
+			{
+				Reader:            bytes.NewReader(certificate),
+				ContainerFilePath: "/etc/zot/auth-service.crt",
+			},
+		},
+		WaitingFor: wait.ForHTTP("/v2/").WithPort("9090").WithStatusCodeMatcher(func(status int) bool { return true }),
+		LogConsumerCfg: &testcontainers.LogConsumerConfig{
+			Consumers: []testcontainers.LogConsumer{
+				&testcontainers.StdoutLogConsumer{},
+			},
+		},
+	}
+
+	zot, err := testcontainers.GenericContainer(context.TODO(), testcontainers.GenericContainerRequest{
+		ContainerRequest: zotRequest,
+		Started:          true,
+	})
+	testcontainers.CleanupContainer(t, zot)
+	require.NoError(t, err)
+
+	zotHost, err := zot.Host(context.TODO())
+	require.NoError(t, err)
+
+	zotPort, err := zot.MappedPort(context.TODO(), "9090/tcp")
+	require.NoError(t, err)
+
+	authMux := httputil.NewAuthMux()
+	authMux.Handle(authServer.URL, httputil.BasicAuthHandler{
+		Username: "username",
+		Password: "password",
+	})
+
+	client := &Client{
+		Client:   httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+		AuthFunc: authMux.HandleAuth,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%s/v2/", zotHost, zotPort.Port()), nil)
+	require.NoError(t, err)
+
+	res, err := client.Do(req)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
 }
