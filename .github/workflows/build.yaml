@@ -14,7 +14,6 @@ on:
       - .yarnrc.yml
       - biome.jsonc
       - package.json
-      - tailwind.config.js
       - tsconfig.json
       - vite.config.ts
       - yarn.lock
@@ -31,7 +30,6 @@ on:
       - .yarnrc.yml
       - biome.jsonc
       - package.json
-      - tailwind.config.js
       - tsconfig.json
       - vite.config.ts
       - yarn.lock
