@@ -61,6 +61,18 @@ func (c *Client) do(req *http.Request, do func(req *http.Request) (*http.Respons
 		return nil, fmt.Errorf("oci: invalid www-authenticate header: %w", err)
 	}
 
+	// Assume the request should be authenticated immediately and that the correct
+	// handler is registered
+	if scheme == "Basic" {
+		if f := c.AuthFunc; f != nil {
+			if err := f(req); err != nil {
+				return nil, err
+			}
+		}
+
+		return do(req)
+	}
+
 	if scheme != "Bearer" {
 		return nil, fmt.Errorf("oci: invalid www-authenticate scheme: %s", scheme)
 	}
