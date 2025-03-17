@@ -2,8 +2,6 @@ module github.com/AlexGustafsson/cupdate
 
 go 1.24
 
-toolchain go1.24.1
-
 require (
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/distribution/reference v0.6.0
@@ -18,10 +16,10 @@ require (
 	go.opentelemetry.io/otel/trace v1.35.0
 	golang.org/x/net v0.37.0
 	golang.org/x/sync v0.12.0
-	k8s.io/api v0.32.2
-	k8s.io/apimachinery v0.32.2
-	k8s.io/client-go v0.32.2
-	modernc.org/sqlite v1.36.0
+	k8s.io/api v0.32.3
+	k8s.io/apimachinery v0.32.3
+	k8s.io/client-go v0.32.3
+	modernc.org/sqlite v1.36.1
 	oras.land/oras-go/v2 v2.5.0
 )
 
