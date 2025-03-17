@@ -232,8 +232,15 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 			repoDigests = image.RepoDigests
 		}
 
+		// Identify the image reference used, containing a digest, if available.
+		// At times, Docker compose will reference images in arguably weird ways,
+		// potentially just by their digest. This is generally not a valid OCI
+		// reference and we can't infer / build the reference ourselves. Here, as
+		// the fault is obvious and cannot collide with the arguably correct
+		// reference "sha256:1234...", let's make sure no "sha256" tag makes it
+		// through
 		ref, err := getImageReference(container.Image, repoDigests)
-		if err != nil {
+		if err != nil || ref.Domain == "docker.io" && ref.Path == "sha256" {
 			slog.ErrorContext(ctx, "Failed to identify a valid image reference for container", slog.String("container", container.ID))
 			continue
 		}
