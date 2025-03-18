@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"maps"
 	"net"
 	"net/http"
 	"os"
@@ -45,9 +46,7 @@ func main() {
 		defer res.Body.Close()
 
 		header := w.Header()
-		for k, v := range res.Header {
-			header[k] = v
-		}
+		maps.Copy(header, res.Header)
 
 		w.WriteHeader(res.StatusCode)
 		if _, err := io.Copy(w, res.Body); err != nil {

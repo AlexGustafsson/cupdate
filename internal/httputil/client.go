@@ -30,6 +30,16 @@ type Requester interface {
 
 var _ prometheus.Collector = (*Client)(nil)
 
+// NewTransport returns a [*http.Transport] with sane defaults.
+func NewTransport() *http.Transport {
+	return &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 5 * time.Second,
+	}
+}
+
 type Client struct {
 	http.Client
 
@@ -46,13 +56,8 @@ type Client struct {
 func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 	return &Client{
 		Client: http.Client{
-			Transport: &http.Transport{
-				DialContext: (&net.Dialer{
-					Timeout: 5 * time.Second,
-				}).DialContext,
-				TLSHandshakeTimeout: 5 * time.Second,
-			},
-			Timeout: 10 * time.Second,
+			Transport: NewTransport(),
+			Timeout:   10 * time.Second,
 		},
 
 		cache:       cache,

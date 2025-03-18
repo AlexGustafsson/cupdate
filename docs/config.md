@@ -25,7 +25,7 @@ done using environment variables.
 | `CUPDATE_WORKFLOW_CLEANUP_MAX_AGE`      | The maximum age of a workflow run before it's removed.                                                                | `48h`                           |
 | `CUPDATE_WORKFLOW_CLEANUP_INTERVAL`     | The time between workflow run cleanup iterations.                                                                     | `1h`                            |
 | `CUPDATE_KUBERNETES_HOST`               | The host of the Kubernetes API. For use with proxying.                                                                | Required to use Kubernetes.     |
-| `CUPDATE_DOCKER_HOST`                   | One or more comma-separated Docker host URIs. Supports unix://path and tcp://host:port URIs.                          | Required to use Docker.         |
+| `CUPDATE_DOCKER_HOST`                   | One or more comma-separated Docker host URIs. Supports unix://path, tcp://host:port, http:// and https:// URIs.       | Required to use Docker.         |
 | `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS` | Whether or not to include containers in any state, not just running containers.                                       | `false`                         |
 | `CUPDATE_OTEL_TARGET`                   | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                 | Required to use Open Telemetry. |
 | `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                         |

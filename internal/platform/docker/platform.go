@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -22,7 +23,8 @@ var _ platform.Grapher = (*Platform)(nil)
 
 // Platform implements graphing for the Docker platform.
 type Platform struct {
-	client *http.Client
+	client   *http.Client
+	basePath string
 
 	includeAllContainers bool
 }
@@ -31,47 +33,60 @@ type Options struct {
 	// IncludeAllContainers will graph all containers, no matter their state.
 	// Defaults to false - only include running containers.
 	IncludeAllContainers bool
+	// TLSClientConfig sets the TLSClientConfig of the underlying client.
+	// Only used if scheme is tcp or https.
+	TLSClientConfig *tls.Config
 }
 
 // NewPlatform initializes a new [Platform].
 //
-//   - dockerURI is the URI to the docker socket. Such as unix://docker.sock or
-//     tcp://127.0.0.1:8080.
+//   - dockerURI is the URI to the docker socket. Such as unix://docker.sock,
+//     tcp://127.0.0.1:8080, http://127.0.0.1:8080 or https://127.0.0.1:8080.
 func NewPlatform(ctx context.Context, dockerURI string, options *Options) (*Platform, error) {
 	if options == nil {
 		options = &Options{}
 	}
 
-	var transport *http.Transport
-	if strings.HasPrefix(dockerURI, "unix://") {
-		host := strings.TrimPrefix(dockerURI, "unix://")
+	scheme, _, ok := strings.Cut(dockerURI, "://")
+	if !ok {
+		return nil, fmt.Errorf("invalid docker URI")
+	}
 
+	basePath := ""
+	transport := httputil.NewTransport()
+	switch scheme {
+	case "unix":
+		host := strings.TrimPrefix(dockerURI, "unix://")
 		if _, err := os.Stat(host); err != nil {
 			return nil, err
 		}
 
-		transport = &http.Transport{
-			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
-				return (&net.Dialer{
-					Timeout: 5 * time.Second,
-				}).DialContext(ctx, "unix", host)
-			},
+		basePath = "http://_"
+		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
+			return (&net.Dialer{
+				Timeout: 5 * time.Second,
+			}).DialContext(ctx, "unix", host)
 		}
-	} else if strings.HasPrefix(dockerURI, "tcp://") {
-		host := strings.TrimPrefix(dockerURI, "tcp://")
-
-		if _, _, err := net.SplitHostPort(host); err != nil {
-			return nil, err
+	case "tcp", "http", "https":
+		url, err := url.Parse(dockerURI)
+		if err != nil {
+			return nil, fmt.Errorf("invalid docker URI: %w", err)
 		}
 
-		transport = &http.Transport{
-			DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
-				return (&net.Dialer{
-					Timeout: 5 * time.Second,
-				}).DialContext(ctx, "tcp", host)
-			},
+		if url.Scheme == "tcp" {
+			if options.TLSClientConfig == nil {
+				url.Scheme = "http"
+			} else {
+				url.Scheme = "https"
+			}
 		}
-	} else {
+
+		basePath = url.String()
+
+		if url.Scheme == "tcp" || url.Scheme == "https" {
+			transport.TLSClientConfig = options.TLSClientConfig
+		}
+	default:
 		return nil, fmt.Errorf("unsupported docker URI: %s", dockerURI)
 	}
 
@@ -81,7 +96,8 @@ func NewPlatform(ctx context.Context, dockerURI string, options *Options) (*Plat
 	}
 
 	p := &Platform{
-		client: client,
+		client:   client,
+		basePath: basePath,
 
 		includeAllContainers: options.IncludeAllContainers,
 	}
@@ -100,7 +116,7 @@ func NewPlatform(ctx context.Context, dockerURI string, options *Options) (*Plat
 // GetVersion returns the api version and minimum supported api version of the
 // Docker runtime.
 func (p *Platform) GetVersion(ctx context.Context) (string, string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/version", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.basePath+"/version", nil)
 	if err != nil {
 		return "", "", err
 	}
@@ -150,7 +166,7 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 		query.Set("filters", string(filters))
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/containers/json?"+query.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.basePath+"/containers/json?"+query.Encode(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +192,7 @@ func (p *Platform) GetContainers(ctx context.Context, options *GetContainersOpti
 // GetImage retrieves container image information from the Docker runtime by
 // name or id. Returns an error if the image does not exist.
 func (p *Platform) GetImage(ctx context.Context, nameOrID string) (*Image, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://_/images/"+url.PathEscape(nameOrID)+"/json", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.basePath+"/images/"+url.PathEscape(nameOrID)+"/json", nil)
 	if err != nil {
 		return nil, err
 	}
