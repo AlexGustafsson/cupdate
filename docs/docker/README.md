@@ -51,6 +51,56 @@ Whilst the commands above are enough to get you started with Cupdate, you might
 want to change some configuration to better suite your needs. Please see the
 additional documentation in [../config.md](../config.md).
 
+### TLS
+
+By specifying a Docker host such as `https://docker.internal`, Cupdate will
+automatically use TLS. However, many setups configure Docker using a self-signed
+certificate chain. In such setups, Cupdate needs to know what certificates to
+use. This is done by specifying the `CUPDATE_DOCKER_TLS_PATH` environment
+variable to point to a directory containing the config.
+
+Cupdate will look for the following files:
+
+- `ca.pem` - If found, will control the trusted root CAs. May contain multiple
+  certificates.
+- `cert.pem` + `key.pem` - If found, will enable mTLS.
+
+That is - if you don't want authentication, but still want TLS, it's enough to
+have a `ca.pem`. Likewise, if you want mTLS but have configured trust in the
+chain elsewhere, you can specify only `cert.pem` and `key.pem`.
+
+In simple cases, like when you only have a single host, you can put the files
+immediately in the specified directory.
+
+```shell
+${CUPDATE_DOCKER_TLS_PATH}
+├── ca.pem
+├── cert.pem
+└── key.pem
+```
+
+If you want to specify certificates for each host, create a subdirectory for the
+host's hostname (e.g. `docker.internal` or `192.168.0.116`) and put your files
+there.
+
+```shell
+${CUPDATE_DOCKER_TLS_PATH}
+├── ca.pem
+├── cert.pem
+├── key.pem
+└── docker.internal # Overrides for the host docker.internal
+    ├── ca.pem
+    ├── cert.pem
+    └── key.pem
+```
+
+If **no** applicable files are found in the subdirectory, the defaults, if any,
+will be used.
+
+The directory structure borrows from
+[Uptime Kuma](https://github.com/louislam/uptime-kuma/wiki/How-to-Monitor-Docker-Containers)
+to have a somewhat standard layout.
+
 ## Updating Cupdate
 
 > [!NOTE]

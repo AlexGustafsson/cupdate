@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/configutils"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -85,6 +87,7 @@ type Config struct {
 	Docker struct {
 		Hosts                []string `env:"HOST"`
 		IncludeAllContainers bool     `env:"INCLUDE_ALL_CONTAINERS"`
+		TLSPath              string   `env:"TLS_PATH"`
 	} `envPrefix:"DOCKER_"`
 
 	OTEL struct {
@@ -199,11 +202,31 @@ func main() {
 	} else {
 		graphers := make([]platform.Grapher, 0)
 		for _, host := range config.Docker.Hosts {
-			platform, err := docker.NewPlatform(context.Background(), host, &docker.Options{
+			options := &docker.Options{
 				IncludeAllContainers: config.Docker.IncludeAllContainers,
-			})
+			}
+
+			if config.Docker.TLSPath != "" {
+				uri, err := url.Parse(host)
+				if err != nil {
+					slog.ErrorContext(ctx, "Failed to parse docker URI", slog.Any("error", err), slog.String("host", host))
+					os.Exit(1)
+				}
+
+				tlsConfig, err := configutils.LoadTLSConfig(
+					filepath.Join(config.Docker.TLSPath, uri.Hostname()),
+					config.Docker.TLSPath,
+				)
+				if err != nil {
+					slog.ErrorContext(ctx, "Failed to read docker TLS files", slog.Any("error", err), slog.String("host", host))
+				}
+
+				options.TLSClientConfig = tlsConfig
+			}
+
+			platform, err := docker.NewPlatform(ctx, host, options)
 			if err != nil {
-				slog.ErrorContext(ctx, "Failed to create docker source", slog.Any("error", err))
+				slog.ErrorContext(ctx, "Failed to create docker source", slog.Any("error", err), slog.String("host", host))
 				os.Exit(1)
 			}
 

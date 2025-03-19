@@ -5,31 +5,32 @@
 Cupdate requires zero configuration, but is very configurable. Configuration is
 done using environment variables.
 
-| Environment variable                    | Description                                                                                                           | Default                         |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| `CUPDATE_LOG_LEVEL`                     | `debug`, `info`, `warn`, `error`                                                                                      | `info`                          |
-| `CUPDATE_API_ADDRESS`                   | The address to expose the API on.                                                                                     | `0.0.0.0`                       |
-| `CUPDATE_API_PORT`                      | The port to expose the API on.                                                                                        | `8080`                          |
-| `CUPDATE_WEB_DISABLED`                  | Whether or not to disable the web UI.                                                                                 | `false`                         |
-| `CUPDATE_WEB_ADDRESS`                   | The URL at which the UI is available (such as `https://example.com`). Used for RSS feeds, should generally not be set | Automatically resolved          |
-| `CUPDATE_HTTP_USER_AGENT`               | The User Agent string to use for HTTP requests.                                                                       | `Cupdate/1.0`                   |
-| `CUPDATE_CACHE_PATH`                    | A path to the boltdb file in which to store cache.                                                                    | `cachev1.boltdb`                |
-| `CUPDATE_CACHE_MAX_AGE`                 | The maximum age of cache entries.                                                                                     | `24h`                           |
-| `CUPDATE_DB_PATH`                       | A path to the sqlite file in which to store data.                                                                     | `dbv1.sqlite`                   |
-| `CUPDATE_PROCESSING_INTERVAL`           | The interval between worker runs.                                                                                     | `1h`                            |
-| `CUPDATE_PROCESSING_ITEMS`              | The number of items (images) to process each worker run.                                                              | `10`                            |
-| `CUPDATE_PROCESSING_MIN_AGE`            | The minimum age of an item (image) before being processed.                                                            | `72h`                           |
-| `CUPDATE_PROCESSING_TIMEOUT`            | The maximum time one image may take to process before being terminated.                                               | `2m`                            |
-| `CUPDATE_PROCESSING_QUEUE_BURST`        | Number of items that can be processed in a short burst.                                                               | `10`                            |
-| `CUPDATE_PROCESSING_QUEUE_RATE`         | The desired processing rate under normal circumstances.                                                               | `1m`                            |
-| `CUPDATE_WORKFLOW_CLEANUP_MAX_AGE`      | The maximum age of a workflow run before it's removed.                                                                | `48h`                           |
-| `CUPDATE_WORKFLOW_CLEANUP_INTERVAL`     | The time between workflow run cleanup iterations.                                                                     | `1h`                            |
-| `CUPDATE_KUBERNETES_HOST`               | The host of the Kubernetes API. For use with proxying.                                                                | Required to use Kubernetes.     |
-| `CUPDATE_DOCKER_HOST`                   | One or more comma-separated Docker host URIs. Supports unix://path, tcp://host:port, http:// and https:// URIs.       | Required to use Docker.         |
-| `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS` | Whether or not to include containers in any state, not just running containers.                                       | `false`                         |
-| `CUPDATE_OTEL_TARGET`                   | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                 | Required to use Open Telemetry. |
-| `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                         |
-| `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.         | None                            |
+| Environment variable                    | Description                                                                                                           | Default                                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `CUPDATE_LOG_LEVEL`                     | `debug`, `info`, `warn`, `error`                                                                                      | `info`                                                |
+| `CUPDATE_API_ADDRESS`                   | The address to expose the API on.                                                                                     | `0.0.0.0`                                             |
+| `CUPDATE_API_PORT`                      | The port to expose the API on.                                                                                        | `8080`                                                |
+| `CUPDATE_WEB_DISABLED`                  | Whether or not to disable the web UI.                                                                                 | `false`                                               |
+| `CUPDATE_WEB_ADDRESS`                   | The URL at which the UI is available (such as `https://example.com`). Used for RSS feeds, should generally not be set | Automatically resolved.                               |
+| `CUPDATE_HTTP_USER_AGENT`               | The User Agent string to use for HTTP requests.                                                                       | `Cupdate/1.0`                                         |
+| `CUPDATE_CACHE_PATH`                    | A path to the boltdb file in which to store cache.                                                                    | `cachev1.boltdb`                                      |
+| `CUPDATE_CACHE_MAX_AGE`                 | The maximum age of cache entries.                                                                                     | `24h`                                                 |
+| `CUPDATE_DB_PATH`                       | A path to the sqlite file in which to store data.                                                                     | `dbv1.sqlite`                                         |
+| `CUPDATE_PROCESSING_INTERVAL`           | The interval between worker runs.                                                                                     | `1h`                                                  |
+| `CUPDATE_PROCESSING_ITEMS`              | The number of items (images) to process each worker run.                                                              | `10`                                                  |
+| `CUPDATE_PROCESSING_MIN_AGE`            | The minimum age of an item (image) before being processed.                                                            | `72h`                                                 |
+| `CUPDATE_PROCESSING_TIMEOUT`            | The maximum time one image may take to process before being terminated.                                               | `2m`                                                  |
+| `CUPDATE_PROCESSING_QUEUE_BURST`        | Number of items that can be processed in a short burst.                                                               | `10`                                                  |
+| `CUPDATE_PROCESSING_QUEUE_RATE`         | The desired processing rate under normal circumstances.                                                               | `1m`                                                  |
+| `CUPDATE_WORKFLOW_CLEANUP_MAX_AGE`      | The maximum age of a workflow run before it's removed.                                                                | `48h`                                                 |
+| `CUPDATE_WORKFLOW_CLEANUP_INTERVAL`     | The time between workflow run cleanup iterations.                                                                     | `1h`                                                  |
+| `CUPDATE_KUBERNETES_HOST`               | The host of the Kubernetes API. For use with proxying.                                                                | Required to use Kubernetes.                           |
+| `CUPDATE_DOCKER_HOST`                   | One or more comma-separated Docker host URIs. Supports unix://path, tcp://host:port, http:// and https:// URIs.       | Required to use Docker.                               |
+| `CUPDATE_DOCKER_TLS_PATH`               | Path to a directory containing certificates and keys for Docker. See Docker-specific docs for details.                | Required to use Docker with mTLS or a self-signed CA. |
+| `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS` | Whether or not to include containers in any state, not just running containers.                                       | `false`                                               |
+| `CUPDATE_OTEL_TARGET`                   | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                 | Required to use Open Telemetry.                       |
+| `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                                               |
+| `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.         | None.                                                 |
 
 ### Labels
 
