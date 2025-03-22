@@ -111,6 +111,19 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							}
 						}
 
+						currentManifest, err := workflow.GetValue[any](ctx, "step.manifest.manifest")
+						if err != nil {
+							return nil, err
+						}
+
+						currentIndexManifest, ok := currentManifest.(*oci.ImageIndex)
+						if ok {
+							digest := currentIndexManifest.AttestationManifestDigest()
+							if digest != "" {
+								data.InsertTag("attestation")
+							}
+						}
+
 						return nil, nil
 					}),
 				},
