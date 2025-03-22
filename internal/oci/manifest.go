@@ -3,6 +3,7 @@ package oci
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // ImageManifest represents an image manifest.
@@ -43,6 +44,69 @@ type ImageIndex struct {
 	Digest string
 	// Annotations contains user-defined labels of the index.
 	Annotations Annotations
+}
+
+// AttestationManifestDigest returns the digest of the attestation manifest
+// contained in the index, if any.
+// SEE: https://docs.docker.com/build/metadata/attestations/attestation-storage/#attestation-manifest-descriptor.
+func (i *ImageIndex) AttestationManifestDigest() string {
+	for _, manifest := range i.Manifests {
+		dockerReferenceType := manifest.Annotations.DockerReferenceType()
+		if manifest.MediaType == "application/vnd.oci.image.manifest.v1+json" && dockerReferenceType == "attestation-manifest" {
+			return manifest.Digest
+		}
+	}
+
+	return ""
+}
+
+// AttestationManifest represent an attestation image manifest.
+type AttestationManifest struct {
+	Layers []AttestationManifestLayer `json:"layers"`
+}
+
+// ProvenanceDigest returns the in-toto predicate type and digest of the first
+// layer containing provenance.
+func (a *AttestationManifest) ProvenanceDigest() (string, string, bool) {
+	for _, layer := range a.Layers {
+		if layer.MediaType != "application/vnd.in-toto+json" {
+			continue
+		}
+
+		predicateType := layer.Annotations.InTotoPredicateType()
+		if strings.HasPrefix(predicateType, "https://slsa.dev/provenance/") {
+			return predicateType, layer.Digest, true
+		}
+	}
+
+	return "", "", false
+}
+
+// SBOMDigest returns the in-toto predicate type and digest of the first layer
+// containing a (well-known type of) SBOM.
+func (a *AttestationManifest) SBOMDigest() (string, string, bool) {
+	for _, layer := range a.Layers {
+		if layer.MediaType != "application/vnd.in-toto+json" {
+			continue
+		}
+
+		predicateType := layer.Annotations.InTotoPredicateType()
+		switch predicateType {
+		case "https://spdx.dev/Document":
+			return predicateType, layer.Digest, true
+		}
+	}
+
+	return "", "", false
+}
+
+// AttestationManifestLayer represents a layer entry in an attestation image
+// manifest.
+type AttestationManifestLayer struct {
+	MediaType   string      `json:"mediaType"`
+	Digest      string      `json:"digest"`
+	Size        int         `json:"size"`
+	Annotations Annotations `json:"annotations"`
 }
 
 type Platform struct {

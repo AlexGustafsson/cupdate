@@ -178,6 +178,39 @@ func (c *Client) GetManifest(ctx context.Context, ref Reference) (any, error) {
 	return manifestFromBlob(blob)
 }
 
+// GetAttestationManifest downloads an [AttestationManifest] from an OCI
+// registry.
+// Helper method for [GetManifestBlob] followed by parsing and validating an
+// [AttestationManifest].
+func (c *Client) GetAttestationManifest(ctx context.Context, ref Reference, digest string) (*AttestationManifest, error) {
+	ref = c.rewriteReference(ref)
+
+	ref.HasDigest = true
+	ref.Digest = digest
+
+	blob, err := c.GetManifestBlob(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+	defer blob.Close()
+
+	var manifest struct {
+		AttestationManifest
+
+		SchemaVersion int    `json:"schemaVersion"`
+		MediaType     string `json:"mediaType"`
+	}
+	if err := json.NewDecoder(blob).Decode(&manifest); err != nil {
+		return nil, err
+	}
+
+	if manifest.SchemaVersion != 2 || manifest.MediaType != "application/vnd.oci.image.manifest.v1+json" {
+		return nil, fmt.Errorf("invalid attestation manifest")
+	}
+
+	return &manifest.AttestationManifest, nil
+}
+
 // GetBlob downloads a blob from an OCI registry.
 // SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pulling-blobs
 func (c *Client) GetBlob(ctx context.Context, ref Reference, digest string, cache bool) (Blob, error) {

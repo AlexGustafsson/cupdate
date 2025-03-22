@@ -12,9 +12,11 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"io"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -70,6 +72,62 @@ func TestClientGetManifest(t *testing.T) {
 			manifest, err = client.GetManifest(context.TODO(), ref)
 			require.NoError(t, err)
 			fmt.Printf("%+v\n", manifest)
+		})
+	}
+}
+
+func TestClientGetAttestationManifest(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	client := &Client{
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+	}
+
+	references := []string{
+		"ghcr.io/alexgustafsson/cupdate",
+	}
+
+	for _, reference := range references {
+		t.Run(reference, func(t *testing.T) {
+			ref, err := ParseReference(reference)
+			require.NoError(t, err)
+
+			manifest, err := client.GetManifest(context.TODO(), ref)
+			require.NoError(t, err)
+
+			index, ok := manifest.(*ImageIndex)
+			require.True(t, ok)
+
+			attestationManifestDigest := index.AttestationManifestDigest()
+			require.NotNil(t, attestationManifestDigest)
+
+			ref.HasDigest = true
+			ref.Digest = attestationManifestDigest
+
+			attestationManifest, err := client.GetAttestationManifest(context.TODO(), ref, attestationManifestDigest)
+			require.NoError(t, err)
+
+			fmt.Printf("%+v\n", attestationManifest)
+
+			provenancePredicateType, provenanceDigest, ok := attestationManifest.ProvenanceDigest()
+			require.True(t, ok)
+			fmt.Println(provenancePredicateType, provenanceDigest)
+
+			sbomPredicateType, sbomDigest, ok := attestationManifest.SBOMDigest()
+			require.True(t, ok)
+			fmt.Println(sbomPredicateType, sbomDigest)
+
+			blob, err := client.GetBlob(context.TODO(), ref, provenanceDigest, false)
+			require.NoError(t, err)
+			io.Copy(os.Stdout, blob)
+			blob.Close()
+
+			blob, err = client.GetBlob(context.TODO(), ref, sbomDigest, false)
+			require.NoError(t, err)
+			io.Copy(os.Stdout, blob)
+			blob.Close()
 		})
 	}
 }

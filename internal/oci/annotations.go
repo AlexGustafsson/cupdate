@@ -27,6 +27,10 @@ func (a Annotations) Source() string {
 // The annotation should hold the time at which the image or artifact was
 // created.
 func (a Annotations) CreatedTime() time.Time {
+	if a == nil {
+		return time.Time{}
+	}
+
 	s := a["org.opencontainers.image.created"]
 	if s == "" {
 		s = a["org.label-schema.build-date"]
@@ -41,6 +45,10 @@ func (a Annotations) CreatedTime() time.Time {
 // URL returns value of the standard OCI URL annotation.
 // The annotation should hold a URL to the project's website.
 func (a Annotations) URL() string {
+	if a == nil {
+		return ""
+	}
+
 	return a["org.opencontainers.image.url"]
 }
 
@@ -48,7 +56,32 @@ func (a Annotations) URL() string {
 // annotation.
 // The annotation should hold a URL to the project's documentation.
 func (a Annotations) DocumentationURL() string {
+	if a == nil {
+		return ""
+	}
+
 	return a["org.opencontainers.image.documentation"]
+}
+
+// DockerReferenceType describes the type of artifact.
+// Use for attestation manifests.
+func (a Annotations) DockerReferenceType() string {
+	if a == nil {
+		return ""
+	}
+
+	return a["vnd.docker.reference.type"]
+}
+
+// InTotoPredicateType returns the predicate type of a layer.
+// SEE: https://in-toto.io.
+// SEE: https://github.com/in-toto/attestation/tree/v1.0/spec/predicates.
+func (a Annotations) InTotoPredicateType() string {
+	if a == nil {
+		return ""
+	}
+
+	return a["in-toto.io/predicate-type"]
 }
 
 // Merge returns the merge of a and b.
