@@ -87,6 +87,7 @@ func TestClientGetAttestationManifest(t *testing.T) {
 
 	references := []string{
 		"ghcr.io/alexgustafsson/cupdate",
+		"mongo",
 	}
 
 	for _, reference := range references {
