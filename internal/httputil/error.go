@@ -13,10 +13,17 @@ type Error struct {
 	Status string
 	// StatusCode is the HTTP status code of the response.
 	StatusCode int
+	// Message is a message communicated through other means, such as through an
+	// Www-Authenticate header error parameter.
+	Message string
 }
 
 func (e Error) Error() string {
-	return fmt.Sprintf("http: server returned error code %d - %s", e.StatusCode, e.Status)
+	if e.Message == "" {
+		return fmt.Sprintf("http: server returned error code %d - %s", e.StatusCode, e.Status)
+	}
+
+	return fmt.Sprintf("http: server returned error code %d - %s: %s", e.StatusCode, e.Status, e.Message)
 }
 
 // AssertStatusCode returns an error if the response does not match the given

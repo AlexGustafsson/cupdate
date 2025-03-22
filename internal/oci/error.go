@@ -80,10 +80,25 @@ func assertStatusCode(r *http.Response, statusCode int) error {
 		return nil
 	}
 
+	// An error message communicated by the server through some means
+	message := ""
+
+	// Try to get an error message from the WWW-Authenticate header
+	{
+		authenticateHeader := r.Header.Get("Www-Authenticate")
+		if authenticateHeader != "" {
+			_, params, err := httputil.ParseWWWAuthenticateHeader(authenticateHeader)
+			if err == nil && params["error"] != "" {
+				message = params["error"]
+			}
+		}
+	}
+
 	if r.Header.Get("Content-Type") != "application/json" {
 		return httputil.Error{
 			Status:     r.Status,
 			StatusCode: r.StatusCode,
+			Message:    message,
 		}
 	}
 
@@ -98,6 +113,7 @@ func assertStatusCode(r *http.Response, statusCode int) error {
 		return httputil.Error{
 			Status:     r.Status,
 			StatusCode: r.StatusCode,
+			Message:    message,
 		}
 	}
 
@@ -105,6 +121,7 @@ func assertStatusCode(r *http.Response, statusCode int) error {
 		return httputil.Error{
 			Status:     r.Status,
 			StatusCode: r.StatusCode,
+			Message:    message,
 		}
 	}
 
