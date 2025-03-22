@@ -147,12 +147,6 @@ func (c *Client) GetManifestBlob(ctx context.Context, ref Reference) (Blob, erro
 		"application/vnd.docker.distribution.manifest.v1+json",
 	}, ", "))
 
-	if f := c.AuthFunc; f != nil {
-		if err := f(req); err != nil {
-			return nil, err
-		}
-	}
-
 	res, err := c.DoCached(req)
 	if err != nil {
 		return nil, err
@@ -253,12 +247,6 @@ func (c *Client) HeadBlob(ctx context.Context, ref Reference, digest string) (*B
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, fmt.Sprintf("https://%s/v2/%s/blobs/%s", ref.Domain, ref.Path, digest), nil)
 	if err != nil {
 		return nil, err
-	}
-
-	if f := c.AuthFunc; f != nil {
-		if err := f(req); err != nil {
-			return nil, err
-		}
 	}
 
 	res, err := c.DoCached(req)
@@ -485,12 +473,6 @@ func (c *Client) getTags(ctx context.Context, ref Reference, options *GetTagsOpt
 	}
 
 	req.Header.Set("Accept", "application/json")
-
-	if f := c.AuthFunc; f != nil {
-		if err := f(req); err != nil {
-			return nil, nil, "", err
-		}
-	}
 
 	res, err := c.DoCached(req)
 	if err != nil {
