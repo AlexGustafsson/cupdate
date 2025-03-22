@@ -111,17 +111,44 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							}
 						}
 
-						currentManifest, err := workflow.GetValue[any](ctx, "step.manifest.manifest")
+						return nil, nil
+					}),
+				},
+			},
+			{
+				ID:        "provenance",
+				Name:      "Get provenance and SBOM",
+				DependsOn: []string{"oci"},
+				Steps: []workflow.Step{
+					GetAttestation().
+						WithID("attestation").
+						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
+						With("reference", data.ImageReference).
+						With("manifest", workflow.Ref{Key: "job.oci.step.manifest.manifest"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						currentManifest, err := workflow.GetValue[any](ctx, "job.oci.step.manifest.manifest")
 						if err != nil {
 							return nil, err
 						}
 
 						currentIndexManifest, ok := currentManifest.(*oci.ImageIndex)
 						if ok {
-							digest := currentIndexManifest.AttestationManifestDigest()
-							if digest != "" {
+							digest := currentIndexManifest.HasAttestationManifest()
+							if digest != false {
 								data.InsertTag("attestation")
 							}
+						}
+
+						attestation, err := workflow.GetValue[*oci.Attestation](ctx, "step.attestation.attestation")
+						if err != nil {
+							return nil, err
+						}
+
+						if attestation != nil {
+							fmt.Printf("%+v\n", attestation)
+							fmt.Printf("%+v\n", attestation)
+							fmt.Printf("%+v\n", attestation)
+							fmt.Printf("%+v\n", attestation)
 						}
 
 						return nil, nil

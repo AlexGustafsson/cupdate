@@ -64,13 +64,24 @@ func (a Annotations) DocumentationURL() string {
 }
 
 // DockerReferenceType describes the type of artifact.
-// Use for attestation manifests.
+// Used for attestation manifests.
 func (a Annotations) DockerReferenceType() string {
 	if a == nil {
 		return ""
 	}
 
 	return a["vnd.docker.reference.type"]
+}
+
+// DockerReferenceDigest is the digest of the image for which the reference type
+// annotation is valid.
+// Used for attestation manifests.
+func (a Annotations) DockerReferenceDigest() string {
+	if a == nil {
+		return ""
+	}
+
+	return a["vnd.docker.reference.digest"]
 }
 
 // InTotoPredicateType returns the predicate type of a layer.
