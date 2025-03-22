@@ -49,15 +49,30 @@ type ImageIndex struct {
 // AttestationManifestDigest returns the digest of the attestation manifest
 // contained in the index, if any.
 // SEE: https://docs.docker.com/build/metadata/attestations/attestation-storage/#attestation-manifest-descriptor.
-func (i *ImageIndex) AttestationManifestDigest() string {
+func (i *ImageIndex) AttestationManifestDigest(digest string) string {
 	for _, manifest := range i.Manifests {
 		dockerReferenceType := manifest.Annotations.DockerReferenceType()
-		if manifest.MediaType == "application/vnd.oci.image.manifest.v1+json" && dockerReferenceType == "attestation-manifest" {
+		dockerReferenceDigest := manifest.Annotations.DockerReferenceDigest()
+		if manifest.MediaType == "application/vnd.oci.image.manifest.v1+json" && dockerReferenceType == "attestation-manifest" && dockerReferenceDigest == digest {
 			return manifest.Digest
 		}
 	}
 
 	return ""
+}
+
+// AttestationManifestDigest returns whether or not the index contains an
+// attestation manifest.
+// SEE: https://docs.docker.com/build/metadata/attestations/attestation-storage/#attestation-manifest-descriptor.
+func (i *ImageIndex) HasAttestationManifest() bool {
+	for _, manifest := range i.Manifests {
+		dockerReferenceType := manifest.Annotations.DockerReferenceType()
+		if manifest.MediaType == "application/vnd.oci.image.manifest.v1+json" && dockerReferenceType == "attestation-manifest" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // AttestationManifest represent an attestation image manifest.
