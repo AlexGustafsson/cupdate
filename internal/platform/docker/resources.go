@@ -10,6 +10,7 @@ import (
 type ResourceKind string
 
 const (
+	ResourceKindHost           = "host"
 	ResourceKindContainer      = "container"
 	ResourceKindSwarmTask      = "swarm/task"
 	ResourceKindSwarmService   = "swarm/service"
@@ -21,7 +22,7 @@ const (
 // IsSupported returns whether or not the resource is supported.
 func (r ResourceKind) IsSupported() bool {
 	switch r {
-	case ResourceKindContainer, ResourceKindSwarmTask,
+	case ResourceKindHost, ResourceKindContainer, ResourceKindSwarmTask,
 		ResourceKindSwarmService, ResourceKindSwarmNamespace,
 		ResourceKindComposeProject, ResourceKindComposeService:
 		return true
@@ -44,10 +45,11 @@ type Resource interface {
 var _ Resource = (*resource)(nil)
 
 type resource struct {
-	id     string
-	kind   ResourceKind
-	name   string
-	labels platform.Labels
+	id             string
+	kind           ResourceKind
+	name           string
+	labels         platform.Labels
+	internalLabels platform.InternalLabels
 }
 
 // ID implements platform.Node.
@@ -75,6 +77,11 @@ func (r resource) Labels() platform.Labels {
 	return r.labels
 }
 
+// InternalLabels implements platform.Node.
+func (r resource) InternalLabels() platform.InternalLabels {
+	return r.internalLabels
+}
+
 // String implements Resource.
 func (r resource) String() string {
 	return fmt.Sprintf("%s<%s>", r.kind, r.name)
@@ -84,6 +91,8 @@ func (r resource) String() string {
 // Panics if [ResourceKind.IsSupported] returns false.
 func TagName(kind ResourceKind) string {
 	switch kind {
+	case ResourceKindHost:
+		return "host"
 	case ResourceKindContainer:
 		return "container"
 	case ResourceKindSwarmTask:

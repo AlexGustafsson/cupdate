@@ -59,7 +59,7 @@ func getImageReference(specImage string, statusImage string, statusImageID strin
 	return specRef, nil
 }
 
-func addObjectToGraph(graph platform.Graph, resources map[types.UID]v1.Object, object v1.Object) {
+func addObjectToGraph(graph platform.Graph, nodeResource resource, resources map[types.UID]v1.Object, object v1.Object) {
 	objectResource := mapObjectToResource(object)
 
 	ownerReferences := object.GetOwnerReferences()
@@ -70,7 +70,7 @@ func addObjectToGraph(graph platform.Graph, resources map[types.UID]v1.Object, o
 
 		// The resource has no owning entity, just add the resource to the graph
 		if namespace == "" {
-			graph.InsertTree(objectResource)
+			graph.InsertTree(objectResource, nodeResource)
 			return
 		}
 
@@ -82,7 +82,9 @@ func addObjectToGraph(graph platform.Graph, resources map[types.UID]v1.Object, o
 				id:   fmt.Sprintf("kubernetes/%s", namespace),
 				name: namespace,
 			},
+			nodeResource,
 		)
+
 		return
 	}
 
@@ -110,8 +112,8 @@ func addObjectToGraph(graph platform.Graph, resources map[types.UID]v1.Object, o
 			ownerResource,
 		)
 
-		// Assuming there are no cycles,continue to traverse the hierarchy
-		addObjectToGraph(graph, resources, ownerObject)
+		// Assuming there are no cycles, continue to traverse the hierarchy
+		addObjectToGraph(graph, nodeResource, resources, ownerObject)
 	}
 }
 

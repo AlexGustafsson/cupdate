@@ -16,6 +16,7 @@ const (
 	ResourceKindAppsV1StatefulSet = "apps/v1/statefulset"
 	ResourceKindBatchV1CronJob    = "batch/v1/cronjob"
 	ResourceKindBatchV1Job        = "batch/v1/job"
+	ResourceKindCoreV1Node        = "core/v1/node"
 	ResourceKindCoreV1Namespace   = "core/v1/namespace"
 	ResourceKindCoreV1Pod         = "core/v1/pod"
 	ResourceKindCoreV1Container   = "core/v1/container"
@@ -29,8 +30,8 @@ func (r ResourceKind) IsSupported() bool {
 	case ResourceKindAppsV1Deployment, ResourceKindAppsV1DaemonSet,
 		ResourceKindAppsV1ReplicaSet, ResourceKindAppsV1StatefulSet,
 		ResourceKindBatchV1CronJob, ResourceKindBatchV1Job,
-		ResourceKindCoreV1Namespace, ResourceKindCoreV1Pod,
-		ResourceKindCoreV1Container:
+		ResourceKindCoreV1Node, ResourceKindCoreV1Namespace,
+		ResourceKindCoreV1Pod, ResourceKindCoreV1Container:
 		return true
 	default:
 		return false
@@ -51,10 +52,11 @@ type Resource interface {
 var _ Resource = (*resource)(nil)
 
 type resource struct {
-	id     string
-	kind   ResourceKind
-	name   string
-	labels platform.Labels
+	id             string
+	kind           ResourceKind
+	name           string
+	labels         platform.Labels
+	internalLabels platform.InternalLabels
 }
 
 // ID implements platform.Node.
@@ -82,6 +84,11 @@ func (r resource) Labels() platform.Labels {
 	return r.labels
 }
 
+// InternalLabels implements platform.Node.
+func (r resource) InternalLabels() platform.InternalLabels {
+	return r.internalLabels
+}
+
 // String implements Resource.
 func (r resource) String() string {
 	return fmt.Sprintf("%s<%s>", r.kind, r.name)
@@ -103,6 +110,8 @@ func TagName(kind ResourceKind) string {
 		return "cron job"
 	case ResourceKindBatchV1Job:
 		return "job"
+	case ResourceKindCoreV1Node:
+		return "node"
 	case ResourceKindCoreV1Namespace:
 		return "namespace"
 	case ResourceKindCoreV1Pod:

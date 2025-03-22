@@ -53,6 +53,7 @@ func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets b
 		grapher.informerFactory.Apps().V1().StatefulSets().Informer(),
 		grapher.informerFactory.Batch().V1().CronJobs().Informer(),
 		grapher.informerFactory.Batch().V1().Jobs().Informer(),
+		grapher.informerFactory.Core().V1().Nodes().Informer(),
 		grapher.informerFactory.Core().V1().Pods().Informer(),
 	}
 
@@ -175,6 +176,11 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		resources[object.UID] = object
 	}
 
+	nodes, err := g.informerFactory.Core().V1().Nodes().Lister().List(labels.Everything())
+	if err != nil {
+		return nil, err
+	}
+
 	pods, err := g.informerFactory.Core().V1().Pods().Lister().List(labels.Everything())
 	if err != nil {
 		return nil, err
@@ -186,8 +192,25 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 	graph := platform.NewGraph()
 	for _, pod := range pods {
 		didAddImage := false
-		for _, containerSpec := range pod.Spec.Containers {
 
+		var nodeResource resource
+		for _, node := range nodes {
+			if node.Name == pod.Spec.NodeName {
+				nodeResource = resource{
+					id:     fmt.Sprintf("kubernetes/host/%s", node.Name),
+					kind:   ResourceKindCoreV1Node,
+					name:   node.Name,
+					labels: nil,
+					internalLabels: platform.InternalLabels{
+						platform.InternalLabelHostArchitecture: node.Status.NodeInfo.Architecture,
+						platform.InternalLabelOperatingSystem:  node.Status.NodeInfo.OperatingSystem,
+					},
+				}
+				break
+			}
+		}
+
+		for _, containerSpec := range pod.Spec.Containers {
 			// Resolve the container's image reference
 			specImage := containerSpec.Image
 			var statusImage, statusImageID string
@@ -242,7 +265,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		// If we found and added a valid image, resolve and add the rest of the
 		// pod's hierarchy
 		if didAddImage {
-			addObjectToGraph(graph, resources, pod)
+			addObjectToGraph(graph, nodeResource, resources, pod)
 		}
 	}
 

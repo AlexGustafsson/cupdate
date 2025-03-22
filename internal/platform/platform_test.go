@@ -45,6 +45,11 @@ func (m *TestNode) Labels() Labels {
 	return nil
 }
 
+// InternalLabels implements Node.
+func (m *TestNode) InternalLabels() InternalLabels {
+	return nil
+}
+
 func TestCompoundGrapherHappyPath(t *testing.T) {
 	graph1 := NewGraph()
 	graph1.InsertTree(

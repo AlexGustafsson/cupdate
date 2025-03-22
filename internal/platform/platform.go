@@ -22,6 +22,8 @@ type Node interface {
 	Type() string
 	// Labels returns labels set on the resource represented by the node.
 	Labels() Labels
+	// InternalLabels returns labels set by Cupdate.
+	InternalLabels() InternalLabels
 }
 
 // Labels holds labels / annotations found by platform implementations, which
@@ -91,12 +93,36 @@ func (l Labels) RemoveUnsupported() Labels {
 	return clone
 }
 
+const (
+	InternalLabelHostArchitecture string = "host-architecture"
+	InternalLabelOperatingSystem  string = "host-operating-system"
+)
+
+// InternalLabels holds labels maintained by Cupdate for use by Cupdate.
+type InternalLabels map[string]string
+
+func (l InternalLabels) InternalCupdateArchitecture() string {
+	if l == nil {
+		return ""
+	}
+
+	return l[InternalLabelHostArchitecture]
+}
+
+func (l InternalLabels) InternalCupdateOperatingSystem() string {
+	if l == nil {
+		return ""
+	}
+
+	return l[InternalLabelOperatingSystem]
+}
+
 // Graph is a graph implementation holding [Nodes].
 type Graph = *graph.Graph[Node]
 
 var _ Node = (*ImageNode)(nil)
 
-// ImageNode represents resource common to all platforms - the OCI image.
+// ImageNode represents a resource common to all platforms - the OCI image.
 type ImageNode struct {
 	Reference oci.Reference
 }
@@ -113,6 +139,11 @@ func (n ImageNode) Type() string {
 
 // Labels implements Node.
 func (n ImageNode) Labels() Labels {
+	return nil
+}
+
+// InternalLabels implements Node.
+func (n ImageNode) InternalLabels() InternalLabels {
 	return nil
 }
 

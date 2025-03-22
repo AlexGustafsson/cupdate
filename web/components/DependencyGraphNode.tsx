@@ -12,6 +12,7 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     image: 'Image',
   },
   kubernetes: {
+    'core/v1/node': 'Node',
     'core/v1/pod': 'Pod',
     'core/v1/namespace': 'Namespace',
     'core/v1/container': 'Container',

@@ -20,6 +20,7 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     image: 'Image',
   },
   kubernetes: {
+    'core/v1/node': 'Node',
     'core/v1/pod': 'Pod',
     'core/v1/namespace': 'Namespace',
     'core/v1/container': 'Container',
@@ -38,7 +39,13 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     'swarm/namespace': 'Namespace',
     'compose/service': 'Service',
     'compose/project': 'Project',
+    host: 'Host',
   },
+}
+
+const internalLabels: Record<string, string> = {
+  'host-architecture': 'Architecture',
+  'host-operating-system': 'Operating system',
 }
 
 type GraphNodeProps = {
@@ -104,6 +111,21 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
               <li>
                 <code className="break-all">Digest: {oci.digest}</code>
               </li>
+            </ul>
+          </>
+        )}
+        {graphNode?.internalLabels && (
+          <>
+            <p className="mt-2">Details</p>
+            <ul className="text-sm">
+              {graphNode?.internalLabels &&
+                Object.entries(graphNode.internalLabels).map(([k, v]) => (
+                  <li key={`${k}`}>
+                    <code>
+                      {internalLabels[k] || k}: {v}
+                    </code>
+                  </li>
+                ))}
             </ul>
           </>
         )}

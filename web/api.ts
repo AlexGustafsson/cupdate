@@ -71,6 +71,7 @@ export interface GraphNode {
   type: string
   name: string
   labels?: Record<string, string>
+  internalLabels?: Record<string, string>
 }
 
 export interface ImageScorecard {

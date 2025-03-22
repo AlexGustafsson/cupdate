@@ -27,6 +27,9 @@ type Platform struct {
 	basePath string
 
 	includeAllContainers bool
+	version              Version
+	dockerURI            string
+	name                 string
 }
 
 type Options struct {
@@ -105,41 +108,46 @@ func NewPlatform(ctx context.Context, dockerURI string, options *Options) (*Plat
 	// Make sure that we can connect to the host.
 	// For now, we probably support most API versions - no need to limit the use
 	// or pin to specific API versions using docker's versioned path prefix
-	_, _, err := p.GetVersion(ctx)
+	version, err := p.getVersion(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	p.version = *version
+	p.dockerURI = dockerURI
+
 	return p, nil
 }
 
-// GetVersion returns the api version and minimum supported api version of the
+// Version returns the version of the platform.
+func (p *Platform) Version() Version {
+	return p.version
+}
+
+// getVersion returns the api version and minimum supported api version of the
 // Docker runtime.
-func (p *Platform) GetVersion(ctx context.Context) (string, string, error) {
+func (p *Platform) getVersion(ctx context.Context) (*Version, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.basePath+"/version", nil)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	res, err := p.client.Do(req)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	var body struct {
-		APIVersion    string `json:"ApiVersion"`
-		MinAPIVersion string `json:"MinAPIVersion"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
-		return "", "", err
+	var version *Version
+	if err := json.NewDecoder(res.Body).Decode(&version); err != nil {
+		return nil, err
 	}
 
-	return body.APIVersion, body.MinAPIVersion, nil
+	return version, nil
 }
 
 type GetContainersOptions struct {
@@ -321,6 +329,18 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 				})
 			}
 		}
+
+		// Add a graph node for the host
+		tree = append(tree, resource{
+			kind:   ResourceKindHost,
+			id:     fmt.Sprintf("docker/host/%s", p.dockerURI),
+			name:   p.dockerURI, // TODO: Use hostname?
+			labels: nil,
+			internalLabels: platform.InternalLabels{
+				platform.InternalLabelHostArchitecture: p.version.Architecture,
+				platform.InternalLabelOperatingSystem:  p.version.OS,
+			},
+		})
 
 		graph.InsertTree(tree...)
 	}

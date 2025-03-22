@@ -373,20 +373,22 @@ func main() {
 					switch n := node.(type) {
 					case kubernetes.Resource:
 						mappedNodes[node.ID()] = models.GraphNode{
-							Domain: "kubernetes",
-							Type:   string(n.Kind()),
-							Name:   n.Name(),
-							Labels: n.Labels().RemoveUnsupported(),
+							Domain:         "kubernetes",
+							Type:           string(n.Kind()),
+							Name:           n.Name(),
+							Labels:         n.Labels().RemoveUnsupported(),
+							InternalLabels: n.InternalLabels(),
 						}
 						if node.Type() == "kubernetes/"+kubernetes.ResourceKindCoreV1Namespace {
 							namespaceNode = &node
 						}
 					case docker.Resource:
 						mappedNodes[node.ID()] = models.GraphNode{
-							Domain: "docker",
-							Type:   string(n.Kind()),
-							Name:   n.Name(),
-							Labels: n.Labels().RemoveUnsupported(),
+							Domain:         "docker",
+							Type:           string(n.Kind()),
+							Name:           n.Name(),
+							Labels:         n.Labels().RemoveUnsupported(),
+							InternalLabels: n.InternalLabels(),
 						}
 						if node.Type() == "docker/"+docker.ResourceKindSwarmNamespace || node.Type() == "docker/"+docker.ResourceKindComposeProject {
 							namespaceNode = &node
@@ -399,16 +401,16 @@ func main() {
 				}
 
 				// Resolve labels for the image node. The nearest label takes precedence
-				resolvedImageLabels := make(map[string]string)
+				resolvedLabels := make(map[string]string)
 				queue := []string{root.ID()}
 				for len(queue) > 0 {
 					id := queue[0]
 					queue = queue[1:]
 
 					for k, v := range mappedNodes[id].Labels {
-						_, ok := resolvedImageLabels[k]
+						_, ok := resolvedLabels[k]
 						if !ok {
-							resolvedImageLabels[k] = v
+							resolvedLabels[k] = v
 						}
 					}
 
@@ -419,10 +421,11 @@ func main() {
 					}
 				}
 				mappedNodes[root.ID()] = models.GraphNode{
-					Domain: "oci",
-					Type:   "image",
-					Name:   imageNode.Reference.String(),
-					Labels: resolvedImageLabels,
+					Domain:         "oci",
+					Type:           "image",
+					Name:           imageNode.Reference.String(),
+					Labels:         resolvedLabels,
+					InternalLabels: nil,
 				}
 
 				tags := []string{}

@@ -421,6 +421,10 @@ components:
           type: object
           additionalProperties:
             type: string
+        internalLabels:
+          type: object
+          additionalProperties:
+            type: string
       required:
         - domain
         - type
