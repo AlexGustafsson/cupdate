@@ -122,12 +122,12 @@ func TestClientGetAttestationManifest(t *testing.T) {
 
 			blob, err := client.GetBlob(context.TODO(), ref, provenanceDigest, false)
 			require.NoError(t, err)
-			io.Copy(os.Stdout, blob)
+			io.Copy(os.Stdout, io.LimitReader(blob, 1024))
 			blob.Close()
 
 			blob, err = client.GetBlob(context.TODO(), ref, sbomDigest, false)
 			require.NoError(t, err)
-			io.Copy(os.Stdout, blob)
+			io.Copy(os.Stdout, io.LimitReader(blob, 1024))
 			blob.Close()
 		})
 	}
