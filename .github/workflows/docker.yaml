@@ -72,6 +72,12 @@ jobs:
         with:
           context: .
           push: true
+          # NOTE: Includes build args and full Dockerfile. No secrets are ever
+          # used in build args
+          provenance: mode=max
+          # NOTE: This currently only identifies golang dependencies. Additional
+          # work is required for the frontend
+          sbom: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/alexgustafsson/cupdate:${{ steps.determine_tag.outputs.tag }}
           build-args: |
