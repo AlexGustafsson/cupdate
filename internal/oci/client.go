@@ -232,7 +232,7 @@ func (c *Client) GetBlob(ctx context.Context, ref Reference, digest string, cach
 	if cache {
 		res, err = c.DoCached(req)
 	} else {
-		res, err = c.DoCached(req)
+		res, err = c.Do(req)
 	}
 	if err != nil {
 		return nil, err
