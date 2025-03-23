@@ -22,6 +22,7 @@ import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-
 import { FluentShieldError24Filled } from '../components/icons/fluent-shield-error-24-filled'
 import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
 import { fullVersion, name, version } from '../oci'
+import { compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { GraphCard } from './image-page/GraphCard'
 import { ImageLink } from './image-page/ImageLink'
@@ -78,7 +79,9 @@ export function ImagePage(): JSX.Element {
     return <Navigate to="/" replace />
   }
 
-  const imageTags = tags.value.filter((x) => image.value?.tags.includes(x.name))
+  const imageTags = tags.value
+    .filter((x) => image.value?.tags.includes(x.name))
+    .toSorted((a, b) => compareTags(a.name, b.name))
 
   return (
     <>
