@@ -111,7 +111,7 @@ func (c *Client) do(req *http.Request, do func(req *http.Request) (*http.Respons
 	}
 
 	if err := httputil.AssertStatusCode(tokenRes, http.StatusOK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("oci: error getting token: %w", err)
 	}
 
 	// TODO: Cache tokens
@@ -159,7 +159,8 @@ func (c *Client) GetManifestBlob(ctx context.Context, ref Reference) (Blob, erro
 	return blobFromResponse(res), nil
 }
 
-// GetManifest downloads a [Manifest] or a [ManifestIndex] from an OCI registry.
+// GetManifest downloads an [ImageManifest] or an [ImageIndex] from an OCI
+// registry.
 // SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#pull
 func (c *Client) GetManifest(ctx context.Context, ref Reference) (any, error) {
 	ref = c.rewriteReference(ref)
@@ -174,8 +175,8 @@ func (c *Client) GetManifest(ctx context.Context, ref Reference) (any, error) {
 
 // GetAttestationManifest downloads an [AttestationManifest] from an OCI
 // registry.
-// Helper method for [GetManifestBlob] followed by parsing and validating an
-// [AttestationManifest].
+// Helper method for [Client.GetManifestBlob] followed by parsing and validating
+// an [AttestationManifest].
 func (c *Client) GetAttestationManifest(ctx context.Context, ref Reference, digest string) (*AttestationManifest, error) {
 	ref = c.rewriteReference(ref)
 
@@ -190,7 +191,6 @@ func (c *Client) GetAttestationManifest(ctx context.Context, ref Reference, dige
 
 	var manifest struct {
 		AttestationManifest
-
 		SchemaVersion int    `json:"schemaVersion"`
 		MediaType     string `json:"mediaType"`
 	}

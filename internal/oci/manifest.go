@@ -46,18 +46,34 @@ type ImageIndex struct {
 	Annotations Annotations
 }
 
-// AttestationManifestDigest returns the digest of the attestation manifest
-// contained in the index, if any.
+// AttestationManifestDigests returns the digests for attestation manifests
+// contained in the index, mapped by the manifest digest the attestation is for.
 // SEE: https://docs.docker.com/build/metadata/attestations/attestation-storage/#attestation-manifest-descriptor.
-func (i *ImageIndex) AttestationManifestDigest() string {
+func (i *ImageIndex) AttestationManifestDigest() map[string]string {
+	digests := make(map[string]string)
 	for _, manifest := range i.Manifests {
 		dockerReferenceType := manifest.Annotations.DockerReferenceType()
+		dockerReferenceDigest := manifest.Annotations.DockerReferenceDigest()
 		if manifest.MediaType == "application/vnd.oci.image.manifest.v1+json" && dockerReferenceType == "attestation-manifest" {
-			return manifest.Digest
+			digests[dockerReferenceDigest] = manifest.Digest
 		}
 	}
 
-	return ""
+	return digests
+}
+
+// AttestationManifestDigest returns whether or not the index contains an
+// attestation manifest.
+// SEE: https://docs.docker.com/build/metadata/attestations/attestation-storage/#attestation-manifest-descriptor.
+func (i *ImageIndex) HasAttestationManifest() bool {
+	for _, manifest := range i.Manifests {
+		dockerReferenceType := manifest.Annotations.DockerReferenceType()
+		if manifest.MediaType == "application/vnd.oci.image.manifest.v1+json" && dockerReferenceType == "attestation-manifest" {
+			return true
+		}
+	}
+
+	return false
 }
 
 // AttestationManifest represent an attestation image manifest.

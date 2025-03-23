@@ -87,7 +87,7 @@ func TestClientGetAttestationManifest(t *testing.T) {
 
 	references := []string{
 		"ghcr.io/alexgustafsson/cupdate",
-		"mongo",
+		"mongo:6.0.20",
 	}
 
 	for _, reference := range references {
@@ -101,34 +101,35 @@ func TestClientGetAttestationManifest(t *testing.T) {
 			index, ok := manifest.(*ImageIndex)
 			require.True(t, ok)
 
-			attestationManifestDigest := index.AttestationManifestDigest()
-			require.NotNil(t, attestationManifestDigest)
+			for manifestDigest, attestationManifestDigest := range index.AttestationManifestDigest() {
+				fmt.Println("Getting manifest", manifestDigest)
+				fmt.Println("Getting attestation", attestationManifestDigest)
 
-			ref.HasDigest = true
-			ref.Digest = attestationManifestDigest
+				attestationManifest, err := client.GetAttestationManifest(context.TODO(), ref, attestationManifestDigest)
+				require.NoError(t, err)
 
-			attestationManifest, err := client.GetAttestationManifest(context.TODO(), ref, attestationManifestDigest)
-			require.NoError(t, err)
+				fmt.Printf("%+v\n", attestationManifest)
 
-			fmt.Printf("%+v\n", attestationManifest)
+				provenancePredicateType, provenanceDigest, ok := attestationManifest.ProvenanceDigest()
+				require.True(t, ok)
+				fmt.Println(provenancePredicateType, provenanceDigest)
 
-			provenancePredicateType, provenanceDigest, ok := attestationManifest.ProvenanceDigest()
-			require.True(t, ok)
-			fmt.Println(provenancePredicateType, provenanceDigest)
+				blob, err := client.GetBlob(context.TODO(), ref, provenanceDigest, false)
+				require.NoError(t, err)
+				io.Copy(os.Stdout, io.LimitReader(blob, 1024))
+				fmt.Println()
+				blob.Close()
 
-			sbomPredicateType, sbomDigest, ok := attestationManifest.SBOMDigest()
-			require.True(t, ok)
-			fmt.Println(sbomPredicateType, sbomDigest)
+				sbomPredicateType, sbomDigest, ok := attestationManifest.SBOMDigest()
+				require.True(t, ok)
+				fmt.Println(sbomPredicateType, sbomDigest)
 
-			blob, err := client.GetBlob(context.TODO(), ref, provenanceDigest, false)
-			require.NoError(t, err)
-			io.Copy(os.Stdout, io.LimitReader(blob, 1024))
-			blob.Close()
-
-			blob, err = client.GetBlob(context.TODO(), ref, sbomDigest, false)
-			require.NoError(t, err)
-			io.Copy(os.Stdout, io.LimitReader(blob, 1024))
-			blob.Close()
+				blob, err = client.GetBlob(context.TODO(), ref, sbomDigest, false)
+				require.NoError(t, err)
+				io.Copy(os.Stdout, io.LimitReader(blob, 1024))
+				fmt.Println()
+				blob.Close()
+			}
 		})
 	}
 }
