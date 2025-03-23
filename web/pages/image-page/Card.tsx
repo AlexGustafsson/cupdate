@@ -19,7 +19,7 @@ export function Tab({
 }: TabProps): JSX.Element {
   return (
     <div
-      className={`px-1 py-2 border-b-2 ${active ? 'border-blue-300' : 'border-transparent'}`}
+      className={`px-1 py-2 border-b-2 ${active ? 'border-blue-400 dark:border-blue-700' : 'border-transparent'}`}
     >
       <button
         type="button"

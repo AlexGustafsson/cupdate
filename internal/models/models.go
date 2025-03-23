@@ -87,6 +87,22 @@ type ImageScorecard struct {
 	GenerateAt time.Time          `json:"generatedAt"`
 }
 
+type ImageProvenance struct {
+	BuildInfo []ProvenanceBuildInfo `json:"buildInfo"`
+}
+
+type ProvenanceBuildInfo struct {
+	ImageDigest         string    `json:"imageDigest"`
+	Architecture        string    `json:"architecture,omitempty"`
+	ArchitectureVariant string    `json:"architectureVariant,omitempty"`
+	OperatingSystem     string    `json:"operatingSystem,omitempty"`
+	Source              string    `json:"source,omitempty"`
+	SourceRevision      string    `json:"sourceRevision,omitempty"`
+	BuildStartedOn      time.Time `json:"buildStartedOn,omitempty"`
+	BuildFinishedOn     time.Time `json:"buildFinishedOn,omitempty"`
+	Dockerfile          string    `json:"dockerfile,omitempty"`
+}
+
 type WorkflowRunResult string
 
 const (

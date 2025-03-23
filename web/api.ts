@@ -81,6 +81,22 @@ export interface ImageScorecard {
   generatedAt: string
 }
 
+export interface ImageProvenance {
+  buildInfo: ProvenanceBuildInfo[]
+}
+
+export interface ProvenanceBuildInfo {
+  imageDigest: string
+  architecture?: string
+  architectureVariant?: string
+  operatingSystem?: string
+  source?: string
+  sourceRevision?: string
+  buildStartedOn?: string
+  buildFinishedOn?: string
+  dockerfile?: string
+}
+
 export interface WorkflowRun {
   jobs: JobRun[]
   traceId?: string
@@ -359,6 +375,40 @@ export function useImageScorecard(
     const query = new URLSearchParams({ reference })
     fetch(
       `${import.meta.env.VITE_API_ENDPOINT}/image/scorecard?${query.toString()}`
+    )
+      .then((res) => {
+        if (res.status === 404) {
+          return null
+        }
+        if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [reference])
+
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
+}
+
+// TODO: Add query parameters
+export function useImageProvenance(
+  reference: string
+): [Result<ImageProvenance | null>, () => void] {
+  const [result, setResult] = useState<Result<ImageProvenance | null>>({
+    status: 'idle',
+  })
+
+  const update = useCallback(() => {
+    const query = new URLSearchParams({ reference })
+    fetch(
+      `${import.meta.env.VITE_API_ENDPOINT}/image/provenance?${query.toString()}`
     )
       .then((res) => {
         if (res.status === 404) {

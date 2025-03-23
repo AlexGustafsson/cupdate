@@ -6,6 +6,7 @@ import {
   useImage,
   useImageDescription,
   useImageGraph,
+  useImageProvenance,
   useImageReleaseNotes,
   useImageScorecard,
   useLatestWorkflowRun,
@@ -30,6 +31,7 @@ import { GraphCard } from './image-page/GraphCard'
 import { ImageLink } from './image-page/ImageLink'
 import { ImageSkeleton } from './image-page/ImageSkeleton'
 import { ProcessStatus } from './image-page/ProcessStatus'
+import { ProvenanceCard } from './image-page/ProvenanceCard'
 import { ScorecardCard } from './image-page/ScorecardCard'
 import { SettingsCard } from './image-page/SettingsCard'
 import { VulnerabilitiesCard } from './image-page/VulnerabilitiesCard'
@@ -46,6 +48,7 @@ export function ImagePage(): JSX.Element {
   const [releaseNotes, updateReleaseNotes] = useImageReleaseNotes(reference)
   const [graph, updateGraph] = useImageGraph(reference)
   const [scorecard, updateScorecard] = useImageScorecard(reference)
+  const [provenance, updateProvenance] = useImageProvenance(reference)
   const [workflowRun, updateWorkflowRun] = useLatestWorkflowRun(reference)
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
@@ -71,6 +74,7 @@ export function ImagePage(): JSX.Element {
     releaseNotes.status !== 'resolved' ||
     graph.status !== 'resolved' ||
     scorecard.status !== 'resolved' ||
+    provenance.status !== 'resolved' ||
     workflowRun.status !== 'resolved'
   ) {
     return <ImageSkeleton />
@@ -103,6 +107,7 @@ export function ImagePage(): JSX.Element {
               updateReleaseNotes()
               updateGraph()
               updateScorecard()
+              updateProvenance()
               updateWorkflowRun()
             }}
           />
@@ -265,6 +270,9 @@ export function ImagePage(): JSX.Element {
               ]}
             />
           )}
+
+          {/* Provenance report */}
+          {provenance.value && <ProvenanceCard provenance={provenance.value} />}
 
           {/* Graph */}
           {graph.value && <GraphCard graph={graph.value} />}

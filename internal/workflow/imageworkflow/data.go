@@ -25,6 +25,7 @@ type Data struct {
 	Vulnerabilities []models.ImageVulnerability
 	Graph           models.Graph
 	Scorecard       *models.ImageScorecard
+	Provenance      *models.ImageProvenance
 	RegistryAuth    *httputil.AuthMux
 }
 

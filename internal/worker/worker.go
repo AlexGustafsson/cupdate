@@ -120,6 +120,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		Vulnerabilities: make([]models.ImageVulnerability, 0),
 		Graph:           image.Graph,
 		Scorecard:       nil,
+		Provenance:      nil,
 		RegistryAuth:    w.registryAuth,
 	}
 
@@ -225,9 +226,20 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		// Fallthrough - try to insert what we have
 	}
 
-	if data.Scorecard != nil {
+	if data.Scorecard == nil {
+		// Delete scorecard?
+	} else {
 		if err := w.store.InsertImageScorecard(ctx, reference.String(), data.Scorecard); err != nil {
 			log.ErrorContext(ctx, "Failed to insert image scorecard", slog.Any("error", err))
+			// Fallthrough - try to insert what we have
+		}
+	}
+
+	if data.Provenance == nil {
+		// TODO: Delete provenance?
+	} else {
+		if err := w.store.InsertImageProvenance(ctx, reference.String(), data.Provenance); err != nil {
+			log.ErrorContext(ctx, "Failed to insert image provenance", slog.Any("error", err))
 			// Fallthrough - try to insert what we have
 		}
 	}

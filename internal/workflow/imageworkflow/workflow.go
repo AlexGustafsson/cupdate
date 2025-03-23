@@ -111,18 +111,73 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							}
 						}
 
-						currentManifest, err := workflow.GetValue[any](ctx, "step.manifest.manifest")
+						return nil, nil
+					}),
+				},
+			},
+			{
+				ID:        "provenance",
+				Name:      "Get provenance",
+				DependsOn: []string{"oci"},
+				Steps: []workflow.Step{
+					GetAttestation().
+						WithID("attestation").
+						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
+						With("reference", data.ImageReference).
+						With("manifest", workflow.Ref{Key: "job.oci.step.manifest.manifest"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						currentManifest, err := workflow.GetValue[any](ctx, "job.oci.step.manifest.manifest")
 						if err != nil {
 							return nil, err
 						}
 
 						currentIndexManifest, ok := currentManifest.(*oci.ImageIndex)
 						if ok {
-							digest := currentIndexManifest.AttestationManifestDigest()
-							if digest != "" {
+							if currentIndexManifest.HasAttestationManifest() {
 								data.InsertTag("attestation")
 							}
 						}
+
+						attestations, err := workflow.GetValue[map[string]oci.Attestation](ctx, "step.attestation.attestations")
+						if err != nil {
+							return nil, err
+						}
+
+						index, _ := currentManifest.(*oci.ImageIndex)
+
+						provenance := &models.ImageProvenance{
+							BuildInfo: []models.ProvenanceBuildInfo{},
+						}
+						for imageDigest, attestation := range attestations {
+							buildInfo := models.ProvenanceBuildInfo{
+								ImageDigest:     imageDigest,
+								Source:          attestation.Source,
+								SourceRevision:  attestation.SourceRevision,
+								BuildStartedOn:  attestation.BuildStartedOn,
+								BuildFinishedOn: attestation.BuildFinishedOn,
+								Dockerfile:      attestation.Dockerfile,
+							}
+
+							var imageManifest *oci.ImageManifest
+							if index != nil {
+								for _, manifest := range index.Manifests {
+									if manifest.Digest == imageDigest {
+										imageManifest = &manifest
+										break
+									}
+								}
+							}
+
+							if imageManifest != nil && imageManifest.Platform != nil {
+								buildInfo.OperatingSystem = imageManifest.Platform.OS
+								buildInfo.Architecture = imageManifest.Platform.Architecture
+								buildInfo.ArchitectureVariant = imageManifest.Platform.Variant
+							}
+
+							provenance.BuildInfo = append(provenance.BuildInfo, buildInfo)
+						}
+
+						data.Provenance = provenance
 
 						return nil, nil
 					}),

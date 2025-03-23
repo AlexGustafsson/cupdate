@@ -72,6 +72,7 @@ func ParseLinkHeader(origin *url.URL, header string) ([]Link, error) {
 }
 
 // ParseWWWAuthenticateHeader parses a Www-Authenticate header.
+// Returns the scheme and parameters.
 //
 // SEE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate.
 func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error) {

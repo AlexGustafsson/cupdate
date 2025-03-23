@@ -159,6 +159,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImageScorecard"
 
+  /image/provenance:
+    get:
+      summary: Returns an image's provenance
+      parameters:
+        - in: query
+          name: reference
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: The image's provenance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageProvenance"
+
   /image/workflows/latest:
     get:
       summary: Returns an image's latest workflow run
@@ -386,6 +403,44 @@ components:
         - score
         - risk
         - generatedAt
+
+    ImageProvenance:
+      type: object
+      description: Provenance
+      properties:
+        buildInfo:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProvenanceBuildInfo"
+      required:
+        - buildInfo
+
+    ProvenanceBuildInfo:
+      type: object
+      description: Build info
+      properties:
+        imageDigest:
+          type: string
+        architecture:
+          type: string
+        architectureVariant:
+          type: string
+        operatingSystem:
+          type: string
+        source:
+          type: string
+        sourceRevision:
+          type: string
+        buildStartedOn:
+          type: string
+          format: date
+        buildFinishedOn:
+          type: string
+          format: date
+        dockerfile:
+          type: string
+      required:
+        - imageDigest
 
     Graph:
       type: object

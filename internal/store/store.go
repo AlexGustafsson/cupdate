@@ -766,6 +766,67 @@ func (s *Store) GetImageScorecard(ctx context.Context, reference string) (*model
 
 	return scorecard, nil
 }
+func (s *Store) InsertImageProvenance(ctx context.Context, reference string, provenance *models.ImageProvenance) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_provenance
+		(reference, provenance)
+		VALUES
+		(?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			provenance=excluded.provenance
+		;`)
+	if err != nil {
+		return err
+	}
+
+	serializedProvenance, err := json.Marshal(provenance)
+	if err != nil {
+		statement.Close()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, reference, serializedProvenance)
+	statement.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) GetImageProvenance(ctx context.Context, reference string) (*models.ImageProvenance, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT provenance FROM images_provenance WHERE reference = ?;`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	res, err := statement.QueryContext(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		res.Close()
+		return nil, res.Err()
+	}
+
+	var serializedProvenance []byte
+	err = res.Scan(&serializedProvenance)
+	res.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var provenance *models.ImageProvenance
+	if err := json.Unmarshal(serializedProvenance, &provenance); err != nil {
+		return nil, err
+	}
+
+	return provenance, nil
+}
 
 func (s *Store) InsertWorkflowRun(ctx context.Context, reference string, workflowRun models.WorkflowRun) error {
 	s.mutex.Lock()
