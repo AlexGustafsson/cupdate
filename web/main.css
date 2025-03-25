@@ -73,6 +73,11 @@
     display: none;
   }
 
+  /* Workaround for the <HTML> element wrapping content in a div*/
+  .markdown-body > div:first-child > *:first-child {
+    margin-top: 0 !important;
+  }
+
   .dashboard-table {
     grid-template-columns:
       40px 1fr minmax(min-content, 80px) minmax(min-content, 80px)

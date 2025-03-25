@@ -9,11 +9,13 @@ import {
 import type { Graph, GraphNode } from '../../api'
 import { DependencyGraphNode } from '../../components/DependencyGraphNode'
 import { GraphRenderer } from '../../components/GraphRenderer'
+import { FluentBranch16Regular } from '../../components/icons/fluent-branch-16-regular'
 import { SimpleIconsDocker } from '../../components/icons/simple-icons-docker'
 import { SimpleIconsKubernetes } from '../../components/icons/simple-icons-kubernetes'
 import { SimpleIconsOci } from '../../components/icons/simple-icons-oci'
 import { useGraphLayout } from '../../graph'
 import { parse } from '../../oci'
+import { Card } from './Card'
 
 const titles: Record<string, Record<string, string | undefined> | undefined> = {
   oci: {
@@ -197,15 +199,26 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
   }, [])
 
   return (
-    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-2 shadow-sm h-[480px]">
-      <GraphNodeDialog ref={dialogRef} graphNode={graphNode} />
-      <GraphRenderer
-        edges={edges}
-        nodes={nodes}
-        bounds={bounds}
-        onNodeClick={(node) => showGraphNode(node.data)}
-        NodeElement={DependencyGraphNode}
-      />
-    </div>
+    <Card
+      persistenceKey="graph"
+      tabs={[
+        {
+          icon: <FluentBranch16Regular />,
+          label: 'Graph',
+          content: (
+            <div className="h-[480px]">
+              <GraphNodeDialog ref={dialogRef} graphNode={graphNode} />
+              <GraphRenderer
+                edges={edges}
+                nodes={nodes}
+                bounds={bounds}
+                onNodeClick={(node) => showGraphNode(node.data)}
+                NodeElement={DependencyGraphNode}
+              />
+            </div>
+          ),
+        },
+      ]}
+    />
   )
 }

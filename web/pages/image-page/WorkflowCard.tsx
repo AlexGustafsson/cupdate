@@ -11,8 +11,10 @@ import { GraphRenderer } from '../../components/GraphRenderer'
 import { FluentCheckmarkCircle20Filled } from '../../components/icons/fluent-checkmark-circle-20-filled'
 import { FluentCheckmarkCircle20Regular } from '../../components/icons/fluent-checkmark-circle-20-regular'
 import { FluentDismissCircle20Filled } from '../../components/icons/fluent-dismiss-circle-20-filled'
+import { FluentFlow16Regular } from '../../components/icons/fluent-flow-16-regular'
 import { useGraphLayout } from '../../graph'
 import { formatDuration, formatRelativeTimeTo } from '../../time'
+import { Card } from './Card'
 
 function Job({
   data,
@@ -197,19 +199,30 @@ export function WorkflowCard({
   }, [])
 
   return (
-    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-2 shadow-sm h-[480px]">
-      <JobRunDialog
-        ref={dialogRef}
-        traceId={workflowRun.traceId}
-        jobRun={jobRun}
-      />
-      <GraphRenderer
-        edges={edges}
-        nodes={nodes}
-        bounds={bounds}
-        onNodeClick={(node) => showJobRun(node.data)}
-        NodeElement={Job}
-      />
-    </div>
+    <Card
+      persistenceKey="workflow"
+      tabs={[
+        {
+          icon: <FluentFlow16Regular />,
+          label: 'Workflow',
+          content: (
+            <div className="h-[480px]">
+              <JobRunDialog
+                ref={dialogRef}
+                traceId={workflowRun.traceId}
+                jobRun={jobRun}
+              />
+              <GraphRenderer
+                edges={edges}
+                nodes={nodes}
+                bounds={bounds}
+                onNodeClick={(node) => showJobRun(node.data)}
+                NodeElement={Job}
+              />
+            </div>
+          ),
+        },
+      ]}
+    />
   )
 }

@@ -1,6 +1,8 @@
 import type { JSX } from 'react'
 import type { ImageScorecard } from '../../api'
+import { FluentBoxSearch16Regular } from '../../components/icons/fluent-box-search-16-regular'
 import { formatRelativeTimeTo } from '../../time'
+import { Card } from './Card'
 
 type GaugeProps = {
   percentage: number
@@ -69,37 +71,50 @@ export function ScorecardCard({ scorecard }: ScorecardCardProps): JSX.Element {
           : 'text-green-400'
 
   return (
-    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
-      <div className="markdown-body">
-        <h1>Risk score</h1>
-        <div className="flex justify-center">
-          <Gauge
-            className={color}
-            percentage={scorecard.score / 10}
-            value={scorecard.score.toString()}
-            label={`${scorecard.risk} risk`}
-          />
-        </div>
-        <p>
-          The project associated with this image has been found to pose a{' '}
-          <span className="font-semibold">{scorecard.risk} risk</span>, scoring{' '}
-          <span className="font-semibold">
-            {scorecard.score}
-            /10
-          </span>{' '}
-          on{' '}
-          <a target="_blank" rel="noreferrer" href="https://scorecard.dev">
-            Open Source Security Foundation's Scorecard
-          </a>
-          . The report was generated{' '}
-          {formatRelativeTimeTo(new Date(scorecard.generatedAt))}. For more
-          details, see the{' '}
-          <a target="_blank" rel="noreferrer" href={scorecard.reportUrl}>
-            full report
-          </a>
-          .
-        </p>
-      </div>
-    </div>
+    <Card
+      persistenceKey="scorecard"
+      tabs={[
+        {
+          icon: <FluentBoxSearch16Regular />,
+          label: 'Risk score',
+          content: (
+            <div className="markdown-body">
+              <div className="flex justify-center">
+                <Gauge
+                  className={color}
+                  percentage={scorecard.score / 10}
+                  value={scorecard.score.toString()}
+                  label={`${scorecard.risk} risk`}
+                />
+              </div>
+              <p>
+                The project associated with this image has been found to pose a{' '}
+                <span className="font-semibold">{scorecard.risk} risk</span>,
+                scoring{' '}
+                <span className="font-semibold">
+                  {scorecard.score}
+                  /10
+                </span>{' '}
+                on{' '}
+                <a
+                  target="_blank"
+                  rel="noreferrer"
+                  href="https://scorecard.dev"
+                >
+                  Open Source Security Foundation's Scorecard
+                </a>
+                . The report was generated{' '}
+                {formatRelativeTimeTo(new Date(scorecard.generatedAt))}. For
+                more details, see the{' '}
+                <a target="_blank" rel="noreferrer" href={scorecard.reportUrl}>
+                  full report
+                </a>
+                .
+              </p>
+            </div>
+          ),
+        },
+      ]}
+    />
   )
 }

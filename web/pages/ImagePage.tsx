@@ -17,6 +17,7 @@ import { ImageLogo } from '../components/ImageLogo'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { Markdown } from '../components/Markdown'
 import { Toast } from '../components/Toast'
+import { FluentBookOpen16Regular } from '../components/icons/fluent-book-open-16-regular'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { FluentShieldError24Filled } from '../components/icons/fluent-shield-error-24-filled'
@@ -24,6 +25,7 @@ import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-fil
 import { fullVersion, name, version } from '../oci'
 import { compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
+import { Card } from './image-page/Card'
 import { GraphCard } from './image-page/GraphCard'
 import { ImageLink } from './image-page/ImageLink'
 import { ImageSkeleton } from './image-page/ImageSkeleton'
@@ -224,26 +226,44 @@ export function ImagePage(): JSX.Element {
 
           {/* Release notes */}
           {releaseNotes.value?.html && (
-            <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
-              <div className="markdown-body">
-                <h1>{releaseNotes.value?.title}</h1>
-                <HTML>{releaseNotes.value?.html}</HTML>
-              </div>
-            </div>
+            <Card
+              persistenceKey="release-notes"
+              tabs={[
+                {
+                  icon: <FluentBookOpen16Regular />,
+                  label: 'Release notes',
+                  content: (
+                    <div className="markdown-body">
+                      <h1>{releaseNotes.value?.title}</h1>
+                      <HTML>{releaseNotes.value?.html}</HTML>
+                    </div>
+                  ),
+                },
+              ]}
+            />
           )}
 
           {/* Description */}
           {(description.value?.html || description.value?.markdown) && (
-            <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow">
-              <div className="markdown-body">
-                {description.value.html && (
-                  <HTML>{description.value.html}</HTML>
-                )}
-                {description.value.markdown && (
-                  <Markdown>{description.value.markdown}</Markdown>
-                )}
-              </div>
-            </div>
+            <Card
+              persistenceKey="description"
+              tabs={[
+                {
+                  icon: <FluentBookOpen16Regular />,
+                  label: 'Release notes',
+                  content: (
+                    <div className="markdown-body">
+                      {description.value.html && (
+                        <HTML>{description.value.html}</HTML>
+                      )}
+                      {description.value.markdown && (
+                        <Markdown>{description.value.markdown}</Markdown>
+                      )}
+                    </div>
+                  ),
+                },
+              ]}
+            />
           )}
 
           {/* Graph */}
