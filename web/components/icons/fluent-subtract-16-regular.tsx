@@ -11,6 +11,7 @@ export function FluentSubtract16Regular(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 16 16"
       {...props}
     >
+      {/* Icon from Fluent UI System Icons by Microsoft Corporation - https://github.com/microsoft/fluentui-system-icons/blob/main/LICENSE */}
       <path
         fill="currentColor"
         d="M3 8a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 8"

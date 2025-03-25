@@ -11,6 +11,7 @@ export function FluentAdd16Regular(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 16 16"
       {...props}
     >
+      {/* Icon from Fluent UI System Icons by Microsoft Corporation - https://github.com/microsoft/fluentui-system-icons/blob/main/LICENSE */}
       <path
         fill="currentColor"
         d="M8 2.5a.5.5 0 0 0-1 0V7H2.5a.5.5 0 0 0 0 1H7v4.5a.5.5 0 0 0 1 0V8h4.5a.5.5 0 0 0 0-1H8z"
