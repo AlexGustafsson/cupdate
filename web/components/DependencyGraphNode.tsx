@@ -31,6 +31,7 @@ const titles: Record<string, Record<string, string | undefined> | undefined> = {
     'swarm/namespace': 'Namespace',
     'compose/service': 'Service',
     'compose/project': 'Project',
+    host: 'Host',
   },
 }
 
