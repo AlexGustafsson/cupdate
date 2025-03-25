@@ -250,7 +250,7 @@ export function ImagePage(): JSX.Element {
               tabs={[
                 {
                   icon: <FluentBookOpen16Regular />,
-                  label: 'Release notes',
+                  label: 'Description',
                   content: (
                     <div className="markdown-body">
                       {description.value.html && (
