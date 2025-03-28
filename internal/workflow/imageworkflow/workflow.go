@@ -120,11 +120,16 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				Name:      "Get provenance",
 				DependsOn: []string{"oci"},
 				Steps: []workflow.Step{
-					GetAttestation().
-						WithID("attestation").
+					GetAttestationManifests().
+						WithID("attestations").
 						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
 						With("reference", data.ImageReference).
 						With("manifest", workflow.Ref{Key: "job.oci.step.manifest.manifest"}),
+					GetProvenanceAttestations().
+						WithID("provenance").
+						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
+						With("reference", data.ImageReference).
+						With("manifests", workflow.Ref{Key: "step.attestations.manifests"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						currentManifest, err := workflow.GetValue[any](ctx, "job.oci.step.manifest.manifest")
 						if err != nil {
@@ -138,7 +143,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							}
 						}
 
-						attestations, err := workflow.GetValue[map[string]oci.Attestation](ctx, "step.attestation.attestations")
+						attestations, err := workflow.GetValue[map[string]oci.ProvenanceAttestation](ctx, "step.provenance.attestations")
 						if err != nil {
 							return nil, err
 						}

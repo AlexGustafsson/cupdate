@@ -11,18 +11,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttestationUnmarshalJSON(t *testing.T) {
+func TestProvenanceAttestationUnmarshalJSON(t *testing.T) {
 	fs, err := os.OpenRoot("./testdata/attestations")
 	require.NoError(t, err)
 
 	testCases := []struct {
 		// Path is the path within fs
 		Path     string
-		Expected *Attestation
+		Expected *ProvenanceAttestation
 	}{
 		{
-			Path: "1.json",
-			Expected: &Attestation{
+			Path: "provenance.json",
+			Expected: &ProvenanceAttestation{
 				BuildStartedOn:  time.Date(2025, 03, 22, 11, 23, 15, 399801890, time.UTC),
 				BuildFinishedOn: time.Date(2025, 03, 22, 11, 26, 10, 631712748, time.UTC),
 				Source:          "https://github.com/AlexGustafsson/cupdate",
@@ -87,7 +87,7 @@ ENTRYPOINT ["cupdate"]
 			content, err := io.ReadAll(file)
 			require.NoError(t, err)
 
-			var attestation Attestation
+			var attestation ProvenanceAttestation
 			require.NoError(t, json.Unmarshal(content, &attestation))
 
 			assert.Equal(t, testCase.Expected, &attestation)

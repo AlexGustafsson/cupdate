@@ -64,32 +64,19 @@ export function ProvenanceCard({
       tabs={[
         {
           icon: <FluentDocumentRibbon16Regular />,
-          label: 'Attestations',
+          label: 'Provenance',
           content: (
             <div className="markdown-body">
               <p>
-                Some images include <i>attestations</i> - means of asserting
-                facts about an image's build process or contents. These details
-                are helpful for users to understand what an image contains and
-                where it's from, as well as for automated systems to identify
-                vulnerabilities contained in an image.
+                Some images include <i>provenance attestations</i> - means of
+                asserting facts about an image's build process. These details
+                are helpful for users to understand where an image is from and
+                how it was built.
               </p>
-              <p>There are two main forms of attestations:</p>
-              <ul>
-                <li>
-                  provenance attestations - details about an image's build
-                  process. May include Dockerfiles, build timestamps and version
-                  control metadata.
-                </li>
-                <li>
-                  Software Bill of Materials (SBOM) attestations - details about
-                  an image's software contents
-                </li>
-              </ul>
               <p>
                 More information can be found here:{' '}
-                <a href="https://docs.docker.com/build/metadata/attestations/">
-                  https://docs.docker.com/build/metadata/attestations/
+                <a href="https://docs.docker.com/build/metadata/attestations/slsa-provenance/">
+                  https://docs.docker.com/build/metadata/attestations/slsa-provenance/
                 </a>
                 .
               </p>
@@ -100,8 +87,14 @@ export function ProvenanceCard({
           icon: <SimpleIconsDocker className="w-[16px] h-[16px]" />,
           label:
             provenance.buildInfo.length > 0 && buildInfo.architecture
-              ? `Provenance (${buildInfo.architecture})`
-              : 'Provenance',
+              ? `${[
+                  buildInfo.operatingSystem,
+                  buildInfo.architecture,
+                  buildInfo.architectureVariant,
+                ]
+                  .filter((x) => x !== undefined)
+                  .join('/')}`
+              : 'Build info',
           content: <BuildInfo buildInfo={buildInfo} />,
         })),
       ]}

@@ -8,9 +8,9 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
-func GetAttestation() workflow.Step {
+func GetProvenanceAttestations() workflow.Step {
 	return workflow.Step{
-		Name: "Get attestation",
+		Name: "Get provenance attestations",
 
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
 			registryClient, err := workflow.GetInput[*oci.Client](ctx, "registryClient", true)
@@ -30,30 +30,16 @@ func GetAttestation() workflow.Step {
 				return nil, err
 			}
 
-			manifest, err := workflow.GetInput[any](ctx, "manifest", true)
+			manifests, err := workflow.GetInput[map[string]*oci.AttestationManifest](ctx, "manifests", true)
 			if err != nil {
 				return nil, err
-			}
-
-			index, ok := manifest.(*oci.ImageIndex)
-			if !ok {
-				return nil, nil
-			}
-
-			if !index.HasAttestationManifest() {
-				return nil, nil
 			}
 
 			// TODO: Instead of getting the attestations for all images (typically the
 			// case for multi-arch images), we could use the host / node information
 			// from the graph to only get data for the architectures in use
-			attestations := make(map[string]oci.Attestation)
-			for manifestDigest, attestationManifestDigest := range index.AttestationManifestDigest() {
-				attestationManifest, err := registryClient.GetAttestationManifest(ctx, image, attestationManifestDigest)
-				if err != nil {
-					return nil, err
-				}
-
+			attestations := make(map[string]oci.ProvenanceAttestation)
+			for manifestDigest, attestationManifest := range manifests {
 				_, provenanceBlobDigest, ok := attestationManifest.ProvenanceDigest()
 				if !ok {
 					return nil, nil
@@ -64,7 +50,7 @@ func GetAttestation() workflow.Step {
 					return nil, err
 				}
 
-				var attestation oci.Attestation
+				var attestation oci.ProvenanceAttestation
 				if err := json.NewDecoder(blob).Decode(&attestation); err != nil {
 					return nil, err
 				}

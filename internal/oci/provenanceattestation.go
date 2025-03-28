@@ -6,13 +6,13 @@ import (
 	"time"
 )
 
-var _ json.Unmarshaler = (*Attestation)(nil)
+var _ json.Unmarshaler = (*ProvenanceAttestation)(nil)
 
-// Attestation holds information gathered from an in-toto attestation document
-// containing moby buildkit metadata.
+// ProvenanceAttestation holds information gathered from an in-toto provenance
+// attestation document containing moby buildkit metadata.
 // SEE: https://github.com/in-toto/attestation.
-// SEE: https://docs.docker.com/build/metadata/attestations/slsa-definitions/#metadatahttpsmobyprojectorgbuildkitv1metadata.
-type Attestation struct {
+// SEE: https://docs.docker.com/build/metadata/attestations/slsa-provenance/.
+type ProvenanceAttestation struct {
 	BuildStartedOn  time.Time
 	BuildFinishedOn time.Time
 	// Source is the VCS source containing the code.
@@ -23,7 +23,7 @@ type Attestation struct {
 	Dockerfile string
 }
 
-func (a *Attestation) UnmarshalJSON(d []byte) error {
+func (a *ProvenanceAttestation) UnmarshalJSON(d []byte) error {
 	var attestation struct {
 		Predicate struct {
 			Metadata struct {
@@ -48,7 +48,7 @@ func (a *Attestation) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	res := Attestation{
+	res := ProvenanceAttestation{
 		BuildStartedOn:  attestation.Predicate.Metadata.BuildStartedOn,
 		BuildFinishedOn: attestation.Predicate.Metadata.BuildFinishedOn,
 	}
