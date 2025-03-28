@@ -617,6 +617,36 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					}),
 				},
 			},
+			{
+				ID:        "sbom",
+				Name:      "Scan SBOMs",
+				DependsOn: []string{"attestations"},
+				If: func(ctx workflow.Context) (bool, error) {
+					sbom, err := workflow.GetValue[map[string]oci.SBOMAttestation](ctx, "job.attestations.step.sbom.attestations")
+					if err != nil {
+						return false, err
+					}
+
+					return sbom != nil, nil
+				},
+				Steps: []workflow.Step{
+					ScanSBOM().
+						WithID("vulnerabilities").
+						With("attestations", workflow.Ref{Key: "job.attestations.step.sbom.attestations"}),
+					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						vulnerabilities, err := workflow.GetValue[[]models.ImageVulnerability](ctx, "step.vulnerabilities.vulnerabilities")
+						if err != nil {
+							return nil, err
+						}
+
+						if len(vulnerabilities) > 0 {
+							data.InsertVulnerabilities(vulnerabilities)
+						}
+
+						return nil, nil
+					}),
+				},
+			},
 		},
 	}
 }
