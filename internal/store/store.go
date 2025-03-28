@@ -325,7 +325,7 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		(?, ?, ?)
 		ON CONFLICT(reference) DO UPDATE SET
 			count=excluded.count,
-			vulnerabilities=vulnerabilities
+			vulnerabilities=excluded.vulnerabilities
 		;`)
 	if err != nil {
 		return err
