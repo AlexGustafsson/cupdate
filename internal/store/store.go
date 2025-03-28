@@ -1352,6 +1352,8 @@ type Change struct {
 	ChangedGraph           bool
 	ChangedVulnerabilities bool
 	ChangedScorecard       bool
+	ChangedProvenance      bool
+	ChangedSBOM            bool
 }
 
 type GetChangesOptions struct {
@@ -1381,7 +1383,7 @@ func (s *Store) GetChanges(ctx context.Context, options *GetChangesOptions) ([]C
 
 	whereClause := strings.Join(whereClauses, " AND ")
 
-	query := `SELECT reference, time, type, changedBasic, changedLinks, changedReleaseNotes, changedDescription, changedGraph, changedVulnerabilities, changedScorecard FROM images_changes`
+	query := `SELECT reference, time, type, changedBasic, changedLinks, changedReleaseNotes, changedDescription, changedGraph, changedVulnerabilities, changedScorecard, changedProvenance, changedSBOM FROM images_changes`
 	if whereClause != "" {
 		query += " WHERE " + whereClause
 	}
@@ -1411,6 +1413,8 @@ func (s *Store) GetChanges(ctx context.Context, options *GetChangesOptions) ([]C
 			&update.ChangedGraph,
 			&update.ChangedVulnerabilities,
 			&update.ChangedScorecard,
+			&update.ChangedProvenance,
+			&update.ChangedSBOM,
 		)
 		if err != nil {
 			res.Close()
