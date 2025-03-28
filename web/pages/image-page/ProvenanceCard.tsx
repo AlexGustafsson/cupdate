@@ -1,7 +1,6 @@
 import type { JSX } from 'react'
 import type { ImageProvenance, ProvenanceBuildInfo } from '../../api'
 import { FluentDocumentRibbon16Regular } from '../../components/icons/fluent-document-ribbon-16-regular'
-import { SimpleIconsDocker } from '../../components/icons/simple-icons-docker'
 import { Card } from './Card'
 
 type BuildInfoProps = {
@@ -103,7 +102,6 @@ export function ProvenanceCard({
           ),
         },
         ...provenance.buildInfo.map((buildInfo) => ({
-          icon: <SimpleIconsDocker className="w-[16px] h-[16px]" />,
           label:
             provenance.buildInfo.length > 0 && buildInfo.architecture
               ? `${[
