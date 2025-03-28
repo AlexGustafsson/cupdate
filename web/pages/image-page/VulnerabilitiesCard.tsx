@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import type { Image } from '../../api'
+import type { Image, ImageVulnerability } from '../../api'
 import { FluentBug16Regular } from '../../components/icons/fluent-bug-16-regular'
 import { Card } from './Card'
 
@@ -21,9 +21,41 @@ function flattened<T>(previousValue: T[], currentValue: T[]): T[] {
   return previousValue
 }
 
+type VulnerabilityCount = {
+  critical: number
+  high: number
+  medium: number
+  low: number
+  unspecified: number
+}
+
+function countVulnerabilities(
+  vulnerabilities: ImageVulnerability[]
+): VulnerabilityCount {
+  const counts: VulnerabilityCount = {
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+    unspecified: 0,
+  }
+
+  for (const vulnerability of vulnerabilities) {
+    if (Object.hasOwn(counts, vulnerability.severity)) {
+      counts[vulnerability.severity as keyof VulnerabilityCount]++
+    } else {
+      counts.unspecified++
+    }
+  }
+
+  return counts
+}
+
 export function VulnerabilitiesCard({
   image,
 }: VulnerabilitiesCardProps): JSX.Element {
+  const counts = countVulnerabilities(image.vulnerabilities)
+
   return (
     <Card
       persistenceKey="vulnerabilities"
@@ -35,43 +67,13 @@ export function VulnerabilitiesCard({
             <div className="markdown-body">
               <h1>Overview</h1>
               <ul>
-                <li>
-                  Critical:{' '}
-                  {
-                    image.vulnerabilities.filter(
-                      (x) => x.severity === 'critical'
-                    ).length
-                  }
-                </li>
-                <li>
-                  High:{' '}
-                  {
-                    image.vulnerabilities.filter((x) => x.severity === 'high')
-                      .length
-                  }
-                </li>
-                <li>
-                  Medium:{' '}
-                  {
-                    image.vulnerabilities.filter((x) => x.severity === 'medium')
-                      .length
-                  }
-                </li>
-                <li>
-                  Low:{' '}
-                  {
-                    image.vulnerabilities.filter((x) => x.severity === 'low')
-                      .length
-                  }
-                </li>
-                <li>
-                  Unspecified:{' '}
-                  {
-                    image.vulnerabilities.filter(
-                      (x) => x.severity === 'unspecified'
-                    ).length
-                  }
-                </li>
+                {counts.critical > 0 && <li>Critical: {counts.critical}</li>}
+                {counts.high > 0 && <li>High: {counts.high}</li>}
+                {counts.medium > 0 && <li>Medium: {counts.medium}</li>}
+                {counts.low > 0 && <li>Low: {counts.low}</li>}
+                {counts.unspecified > 0 && (
+                  <li>Unspecified: {counts.unspecified}</li>
+                )}
               </ul>
 
               <h2>Authorities</h2>
