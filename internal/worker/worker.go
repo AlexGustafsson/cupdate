@@ -184,6 +184,14 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		}
 	}
 
+	// Add vulnerable label if there are specified severities
+	for _, vulnerability := range data.Vulnerabilities {
+		if vulnerability.Severity != "unspecified" {
+			data.InsertTag("vulnerable")
+			break
+		}
+	}
+
 	timeBeforeInsert := time.Now()
 
 	result := models.Image{

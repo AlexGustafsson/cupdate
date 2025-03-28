@@ -278,7 +278,6 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 
 						if len(vulnerabilities) > 0 {
 							data.InsertVulnerabilities(vulnerabilities)
-							data.InsertTag("vulnerable")
 						}
 
 						return nil, nil
@@ -372,7 +371,6 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 
 						if len(vulnerabilities) > 0 {
 							data.InsertVulnerabilities(vulnerabilities)
-							data.InsertTag("vulnerable")
 						}
 
 						return nil, nil
@@ -544,7 +542,6 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 
 						if len(vulnerabilities) > 0 {
 							data.InsertVulnerabilities(vulnerabilities)
-							data.InsertTag("vulnerable")
 						}
 
 						return nil, nil

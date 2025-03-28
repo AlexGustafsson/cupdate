@@ -128,11 +128,18 @@ export function ImagePage(): JSX.Element {
         {/* Image name */}
         <h1 className="text-2xl font-medium">
           {name(image.value.reference)}
-          {image.value.vulnerabilities.length > 0 && (
+          {image.value.vulnerabilities.filter(
+            (x) => x.severity !== 'unspecified'
+          ).length > 0 && (
             <InfoTooltip
               icon={<FluentShieldError24Filled className="text-red-600" />}
             >
-              {image.value.vulnerabilities.length} vulnerabilities reported.
+              {
+                image.value.vulnerabilities.filter(
+                  (x) => x.severity !== 'unspecified'
+                ).length
+              }{' '}
+              vulnerabilities reported.
             </InfoTooltip>
           )}
         </h1>
