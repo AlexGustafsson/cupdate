@@ -18,32 +18,51 @@ function BuildInfo({ buildInfo }: BuildInfoProps): JSX.Element {
       )}
       <ul>
         <li>
-          Image manifest:{' '}
-          <code className="truncate">{buildInfo.imageDigest}</code>
+          <div className="flex items-center">
+            <p className="m-0 flex-shrink-0">Image manifest: </p>
+            <code className="truncate block">{buildInfo.imageDigest}</code>
+          </div>
         </li>
         <li>
-          Build started: <code>{buildInfo.buildStartedOn}</code>
+          <div className="flex items-center">
+            <p className="m-0 flex-shrink-0">Build started: </p>
+            <code className="truncate block">{buildInfo.buildStartedOn}</code>
+          </div>
         </li>
         <li>
-          Build finished: <code>{buildInfo.buildFinishedOn}</code>
+          <div className="flex items-center">
+            <p className="m-0 flex-shrink-0">Build finished: </p>
+            <code className="truncate block">{buildInfo.buildFinishedOn}</code>
+          </div>
         </li>
         <li>
-          Architecture:{' '}
-          <code>
-            {[
-              buildInfo.operatingSystem,
-              buildInfo.architecture,
-              buildInfo.architectureVariant,
-            ]
-              .filter((x) => x !== undefined)
-              .join('/')}
-          </code>
+          <div className="flex items-center">
+            <p className="m-0 flex-shrink-0">Architecture: </p>
+            <code className="truncate block">
+              {[
+                buildInfo.operatingSystem,
+                buildInfo.architecture,
+                buildInfo.architectureVariant,
+              ]
+                .filter((x) => x !== undefined)
+                .join('/')}
+            </code>
+          </div>
         </li>
         {buildInfo.source && (
           <li>
-            {[buildInfo.source, buildInfo.sourceRevision]
-              .filter((x) => x !== undefined)
-              .join('@')}
+            <div className="flex items-center">
+              <p className="m-0 flex-shrink-0">Source: </p>
+              <code className="truncate block">{buildInfo.source}</code>
+            </div>
+          </li>
+        )}
+        {buildInfo.sourceRevision && (
+          <li>
+            <div className="flex items-center">
+              <p className="m-0 flex-shrink-0">Source revision: </p>
+              <code className="truncate block">{buildInfo.sourceRevision}</code>
+            </div>
           </li>
         )}
       </ul>
