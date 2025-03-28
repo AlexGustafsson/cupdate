@@ -65,7 +65,7 @@ export function VulnerabilitiesCard({
           label: 'Vulnerabilities',
           content: (
             <div className="markdown-body">
-              <h1>Overview</h1>
+              <h2>Summary</h2>
               <ul>
                 {counts.critical > 0 && <li>Critical: {counts.critical}</li>}
                 {counts.high > 0 && <li>High: {counts.high}</li>}
