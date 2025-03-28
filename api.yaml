@@ -176,6 +176,23 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImageProvenance"
 
+  /image/sbom:
+    get:
+      summary: Returns an image's SBOM(s)
+      parameters:
+        - in: query
+          name: reference
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: The image's SBOM(s)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImageSBOM"
+
   /image/workflows/latest:
     get:
       summary: Returns an image's latest workflow run
@@ -441,6 +458,40 @@ components:
           type: string
       required:
         - imageDigest
+
+    ImageSBOM:
+      type: object
+      description: SBOM
+      properties:
+        sbom:
+          type: array
+          items:
+            $ref: "#/components/schemas/SBOM"
+      required:
+        - sbom
+
+    SBOM:
+      type: object
+      description: SBOM
+      properties:
+        imageDigest:
+          type: string
+        type:
+          type: string
+          enum:
+            - spdx
+        sbom:
+          type: string
+        architecture:
+          type: string
+        architectureVariant:
+          type: string
+        operatingSystem:
+          type: string
+      required:
+        - imageDigest
+        - type
+        - sbom
 
     Graph:
       type: object

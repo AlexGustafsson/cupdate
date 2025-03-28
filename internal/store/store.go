@@ -766,6 +766,7 @@ func (s *Store) GetImageScorecard(ctx context.Context, reference string) (*model
 
 	return scorecard, nil
 }
+
 func (s *Store) InsertImageProvenance(ctx context.Context, reference string, provenance *models.ImageProvenance) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -821,6 +822,68 @@ func (s *Store) GetImageProvenance(ctx context.Context, reference string) (*mode
 	}
 
 	var provenance *models.ImageProvenance
+	if err := json.Unmarshal(serializedProvenance, &provenance); err != nil {
+		return nil, err
+	}
+
+	return provenance, nil
+}
+
+func (s *Store) InsertImageSBOM(ctx context.Context, reference string, sbom *models.ImageSBOM) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_sbom
+		(reference, sbom)
+		VALUES
+		(?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			sbom=excluded.sbom
+		;`)
+	if err != nil {
+		return err
+	}
+
+	serializedProvenance, err := json.Marshal(sbom)
+	if err != nil {
+		statement.Close()
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, reference, serializedProvenance)
+	statement.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) GetImageSBOM(ctx context.Context, reference string) (*models.ImageSBOM, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT sbom FROM images_sbom WHERE reference = ?;`)
+	if err != nil {
+		return nil, err
+	}
+	defer statement.Close()
+
+	res, err := statement.QueryContext(ctx, reference)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Next() {
+		res.Close()
+		return nil, res.Err()
+	}
+
+	var serializedProvenance []byte
+	err = res.Scan(&serializedProvenance)
+	res.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var provenance *models.ImageSBOM
 	if err := json.Unmarshal(serializedProvenance, &provenance); err != nil {
 		return nil, err
 	}

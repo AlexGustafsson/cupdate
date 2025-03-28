@@ -103,6 +103,19 @@ type ProvenanceBuildInfo struct {
 	Dockerfile          string    `json:"dockerfile,omitempty"`
 }
 
+type ImageSBOM struct {
+	SBOM []SBOM `json:"sbom"`
+}
+
+type SBOM struct {
+	ImageDigest         string `json:"imageDigest"`
+	Type                string `json:"type"`
+	SBOM                string `json:"sbom"`
+	Architecture        string `json:"architecture,omitempty"`
+	ArchitectureVariant string `json:"architectureVariant,omitempty"`
+	OperatingSystem     string `json:"operatingSystem,omitempty"`
+}
+
 type WorkflowRunResult string
 
 const (

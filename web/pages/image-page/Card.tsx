@@ -41,7 +41,7 @@ export type CardProps = {
 }
 
 export interface Tab {
-  icon: JSX.Element
+  icon?: JSX.Element
   label: string
   content: JSX.Element
 }

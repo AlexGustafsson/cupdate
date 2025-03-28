@@ -244,6 +244,15 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		}
 	}
 
+	if data.SBOM == nil {
+		// TODO: Delete provenance?
+	} else {
+		if err := w.store.InsertImageSBOM(ctx, reference.String(), data.SBOM); err != nil {
+			log.ErrorContext(ctx, "Failed to insert image SBOM", slog.Any("error", err))
+			// Fallthrough - try to insert what we have
+		}
+	}
+
 	if err := w.store.InsertWorkflowRun(ctx, reference.String(), workflowRun); err != nil {
 		log.ErrorContext(ctx, "Failed to insert workflow run", slog.Any("error", err))
 		// Fallthrough - try to insert what we have

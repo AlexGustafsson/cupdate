@@ -3,6 +3,8 @@ package oci
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 )
 
@@ -25,7 +27,8 @@ type ProvenanceAttestation struct {
 
 func (a *ProvenanceAttestation) UnmarshalJSON(d []byte) error {
 	var attestation struct {
-		Predicate struct {
+		PredicateType string `json:"predicateType"`
+		Predicate     struct {
 			Metadata struct {
 				BuildStartedOn   time.Time `json:"buildStartedOn"`
 				BuildFinishedOn  time.Time `json:"buildFinishedOn"`
@@ -46,6 +49,10 @@ func (a *ProvenanceAttestation) UnmarshalJSON(d []byte) error {
 	}
 	if err := json.Unmarshal(d, &attestation); err != nil {
 		return err
+	}
+
+	if !strings.HasPrefix(attestation.PredicateType, "https://slsa.dev/provenance/") {
+		return fmt.Errorf("unsupported provenance attestation predicate type: %s", attestation.PredicateType)
 	}
 
 	res := ProvenanceAttestation{

@@ -202,6 +202,18 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		s.handleJSONResponse(w, r, response, err)
 	})
 
+	s.mux.HandleFunc("GET /api/v1/image/sbom", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/sbom"))
+
+		query := r.URL.Query()
+
+		reference := query.Get("reference")
+
+		response, err := api.GetImageSBOM(ctx, reference)
+		s.handleJSONResponse(w, r, response, err)
+	})
+
 	s.mux.HandleFunc("POST /api/v1/image/scans", func(w http.ResponseWriter, r *http.Request) {
 		_, span := httputil.SpanFromRequest(r)
 		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/scans"))

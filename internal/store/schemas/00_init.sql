@@ -3,7 +3,7 @@ CREATE TABLE revision (
   id INTEGER PRIMARY KEY CHECK (id = 0),
   revision INT NOT NULL
 );
-INSERT INTO revision (id, revision) VALUES (0, 3);
+INSERT INTO revision (id, revision) VALUES (0, 4);
 
 CREATE TABLE raw_images (
   reference TEXT PRIMARY KEY NOT NULL,
@@ -102,6 +102,13 @@ CREATE TABLE IF NOT EXISTS images_workflow_runs (
 CREATE TABLE images_provenance (
   reference TEXT NOT NULL,
   provenance BLOB NOT NULL,
+  PRIMARY KEY (reference),
+  FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
+);
+
+CREATE TABLE images_sbom (
+  reference TEXT NOT NULL,
+  sbom BLOB NOT NULL,
   PRIMARY KEY (reference),
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );

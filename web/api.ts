@@ -97,6 +97,19 @@ export interface ProvenanceBuildInfo {
   dockerfile?: string
 }
 
+export interface ImageSBOM {
+  sbom: SBOM[]
+}
+
+export interface SBOM {
+  imageDigest: string
+  type: 'spdx'
+  sbom: string
+  architecture?: string
+  architectureVariant?: string
+  operatingSystem?: string
+}
+
 export interface WorkflowRun {
   jobs: JobRun[]
   traceId?: string
@@ -410,6 +423,38 @@ export function useImageProvenance(
     fetch(
       `${import.meta.env.VITE_API_ENDPOINT}/image/provenance?${query.toString()}`
     )
+      .then((res) => {
+        if (res.status === 404) {
+          return null
+        }
+        if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [reference])
+
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
+}
+
+// TODO: Add query parameters
+export function useImageSBOM(
+  reference: string
+): [Result<ImageSBOM | null>, () => void] {
+  const [result, setResult] = useState<Result<ImageSBOM | null>>({
+    status: 'idle',
+  })
+
+  const update = useCallback(() => {
+    const query = new URLSearchParams({ reference })
+    fetch(`${import.meta.env.VITE_API_ENDPOINT}/image/sbom?${query.toString()}`)
       .then((res) => {
         if (res.status === 404) {
           return null

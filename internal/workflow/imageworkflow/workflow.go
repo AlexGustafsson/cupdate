@@ -130,6 +130,11 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
 						With("reference", data.ImageReference).
 						With("manifests", workflow.Ref{Key: "step.attestations.manifests"}),
+					GetSBOMAttestations().
+						WithID("sbom").
+						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
+						With("reference", data.ImageReference).
+						With("manifests", workflow.Ref{Key: "step.attestations.manifests"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						currentManifest, err := workflow.GetValue[any](ctx, "job.oci.step.manifest.manifest")
 						if err != nil {
@@ -143,17 +148,17 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							}
 						}
 
-						attestations, err := workflow.GetValue[map[string]oci.ProvenanceAttestation](ctx, "step.provenance.attestations")
+						index, _ := currentManifest.(*oci.ImageIndex)
+
+						provenanceAttestations, err := workflow.GetValue[map[string]oci.ProvenanceAttestation](ctx, "step.provenance.attestations")
 						if err != nil {
 							return nil, err
 						}
 
-						index, _ := currentManifest.(*oci.ImageIndex)
-
 						provenance := &models.ImageProvenance{
 							BuildInfo: []models.ProvenanceBuildInfo{},
 						}
-						for imageDigest, attestation := range attestations {
+						for imageDigest, attestation := range provenanceAttestations {
 							buildInfo := models.ProvenanceBuildInfo{
 								ImageDigest:     imageDigest,
 								Source:          attestation.Source,
@@ -183,6 +188,46 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						}
 
 						data.Provenance = provenance
+
+						sbomAttestations, err := workflow.GetValue[map[string]oci.SBOMAttestation](ctx, "step.sbom.attestations")
+						if err != nil {
+							return nil, err
+						}
+
+						if len(sbomAttestations) > 0 {
+							data.InsertTag("sbom")
+						}
+
+						sboms := &models.ImageSBOM{
+							SBOM: []models.SBOM{},
+						}
+						for imageDigest, attestation := range sbomAttestations {
+							sbom := models.SBOM{
+								ImageDigest: imageDigest,
+								Type:        string(attestation.Type),
+								SBOM:        attestation.SBOM,
+							}
+
+							var imageManifest *oci.ImageManifest
+							if index != nil {
+								for _, manifest := range index.Manifests {
+									if manifest.Digest == imageDigest {
+										imageManifest = &manifest
+										break
+									}
+								}
+							}
+
+							if imageManifest != nil && imageManifest.Platform != nil {
+								sbom.OperatingSystem = imageManifest.Platform.OS
+								sbom.Architecture = imageManifest.Platform.Architecture
+								sbom.ArchitectureVariant = imageManifest.Platform.Variant
+							}
+
+							sboms.SBOM = append(sboms.SBOM, sbom)
+						}
+
+						data.SBOM = sboms
 
 						return nil, nil
 					}),

@@ -12,6 +12,7 @@ CREATE TABLE images_changes (
   changedVulnerabilities BOOLEAN NOT NULL DEFAULT FALSE,
   changedScorecard BOOLEAN NOT NULL DEFAULT FALSE,
   changedProvenance BOOLEAN NOT NULL DEFAULT FALSE,
+  changedSBOM BOOLEAN NOT NULL DEFAULT FALSE,
 
   FOREIGN KEY(reference) REFERENCES images(reference) ON DELETE CASCADE
 );
@@ -304,6 +305,42 @@ CREATE TRIGGER images_changes_images_provenance_update AFTER UPDATE ON images_pr
     type,
 
     changedProvenance
+  ) VALUES (
+    new.reference,
+    datetime('now', 'subsecond'),
+    "update",
+
+    TRUE
+  );
+END;
+
+-- Update changes on INSERT to images_sbom table
+CREATE TRIGGER images_changes_images_sbom_insert AFTER INSERT ON images_sbom BEGIN
+  INSERT INTO images_changes(
+    reference,
+    time,
+    type,
+
+    changedSBOM
+  ) VALUES (
+    new.reference,
+    datetime('now', 'subsecond'),
+    "insert",
+
+    TRUE
+  );
+END;
+
+-- Update images_updates on UPDATE to images_sbom table
+CREATE TRIGGER images_changes_images_sbom_update AFTER UPDATE ON images_sbom WHEN
+    old.provenance <> new.provenance
+  BEGIN
+  INSERT INTO images_changes(
+    reference,
+    time,
+    type,
+
+    changedSBOM
   ) VALUES (
     new.reference,
     datetime('now', 'subsecond'),

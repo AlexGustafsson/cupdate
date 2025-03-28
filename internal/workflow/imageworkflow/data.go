@@ -26,6 +26,7 @@ type Data struct {
 	Graph           models.Graph
 	Scorecard       *models.ImageScorecard
 	Provenance      *models.ImageProvenance
+	SBOM            *models.ImageSBOM
 	RegistryAuth    *httputil.AuthMux
 }
 
