@@ -116,8 +116,8 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				},
 			},
 			{
-				ID:        "provenance",
-				Name:      "Get provenance",
+				ID:        "attestations",
+				Name:      "Get attestations",
 				DependsOn: []string{"oci"},
 				Steps: []workflow.Step{
 					GetAttestationManifests().
