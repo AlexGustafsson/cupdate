@@ -6,7 +6,7 @@ namespace: cupdate
 resources:
   # NOTE: Update the ref to the tag you want to deploy
   # NOTE: The double slash (//) is required by kustomize
-  - https://github.com/AlexGustafsson/cupdate//deploy/overlays/rbac?timeout=120&ref=v0.18.0
+  - https://github.com/AlexGustafsson/cupdate//deploy/overlays/rbac?timeout=120&ref=v0.19.0
   # Here's a good place to reference a file containing ingress manifests
   # - ingress.yaml
 #
