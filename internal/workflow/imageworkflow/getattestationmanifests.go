@@ -34,26 +34,22 @@ func GetAttestationManifests() workflow.Step {
 				return nil, err
 			}
 
-			index, ok := manifest.(*oci.ImageIndex)
-			if !ok {
-				return nil, nil
-			}
-
-			if !index.HasAttestationManifest() {
-				return nil, nil
-			}
-
-			// TODO: Instead of getting the attestations for all images (typically the
-			// case for multi-arch images), we could use the host / node information
-			// from the graph to only get data for the architectures in use
 			attestationManifests := make(map[string]*oci.AttestationManifest)
-			for manifestDigest, attestationManifestDigest := range index.AttestationManifestDigest() {
-				attestationManifest, err := registryClient.GetAttestationManifest(ctx, image, attestationManifestDigest)
-				if err != nil {
-					return nil, err
-				}
 
-				attestationManifests[manifestDigest] = attestationManifest
+			index, ok := manifest.(*oci.ImageIndex)
+			if ok && index.HasAttestationManifest() {
+				// TODO: Instead of getting the attestations for all images (typically
+				// the case for multi-arch images), we could use the host / node
+				// information from the graph to only get data for the architectures in
+				// use
+				for manifestDigest, attestationManifestDigest := range index.AttestationManifestDigest() {
+					attestationManifest, err := registryClient.GetAttestationManifest(ctx, image, attestationManifestDigest)
+					if err != nil {
+						return nil, err
+					}
+
+					attestationManifests[manifestDigest] = attestationManifest
+				}
 			}
 
 			return workflow.SetOutput("manifests", attestationManifests), nil
