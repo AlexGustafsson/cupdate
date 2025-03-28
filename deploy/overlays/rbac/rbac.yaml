@@ -27,6 +27,7 @@ rules:
       - ""
     resources:
       - pods
+      - nodes
     verbs:
       - list
       - watch
