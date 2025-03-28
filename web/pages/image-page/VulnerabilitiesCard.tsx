@@ -94,7 +94,9 @@ export function VulnerabilitiesCard({
                   .reduce(unique<string>, [])
                   .map((x) => (
                     <li key={x}>
-                      <a href={x}>{x}</a>
+                      <a href={x} target="_blank" rel="noreferrer">
+                        {x}
+                      </a>
                     </li>
                   ))}
               </ul>
