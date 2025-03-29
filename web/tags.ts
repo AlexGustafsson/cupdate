@@ -151,6 +151,26 @@ export const TagsByName: Record<string, Tag> = Object.fromEntries(
   Tags.map((x) => [x.name, x])
 )
 
+function tagSortValue(tag: string, selected?: boolean): number {
+  const values = [
+    // Prioritize selected tags
+    selected || false,
+    // Prioritize non-namespaced tags
+    !tag.includes(':'),
+    // Prioritize risk namespaced tags
+    tag.startsWith('risk:'),
+    // Prioritize namespace namespaced tags
+    tag.startsWith('namespace:'),
+  ]
+
+  let value = 0
+  for (let i = 0; i < values.length; i++) {
+    value |= (values[i] ? 1 : 0) << (values.length - i)
+  }
+
+  return value
+}
+
 /** Sort tags lexically, putting prefixed tags last, selected tags first. */
 export function compareTags(
   a: string,
@@ -158,21 +178,14 @@ export function compareTags(
   aSelected?: boolean,
   bSelected?: boolean
 ): number {
-  // Prioritize selected tags
-  if (aSelected === true && bSelected === false) {
+  const aSort = tagSortValue(a, aSelected)
+  const bSort = tagSortValue(b, bSelected)
+
+  if (aSort > bSort) {
     return -1
-  } else if (aSelected === false && bSelected === true) {
-    return 1
-  }
-
-  const aString = typeof a === 'string' ? a : a
-  const bString = typeof b === 'string' ? b : b
-
-  if (aString.includes(':') === bString.includes(':')) {
-    return aString.localeCompare(bString)
-  } else if (aString.includes(':')) {
+  } else if (aSort < bSort) {
     return 1
   } else {
-    return -1
+    return a.localeCompare(b)
   }
 }
