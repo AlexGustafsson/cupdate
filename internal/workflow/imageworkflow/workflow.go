@@ -642,7 +642,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						return false, err
 					}
 
-					return sbom != nil, nil
+					return len(sbom) > 0, nil
 				},
 				Steps: []workflow.Step{
 					ScanSBOM().
