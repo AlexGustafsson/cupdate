@@ -79,6 +79,12 @@ func NewServer(public fs.FS) http.Handler {
 			file.Close()
 		}
 
+		// Add cache header for (assumed) immutable assets
+		if strings.HasPrefix(path, "/assets/") {
+			// SEE: https://web.dev/articles/http-cache#versioned-urls
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		}
+
 		fileServer.ServeHTTP(w, r)
 	})
 }

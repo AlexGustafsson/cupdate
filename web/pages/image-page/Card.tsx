@@ -19,13 +19,16 @@ export function Tab({
 }: TabProps): JSX.Element {
   return (
     <div
+      role="tablist"
       className={`flex-shrink-0 px-1 py-2 border-b-2 ${active ? 'border-blue-400 dark:border-blue-700' : 'border-transparent'}`}
     >
       <button
         type="button"
+        role="tab"
         onClick={onClick}
         disabled={disabled}
-        className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:hover:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] enabled:cursor-pointer"
+        className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:hover:bg-[#f5f5f5] enabled:focus:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] dark:enabled:focus:bg-[#262626] enabled:cursor-pointer"
+        tabIndex={0}
       >
         {icon}
         <p>{label}</p>
@@ -98,7 +101,8 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
           <button
             type="button"
             onClick={() => setShowContent((current) => !current)}
-            className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:hover:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] enabled:cursor-pointer"
+            className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:focus:bg-[#f5f5f5] dark:enabled:focus:bg-[#262626] enabled:hover:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] enabled:cursor-pointer"
+            tabIndex={0}
           >
             {showContent ? (
               <FluentChevronUp20Regular />

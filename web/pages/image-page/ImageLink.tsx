@@ -65,7 +65,14 @@ export function ImageLink({
   }
 
   return (
-    <a title={title} href={url} target="_blank" rel="noreferrer">
+    <a
+      title={title}
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      tabIndex={0}
+      className="hover:opacity-90 focus:opacity-90"
+    >
       {icon}
     </a>
   )
