@@ -10,6 +10,14 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 )
 
+// Result is a simple type useful to note values that may be empty both when
+// successful and unsuccessful. The zero value of a result is an unsuccessful
+// result.
+type Result[T any] struct {
+	OK    bool
+	Value T
+}
+
 type Data struct {
 	sync.Mutex
 	ImageReference  oci.Reference
@@ -19,14 +27,14 @@ type Data struct {
 	LatestCreated   *time.Time
 	Tags            []string
 	Description     string
-	FullDescription *models.ImageDescription
-	ReleaseNotes    *models.ImageReleaseNotes
+	FullDescription Result[*models.ImageDescription]
+	ReleaseNotes    Result[*models.ImageReleaseNotes]
 	Links           []models.ImageLink
 	Vulnerabilities []models.ImageVulnerability
 	Graph           models.Graph
-	Scorecard       *models.ImageScorecard
-	Provenance      *models.ImageProvenance
-	SBOM            *models.ImageSBOM
+	Scorecard       Result[*models.ImageScorecard]
+	Provenance      Result[*models.ImageProvenance]
+	SBOM            Result[*models.ImageSBOM]
 	RegistryAuth    *httputil.AuthMux
 }
 

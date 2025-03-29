@@ -187,8 +187,9 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							provenance.BuildInfo = append(provenance.BuildInfo, buildInfo)
 						}
 
+						data.Provenance.OK = true
 						if len(provenance.BuildInfo) > 0 {
-							data.Provenance = provenance
+							data.Provenance.Value = provenance
 						}
 
 						sbomAttestations, err := workflow.GetValue[map[string]oci.SBOMAttestation](ctx, "step.sbom.attestations")
@@ -229,8 +230,9 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							sboms.SBOM = append(sboms.SBOM, sbom)
 						}
 
+						data.SBOM.OK = true
 						if len(sboms.SBOM) > 0 {
-							data.SBOM = sboms
+							data.SBOM.Value = sboms
 						}
 
 						return nil, nil
@@ -271,7 +273,8 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						}
 
 						data.Description = repository.Description
-						data.FullDescription = &models.ImageDescription{
+						data.FullDescription.OK = true
+						data.FullDescription.Value = &models.ImageDescription{
 							Markdown: repository.FullDescription,
 						}
 
@@ -344,8 +347,13 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						data.Description = description
 
 						readme, err := workflow.GetValue[string](ctx, "step.readme.readme")
-						if err == nil {
-							data.FullDescription = &models.ImageDescription{
+						if err != nil {
+							return nil, err
+						}
+
+						data.FullDescription.OK = true
+						if readme != "" {
+							data.FullDescription.Value = &models.ImageDescription{
 								HTML: readme,
 							}
 						}
@@ -430,13 +438,14 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
+						data.FullDescription.OK = true
 						// Prefer markdown over pre-rendered HTML
 						if readmeMime == "text/markdown" && raw != nil {
-							data.FullDescription = &models.ImageDescription{
+							data.FullDescription.Value = &models.ImageDescription{
 								Markdown: string(raw),
 							}
 						} else if html != "" {
-							data.FullDescription = &models.ImageDescription{
+							data.FullDescription.Value = &models.ImageDescription{
 								HTML: html,
 							}
 						}
@@ -522,11 +531,12 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
+						data.ReleaseNotes.OK = true
 						if release == nil {
 							return nil, nil
 						}
 
-						data.ReleaseNotes = &models.ImageReleaseNotes{
+						data.ReleaseNotes.Value = &models.ImageReleaseNotes{
 							Title: release.Title,
 							HTML:  release.Description,
 						}
@@ -609,8 +619,9 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
+						data.Scorecard.OK = true
 						if scorecard != nil {
-							data.Scorecard = scorecard
+							data.Scorecard.Value = scorecard
 							data.InsertLink(models.ImageLink{
 								Type: "openssf-scorecard",
 								URL:  scorecard.ReportURL,

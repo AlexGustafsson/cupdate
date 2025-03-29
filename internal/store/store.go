@@ -588,6 +588,17 @@ func (s *Store) GetImageDescription(ctx context.Context, reference string) (*mod
 	return &description, nil
 }
 
+func (s *Store) DeleteImageDescription(ctx context.Context, reference string) error {
+	statement, err := s.db.PrepareContext(ctx, `DELETE FROM images_descriptions WHERE reference = ?;`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.ExecContext(ctx, reference)
+	return err
+}
+
 func (s *Store) InsertImageReleaseNotes(ctx context.Context, reference string, releaseNotes *models.ImageReleaseNotes) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -640,6 +651,17 @@ func (s *Store) GetImageReleaseNotes(ctx context.Context, reference string) (*mo
 	}
 
 	return &releaseNotes, nil
+}
+
+func (s *Store) DeleteImageReleaseNotes(ctx context.Context, reference string) error {
+	statement, err := s.db.PrepareContext(ctx, `DELETE FROM images_release_notes WHERE reference = ?;`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.ExecContext(ctx, reference)
+	return err
 }
 
 func (s *Store) InsertImageGraph(ctx context.Context, reference string, graph *models.Graph) error {
@@ -767,6 +789,17 @@ func (s *Store) GetImageScorecard(ctx context.Context, reference string) (*model
 	return scorecard, nil
 }
 
+func (s *Store) DeleteImageScorecard(ctx context.Context, reference string) error {
+	statement, err := s.db.PrepareContext(ctx, `DELETE FROM images_scorecards WHERE reference = ?;`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.ExecContext(ctx, reference)
+	return err
+}
+
 func (s *Store) InsertImageProvenance(ctx context.Context, reference string, provenance *models.ImageProvenance) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -829,6 +862,17 @@ func (s *Store) GetImageProvenance(ctx context.Context, reference string) (*mode
 	return provenance, nil
 }
 
+func (s *Store) DeleteImageProvenance(ctx context.Context, reference string) error {
+	statement, err := s.db.PrepareContext(ctx, `DELETE FROM images_provenance WHERE reference = ?;`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.ExecContext(ctx, reference)
+	return err
+}
+
 func (s *Store) InsertImageSBOM(ctx context.Context, reference string, sbom *models.ImageSBOM) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -889,6 +933,17 @@ func (s *Store) GetImageSBOM(ctx context.Context, reference string) (*models.Ima
 	}
 
 	return provenance, nil
+}
+
+func (s *Store) DeleteImageSBOM(ctx context.Context, reference string) error {
+	statement, err := s.db.PrepareContext(ctx, `DELETE FROM images_sbom WHERE reference = ?;`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.ExecContext(ctx, reference)
+	return err
 }
 
 func (s *Store) InsertWorkflowRun(ctx context.Context, reference string, workflowRun models.WorkflowRun) error {

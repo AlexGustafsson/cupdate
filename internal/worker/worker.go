@@ -114,13 +114,9 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		LatestReference: nil,
 		Tags:            make([]string, 0),
 		Description:     "",
-		FullDescription: nil,
-		ReleaseNotes:    nil,
 		Links:           make([]models.ImageLink, 0),
 		Vulnerabilities: make([]models.ImageVulnerability, 0),
 		Graph:           image.Graph,
-		Scorecard:       nil,
-		Provenance:      nil,
 		RegistryAuth:    w.registryAuth,
 	}
 
@@ -177,10 +173,10 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	// Add risk task based on OpenSSF score
-	if data.Scorecard != nil {
+	if data.Scorecard.OK && data.Scorecard.Value != nil {
 		// Don't add a label for low risk components
-		if data.Scorecard.Risk != models.ImageScorecardRiskLow {
-			data.InsertTag("risk:" + string(data.Scorecard.Risk))
+		if data.Scorecard.Value.Risk != models.ImageScorecardRiskLow {
+			data.InsertTag("risk:" + string(data.Scorecard.Value.Risk))
 		}
 	}
 
@@ -215,17 +211,31 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		// Fallthrough - try to insert what we have
 	}
 
-	if data.FullDescription != nil {
-		if err := w.store.InsertImageDescription(ctx, reference.String(), data.FullDescription); err != nil {
-			log.ErrorContext(ctx, "Failed to insert image description", slog.Any("error", err))
-			// Fallthrough - try to insert what we have
+	if data.FullDescription.OK {
+		if data.FullDescription.Value == nil {
+			if err := w.store.DeleteImageDescription(ctx, reference.String()); err != nil {
+				log.ErrorContext(ctx, "Failed to delete image description", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
+		} else {
+			if err := w.store.InsertImageDescription(ctx, reference.String(), data.FullDescription.Value); err != nil {
+				log.ErrorContext(ctx, "Failed to insert image description", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
 		}
 	}
 
-	if data.ReleaseNotes != nil {
-		if err := w.store.InsertImageReleaseNotes(ctx, reference.String(), data.ReleaseNotes); err != nil {
-			log.ErrorContext(ctx, "Failed to insert image release notes", slog.Any("error", err))
-			// Fallthrough - try to insert what we have
+	if data.ReleaseNotes.OK {
+		if data.ReleaseNotes.Value == nil {
+			if err := w.store.DeleteImageReleaseNotes(ctx, reference.String()); err != nil {
+				log.ErrorContext(ctx, "Failed to delete image release notes", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
+		} else {
+			if err := w.store.InsertImageReleaseNotes(ctx, reference.String(), data.ReleaseNotes.Value); err != nil {
+				log.ErrorContext(ctx, "Failed to insert image release notes", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
 		}
 	}
 
@@ -234,30 +244,45 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		// Fallthrough - try to insert what we have
 	}
 
-	if data.Scorecard == nil {
-		// Delete scorecard?
-	} else {
-		if err := w.store.InsertImageScorecard(ctx, reference.String(), data.Scorecard); err != nil {
-			log.ErrorContext(ctx, "Failed to insert image scorecard", slog.Any("error", err))
-			// Fallthrough - try to insert what we have
+	if data.Scorecard.OK {
+		if data.Scorecard.Value == nil {
+			if err := w.store.DeleteImageScorecard(ctx, reference.String()); err != nil {
+				log.ErrorContext(ctx, "Failed to delete image scorecard", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
+		} else {
+			if err := w.store.InsertImageScorecard(ctx, reference.String(), data.Scorecard.Value); err != nil {
+				log.ErrorContext(ctx, "Failed to insert image scorecard", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
 		}
 	}
 
-	if data.Provenance == nil {
-		// TODO: Delete provenance?
-	} else {
-		if err := w.store.InsertImageProvenance(ctx, reference.String(), data.Provenance); err != nil {
-			log.ErrorContext(ctx, "Failed to insert image provenance", slog.Any("error", err))
-			// Fallthrough - try to insert what we have
+	if data.Provenance.OK {
+		if data.Provenance.Value == nil {
+			if err := w.store.DeleteImageProvenance(ctx, reference.String()); err != nil {
+				log.ErrorContext(ctx, "Failed to delete image provenance", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
+		} else {
+			if err := w.store.InsertImageProvenance(ctx, reference.String(), data.Provenance.Value); err != nil {
+				log.ErrorContext(ctx, "Failed to insert image provenance", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
 		}
 	}
 
-	if data.SBOM == nil {
-		// TODO: Delete provenance?
-	} else {
-		if err := w.store.InsertImageSBOM(ctx, reference.String(), data.SBOM); err != nil {
-			log.ErrorContext(ctx, "Failed to insert image SBOM", slog.Any("error", err))
-			// Fallthrough - try to insert what we have
+	if data.SBOM.OK {
+		if data.SBOM.Value == nil {
+			if err := w.store.DeleteImageSBOM(ctx, reference.String()); err != nil {
+				log.ErrorContext(ctx, "Failed to delete image SBOM", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
+		} else {
+			if err := w.store.InsertImageSBOM(ctx, reference.String(), data.SBOM.Value); err != nil {
+				log.ErrorContext(ctx, "Failed to insert image SBOM", slog.Any("error", err))
+				// Fallthrough - try to insert what we have
+			}
 		}
 	}
 
