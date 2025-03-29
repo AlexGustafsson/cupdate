@@ -187,7 +187,9 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							provenance.BuildInfo = append(provenance.BuildInfo, buildInfo)
 						}
 
-						data.Provenance = provenance
+						if len(provenance.BuildInfo) > 0 {
+							data.Provenance = provenance
+						}
 
 						sbomAttestations, err := workflow.GetValue[map[string]oci.SBOMAttestation](ctx, "step.sbom.attestations")
 						if err != nil {
@@ -227,7 +229,9 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							sboms.SBOM = append(sboms.SBOM, sbom)
 						}
 
-						data.SBOM = sboms
+						if len(sboms.SBOM) > 0 {
+							data.SBOM = sboms
+						}
 
 						return nil, nil
 					}),
