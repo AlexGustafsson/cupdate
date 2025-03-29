@@ -75,7 +75,7 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
     <div className="rounded-lg bg-white dark:bg-[#1e1e1e] shadow">
       {/* Header */}
       <div
-        className={`sticky top-[64px] bg-white dark:bg-[#1e1e1e] flex items-center w-full ${showContent ? 'rounded-t-lg border-b border-[#e5e5e5] dark:border-[#333333] mb-2' : 'rounded-lg'}`}
+        className={`sticky z-50 top-[64px] bg-white dark:bg-[#1e1e1e] flex items-center w-full ${showContent ? 'rounded-t-lg border-b border-[#e5e5e5] dark:border-[#333333] mb-2' : 'rounded-lg'}`}
       >
         {/* Tabs */}
         <div className="flex items-center flex-grow px-2 max-w-full overflow-auto">

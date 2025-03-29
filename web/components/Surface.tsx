@@ -116,7 +116,16 @@ export function Surface({
       ref={surfaceRef}
       className={`relative w-full h-full overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} touch-none`}
     >
-      <div className="absolute left-0 bottom-0 rounded-sm bg-white dark:bg-[#1e1e1e] flex flex-col p-2 z-50 shadow-md gap-y-2 border border-[#e5e5e5] dark:border-[#333333]">
+      <div
+        ref={contentRef}
+        className="w-fit h-fit"
+        style={{
+          transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale}, ${scale})`,
+        }}
+      >
+        {children}
+      </div>
+      <div className="absolute left-0 bottom-0 rounded-sm bg-white dark:bg-[#1e1e1e] flex flex-col p-2 shadow-md gap-y-2 border border-[#e5e5e5] dark:border-[#333333]">
         <button
           type="button"
           className="cursor-pointer"
@@ -138,15 +147,6 @@ export function Surface({
         >
           <FluentFullScreenMaximize16Regular />
         </button>
-      </div>
-      <div
-        ref={contentRef}
-        className="w-fit h-fit"
-        style={{
-          transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale}, ${scale})`,
-        }}
-      >
-        {children}
       </div>
     </div>
   )
