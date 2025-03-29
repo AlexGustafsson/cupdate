@@ -204,7 +204,7 @@ export function ImagePage(): JSX.Element {
           <p className="mt-2">{image.value.description}</p>
         )}
         {/* Image tags */}
-        <div className="flex mt-4 items-center gap-1 flex-wrap">
+        <div className="flex mt-4 items-center gap-1 flex-wrap justify-center">
           {imageTags.map((x) => (
             <Link key={x.name} to={`/?tag=${encodeURIComponent(x.name)}`}>
               <Badge
