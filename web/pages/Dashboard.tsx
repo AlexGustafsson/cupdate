@@ -133,7 +133,8 @@ export function Dashboard(): JSX.Element {
         <div className="grid grid-cols-3 sm:grid-cols-5">
           <Link
             to="/?tag=outdated"
-            className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+            className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
+            tabIndex={0}
           >
             <div className="py-2 px-4">
               <p className="text-sm">Outdated</p>
@@ -146,7 +147,8 @@ export function Dashboard(): JSX.Element {
           </Link>
           <Link
             to="/?tag=vulnerable"
-            className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+            className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
+            tabIndex={0}
           >
             <div className="py-2 px-4">
               <p className="text-sm">Vulnerable</p>
@@ -159,7 +161,8 @@ export function Dashboard(): JSX.Element {
           </Link>
           <Link
             to="/?tag=failed"
-            className="rounded-lg hover:bg-white dark:hover:bg-[#1e1e1e] transition-colors"
+            className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
+            tabIndex={0}
           >
             <div className="py-2 px-4">
               <p className="text-sm">Failed</p>
@@ -230,8 +233,9 @@ export function Dashboard(): JSX.Element {
               <button
                 type="button"
                 title="Enable list view"
-                className="pl-2 pr-1 cursor-pointer"
+                className="pl-2 pr-1 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
                 onClick={() => setLayout('list')}
+                tabIndex={0}
               >
                 {layout === 'list' ? (
                   <FluentAlignSpaceEvenlyVertical20Filled />
@@ -242,8 +246,9 @@ export function Dashboard(): JSX.Element {
               <button
                 type="button"
                 title="Enable grid view"
-                className="pl-1 pr-2 cursor-pointer"
+                className="pl-1 pr-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
                 onClick={() => setLayout('grid')}
+                tabIndex={0}
               >
                 {layout === 'grid' ? (
                   <FluentGrid20Filled />
@@ -264,9 +269,11 @@ export function Dashboard(): JSX.Element {
               key={x.reference}
               to={`image?reference=${encodeURIComponent(x.reference)}`}
               state={window.location.href}
+              tabIndex={0}
+              className="group"
             >
               <ImageCard
-                className={`hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
+                className={`group-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus:bg-[#f5f5f5] dark:group-focus:bg-[#262626] dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
                 reference={x.reference}
                 name={name(x.reference).replaceAll('/', '/\u200b')}
                 currentVersion={version(x.reference)}
@@ -315,7 +322,8 @@ export function Dashboard(): JSX.Element {
                 <Link
                   key={page.index}
                   to={page.href}
-                  className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${page.current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 hover:bg-blue-400 hover:dark:bg-blue-700'}`}
+                  tabIndex={0}
+                  className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${page.current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 focus:bg-blue-400 hover:bg-blue-400  hover:dark:bg-blue-700 focus:dark:bg-blue-700'}`}
                 >
                   <p>{page.label}</p>
                 </Link>

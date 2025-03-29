@@ -206,12 +206,17 @@ export function ImagePage(): JSX.Element {
         {/* Image tags */}
         <div className="flex mt-4 items-center gap-1 flex-wrap justify-center">
           {imageTags.map((x) => (
-            <Link key={x.name} to={`/?tag=${encodeURIComponent(x.name)}`}>
+            <Link
+              key={x.name}
+              to={`/?tag=${encodeURIComponent(x.name)}`}
+              className="group"
+              tabIndex={0}
+            >
               <Badge
                 key={x.name}
                 label={x.name}
                 color={x.color}
-                className="hover:opacity-90"
+                className="hover:opacity-90 group-focus:opacity-90"
               />
             </Link>
           ))}
