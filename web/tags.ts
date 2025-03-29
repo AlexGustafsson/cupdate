@@ -129,6 +129,21 @@ export const Tags: Tag[] = [
     description: 'Major update',
     color: palette.red1,
   },
+  {
+    name: 'risk:high',
+    description: 'High risk project',
+    color: palette.red2,
+  },
+  {
+    name: 'risk:medium',
+    description: 'Medium risk project',
+    color: palette.yellow,
+  },
+  {
+    name: 'risk:low',
+    description: 'Low risk project',
+    color: palette.blue1,
+  },
 ]
 
 /** Holds known / well-defined tags, mapped by their name. */
