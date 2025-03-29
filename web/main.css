@@ -83,4 +83,8 @@
       40px 1fr minmax(min-content, 80px) minmax(min-content, 80px)
       minmax(min-content, 200px) 24px;
   }
+
+  .break-word {
+    word-break: break-word;
+  }
 }

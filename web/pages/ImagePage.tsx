@@ -126,8 +126,8 @@ export function ImagePage(): JSX.Element {
           reference={image.value.reference}
         />
         {/* Image name */}
-        <h1 className="text-2xl font-medium">
-          {name(image.value.reference)}
+        <h1 className="text-2xl font-medium text-center">
+          {name(image.value.reference).replaceAll('/', '/\u200b')}
           {image.value.vulnerabilities.filter(
             (x) => x.severity !== 'unspecified'
           ).length > 0 && (

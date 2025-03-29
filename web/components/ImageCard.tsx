@@ -57,9 +57,7 @@ export function ImageCard({
           <div
             className={`${compact ? 'flex flex-col-reverse' : 'flex items-center'}`}
           >
-            <p className="text-sm break-all line-clamp-2 font-semibold">
-              {name}
-            </p>
+            <p className="text-sm line-clamp-2 font-semibold">{name}</p>
             {vulnerabilities > 0 && (
               <InfoTooltip
                 icon={<FluentShieldError24Filled className="text-red-600" />}
