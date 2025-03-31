@@ -270,10 +270,10 @@ export function Dashboard(): JSX.Element {
               to={`image?reference=${encodeURIComponent(x.reference)}`}
               state={window.location.href}
               tabIndex={0}
-              className="group"
+              className="group/link"
             >
               <ImageCard
-                className={`group-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus:bg-[#f5f5f5] dark:group-focus:bg-[#262626] dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
+                className={`group/link-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus/link:bg-[#f5f5f5] dark:group-focus/link:bg-[#262626] dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
                 reference={x.reference}
                 name={name(x.reference).replaceAll('/', '/\u200b')}
                 currentVersion={version(x.reference)}

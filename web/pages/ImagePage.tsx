@@ -209,14 +209,14 @@ export function ImagePage(): JSX.Element {
             <Link
               key={x.name}
               to={`/?tag=${encodeURIComponent(x.name)}`}
-              className="group"
+              className="group/link"
               tabIndex={0}
             >
               <Badge
                 key={x.name}
                 label={x.name}
                 color={x.color}
-                className="hover:opacity-90 group-focus:opacity-90"
+                className="hover:opacity-90 group-focus/link:opacity-90"
               />
             </Link>
           ))}
