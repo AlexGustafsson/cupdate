@@ -15,9 +15,9 @@
     "elkjs": "0.10.0",
     "github-markdown-css": "5.8.1",
     "marked": "15.0.7",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "react-router-dom": "7.4.0"
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-router-dom": "7.4.1"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
