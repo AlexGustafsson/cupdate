@@ -11,15 +11,15 @@ paths:
   /tags:
     get:
       summary: Returns available tags.
-    responses:
-      "200":
-        description: A list of tags.
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: string
+      responses:
+        "200":
+          description: A list of tags.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
 
   /images:
     get:
@@ -215,6 +215,7 @@ paths:
       summary: Server-sent events.
       responses:
         "200":
+          description: Server-sent events.
           content:
             text/event-stream:
               schema:
@@ -238,11 +239,11 @@ paths:
   /feed.rss:
     get:
       summary: Get an RSS feed of outdated images.
-      respones:
+      responses:
         "200":
           description: RSS feed.
           content:
-            application/rss+xml:
+            application/rss+xml: {}
 
   /summary:
     get:
