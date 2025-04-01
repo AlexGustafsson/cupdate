@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
@@ -547,19 +546,8 @@ func main() {
 	}
 
 	httpServer := &http.Server{
-		Addr: fmt.Sprintf("%s:%d", config.API.Address, config.API.Port),
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			writer := w
-			if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-				w.Header().Set("Content-Encoding", "gzip")
-				gzip := &httputil.GzipWriter{ResponseWriter: w}
-				defer gzip.Close()
-
-				writer = gzip
-			}
-
-			mux.ServeHTTP(writer, r)
-		}),
+		Addr:    fmt.Sprintf("%s:%d", config.API.Address, config.API.Port),
+		Handler: mux,
 	}
 
 	wg.Go(func() error {

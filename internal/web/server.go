@@ -38,6 +38,14 @@ func NewEmbeddedServer() (http.Handler, error) {
 func NewServer(public fs.FS) http.Handler {
 	fileServer := http.FileServerFS(public)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			w.Header().Set("Content-Encoding", "gzip")
+			gzip := &httputil.GzipWriter{ResponseWriter: w}
+			defer gzip.Close()
+
+			w = gzip
+		}
+
 		path := r.URL.Path
 		if path == "/" {
 			path = "/index.html"

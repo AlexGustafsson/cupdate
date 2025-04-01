@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -405,6 +406,14 @@ func (s *Server) handleJSONResponse(w http.ResponseWriter, r *http.Request, resp
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		w.Header().Set("Content-Encoding", "gzip")
+		gzip := &httputil.GzipWriter{ResponseWriter: w}
+		defer gzip.Close()
+
+		w = gzip
+	}
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Headers", "traceresponse")
 
