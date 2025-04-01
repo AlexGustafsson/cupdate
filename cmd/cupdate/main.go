@@ -30,9 +30,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// Version is the current Cupdate version. Overwritten at build time.
-var Version string = "development build"
-
 func main() {
 	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("service.version", Version)).With(slog.String("service.name", "cupdate")))
 
