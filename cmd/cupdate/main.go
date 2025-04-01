@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -157,7 +158,22 @@ func main() {
 					Password: auth.Password,
 				})
 			} else {
-				registryAuth.Handle(pattern, httputil.BearerToken(auth.Auth))
+				value, err := base64.StdEncoding.DecodeString(auth.Auth)
+				if err != nil {
+					slog.Error("Invalid auth config", slog.Any("error", err))
+					os.Exit(1)
+				}
+
+				username, password, ok := strings.Cut(string(value), ":")
+				if !ok {
+					slog.Error("Invalid auth config", slog.Any("error", fmt.Errorf("invalid auth field")))
+					os.Exit(1)
+				}
+
+				registryAuth.Handle(pattern, httputil.BasicAuthHandler{
+					Username: username,
+					Password: password,
+				})
 			}
 		}
 	}
