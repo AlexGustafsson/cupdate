@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -11,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
@@ -28,87 +25,18 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/web"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
-	"github.com/caarlos0/env/v11"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sync/errgroup"
-	"k8s.io/client-go/rest"
 )
 
 // Version is the current Cupdate version. Overwritten at build time.
 var Version string = "development build"
 
-type Config struct {
-	Log struct {
-		Level string `env:"LEVEL" envDefault:"info"`
-	} `envPrefix:"LOG_"`
-
-	API struct {
-		Address string `env:"ADDRESS" envDefault:"0.0.0.0"`
-		Port    uint16 `env:"PORT" envDefault:"8080"`
-	} `envPrefix:"API_"`
-
-	Web struct {
-		Disabled bool   `env:"DISABLED"`
-		Address  string `env:"ADDRESS"`
-	} `envPrefix:"WEB_"`
-
-	HTTP struct {
-		UserAgent string `env:"USER_AGENT" envDefault:"Cupdate/1.0"`
-	} `envPrefix:"HTTP_"`
-
-	Cache struct {
-		Path   string        `env:"PATH" envDefault:"cachev1.boltdb"`
-		MaxAge time.Duration `env:"MAX_AGE" envDefault:"24h"`
-	} `envPrefix:"CACHE_"`
-
-	Database struct {
-		Path string `env:"PATH" envDefault:"dbv1.sqlite"`
-	} `envPrefix:"DB_"`
-
-	Processing struct {
-		Interval   time.Duration `env:"INTERVAL" envDefault:"1h"`
-		Items      int           `env:"ITEMS" envDefault:"10"`
-		MinAge     time.Duration `env:"MIN_AGE" envDefault:"72h"`
-		Timeout    time.Duration `env:"TIMEOUT" envDefault:"2m"`
-		QueueSize  int           `env:"QUEUE_SIZE" envDefault:"50"`
-		QueueBurst int           `env:"QUEUE_BURST" envDefault:"10"`
-		QueueRate  time.Duration `env:"QUEUE_RATE" envDefault:"1m"`
-	} `envPrefix:"PROCESSING_"`
-
-	Workflow struct {
-		CleanupMaxAge   time.Duration `env:"CLEANUP_MAX_AGE" envDefault:"48h"`
-		CleanupInterval time.Duration `env:"CLEANUP_INTERVAL" envDefault:"1h"`
-	} `envPrefix:"WORKFLOW_"`
-
-	Kubernetes struct {
-		Host                  string `env:"HOST"`
-		IncludeOldReplicaSets bool   `env:"INCLUDE_OLD_REPLICAS"`
-	} `envPrefix:"KUBERNETES_"`
-
-	Docker struct {
-		Hosts                []string `env:"HOST"`
-		IncludeAllContainers bool     `env:"INCLUDE_ALL_CONTAINERS"`
-		TLSPath              string   `env:"TLS_PATH"`
-	} `envPrefix:"DOCKER_"`
-
-	OTEL struct {
-		Target   string `env:"TARGET"`
-		Insecure bool   `env:"INSECURE"`
-	} `envPrefix:"OTEL_"`
-
-	Registry struct {
-		Secrets string `env:"SECRETS"`
-	} `envPrefix:"REGISTRY_"`
-}
-
 func main() {
 	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("service.version", Version)).With(slog.String("service.name", "cupdate")))
 
-	var config Config
-	err := env.ParseWithOptions(&config, env.Options{
-		Prefix: "CUPDATE_",
-	})
+	config, err := ParseConfigFromEnv()
 	if err != nil {
 		slog.Error("Failed to parse config from environment variables", slog.Any("error", err))
 		os.Exit(1)
@@ -132,51 +60,10 @@ func main() {
 
 	slog.Debug("Parsed config", slog.Any("config", config))
 
-	registryAuth := httputil.NewAuthMux()
-	if config.Registry.Secrets != "" {
-		file, err := os.Open(config.Registry.Secrets)
-		if err != nil {
-			slog.Error("Failed to read registry secrets", slog.Any("error", err))
-			os.Exit(1)
-		}
-
-		var dockerConfig *docker.ConfigFile
-		err = json.NewDecoder(file).Decode(&dockerConfig)
-		file.Close()
-		if err != nil {
-			slog.Error("Failed to parse registry secrets", slog.Any("error", err))
-			os.Exit(1)
-		}
-
-		for k, v := range dockerConfig.HttpHeaders {
-			registryAuth.SetHeader(k, v)
-		}
-
-		for pattern, auth := range dockerConfig.Auths {
-			if auth.Auth == "" {
-				registryAuth.Handle(pattern, httputil.BasicAuthHandler{
-					Username: auth.Username,
-					Password: auth.Password,
-				})
-			} else {
-				value, err := base64.StdEncoding.DecodeString(auth.Auth)
-				if err != nil {
-					slog.Error("Invalid auth config", slog.Any("error", err))
-					os.Exit(1)
-				}
-
-				username, password, ok := strings.Cut(string(value), ":")
-				if !ok {
-					slog.Error("Invalid auth config", slog.Any("error", fmt.Errorf("invalid auth field")))
-					os.Exit(1)
-				}
-
-				registryAuth.Handle(pattern, httputil.BasicAuthHandler{
-					Username: username,
-					Password: password,
-				})
-			}
-		}
+	registryAuth, err := config.RegistryAuth()
+	if err != nil {
+		slog.Error("Failed to parse registry auth", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -197,18 +84,10 @@ func main() {
 	// Kubernetes otherwise)
 	var targetPlatform platform.Grapher
 	if len(config.Docker.Hosts) == 0 {
-		var kubernetesConfig *rest.Config
-		if config.Kubernetes.Host == "" {
-			var err error
-			kubernetesConfig, err = rest.InClusterConfig()
-			if err != nil {
-				slog.ErrorContext(ctx, "Failed to configure Kubernetes client", slog.Any("error", err))
-				os.Exit(1)
-			}
-		} else {
-			kubernetesConfig = &rest.Config{
-				Host: config.Kubernetes.Host,
-			}
+		kubernetesConfig, err := config.KubernetesClientConfig()
+		if err != nil {
+			slog.ErrorContext(ctx, "Failed to configure Kubernetes client", slog.Any("error", err))
+			os.Exit(1)
 		}
 
 		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, &kubernetes.Options{IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets})
@@ -261,23 +140,23 @@ func main() {
 	}
 	prometheus.DefaultRegisterer.MustRegister(cache)
 
-	absoluteDatabasePath, err := filepath.Abs(config.Database.Path)
+	databaseURI, err := config.DatabaseURI()
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to resolve database path", slog.Any("error", err))
+		slog.Error("Failed to resolve database path", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	if err := store.Initialize(ctx, "file://"+absoluteDatabasePath); err != nil {
+	if err := store.Initialize(ctx, databaseURI); err != nil {
 		slog.ErrorContext(ctx, "Failed to initialize database", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	readStore, err := store.New("file://"+absoluteDatabasePath, true)
+	readStore, err := store.New(databaseURI, true)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to load database", slog.Any("error", err))
 		os.Exit(1)
 	}
-	writeStore, err := store.New("file://"+absoluteDatabasePath, false)
+	writeStore, err := store.New(databaseURI, false)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to load database", slog.Any("error", err))
 		os.Exit(1)
