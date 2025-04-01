@@ -17,32 +17,32 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-var _ prometheus.Collector = (*Worker)(nil)
+var _ prometheus.Collector = (*ImageWorker)(nil)
 
-// EventType is the type of an event.
-type EventType string
+// ImageEventType is the type of an event.
+type ImageEventType string
 
 const (
-	// EventTypeUpdated is emitted whenever data of an image is updated.
-	EventTypeUpdated EventType = "updated"
-	// EventTypeProcessed is emitted whenever an image was processed.
-	EventTypeProcessed EventType = "processed"
-	// EventTypeNewVersionAvailable is emitted whenever the latest available
+	// ImageEventTypeUpdated is emitted whenever data of an image is updated.
+	ImageEventTypeUpdated ImageEventType = "updated"
+	// ImageEventTypeProcessed is emitted whenever an image was processed.
+	ImageEventTypeProcessed ImageEventType = "processed"
+	// ImageEventTypeNewVersionAvailable is emitted whenever the latest available
 	// version of an image changes.
-	EventTypeNewVersionAvailable EventType = "newVersionAvailable"
+	ImageEventTypeNewVersionAvailable ImageEventType = "newVersionAvailable"
 )
 
-// Event describes a Worker event.
-type Event struct {
+// ImageEvent describes an [ImageWorker] event.
+type ImageEvent struct {
 	Reference string
-	Type      EventType
+	Type      ImageEventType
 }
 
-// Worker processes raw container image entries, running the image workflow and
-// storing the result to the state store.
-// The worker produces events of the type [Event].
-type Worker struct {
-	*events.Hub[Event]
+// ImageWorker processes raw container image entries, running the image workflow
+// and storing the result to the state store.
+// The worker produces events of the type [Image].
+type ImageWorker struct {
+	*events.Hub[ImageEvent]
 
 	httpClient   httputil.Requester
 	store        *store.Store
@@ -53,9 +53,9 @@ type Worker struct {
 	processingGauge    prometheus.Gauge
 }
 
-func New(httpClient httputil.Requester, store *store.Store, registryAuth *httputil.AuthMux) *Worker {
-	return &Worker{
-		Hub: events.NewHub[Event](),
+func NewImageWorker(httpClient httputil.Requester, store *store.Store, registryAuth *httputil.AuthMux) *ImageWorker {
+	return &ImageWorker{
+		Hub: events.NewHub[ImageEvent](),
 
 		httpClient:   httpClient,
 		store:        store,
@@ -79,8 +79,21 @@ func New(httpClient httputil.Requester, store *store.Store, registryAuth *httput
 	}
 }
 
+// PullFrom continuously processes raw images by pulling them from a [Queue].
+func (w *ImageWorker) PullFrom(ctx context.Context, queue *Queue[oci.Reference], timeout time.Duration) {
+	for reference := range queue.Pull() {
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		err := w.ProcessRawImage(ctx, reference)
+		cancel()
+		if err != nil {
+			slog.ErrorContext(ctx, "Failed to process queued raw image", slog.Any("error", err), slog.String("reference", reference.String()))
+			// Fallthrough
+		}
+	}
+}
+
 // ProcessRawImage processes a raw image by the specified reference.
-func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) error {
+func (w *ImageWorker) ProcessRawImage(ctx context.Context, reference oci.Reference) error {
 	start := time.Now()
 	w.processingGauge.Inc()
 	defer w.processingGauge.Dec()
@@ -309,9 +322,9 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		log.DebugContext(ctx, "Updated image date", slog.Int("changes", len(changes)))
 		// TODO: Group changes, create an event specifying the time. That way the
 		// browser can ignore the event if it already updated after the time?
-		w.Broadcast(ctx, Event{
+		w.Broadcast(ctx, ImageEvent{
 			Reference: reference.String(),
-			Type:      EventTypeUpdated,
+			Type:      ImageEventTypeUpdated,
 		})
 
 		// TODO: Have another readonly job for going over the changes made to
@@ -322,28 +335,28 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	if result.LatestReference != "" && result.LatestReference != result.Reference {
-		w.Broadcast(ctx, Event{
+		w.Broadcast(ctx, ImageEvent{
 			Reference: reference.String(),
-			Type:      EventTypeNewVersionAvailable,
+			Type:      ImageEventTypeNewVersionAvailable,
 		})
 	}
 
-	w.Broadcast(ctx, Event{
+	w.Broadcast(ctx, ImageEvent{
 		Reference: reference.String(),
-		Type:      EventTypeProcessed,
+		Type:      ImageEventTypeProcessed,
 	})
 
 	return nil
 }
 
 // Collect implements prometheus.Collector.
-func (w *Worker) Collect(ch chan<- prometheus.Metric) {
+func (w *ImageWorker) Collect(ch chan<- prometheus.Metric) {
 	w.processedCounter.Collect(ch)
 	w.processingDuration.Collect(ch)
 	w.processingGauge.Collect(ch)
 }
 
 // Describe implements prometheus.Collector.
-func (w *Worker) Describe(descs chan<- *prometheus.Desc) {
+func (w *ImageWorker) Describe(descs chan<- *prometheus.Desc) {
 	prometheus.DescribeByCollect(w, descs)
 }

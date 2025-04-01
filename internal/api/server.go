@@ -27,13 +27,13 @@ var (
 
 type Server struct {
 	api *store.Store
-	hub *events.Hub[worker.Event]
+	hub *events.Hub[worker.ImageEvent]
 	mux *http.ServeMux
 
 	WebAddress string
 }
 
-func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference]) *Server {
+func NewServer(api *store.Store, hub *events.Hub[worker.ImageEvent], processQueue *worker.Queue[oci.Reference]) *Server {
 	s := &Server{
 		api: api,
 		hub: hub,
@@ -338,11 +338,11 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		for event := range s.hub.Subscribe(ctx) {
 			var eventType models.EventType
 			switch event.Type {
-			case worker.EventTypeUpdated:
+			case worker.ImageEventTypeUpdated:
 				eventType = models.EventTypeImageUpdated
-			case worker.EventTypeProcessed:
+			case worker.ImageEventTypeProcessed:
 				eventType = models.EventTypeImageProcessed
-			case worker.EventTypeNewVersionAvailable:
+			case worker.ImageEventTypeNewVersionAvailable:
 				eventType = models.EventTypeImageNewVersionAvailable
 			}
 
