@@ -23,19 +23,20 @@
     "@biomejs/biome": "1.9.4",
     "@tailwindcss/vite": "4.0.17",
     "@types/dompurify": "3.2.0",
-    "@types/node": "22.13.14",
+    "@types/node": "22.13.16",
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4",
     "@vitejs/plugin-react": "4.3.4",
-    "@vitest/coverage-v8": "3.0.9",
+    "@vitest/coverage-v8": "3.1.1",
     "globals": "16.0.0",
     "prettier": "3.5.3",
     "tailwindcss": "4.0.17",
     "typescript": "5.8.2",
     "vite": "6.2.4",
-    "vitest": "3.0.9"
+    "vitest": "3.1.1"
   },
   "resolutions": {
-    "esbuild@npm:^0.24.2": "npm:0.25.0"
+    "esbuild@npm:^0.24.2": "npm:0.25.0",
+    "vite@npm:^5.0.0 || ^6.0.0": "npm:6.2.4"
   }
 }
