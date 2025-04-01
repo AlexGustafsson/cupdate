@@ -36,15 +36,6 @@ func (h BasicAuthHandler) HandleAuth(r *http.Request) error {
 	return nil
 }
 
-// BearerToken auths requests using the Bearer authorization scheme.
-type BearerToken string
-
-func (t BearerToken) HandleAuth(r *http.Request) error {
-	r.Header.Set("Authorization", "Bearer "+string(t))
-
-	return nil
-}
-
 // AuthMux is an HTTP auth multiplexer. It matches URLs of auth requests against
 // a list of registered patterns and calls the handler for the pattern that most
 // closely matches the request.
