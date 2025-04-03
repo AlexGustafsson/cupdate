@@ -268,7 +268,7 @@ function tagSortValue(name: string, selected?: boolean): number {
 
   let value = 0
   for (let i = 0; i < values.length; i++) {
-    value |= values[i] << (values.length - i)
+    value |= values[i] << Math.floor(32 / (values.length - i))
   }
 
   return value
