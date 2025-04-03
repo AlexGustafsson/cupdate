@@ -10,6 +10,7 @@ import {
   useImageReleaseNotes,
   useImageSBOM,
   useImageScorecard,
+  useImageVulnerabilities,
   useLatestWorkflowRun,
   useTags,
 } from '../api'
@@ -51,6 +52,8 @@ export function ImagePage(): JSX.Element {
   const [scorecard, updateScorecard] = useImageScorecard(reference)
   const [provenance, updateProvenance] = useImageProvenance(reference)
   const [sbom, updateSBOM] = useImageSBOM(reference)
+  const [vulnerabilities, updateVulnerabilities] =
+    useImageVulnerabilities(reference)
   const [workflowRun, updateWorkflowRun] = useLatestWorkflowRun(reference)
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
@@ -78,6 +81,7 @@ export function ImagePage(): JSX.Element {
     scorecard.status !== 'resolved' ||
     provenance.status !== 'resolved' ||
     sbom.status !== 'resolved' ||
+    vulnerabilities.status !== 'resolved' ||
     workflowRun.status !== 'resolved'
   ) {
     return <ImageSkeleton />
@@ -112,6 +116,7 @@ export function ImagePage(): JSX.Element {
               updateScorecard()
               updateProvenance()
               updateSBOM()
+              updateVulnerabilities()
               updateWorkflowRun()
             }}
           />
@@ -227,8 +232,8 @@ export function ImagePage(): JSX.Element {
           {scorecard.value && <ScorecardCard scorecard={scorecard.value} />}
 
           {/* Vulnerability report */}
-          {image.value.vulnerabilities.length > 0 && (
-            <VulnerabilitiesCard image={image.value} />
+          {vulnerabilities.value && (
+            <VulnerabilitiesCard vulnerabilities={vulnerabilities.value} />
           )}
 
           {/* Release notes */}

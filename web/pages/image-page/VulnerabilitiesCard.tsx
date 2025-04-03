@@ -1,10 +1,10 @@
 import type { JSX } from 'react'
-import type { Image, ImageVulnerability } from '../../api'
+import type { ImageVulnerability } from '../../api'
 import { FluentBug16Regular } from '../../components/icons/fluent-bug-16-regular'
 import { Card } from './Card'
 
 export type VulnerabilitiesCardProps = {
-  image: Image
+  vulnerabilities: ImageVulnerability[]
 }
 
 function unique<T>(previousValue: T[], currentValue: T): T[] {
@@ -52,9 +52,9 @@ function countVulnerabilities(
 }
 
 export function VulnerabilitiesCard({
-  image,
+  vulnerabilities,
 }: VulnerabilitiesCardProps): JSX.Element {
-  const counts = countVulnerabilities(image.vulnerabilities)
+  const counts = countVulnerabilities(vulnerabilities)
 
   return (
     <Card
@@ -78,7 +78,7 @@ export function VulnerabilitiesCard({
 
               <h2>Authorities</h2>
               <ul>
-                {image.vulnerabilities
+                {vulnerabilities
                   .map((x) => x.authority)
                   .reduce(unique<string>, [])
                   .map((x) => (
@@ -88,7 +88,7 @@ export function VulnerabilitiesCard({
 
               <h2>Links</h2>
               <ul>
-                {image.vulnerabilities
+                {vulnerabilities
                   .map((x) => x.links)
                   .reduce(flattened<string>, [])
                   .reduce(unique<string>, [])

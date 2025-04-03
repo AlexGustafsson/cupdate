@@ -33,7 +33,7 @@ export interface Image {
   description?: string
   tags: string[]
   links: ImageLink[]
-  vulnerabilities: ImageVulnerability[]
+  vulnerabilities: number
   image?: string
   lastModified: string
 }
@@ -470,6 +470,42 @@ export function useImageSBOM(
         return res.json()
       })
       .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [reference])
+
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
+}
+
+// TODO: Add query parameters
+export function useImageVulnerabilities(
+  reference: string
+): [Result<ImageVulnerability[] | null>, () => void] {
+  const [result, setResult] = useState<Result<ImageVulnerability[] | null>>({
+    status: 'idle',
+  })
+
+  const update = useCallback(() => {
+    const query = new URLSearchParams({ reference })
+    fetch(
+      `${import.meta.env.VITE_API_ENDPOINT}/image/vulnerabilities?${query.toString()}`
+    )
+      .then((res) => {
+        if (res.status === 404) {
+          return null
+        }
+        if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) =>
+        setResult({ status: 'resolved', value: value.vulnerabilities })
+      )
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [reference])
 

@@ -193,6 +193,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImageSBOM"
 
+  /image/vulnerabilities:
+    get:
+      summary: Returns an image's vulnerabilities
+      parameters:
+        - in: query
+          name: reference
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: The image's vulnerabilitiess
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vulnerabilities:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ImageVulnerability"
+
   /image/workflows/latest:
     get:
       summary: Returns an image's latest workflow run
@@ -319,13 +341,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ImageLink"
-        # In v1, let this be a object with counts instead, no need to have the
-        # full results here. Request vulnerabilities like graphs and other
-        # things instead?
         vulnerabilities:
-          type: array
-          items:
-            $ref: "#/components/schemas/ImageVulnerability"
+          type: number
         lastModified:
           type: string
           format: datetime
@@ -338,6 +355,7 @@ components:
         - reference
         - tags
         - links
+        - vulnerabilities
         - lastModified
 
     ImageDescription:

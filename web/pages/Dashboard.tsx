@@ -284,10 +284,7 @@ export function Dashboard(): JSX.Element {
                 fullLatestVersion={
                   x.latestReference ? fullVersion(x.latestReference) : undefined
                 }
-                vulnerabilities={
-                  x.vulnerabilities.filter((x) => x.severity !== 'unspecified')
-                    .length
-                }
+                vulnerabilities={x.vulnerabilities}
                 logo={x.image}
                 description={x.description}
                 tags={x.tags}

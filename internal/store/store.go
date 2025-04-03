@@ -312,32 +312,6 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		return err
 	}
 
-	// Add vulnerabilities
-	serializedVulnerabilities, err := json.Marshal(image.Vulnerabilities)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	statement, err = tx.PrepareContext(ctx, `INSERT INTO images_vulnerabilitiesv2
-		(reference, count, vulnerabilities)
-		VALUES
-		(?, ?, ?)
-		ON CONFLICT(reference) DO UPDATE SET
-			count=excluded.count,
-			vulnerabilities=excluded.vulnerabilities
-		;`)
-	if err != nil {
-		return err
-	}
-
-	_, err = statement.ExecContext(ctx, image.Reference, len(image.Vulnerabilities), serializedVulnerabilities)
-	statement.Close()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	if err := tx.Commit(); err != nil {
 		return err
 	}
@@ -388,9 +362,23 @@ func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, 
 		return nil, err
 	}
 
-	image.Vulnerabilities, err = s.GetImageVulnerabilities(ctx, reference)
+	statement, err = s.db.PrepareContext(ctx, `SELECT count FROM images_vulnerabilitiesv2 WHERE reference = ?`)
 	if err != nil {
 		return nil, err
+	}
+
+	res, err = statement.QueryContext(ctx, reference)
+	statement.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Next() {
+		err = res.Scan(&image.Vulnerabilities)
+		res.Close()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &image, nil
@@ -464,6 +452,31 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 	}
 
 	return links, nil
+}
+
+func (s *Store) InsertImageVulnerabilities(ctx context.Context, reference string, vulnerabilities []models.ImageVulnerability) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_vulnerabilitiesv2
+		(reference, count, vulnerabilities)
+		VALUES
+		(?, ?, ?)
+		ON CONFLICT(reference) DO UPDATE SET
+			count=excluded.count,
+			vulnerabilities=excluded.vulnerabilities
+		;`)
+	if err != nil {
+		return err
+	}
+
+	_, err = statement.ExecContext(ctx, reference)
+	statement.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) ([]models.ImageVulnerability, error) {

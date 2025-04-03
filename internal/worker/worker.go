@@ -200,7 +200,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		Tags:                data.Tags,
 		Image:               data.Image,
 		Links:               data.Links,
-		Vulnerabilities:     data.Vulnerabilities,
+		Vulnerabilities:     len(data.Vulnerabilities),
 		LastModified:        time.Now(),
 	}
 	if data.LatestReference != nil {
@@ -284,6 +284,11 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 				// Fallthrough - try to insert what we have
 			}
 		}
+	}
+
+	if err := w.store.InsertImageVulnerabilities(ctx, reference.String(), data.Vulnerabilities); err != nil {
+		log.ErrorContext(ctx, "Failed to insert image vulnerabilities", slog.Any("error", err))
+		// Fallthrough - try to insert what we have
 	}
 
 	if err := w.store.InsertWorkflowRun(ctx, reference.String(), workflowRun); err != nil {
