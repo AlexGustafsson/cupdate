@@ -40,6 +40,7 @@ func GetQuayVulnerabilities() workflow.Step {
 			vulnerabilities := make([]models.ImageVulnerability, 0)
 			for _, vulnerability := range scan {
 				vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
+					ID:          vulnerability.Name,
 					Severity:    string(vulnerability.Severity),
 					Authority:   "Quay",
 					Description: vulnerability.Description,

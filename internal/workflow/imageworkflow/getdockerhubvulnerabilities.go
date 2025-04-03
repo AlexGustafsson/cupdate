@@ -59,53 +59,24 @@ func GetDockerHubVulnerabilities() workflow.Step {
 				Client: httpClient,
 			}
 
-			report, err := client.GetVulnerabilityReport(ctx, reference.Name(), digest)
+			vulns, err := client.GetVulnerabilities(ctx, reference.Name(), digest)
 			if err != nil {
 				return nil, err
 			}
 
 			vulnerabilities := make([]models.ImageVulnerability, 0)
-
-			if report != nil {
-				for i := 0; i < report.Critical; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "critical",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
+			for _, vulnerability := range vulns {
+				model := models.ImageVulnerability{
+					ID:          vulnerability.ID,
+					Severity:    vulnerability.Severity,
+					Authority:   "Docker Scout",
+					Description: vulnerability.Description,
+					Links:       make([]string, 0),
 				}
-
-				for i := 0; i < report.High; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "high",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
+				if vulnerability.URL != "" {
+					model.Links = append(model.Links, vulnerability.URL)
 				}
-
-				for i := 0; i < report.Medium; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "medium",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
-
-				for i := 0; i < report.Low; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "low",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
-
-				for i := 0; i < report.Unspecified; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "unspecified",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
+				vulnerabilities = append(vulnerabilities, model)
 			}
 
 			return workflow.SetOutput("vulnerabilities", vulnerabilities), nil

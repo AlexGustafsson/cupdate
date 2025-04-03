@@ -74,7 +74,19 @@ func (d *Data) InsertVulnerabilities(vulnerabilities []models.ImageVulnerability
 	d.Lock()
 	defer d.Unlock()
 
-	d.Vulnerabilities = append(d.Vulnerabilities, vulnerabilities...)
+	for _, vulnerability := range vulnerabilities {
+		exists := false
+		for _, other := range d.Vulnerabilities {
+			if vulnerability.ID == other.ID {
+				exists = true
+				break
+			}
+		}
+
+		if !exists {
+			d.Vulnerabilities = append(d.Vulnerabilities, vulnerability)
+		}
+	}
 }
 
 func (d *Data) InsertVulnerability(vulnerability models.ImageVulnerability) {

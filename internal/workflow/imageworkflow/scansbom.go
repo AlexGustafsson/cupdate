@@ -65,6 +65,7 @@ func ScanSBOM() workflow.Step {
 								severity := "unspecified"
 
 								vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
+									ID:          vulnerability.ID,
 									Severity:    severity,
 									Authority:   "OSV",
 									Description: vulnerability.Summary,
