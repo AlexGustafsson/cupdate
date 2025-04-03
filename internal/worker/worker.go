@@ -150,7 +150,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		if currentVersion != nil && currentVersionErr == nil && newVersion != nil && newVersionErr == nil {
 			diff := currentVersion.Diff(newVersion)
 			if diff != "" {
-				data.InsertTag(diff)
+				data.InsertTag("bump:" + diff)
 				versionDiffSortable = semver.PackInt64(newVersion) - semver.PackInt64(currentVersion)
 			}
 		}

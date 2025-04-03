@@ -160,16 +160,34 @@ export const Tags: Tag[] = [
 
   // Bump
   {
+    name: 'bump:major',
+    description: 'Major update',
+    color: palette.major,
+  },
+  {
+    name: 'bump:minor',
+    description: 'Minor update',
+    color: palette.minor,
+  },
+  {
+    name: 'bump:patch',
+    description: 'Patch update',
+    color: palette.patch,
+  },
+  {
+    // TODO: Remove in v1. Replaced with prefixed version
     name: 'major',
     description: 'Major update',
     color: palette.major,
   },
   {
+    // TODO: Remove in v1. Replaced with prefixed version
     name: 'minor',
     description: 'Minor update',
     color: palette.minor,
   },
   {
+    // TODO: Remove in v1. Replaced with prefixed version
     name: 'patch',
     description: 'Patch update',
     color: palette.patch,
