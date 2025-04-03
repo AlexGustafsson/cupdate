@@ -22,7 +22,6 @@ import { Toast } from '../components/Toast'
 import { FluentBookOpen16Regular } from '../components/icons/fluent-book-open-16-regular'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
-import { FluentShieldError24Filled } from '../components/icons/fluent-shield-error-24-filled'
 import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
 import { fullVersion, name, version } from '../oci'
 import { compareTags } from '../tags'
@@ -126,22 +125,8 @@ export function ImagePage(): JSX.Element {
           reference={image.value.reference}
         />
         {/* Image name */}
-        <h1 className="text-2xl font-medium text-center">
+        <h1 className="text-2xl font-medium">
           {name(image.value.reference).replaceAll('/', '/\u200b')}
-          {image.value.vulnerabilities.filter(
-            (x) => x.severity !== 'unspecified'
-          ).length > 0 && (
-            <InfoTooltip
-              icon={<FluentShieldError24Filled className="text-red-600" />}
-            >
-              {
-                image.value.vulnerabilities.filter(
-                  (x) => x.severity !== 'unspecified'
-                ).length
-              }{' '}
-              vulnerabilities reported.
-            </InfoTooltip>
-          )}
         </h1>
         {/* Image version */}
         {/* Digests are formatted like <algo>:<digest>, such as sha256:<digest>. Show a maximum of 5 hex digits before truncating with ellipsis (hence 15ch) */}

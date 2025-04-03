@@ -6,7 +6,7 @@ import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
 import { ImageLogo } from './ImageLogo'
 import { InfoTooltip } from './InfoTooltip'
-import { FluentShieldError24Filled } from './icons/fluent-shield-error-24-filled'
+import { FluentShieldError16Filled } from './icons/fluent-shield-error-16-filled'
 import { FluentWarning16Filled } from './icons/fluent-warning-16-filled'
 
 export type ImageCardProps = {
@@ -60,7 +60,7 @@ export function ImageCard({
             <p className="text-sm line-clamp-2 font-semibold">{name}</p>
             {vulnerabilities > 0 && (
               <InfoTooltip
-                icon={<FluentShieldError24Filled className="text-red-600" />}
+                icon={<FluentShieldError16Filled className="text-red-600" />}
               >
                 {vulnerabilities} vulnerabilities reported.
               </InfoTooltip>

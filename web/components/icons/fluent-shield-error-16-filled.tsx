@@ -8,7 +8,7 @@ export function FluentShieldError16Filled(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       width="16px"
       height="16px"
-      viewBox="0 0 16 16"
+      viewBox="1 1 14 14"
       {...props}
     >
       {/* Icon from Fluent UI System Icons by Microsoft Corporation - https://github.com/microsoft/fluentui-system-icons/blob/main/LICENSE */}
