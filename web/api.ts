@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { type Tag, TagsByName } from './tags'
+import { type Tag, tagByName } from './tags'
 
 export interface ImagePage {
   images: Image[]
@@ -156,7 +156,7 @@ export function useTags(): [Result<Tag[]>, () => void] {
       .then((value: string[]) =>
         setResult({
           status: 'resolved',
-          value: value.map((x) => TagsByName[x] || { name: x }),
+          value: value.map((x) => tagByName(x) || { name: x }),
         })
       )
       .catch((error) => setResult({ status: 'rejected', error }))

@@ -18,22 +18,58 @@ const palette: Record<string, string | { light: string; dark: string }> = {
   gitlab: { light: '#fc6d26', dark: '#c94503' },
   quay: { light: '#40B4E5', dark: '#177ba6' },
 
-  // Generic colors
-  // Originally based on https://spectrum.adobe.com/page/badge/
-  grey: { light: '#6d6d6d', dark: '#545454' },
-  purple1: { light: '#893de7', dark: '#6f1ad5' },
-  purble2: { light: '#b622b7', dark: '#8e1a8e' },
-  green1: { light: '#44cb01', dark: '#339801' },
-  green2: { light: '#007772', dark: '#004d49' },
-  red1: { light: '#de3b82', dark: '#9d1b53' },
-  red2: { light: '#f14741', dark: '#8e0f0b' },
-  blue1: { light: '#0265dc', dark: '#024597' },
-  blue2: { light: '#5258e4', dark: '#1c21b0' },
-  yellow: { light: '#e8c600', dark: '#998200' },
+  // Emotions
+  negative: {
+    // Tailwind's red-500
+    light: 'oklch(63.7% 0.237 25.331)',
+    // Tailwind's red-700
+    dark: 'oklch(50.5% 0.213 27.518)',
+  },
+  warning: {
+    // Tailwind's amber-500
+    light: 'oklch(82.8% 0.189 84.429)',
+    // Tailwind's amber-700
+    dark: 'oklch(55.5% 0.163 48.998)',
+  },
+  positive: {
+    // Tailwind's green-500
+    light: 'oklch(72.3% 0.219 149.579)',
+    // Tailwind's green-700
+    dark: 'oklch(52.7% 0.154 150.069)',
+  },
+
+  // Bumps - chosen to have a growing sense of urgency if the bump is higher,
+  // but without using emotive colors (red, blue, green). That is, major is akin
+  // to a red color without being red, minor blue and patch green.
+  major: {
+    // Tailwind's purple-500
+    light: 'oklch(62.7% 0.265 303.9)',
+    // Tailwind's purple-700
+    dark: 'oklch(49.6% 0.265 301.924)',
+  },
+  minor: {
+    // Tailwind's violet-500
+    light: 'oklch(60.6% 0.25 292.717)',
+    // Tailwind's violet-700
+    dark: 'oklch(49.1% 0.27 292.581)',
+  },
+  patch: {
+    // Tailwind's indigo-500
+    light: 'oklch(58.5% 0.233 277.117)',
+    // Tailwind's indigo-700
+    dark: 'oklch(45.7% 0.24 277.023)',
+  },
+
+  // Generic
+  blue: {
+    // Tailwind's blue-500
+    light: 'oklch(62.3% 0.214 259.815)',
+    // Tailwind's blue-700
+    dark: 'oklch(48.8% 0.243 264.376)',
+  },
 }
 
-/** Holds known / well-defined tags. */
-export const Tags: Tag[] = [
+const KubernetesTags: Tag[] = [
   {
     name: 'pod',
     description: 'A kubernetes pod',
@@ -69,6 +105,9 @@ export const Tags: Tag[] = [
     description: 'A kubernetes stateful set',
     color: palette.kubernetes,
   },
+]
+
+const DockerTags: Tag[] = [
   {
     name: 'service',
     description: 'A Docker Swarm service',
@@ -84,6 +123,83 @@ export const Tags: Tag[] = [
     description: 'A docker image',
     color: palette.docker,
   },
+]
+
+/** Holds known / well-defined tags in their intended sort order. */
+export const Tags: Tag[] = [
+  // Vulnerability warning
+  {
+    name: 'vulnerable',
+    description: 'Vulnerable images',
+    color: palette.negative,
+  },
+
+  // Outdated, failure status
+  {
+    name: 'outdated',
+    description: 'Outdated images',
+    color: palette.negative,
+  },
+  {
+    name: 'failed',
+    description: 'Failed images',
+    color: palette.negative,
+  },
+
+  // Security warnings
+  {
+    name: 'risk:high',
+    description: 'High risk project',
+    color: palette.negative,
+  },
+  {
+    name: 'risk:medium',
+    description: 'Medium risk project',
+    color: palette.warning,
+  },
+
+  // Bump
+  {
+    name: 'major',
+    description: 'Major update',
+    color: palette.major,
+  },
+  {
+    name: 'minor',
+    description: 'Minor update',
+    color: palette.minor,
+  },
+  {
+    name: 'patch',
+    description: 'Patch update',
+    color: palette.patch,
+  },
+
+  // Status
+  {
+    name: 'up-to-date',
+    description: 'Up-to-date images',
+    color: palette.positive,
+  },
+
+  // Security information
+  {
+    name: 'risk:low',
+    description: 'Low risk project',
+    color: palette.blue,
+  },
+  {
+    name: 'attestation',
+    description: 'This image contains attestations',
+    color: palette.blue,
+  },
+  {
+    name: 'sbom',
+    description: 'This image contains an SBOM',
+    color: palette.positive,
+  },
+
+  // VCS
   {
     name: 'ghcr',
     description: 'A ghcr image',
@@ -94,78 +210,47 @@ export const Tags: Tag[] = [
     description: 'A github project',
     color: palette.github,
   },
+
+  // Deployment information
+  ...KubernetesTags,
+  ...DockerTags,
   {
-    name: 'up-to-date',
-    description: 'Up-to-date images',
-    color: palette.green1,
-  },
-  {
-    name: 'outdated',
-    description: 'Outdated images',
-    color: palette.red2,
-  },
-  {
-    name: 'failed',
-    description: 'Failed images',
-    color: palette.red2,
-  },
-  {
-    name: 'vulnerable',
-    description: 'Vulnerable images',
-    color: palette.red2,
-  },
-  {
-    name: 'patch',
-    description: 'Patch update',
-    color: palette.blue1,
-  },
-  {
-    name: 'minor',
-    description: 'Minor update',
-    color: palette.yellow,
-  },
-  {
-    name: 'major',
-    description: 'Major update',
-    color: palette.red1,
-  },
-  {
-    name: 'risk:high',
-    description: 'High risk project',
-    color: palette.red2,
-  },
-  {
-    name: 'risk:medium',
-    description: 'Medium risk project',
-    color: palette.yellow,
-  },
-  {
-    name: 'risk:low',
-    description: 'Low risk project',
-    color: palette.blue1,
+    name: 'namespace:*',
+    description: 'A namespace',
+    color: palette.blue,
   },
 ]
 
 /** Holds known / well-defined tags, mapped by their name. */
-export const TagsByName: Record<string, Tag> = Object.fromEntries(
+const TagsByName: Record<string, Tag> = Object.fromEntries(
   Tags.map((x) => [x.name, x])
 )
 
-function tagSortValue(tag: string, selected?: boolean): number {
-  const values = [
+export function tagByName(name: string): Tag | undefined {
+  // Get tag by name
+  let tag = TagsByName[name]
+
+  // Fall back to a tag prefix
+  if (!tag && name.includes(':')) {
+    tag = TagsByName[`${name.substring(0, name.indexOf(':'))}:*`]
+  }
+
+  return tag
+}
+
+function tagSortValue(name: string, selected?: boolean): number {
+  const tag = tagByName(name)
+
+  const values: number[] = [
     // Prioritize selected tags
-    selected || false,
-    // Prioritize non-namespaced tags
-    !tag.includes(':'),
-    // Prioritize risk namespaced tags
-    tag.startsWith('risk:'),
-    // Prioritize namespace namespaced tags
-    tag.startsWith('namespace:'),
+    selected ? 1 : 0,
+    // Priority based on definition order
+    tag ? Tags.length - Tags.indexOf(tag) : 0,
   ]
 
   let value = 0
   for (let i = 0; i < values.length; i++) {
-    value |= (values[i] ? 1 : 0) << (values.length - i)
+    value |= values[i] << (values.length - i)
   }
 
   return value

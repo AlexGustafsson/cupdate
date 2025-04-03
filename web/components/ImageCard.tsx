@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 
 import { useNavigate } from 'react-router-dom'
-import { TagsByName, compareTags } from '../tags'
+import { compareTags, tagByName } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'
 import { ImageLogo } from './ImageLogo'
@@ -127,7 +127,7 @@ export function ImageCard({
                 <Badge
                   key={x}
                   label={x}
-                  color={TagsByName[x]?.color}
+                  color={tagByName(x)?.color}
                   className="hover:opacity-90"
                   // It's illegal to nest anchors in HTML, so unfortunately we need
                   // to use onClick here
