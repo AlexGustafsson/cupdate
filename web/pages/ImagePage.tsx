@@ -232,7 +232,7 @@ export function ImagePage(): JSX.Element {
           {scorecard.value && <ScorecardCard scorecard={scorecard.value} />}
 
           {/* Vulnerability report */}
-          {vulnerabilities.value && (
+          {vulnerabilities.value && vulnerabilities.value.length > 0 && (
             <VulnerabilitiesCard vulnerabilities={vulnerabilities.value} />
           )}
 

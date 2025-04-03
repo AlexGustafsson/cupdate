@@ -1,4 +1,5 @@
 import type { JSX } from 'react'
+import React from 'react'
 import type { ImageVulnerability } from '../../api'
 import { FluentBug16Regular } from '../../components/icons/fluent-bug-16-regular'
 import { Card } from './Card'
@@ -75,31 +76,34 @@ export function VulnerabilitiesCard({
                   <li>Unspecified: {counts.unspecified}</li>
                 )}
               </ul>
-
-              <h2>Authorities</h2>
-              <ul>
-                {vulnerabilities
-                  .map((x) => x.authority)
-                  .reduce(unique<string>, [])
-                  .map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-              </ul>
-
-              <h2>Links</h2>
-              <ul>
-                {vulnerabilities
-                  .map((x) => x.links)
-                  .reduce(flattened<string>, [])
-                  .reduce(unique<string>, [])
-                  .map((x) => (
-                    <li key={x}>
-                      <a href={x} target="_blank" rel="noreferrer">
-                        {x}
-                      </a>
-                    </li>
-                  ))}
-              </ul>
+            </div>
+          ),
+        },
+        {
+          label: 'Details',
+          content: (
+            <div className="markdown-body">
+              <dl>
+                {vulnerabilities.map((x) => (
+                  <React.Fragment key={x.id}>
+                    <dt>
+                      {x.id} ({x.severity})
+                    </dt>
+                    <dd>
+                      <p>{x.description}</p>
+                      <ul>
+                        {x.links.map((x) => (
+                          <li key={x}>
+                            <a href={x} target="_blank" rel="noreferrer">
+                              {x}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </React.Fragment>
+                ))}
+              </dl>
             </div>
           ),
         },

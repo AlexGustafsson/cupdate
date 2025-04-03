@@ -503,9 +503,23 @@ export function useImageVulnerabilities(
 
         return res.json()
       })
-      .then((value) =>
-        setResult({ status: 'resolved', value: value.vulnerabilities })
-      )
+      .then((value) => {
+        const severityOrder = [
+          'critical',
+          'high',
+          'medium',
+          'low',
+          'unspecified',
+        ]
+        setResult({
+          status: 'resolved',
+          value: (value.vulnerabilities as ImageVulnerability[]).sort(
+            (a, b) =>
+              severityOrder.indexOf(a.severity) -
+              severityOrder.indexOf(b.severity)
+          ),
+        })
+      })
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [reference])
 
