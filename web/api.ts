@@ -156,7 +156,10 @@ export function useTags(): [Result<Tag[]>, () => void] {
       .then((value: string[]) =>
         setResult({
           status: 'resolved',
-          value: value.map((x) => tagByName(x) || { name: x }),
+          value: value.map((x) => {
+            const tag = tagByName(x) || {}
+            return { ...tag, name: x }
+          }),
         })
       )
       .catch((error) => setResult({ status: 'rejected', error }))
