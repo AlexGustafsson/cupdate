@@ -5,7 +5,6 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -59,24 +58,9 @@ func GetDockerHubVulnerabilities() workflow.Step {
 				Client: httpClient,
 			}
 
-			vulns, err := client.GetVulnerabilities(ctx, reference.Name(), digest)
+			vulnerabilities, err := client.GetVulnerabilities(ctx, reference.Name(), digest)
 			if err != nil {
 				return nil, err
-			}
-
-			vulnerabilities := make([]models.ImageVulnerability, 0)
-			for _, vulnerability := range vulns {
-				model := models.ImageVulnerability{
-					ID:          vulnerability.ID,
-					Severity:    models.Severity(vulnerability.Severity),
-					Authority:   "Docker Scout",
-					Description: vulnerability.Description,
-					Links:       make([]string, 0),
-				}
-				if vulnerability.URL != "" {
-					model.Links = append(model.Links, vulnerability.URL)
-				}
-				vulnerabilities = append(vulnerabilities, model)
 			}
 
 			return workflow.SetOutput("vulnerabilities", vulnerabilities), nil

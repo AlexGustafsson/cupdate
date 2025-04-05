@@ -1,11 +1,12 @@
 import type { JSX } from 'react'
 import React from 'react'
-import type { ImageVulnerability } from '../../api'
 import { FluentBug16Regular } from '../../components/icons/fluent-bug-16-regular'
+import type { Vulnerability } from '../../lib/osv/osv'
+import { compareSeverity, normalizedSeverity } from '../../lib/osv/severity'
 import { Card } from './Card'
 
 export type VulnerabilitiesCardProps = {
-  vulnerabilities: ImageVulnerability[]
+  vulnerabilities: Vulnerability[]
 }
 
 function unique<T>(previousValue: T[], currentValue: T): T[] {
@@ -31,7 +32,7 @@ type VulnerabilityCount = {
 }
 
 function countVulnerabilities(
-  vulnerabilities: ImageVulnerability[]
+  vulnerabilities: Vulnerability[]
 ): VulnerabilityCount {
   const counts: VulnerabilityCount = {
     critical: 0,
@@ -42,8 +43,10 @@ function countVulnerabilities(
   }
 
   for (const vulnerability of vulnerabilities) {
-    if (Object.hasOwn(counts, vulnerability.severity)) {
-      counts[vulnerability.severity as keyof VulnerabilityCount]++
+    const severity = normalizedSeverity(vulnerability)
+
+    if (Object.hasOwn(counts, severity)) {
+      counts[severity as keyof VulnerabilityCount]++
     } else {
       counts.unspecified++
     }
@@ -56,6 +59,10 @@ export function VulnerabilitiesCard({
   vulnerabilities,
 }: VulnerabilitiesCardProps): JSX.Element {
   const counts = countVulnerabilities(vulnerabilities)
+
+  vulnerabilities = vulnerabilities.sort((a, b) =>
+    compareSeverity(normalizedSeverity(a), normalizedSeverity(b))
+  )
 
   return (
     <Card
@@ -87,15 +94,26 @@ export function VulnerabilitiesCard({
                 {vulnerabilities.map((x) => (
                   <React.Fragment key={x.id}>
                     <dt>
-                      {x.id} ({x.severity})
+                      {x.id} ({normalizedSeverity(x)})
                     </dt>
                     <dd>
-                      <p>{x.description}</p>
+                      {x.summary && <p>{x.summary}</p>}
                       <ul>
-                        {x.links.map((x) => (
-                          <li key={x}>
-                            <a href={x} target="_blank" rel="noreferrer">
-                              {x}
+                        {typeof x.database_specific?.url === 'string' && (
+                          <li key={x.database_specific.url}>
+                            <a
+                              href={x.database_specific.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {x.database_specific.url}
+                            </a>
+                          </li>
+                        )}
+                        {x.references?.map((x) => (
+                          <li key={x.url}>
+                            <a href={x.url} target="_blank" rel="noreferrer">
+                              {x.url}
                             </a>
                           </li>
                         ))}

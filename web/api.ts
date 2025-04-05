@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import type { Vulnerability } from './lib/osv/osv'
 import { type Tag, tagByName } from './tags'
 
 export interface ImagePage {
@@ -52,14 +53,6 @@ export interface ImageReleaseNotes {
 export interface ImageLink {
   type: string
   url: string
-}
-
-export interface ImageVulnerability {
-  id: string
-  severity: string
-  authority: string
-  links: string[]
-  description?: string
 }
 
 export interface Graph {
@@ -483,8 +476,8 @@ export function useImageSBOM(
 // TODO: Add query parameters
 export function useImageVulnerabilities(
   reference: string
-): [Result<ImageVulnerability[] | null>, () => void] {
-  const [result, setResult] = useState<Result<ImageVulnerability[] | null>>({
+): [Result<Vulnerability[] | null>, () => void] {
+  const [result, setResult] = useState<Result<Vulnerability[] | null>>({
     status: 'idle',
   })
 
@@ -513,11 +506,7 @@ export function useImageVulnerabilities(
         ]
         setResult({
           status: 'resolved',
-          value: (value.vulnerabilities as ImageVulnerability[]).sort(
-            (a, b) =>
-              severityOrder.indexOf(a.severity) -
-              severityOrder.indexOf(b.severity)
-          ),
+          value: value.vulnerabilities,
         })
       })
       .catch((error) => setResult({ status: 'rejected', error }))
