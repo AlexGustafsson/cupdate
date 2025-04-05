@@ -497,13 +497,6 @@ export function useImageVulnerabilities(
         return res.json()
       })
       .then((value) => {
-        const severityOrder = [
-          'critical',
-          'high',
-          'medium',
-          'low',
-          'unspecified',
-        ]
         setResult({
           status: 'resolved',
           value: value.vulnerabilities,
