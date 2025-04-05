@@ -10,10 +10,10 @@ import (
 	"os/signal"
 	"path/filepath"
 
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/db"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/git"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/oci"
-	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/ossf"
 )
 
 func main() {
@@ -75,7 +75,7 @@ func run(ctx context.Context) error {
 				return err
 			}
 
-			var vuln ossf.OpenSourceVulnerability
+			var vuln osv.Vulnerability
 			if err := json.NewDecoder(file).Decode(&vuln); err != nil {
 				return err
 			}
