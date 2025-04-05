@@ -3,7 +3,7 @@ CREATE TABLE revision (
   id INTEGER PRIMARY KEY CHECK (id = 0),
   revision INT NOT NULL
 );
-INSERT INTO revision (id, revision) VALUES (0, 4);
+INSERT INTO revision (id, revision) VALUES (0, 5);
 
 CREATE TABLE raw_images (
   reference TEXT PRIMARY KEY NOT NULL,
@@ -74,8 +74,7 @@ CREATE TABLE images_graphs (
 
 -- TODO: Rename in v1. This was done as an easy way to migrate somewhat
 -- gracefully without having to drop the entire database
-DROP TABLE IF EXISTS images_vulnerabilities;
-CREATE TABLE images_vulnerabilitiesv2 (
+CREATE TABLE images_vulnerabilitiesv3 (
   reference TEXT NOT NULL,
   count INT NOT NULL,
   vulnerabilities BLOB NOT NULL,

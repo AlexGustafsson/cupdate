@@ -9,6 +9,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
@@ -181,10 +182,26 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	// Add vulnerable label if there are specified severities
+	var maxSeverity osv.NormalizedSeverity
 	for _, vulnerability := range data.Vulnerabilities {
-		if vulnerability.Severity != "unspecified" {
-			data.InsertTag("vulnerable")
-			break
+		severity := vulnerability.NormalizedSeverity()
+		if severity.Compare(maxSeverity) < 0 {
+			maxSeverity = severity
+		}
+	}
+
+	if maxSeverity != "" {
+		switch maxSeverity {
+		case osv.NormalizedSeverityCritical:
+			data.InsertTag("vulnerability:critical")
+		case osv.NormalizedSeverityHigh:
+			data.InsertTag("vulnerability:high")
+		case osv.NormalizedSeverityMedium:
+			data.InsertTag("vulnerability:medium")
+		case osv.NormalizedSeverityLow:
+			data.InsertTag("vulnerability:low")
+		default:
+			data.InsertTag("vulnerability:unspecified")
 		}
 	}
 
@@ -200,7 +217,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		Tags:                data.Tags,
 		Image:               data.Image,
 		Links:               data.Links,
-		Vulnerabilities:     data.Vulnerabilities,
+		Vulnerabilities:     len(data.Vulnerabilities),
 		LastModified:        time.Now(),
 	}
 	if data.LatestReference != nil {
@@ -284,6 +301,11 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 				// Fallthrough - try to insert what we have
 			}
 		}
+	}
+
+	if err := w.store.InsertImageVulnerabilities(ctx, reference.String(), data.Vulnerabilities); err != nil {
+		log.ErrorContext(ctx, "Failed to insert image vulnerabilities", slog.Any("error", err))
+		// Fallthrough - try to insert what we have
 	}
 
 	if err := w.store.InsertWorkflowRun(ctx, reference.String(), workflowRun); err != nil {

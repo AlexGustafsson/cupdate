@@ -60,6 +60,14 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 			tags = make([]string, 0)
 		}
 
+		tagOperator := store.TagOperatorAnd
+		switch query.Get("tagop") {
+		case "and":
+			tagOperator = store.TagOperatorAnd
+		case "or":
+			tagOperator = store.TagOperatorOr
+		}
+
 		sort := query.Get("sort")
 		if sort != "" && sort != "reference" && sort != "bump" {
 			s.handleGenericResponse(w, r, ErrBadRequest)
@@ -104,12 +112,13 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		}
 
 		listOptions := &store.ListImageOptions{
-			Tags:  tags,
-			Order: store.Order(order),
-			Page:  int(page),
-			Limit: int(limit),
-			Sort:  store.Sort(sort),
-			Query: query.Get("query"),
+			Tags:        tags,
+			TagOperator: tagOperator,
+			Order:       store.Order(order),
+			Page:        int(page),
+			Limit:       int(limit),
+			Sort:        store.Sort(sort),
+			Query:       query.Get("query"),
 		}
 
 		response, err := api.ListImages(ctx, listOptions)
@@ -212,6 +221,28 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		reference := query.Get("reference")
 
 		response, err := api.GetImageSBOM(ctx, reference)
+		s.handleJSONResponse(w, r, response, err)
+	})
+
+	s.mux.HandleFunc("GET /api/v1/image/vulnerabilities", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/vulnerabilities"))
+
+		query := r.URL.Query()
+
+		reference := query.Get("reference")
+
+		vulnerabilities, err := api.GetImageVulnerabilities(ctx, reference)
+		if err != nil {
+			s.handleJSONResponse(w, r, nil, err)
+			return
+		}
+
+		response := struct {
+			Vulnerabilities []models.ImageVulnerability `json:"vulnerabilities"`
+		}{
+			Vulnerabilities: vulnerabilities,
+		}
 		s.handleJSONResponse(w, r, response, err)
 	})
 
@@ -406,7 +437,7 @@ func (s *Server) handleJSONResponse(w http.ResponseWriter, r *http.Request, resp
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") && !strings.Contains(r.Header.Get("Accept"), "text/event-stream") {
 		w.Header().Set("Content-Encoding", "gzip")
 		gzip := &httputil.GzipWriter{ResponseWriter: w}
 		defer gzip.Close()

@@ -58,11 +58,14 @@ export function ImageCard({
             className={`${compact ? 'flex flex-col-reverse' : 'flex items-center'}`}
           >
             <p className="text-sm line-clamp-2 font-semibold">{name}</p>
-            {vulnerabilities > 0 && (
+            {(tags.includes('vulnerability:critical') ||
+              tags.includes('vulnerability:high')) && (
               <InfoTooltip
                 icon={<FluentShieldError16Filled className="text-red-600" />}
               >
-                {vulnerabilities} vulnerabilities reported.
+                {vulnerabilities}{' '}
+                {vulnerabilities === 1 ? 'vulnerability' : 'vulnerabilities'}{' '}
+                reported.
               </InfoTooltip>
             )}
           </div>

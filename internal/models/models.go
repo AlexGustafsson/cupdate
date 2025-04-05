@@ -1,7 +1,11 @@
 // Package models holds all models defined in the Cupdate API specification.
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/AlexGustafsson/cupdate/internal/osv"
+)
 
 type ImagePage struct {
 	Images     []Image            `json:"images"`
@@ -27,17 +31,17 @@ type PaginationMetadata struct {
 }
 
 type Image struct {
-	Reference           string               `json:"reference"`
-	Created             *time.Time           `json:"created,omitempty"`
-	LatestReference     string               `json:"latestReference,omitempty"`
-	LatestCreated       *time.Time           `json:"latestCreated,omitempty"`
-	VersionDiffSortable uint64               `json:"-"`
-	Description         string               `json:"description,omitempty"`
-	Tags                []string             `json:"tags"`
-	Links               []ImageLink          `json:"links"`
-	Vulnerabilities     []ImageVulnerability `json:"vulnerabilities"`
-	LastModified        time.Time            `json:"lastModified"`
-	Image               string               `json:"image,omitempty"`
+	Reference           string      `json:"reference"`
+	Created             *time.Time  `json:"created,omitempty"`
+	LatestReference     string      `json:"latestReference,omitempty"`
+	LatestCreated       *time.Time  `json:"latestCreated,omitempty"`
+	VersionDiffSortable uint64      `json:"-"`
+	Description         string      `json:"description,omitempty"`
+	Tags                []string    `json:"tags"`
+	Links               []ImageLink `json:"links"`
+	Vulnerabilities     int         `json:"vulnerabilities"`
+	LastModified        time.Time   `json:"lastModified"`
+	Image               string      `json:"image,omitempty"`
 }
 
 type RawImage struct {
@@ -64,12 +68,7 @@ type ImageLink struct {
 	URL  string `json:"url"`
 }
 
-type ImageVulnerability struct {
-	Severity    string   `json:"severity"`
-	Authority   string   `json:"authority"`
-	Description string   `json:"description,omitempty"`
-	Links       []string `json:"links"`
-}
+type ImageVulnerability = osv.Vulnerability
 
 type ImageScorecardRisk string
 

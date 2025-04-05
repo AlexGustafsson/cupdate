@@ -3,7 +3,10 @@ package vulndb
 import (
 	"context"
 	"database/sql"
+	"time"
 
+	"github.com/AlexGustafsson/cupdate/internal/osv"
+	"github.com/AlexGustafsson/cupdate/internal/semver"
 	_ "modernc.org/sqlite"
 )
 
@@ -22,8 +25,8 @@ func Open(uri string) (*Conn, error) {
 	return &Conn{db: db}, nil
 }
 
-func (c *Conn) GetGitHubAdvisoriesForRepository(ctx context.Context, repository string) ([]GitHubAdvisory, error) {
-	statement, err := c.db.PrepareContext(ctx, `SELECT id, repository, published, severity, introduced_version, fixed_version FROM github_advisories WHERE repository = ?;`)
+func (c *Conn) GetGitHubAdvisoriesForRepository(ctx context.Context, repository string, version *semver.Version) ([]osv.Vulnerability, error) {
+	statement, err := c.db.PrepareContext(ctx, `SELECT id, published, severity, introduced_version, fixed_version FROM github_advisories WHERE repository = ?;`)
 	if err != nil {
 		return nil, err
 	}
@@ -34,38 +37,60 @@ func (c *Conn) GetGitHubAdvisoriesForRepository(ctx context.Context, repository 
 		return nil, err
 	}
 
-	advisories := make([]GitHubAdvisory, 0)
+	vulnerabilities := make([]osv.Vulnerability, 0)
 	for res.Next() {
-		var advisory GitHubAdvisory
-		var fixedVersion *string
-		err := res.Scan(&advisory.ID, &advisory.Repository, &advisory.Published, &advisory.Severity, &advisory.IntroducedVersion, &fixedVersion)
+		vulnerability := osv.Vulnerability{
+			DatabaseSpecific: map[string]any{},
+		}
+
+		var severity string
+		var introducedVersionString string
+		var fixedVersionString string
+		err := res.Scan(&vulnerability.ID, &vulnerability.Published, &severity, &introducedVersionString, &fixedVersionString)
 		if err != nil {
 			res.Close()
 			return nil, err
 		}
-		if fixedVersion != nil {
-			advisory.FixedVersion = *fixedVersion
+
+		// TODO: Handle in database?
+		introducedVersion, err := semver.ParseVersion(introducedVersionString)
+		if err != nil {
+			continue
 		}
-		switch advisory.Severity {
-		case "CRITICAL":
-			advisory.Severity = SeverityCritical
-		case "HIGH":
-			advisory.Severity = SeverityHigh
-		case "MODERATE":
-			advisory.Severity = SeverityMedium
-		case "LOW":
-			advisory.Severity = SeverityLow
-		default:
-			advisory.Severity = SeverityUnspecified
+
+		// Current version is lower than introduced version
+		if version.Compare(introducedVersion) < 0 {
+			continue
 		}
-		advisories = append(advisories, advisory)
+
+		// TODO: Handle in database?
+		if fixedVersionString != "" {
+			fixedVersion, err := semver.ParseVersion(fixedVersionString)
+			if err != nil {
+				continue
+			}
+
+			// Current version is higher than or equal to fixed version
+			if version.Compare(fixedVersion) >= 0 {
+				continue
+			}
+		}
+
+		vulnerability.DatabaseSpecific["severity"] = severity
+		if vulnerability.Published == nil {
+			vulnerability.Modified = time.Now()
+		} else {
+			vulnerability.Modified = *vulnerability.Published
+		}
+
+		vulnerabilities = append(vulnerabilities, vulnerability)
 	}
 	res.Close()
 	if err := res.Err(); err != nil {
 		return nil, err
 	}
 
-	return advisories, nil
+	return vulnerabilities, nil
 }
 
 func (c *Conn) Close() error {

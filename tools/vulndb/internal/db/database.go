@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/ossf"
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 	_ "modernc.org/sqlite"
 )
 
@@ -33,7 +33,7 @@ func Open(path string) (*Conn, error) {
 	return &Conn{db: db}, nil
 }
 
-func (c *Conn) Insert(ctx context.Context, vuln ossf.OpenSourceVulnerability) error {
+func (c *Conn) Insert(ctx context.Context, vuln osv.Vulnerability) error {
 	statement, err := c.db.PrepareContext(ctx, `INSERT INTO github_advisories (id, repository, published, severity, introduced_version, fixed_version) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;`)
 	if err != nil {
 		return err
@@ -41,11 +41,11 @@ func (c *Conn) Insert(ctx context.Context, vuln ossf.OpenSourceVulnerability) er
 
 	repository := ""
 	for _, reference := range vuln.References {
-		u, err := url.Parse(reference.Url)
+		u, err := url.Parse(reference.URL)
 		if err == nil {
 			segments := len(u.Path) - len(strings.ReplaceAll(u.Path, "/", ""))
 			if u.Host == "github.com" && segments == 2 {
-				repository = reference.Url
+				repository = reference.URL
 				break
 			}
 		}
@@ -64,21 +64,17 @@ func (c *Conn) Insert(ctx context.Context, vuln ossf.OpenSourceVulnerability) er
 	for _, affected := range vuln.Affected {
 		for _, r := range affected.Ranges {
 			var introduced string
-			var fixed *string
+			var fixed string
 
 			for _, event := range r.Events {
-				introducedValue, _ := event["introduced"].(string)
-				lastAffectedValue, _ := event["last_affected"].(string)
-				fixedValue, _ := event["fixed"].(string)
-
-				if introducedValue != "" {
-					introduced = introducedValue
+				if event.Introduced != "" {
+					introduced = event.Introduced
 				}
 
-				if lastAffectedValue != "" {
-					fixed = &lastAffectedValue
-				} else if fixedValue != "" {
-					fixed = &fixedValue
+				if event.LastAffected != "" {
+					fixed = event.LastAffected
+				} else if event.Fixed != "" {
+					fixed = event.Fixed
 				}
 			}
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import { type Tag, tagByName } from './tags'
+import type { Vulnerability } from './lib/osv/osv'
+import { type Tag, Tags, tagByName } from './tags'
 
 export interface ImagePage {
   images: Image[]
@@ -33,7 +34,7 @@ export interface Image {
   description?: string
   tags: string[]
   links: ImageLink[]
-  vulnerabilities: ImageVulnerability[]
+  vulnerabilities: number
   image?: string
   lastModified: string
 }
@@ -52,13 +53,6 @@ export interface ImageReleaseNotes {
 export interface ImageLink {
   type: string
   url: string
-}
-
-export interface ImageVulnerability {
-  severity: string
-  authority: string
-  links: string[]
-  description?: string
 }
 
 export interface Graph {
@@ -156,7 +150,9 @@ export function useTags(): [Result<Tag[]>, () => void] {
       .then((value: string[]) =>
         setResult({
           status: 'resolved',
-          value: value.map((x) => {
+          value: Array.from(
+            new Set([...value, ...Tags.map((x) => x.name)])
+          ).map((x) => {
             const tag = tagByName(x) || {}
             return { ...tag, name: x }
           }),
@@ -172,6 +168,7 @@ export function useTags(): [Result<Tag[]>, () => void] {
 
 interface UseImagesProps {
   tags?: string[]
+  tagop?: 'and' | 'or'
   // Technically only "reference" | undefined, but let's be lax for now as we
   // otherwise would have to parse whatever query parameter we got and handle
   // errors
@@ -193,6 +190,10 @@ export function useImages(
       for (const tag of options.tags) {
         searchParams.append('tag', tag)
       }
+    }
+
+    if (options?.tagop !== undefined) {
+      searchParams.append('tagop', options.tagop)
     }
 
     if (options?.sort !== undefined) {
@@ -219,6 +220,7 @@ export function useImages(
     return searchParams
   }, [
     options?.tags,
+    options?.tagop,
     options?.sort,
     options?.order,
     options?.page,
@@ -469,6 +471,45 @@ export function useImageSBOM(
         return res.json()
       })
       .then((value) => setResult({ status: 'resolved', value }))
+      .catch((error) => setResult({ status: 'rejected', error }))
+  }, [reference])
+
+  useEffect(() => {
+    update()
+  }, [update])
+
+  return [result, update]
+}
+
+// TODO: Add query parameters
+export function useImageVulnerabilities(
+  reference: string
+): [Result<Vulnerability[] | null>, () => void] {
+  const [result, setResult] = useState<Result<Vulnerability[] | null>>({
+    status: 'idle',
+  })
+
+  const update = useCallback(() => {
+    const query = new URLSearchParams({ reference })
+    fetch(
+      `${import.meta.env.VITE_API_ENDPOINT}/image/vulnerabilities?${query.toString()}`
+    )
+      .then((res) => {
+        if (res.status === 404) {
+          return null
+        }
+        if (res.status !== 200) {
+          throw new Error(`unexpected status code ${res.status}`)
+        }
+
+        return res.json()
+      })
+      .then((value) => {
+        setResult({
+          status: 'resolved',
+          value: value.vulnerabilities,
+        })
+      })
       .catch((error) => setResult({ status: 'rejected', error }))
   }, [reference])
 

@@ -1,10 +1,12 @@
 import type { JSX } from 'react'
-import type { Image, ImageVulnerability } from '../../api'
+import React from 'react'
 import { FluentBug16Regular } from '../../components/icons/fluent-bug-16-regular'
+import type { Vulnerability } from '../../lib/osv/osv'
+import { compareSeverity, normalizedSeverity } from '../../lib/osv/severity'
 import { Card } from './Card'
 
 export type VulnerabilitiesCardProps = {
-  image: Image
+  vulnerabilities: Vulnerability[]
 }
 
 function unique<T>(previousValue: T[], currentValue: T): T[] {
@@ -30,7 +32,7 @@ type VulnerabilityCount = {
 }
 
 function countVulnerabilities(
-  vulnerabilities: ImageVulnerability[]
+  vulnerabilities: Vulnerability[]
 ): VulnerabilityCount {
   const counts: VulnerabilityCount = {
     critical: 0,
@@ -41,8 +43,10 @@ function countVulnerabilities(
   }
 
   for (const vulnerability of vulnerabilities) {
-    if (Object.hasOwn(counts, vulnerability.severity)) {
-      counts[vulnerability.severity as keyof VulnerabilityCount]++
+    const severity = normalizedSeverity(vulnerability)
+
+    if (Object.hasOwn(counts, severity)) {
+      counts[severity as keyof VulnerabilityCount]++
     } else {
       counts.unspecified++
     }
@@ -52,9 +56,13 @@ function countVulnerabilities(
 }
 
 export function VulnerabilitiesCard({
-  image,
+  vulnerabilities,
 }: VulnerabilitiesCardProps): JSX.Element {
-  const counts = countVulnerabilities(image.vulnerabilities)
+  const counts = countVulnerabilities(vulnerabilities)
+
+  vulnerabilities = vulnerabilities.sort((a, b) =>
+    compareSeverity(normalizedSeverity(a), normalizedSeverity(b))
+  )
 
   return (
     <Card
@@ -75,31 +83,45 @@ export function VulnerabilitiesCard({
                   <li>Unspecified: {counts.unspecified}</li>
                 )}
               </ul>
-
-              <h2>Authorities</h2>
-              <ul>
-                {image.vulnerabilities
-                  .map((x) => x.authority)
-                  .reduce(unique<string>, [])
-                  .map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-              </ul>
-
-              <h2>Links</h2>
-              <ul>
-                {image.vulnerabilities
-                  .map((x) => x.links)
-                  .reduce(flattened<string>, [])
-                  .reduce(unique<string>, [])
-                  .map((x) => (
-                    <li key={x}>
-                      <a href={x} target="_blank" rel="noreferrer">
-                        {x}
-                      </a>
-                    </li>
-                  ))}
-              </ul>
+            </div>
+          ),
+        },
+        {
+          label: 'Details',
+          content: (
+            <div className="markdown-body">
+              <dl>
+                {vulnerabilities.map((x) => (
+                  <React.Fragment key={x.id}>
+                    <dt>
+                      {x.id} ({normalizedSeverity(x)})
+                    </dt>
+                    <dd>
+                      {x.summary && <p>{x.summary}</p>}
+                      <ul>
+                        {typeof x.database_specific?.url === 'string' && (
+                          <li key={x.database_specific.url}>
+                            <a
+                              href={x.database_specific.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {x.database_specific.url}
+                            </a>
+                          </li>
+                        )}
+                        {x.references?.map((x) => (
+                          <li key={x.url}>
+                            <a href={x.url} target="_blank" rel="noreferrer">
+                              {x.url}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </React.Fragment>
+                ))}
+              </dl>
             </div>
           ),
         },

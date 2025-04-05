@@ -31,6 +31,12 @@ const palette: Record<string, string | { light: string; dark: string }> = {
     // Tailwind's amber-700
     dark: 'oklch(55.5% 0.163 48.998)',
   },
+  // Akin to a red color without being red
+  maybeWarning: {
+    // Tailwind's purple-500
+    light: 'oklch(62.7% 0.265 303.9)',
+    dark: 'oklch(49.6% 0.265 301.924)',
+  },
   positive: {
     // Tailwind's green-500
     light: 'oklch(72.3% 0.219 149.579)',
@@ -129,8 +135,19 @@ const DockerTags: Tag[] = [
 export const Tags: Tag[] = [
   // Vulnerability warning
   {
+    // TODO: Remove in v1. Replaced with prefixed version
     name: 'vulnerable',
     description: 'Vulnerable images',
+    color: palette.negative,
+  },
+  {
+    name: 'vulnerability:critical',
+    description: 'Critical severity vulnerabilities discovered',
+    color: palette.negative,
+  },
+  {
+    name: 'vulnerability:high',
+    description: 'High severity vulnerabilities discovered',
     color: palette.negative,
   },
 
@@ -148,6 +165,16 @@ export const Tags: Tag[] = [
 
   // Security warnings
   {
+    name: 'vulnerability:medium',
+    description: 'Medium severity vulnerabilities discovered',
+    color: palette.warning,
+  },
+  {
+    name: 'vulnerability:low',
+    description: 'Medium severity vulnerabilities discovered',
+    color: palette.warning,
+  },
+  {
     name: 'risk:high',
     description: 'High risk project',
     color: palette.negative,
@@ -156,6 +183,11 @@ export const Tags: Tag[] = [
     name: 'risk:medium',
     description: 'Medium risk project',
     color: palette.warning,
+  },
+  {
+    name: 'vulnerability:unspecified',
+    description: 'Unspecified severity vulnerabilities discovered',
+    color: palette.maybeWarning,
   },
 
   // Bump

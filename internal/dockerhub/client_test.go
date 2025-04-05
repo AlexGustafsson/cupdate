@@ -32,7 +32,7 @@ func TestClientGetRepository(t *testing.T) {
 	json.NewEncoder(os.Stdout).Encode(repository)
 }
 
-func TestGetVulnerabilityReport(t *testing.T) {
+func TestGetVulnerabilities(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
@@ -41,7 +41,7 @@ func TestGetVulnerabilityReport(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	report, err := client.GetVulnerabilityReport(context.TODO(), "traefik", "sha256:ebad181937de72a6226b39a63eb92b26406cf0f3bd44b5d92810264c93b76078")
+	report, err := client.GetVulnerabilities(context.TODO(), "traefik", "sha256:ebad181937de72a6226b39a63eb92b26406cf0f3bd44b5d92810264c93b76078")
 	require.NoError(t, err)
 
 	json.NewEncoder(os.Stdout).Encode(report)

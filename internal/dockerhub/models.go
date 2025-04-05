@@ -95,11 +95,9 @@ type Entity struct {
 	Badge            string    `json:"badge,omitempty"`
 }
 
-type VulnerabilityReport struct {
-	Critical    int `json:"critical"`
-	High        int `json:"high"`
-	Medium      int `json:"medium"`
-	Low         int `json:"low"`
-	Unspecified int `json:"unspecified"`
-	Total       int `json:"total"`
+type Vulnerability struct {
+	ID          string `json:"id"`
+	Description string `json:"description,omitempty"`
+	URL         string `json:"url,omitempty"`
+	Severity    string `json:"severity,omitempty"`
 }

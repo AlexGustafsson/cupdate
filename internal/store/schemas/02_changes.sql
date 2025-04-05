@@ -207,7 +207,7 @@ CREATE TRIGGER images_changes_images_graphs_update AFTER UPDATE ON images_graphs
 END;
 
 -- Update changes on INSERT to images_vulnerabilities table
-CREATE TRIGGER images_changes_images_vulnerabilities_insert AFTER INSERT ON images_vulnerabilitiesv2 BEGIN
+CREATE TRIGGER images_changes_images_vulnerabilities_insert AFTER INSERT ON images_vulnerabilitiesv3 BEGIN
   INSERT INTO images_changes(
     reference,
     time,
@@ -224,7 +224,7 @@ CREATE TRIGGER images_changes_images_vulnerabilities_insert AFTER INSERT ON imag
 END;
 
 -- Update images_updates on UPDATE to images_vulnerabilities table
-CREATE TRIGGER images_changes_images_vulnerabilities_update AFTER UPDATE ON images_vulnerabilitiesv2 WHEN
+CREATE TRIGGER images_changes_images_vulnerabilities_update AFTER UPDATE ON images_vulnerabilitiesv3 WHEN
     old.vulnerabilities <> new.vulnerabilities
   BEGIN
   INSERT INTO images_changes(
@@ -333,7 +333,7 @@ END;
 
 -- Update images_updates on UPDATE to images_sbom table
 CREATE TRIGGER images_changes_images_sbom_update AFTER UPDATE ON images_sbom WHEN
-    old.provenance <> new.provenance
+    old.sbom <> new.sbom
   BEGIN
   INSERT INTO images_changes(
     reference,

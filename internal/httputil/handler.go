@@ -31,8 +31,12 @@ func InstrumentHandler(handler http.Handler) http.Handler {
 		ctx, span := instrumentRequest(r)
 		defer span.End()
 
-		// SEE: https://github.com/w3c/trace-context/blob/main/spec/21-http_response_header_format.md
-		w.Header().Set("traceresponse", fmt.Sprintf("00-%s-%s-01", span.SpanContext().TraceID().String(), span.SpanContext().SpanID().String()))
+		traceID := span.SpanContext().TraceID()
+		spanID := span.SpanContext().SpanID()
+		if traceID.IsValid() && spanID.IsValid() {
+			// SEE: https://github.com/w3c/trace-context/blob/main/spec/21-http_response_header_format.md
+			w.Header().Set("traceresponse", fmt.Sprintf("00-%s-%s-01", traceID.String(), spanID.String()))
+		}
 
 		statusRecorder := StatusRecorder{Writer: w}
 

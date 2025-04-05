@@ -4,11 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"maps"
 	"net/http"
 	"net/url"
+	"slices"
+	"strings"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 )
 
 type Client struct {
@@ -67,22 +73,22 @@ func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser s
 	return &result, nil
 }
 
-// GetVulnerabilityReport retrieves a Docker Scout vulnerability report for a
+// GetVulnerabilities retrieves a Docker Scout vulnerability report for a
 // repository and image digest.
-func (c *Client) GetVulnerabilityReport(ctx context.Context, repo string, digest string) (*VulnerabilityReport, error) {
+// Returns nil if the results are inconclusive or an SBOM was not found.
+func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest string) ([]osv.Vulnerability, error) {
 	body, err := json.Marshal(map[string]any{
-		"query": "query imageSummariesByDigest($v1:Context!,$v2:[String!]!,$v3:ScRepositoryInput){imageSummariesByDigest(context:$v1,digests:$v2,repository:$v3){digest,sbomState,vulnerabilityReport{critical,high,medium,low,unspecified,total}}}",
+		"query": `query imagePackagesForImageCoords($v1:Context!,$v2:IpImagePackagesForImageCoordsQuery!){imagePackagesForImageCoords(context:$v1,query:$v2){digest,sbomState,imagePackages{packages{package{vulnerabilities{sourceId,description,url,cvss{score,severity}}}}}}}`,
 		"variables": map[string]any{
 			"v1": map[string]any{},
-			"v2": []string{
-				digest,
-			},
-			"v3": map[string]any{
-				"hostName": "hub.docker.com",
-				"repoName": repo,
+			"v2": map[string]any{
+				"digest":          digest,
+				"hostName":        "hub.docker.com",
+				"repoName":        repo,
+				"includeExcepted": true,
 			},
 		},
-		"operationName": "imageSummariesByDigest",
+		"operationName": "imagePackagesForImageCoords",
 	})
 	if err != nil {
 		return nil, err
@@ -107,20 +113,86 @@ func (c *Client) GetVulnerabilityReport(ctx context.Context, repo string, digest
 
 	var result struct {
 		Data struct {
-			ImageSummariesByDigest []struct {
-				Digest              string               `json:"digest"`
-				SBOMStatae          string               `json:"sbomState"`
-				VulnerabilityReport *VulnerabilityReport `json:"vulnerabilityReport"`
-			} `json:"imageSummariesByDigest"`
+			ImagePackagesForImageCoords struct {
+				Digest        string `json:"digest"`
+				SBOMState     string `json:"sbomState"`
+				ImagePackages struct {
+					Packages []struct {
+						Package struct {
+							Vulnerabilities []struct {
+								SourceID    string `json:"sourceId"`
+								Description string `json:"description"`
+								URL         string `json:"url"`
+								CVSS        struct {
+									Score    *float32 `json:"score"`
+									Severity string   `json:"severity"`
+								} `json:"cvss"`
+							} `json:"vulnerabilities"`
+						} `json:"package"`
+					} `json:"packages"`
+				} `json:"imagePackages"`
+			} `json:"imagePackagesForImageCoords"`
 		} `json:"data"`
 	}
 	if err := json.NewDecoder(res.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 
-	if len(result.Data.ImageSummariesByDigest) != 1 {
+	if result.Data.ImagePackagesForImageCoords.SBOMState != "INDEXED" {
 		return nil, nil
 	}
 
-	return result.Data.ImageSummariesByDigest[0].VulnerabilityReport, nil
+	vulnerabilities := make(map[string]osv.Vulnerability, 0)
+	for _, pkg := range result.Data.ImagePackagesForImageCoords.ImagePackages.Packages {
+		for _, vulnerability := range pkg.Package.Vulnerabilities {
+			// Sanity check
+			if vulnerability.SourceID == "" {
+				continue
+			}
+
+			severity := ""
+			switch strings.ToLower(vulnerability.CVSS.Severity) {
+			case "critical":
+				severity = "CRITICAL"
+			case "high":
+				severity = "HIGH"
+			case "moderate", "medium":
+				severity = "MODERATE"
+			case "low":
+				severity = "LOW"
+			}
+
+			databaseSpecific := map[string]any{}
+			if severity != "" {
+				databaseSpecific["severity"] = severity
+			}
+
+			var severities []osv.Severity
+			if vulnerability.CVSS.Score != nil {
+				severities = []osv.Severity{
+					{
+						// NOTE: Assumed version
+						Type:  "CVSS_V3",
+						Score: fmt.Sprintf("%0.2f", float64(*vulnerability.CVSS.Score)),
+					},
+				}
+			}
+
+			vulnerabilities[vulnerability.SourceID] = osv.Vulnerability{
+				ID:       vulnerability.SourceID,
+				Modified: time.Now(), // TODO: Is there a better time to use?
+				Summary:  vulnerability.Description,
+				References: []osv.Reference{
+					{
+						Type: osv.ReferenceTypeWeb,
+						URL:  vulnerability.URL,
+					},
+				},
+				Severities:       severities,
+				DatabaseSpecific: databaseSpecific,
+			}
+		}
+	}
+
+	return slices.Collect(maps.Values(vulnerabilities)), nil
 }

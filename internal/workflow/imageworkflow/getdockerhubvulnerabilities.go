@@ -5,7 +5,6 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/dockerhub"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -59,53 +58,9 @@ func GetDockerHubVulnerabilities() workflow.Step {
 				Client: httpClient,
 			}
 
-			report, err := client.GetVulnerabilityReport(ctx, reference.Name(), digest)
+			vulnerabilities, err := client.GetVulnerabilities(ctx, reference.Name(), digest)
 			if err != nil {
 				return nil, err
-			}
-
-			vulnerabilities := make([]models.ImageVulnerability, 0)
-
-			if report != nil {
-				for i := 0; i < report.Critical; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "critical",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
-
-				for i := 0; i < report.High; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "high",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
-
-				for i := 0; i < report.Medium; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "medium",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
-
-				for i := 0; i < report.Low; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "low",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
-
-				for i := 0; i < report.Unspecified; i++ {
-					vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-						Severity:  "unspecified",
-						Authority: "Docker Scout",
-						Links:     []string{dockerhub.TagUIPath(reference, digest)},
-					})
-				}
 			}
 
 			return workflow.SetOutput("vulnerabilities", vulnerabilities), nil
