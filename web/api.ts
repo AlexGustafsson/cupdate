@@ -150,7 +150,9 @@ export function useTags(): [Result<Tag[]>, () => void] {
       .then((value: string[]) =>
         setResult({
           status: 'resolved',
-          value: value.map((x) => {
+          value: Array.from(
+            new Set([...value, ...Tags.map((x) => x.name)])
+          ).map((x) => {
             const tag = tagByName(x) || {}
             return { ...tag, name: x }
           }),
