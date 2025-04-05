@@ -428,7 +428,7 @@ func (s *Server) handleJSONResponse(w http.ResponseWriter, r *http.Request, resp
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") && !strings.Contains(r.Header.Get("Accept"), "text/event-stream") {
 		w.Header().Set("Content-Encoding", "gzip")
 		gzip := &httputil.GzipWriter{ResponseWriter: w}
 		defer gzip.Close()
