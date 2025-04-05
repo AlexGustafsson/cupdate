@@ -1,13 +1,11 @@
 package imageworkflow
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
 	"github.com/AlexGustafsson/cupdate/internal/vulndb"
@@ -38,51 +36,21 @@ func GetGitHubAdvisoriesForRepository() workflow.Step {
 				return nil, err
 			}
 
+			version, err := semver.ParseVersion(reference.Version())
+			if err != nil {
+				// We won't be able to compare versions correctly
+				return nil, nil
+			}
+
 			vulndb, err := vulndb.AutoFetchAndOpen(ctx, filepath.Join(os.TempDir(), "vulndb.sqlite"), httpClient, 24*time.Hour)
 			if err != nil {
 				return nil, err
 			}
 			defer vulndb.Close()
 
-			advisories, err := vulndb.GetGitHubAdvisoriesForRepository(ctx, "https://github.com/"+owner+"/"+repository)
+			vulnerabilities, err := vulndb.GetGitHubAdvisoriesForRepository(ctx, "https://github.com/"+owner+"/"+repository, version)
 			if err != nil {
 				return nil, err
-			}
-
-			vulnerabilities := make([]models.ImageVulnerability, 0)
-			for _, advisory := range advisories {
-				version, err := semver.ParseVersion(reference.Version())
-				if err != nil {
-					continue
-				}
-
-				introducedVersion, err := semver.ParseVersion(advisory.IntroducedVersion)
-				if err != nil {
-					continue
-				}
-
-				// Current version is lower than introduced version
-				if version.Compare(introducedVersion) < 0 {
-					continue
-				}
-
-				if advisory.FixedVersion != "" {
-					fixedVersion, err := semver.ParseVersion(advisory.FixedVersion)
-					if err != nil {
-						continue
-					}
-
-					// Current version is higher than or equal to fixed version
-					if version.Compare(fixedVersion) >= 0 {
-						continue
-					}
-				}
-
-				vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-					Severity:  models.Severity(advisory.Severity),
-					Authority: "GitHub Advisory Database",
-					Links:     []string{fmt.Sprintf("https://github.com/advisories/%s", advisory.ID)},
-				})
 			}
 
 			return workflow.SetOutput("vulnerabilities", vulnerabilities), nil

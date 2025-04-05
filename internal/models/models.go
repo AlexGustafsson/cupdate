@@ -2,8 +2,9 @@
 package models
 
 import (
-	"slices"
 	"time"
+
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 )
 
 type ImagePage struct {
@@ -67,53 +68,7 @@ type ImageLink struct {
 	URL  string `json:"url"`
 }
 
-type Severity string
-
-const (
-	SeverityCritical    Severity = "critical"
-	SeverityHigh        Severity = "high"
-	SeverityMedium      Severity = "medium"
-	SeverityLow         Severity = "low"
-	SeverityUnspecified Severity = "unspecified"
-)
-
-// Compare returns negative if s is of higher severity than o. Positive if s is
-// of lower severity than o. 0 if equivalent (or both severities are unknown).
-//
-// Useful to sort severities using functions like [slices.Sort].
-func (s Severity) Compare(o Severity) int {
-	if s == o {
-		return 0
-	}
-
-	order := []Severity{
-		SeverityCritical,
-		SeverityHigh,
-		SeverityMedium,
-		SeverityLow,
-		SeverityUnspecified,
-	}
-
-	orderS := slices.Index(order, s)
-	if orderS == -1 {
-		orderS = len(order)
-	}
-
-	orderO := slices.Index(order, o)
-	if orderO == -1 {
-		orderO = len(order)
-	}
-
-	return orderS - orderO
-}
-
-type ImageVulnerability struct {
-	ID          string   `json:"id"`
-	Severity    Severity `json:"severity"`
-	Authority   string   `json:"authority"`
-	Description string   `json:"description,omitempty"`
-	Links       []string `json:"links"`
-}
+type ImageVulnerability = osv.Vulnerability
 
 type ImageScorecardRisk string
 

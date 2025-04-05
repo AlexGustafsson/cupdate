@@ -213,7 +213,7 @@ paths:
                   vulnerabilities:
                     type: array
                     items:
-                      $ref: "#/components/schemas/ImageVulnerability"
+                      $ref: "https://raw.githubusercontent.com/ossf/osv-schema/main/validation/schema.json"
 
   /image/workflows/latest:
     get:
@@ -393,31 +393,6 @@ components:
       required:
         - type
         - url
-
-    ImageVulnerability:
-      type: object
-      properties:
-        id:
-          type: string
-        severity:
-          type: string
-          enum: ["critical", "high", "medium", "low", "unspecified"]
-        authority:
-          type: string
-          example: Docker Scout
-        links:
-          type: array
-          items:
-            type: string
-            format: url
-        description:
-          type: string
-          example: CVE-2024-9476
-      required:
-        - id
-        - severity
-        - authority
-        - links
 
     ImageScorecard:
       type: object

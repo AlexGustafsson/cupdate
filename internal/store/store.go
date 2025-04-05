@@ -362,7 +362,7 @@ func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, 
 		return nil, err
 	}
 
-	statement, err = s.db.PrepareContext(ctx, `SELECT count FROM images_vulnerabilitiesv2 WHERE reference = ?`)
+	statement, err = s.db.PrepareContext(ctx, `SELECT count FROM images_vulnerabilitiesv3 WHERE reference = ?`)
 	if err != nil {
 		return nil, err
 	}
@@ -458,7 +458,12 @@ func (s *Store) InsertImageVulnerabilities(ctx context.Context, reference string
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_vulnerabilitiesv2
+	serializedVulnerabilities, err := json.Marshal(vulnerabilities)
+	if err != nil {
+		return err
+	}
+
+	statement, err := s.db.PrepareContext(ctx, `INSERT INTO images_vulnerabilitiesv3
 		(reference, count, vulnerabilities)
 		VALUES
 		(?, ?, ?)
@@ -470,7 +475,7 @@ func (s *Store) InsertImageVulnerabilities(ctx context.Context, reference string
 		return err
 	}
 
-	_, err = statement.ExecContext(ctx, reference)
+	_, err = statement.ExecContext(ctx, reference, len(vulnerabilities), serializedVulnerabilities)
 	statement.Close()
 	if err != nil {
 		return err
@@ -480,7 +485,7 @@ func (s *Store) InsertImageVulnerabilities(ctx context.Context, reference string
 }
 
 func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) ([]models.ImageVulnerability, error) {
-	statement, err := s.db.PrepareContext(ctx, `SELECT vulnerabilities FROM images_vulnerabilitiesv2 WHERE reference = ?;`)
+	statement, err := s.db.PrepareContext(ctx, `SELECT vulnerabilities FROM images_vulnerabilitiesv3 WHERE reference = ?;`)
 	if err != nil {
 		return nil, err
 	}
@@ -495,7 +500,7 @@ func (s *Store) GetImageVulnerabilities(ctx context.Context, reference string) (
 		res.Close()
 		err := res.Err()
 		if err == nil {
-			// No entry found. This likely due to the move to images_vulnerabilitiesv2
+			// No entry found. This likely due to the move to images_vulnerabilitiesv3
 			// where no data will be found until the image is scanned again.
 			// SEE: cfa40d7da268f94fb87a0fdbe9c38faf27973e79
 			return make([]models.ImageVulnerability, 0), nil
@@ -1349,7 +1354,7 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 	res.Close()
 
 	// Total vulnerable images
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images_vulnerabilitiesv2 WHERE count > 0;`)
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images_vulnerabilitiesv3 WHERE count > 0;`)
 	if err != nil {
 		return nil, err
 	}

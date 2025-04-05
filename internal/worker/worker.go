@@ -9,6 +9,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
 	"github.com/AlexGustafsson/cupdate/internal/semver"
@@ -181,22 +182,23 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	// Add vulnerable label if there are specified severities
-	var maxSeverity models.Severity
+	var maxSeverity osv.NormalizedSeverity
 	for _, vulnerability := range data.Vulnerabilities {
-		if vulnerability.Severity.Compare(maxSeverity) < 0 {
-			maxSeverity = vulnerability.Severity
+		severity := vulnerability.NormalizedSeverity()
+		if severity.Compare(maxSeverity) < 0 {
+			maxSeverity = severity
 		}
 	}
 
 	if maxSeverity != "" {
 		switch maxSeverity {
-		case models.SeverityCritical:
+		case osv.NormalizedSeverityCritical:
 			data.InsertTag("vulnerability:critical")
-		case models.SeverityHigh:
+		case osv.NormalizedSeverityHigh:
 			data.InsertTag("vulnerability:high")
-		case models.SeverityMedium:
+		case osv.NormalizedSeverityMedium:
 			data.InsertTag("vulnerability:medium")
-		case models.SeverityLow:
+		case osv.NormalizedSeverityLow:
 			data.InsertTag("vulnerability:low")
 		default:
 			data.InsertTag("vulnerability:unspecified")
