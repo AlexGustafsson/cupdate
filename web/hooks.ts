@@ -9,23 +9,43 @@ import {
 } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-export function useFilter(): [string[], Dispatch<SetStateAction<string[]>>] {
+export interface Filter {
+  tags: string[]
+  operator?: 'and' | 'or'
+}
+
+export function useFilter(): [Filter, Dispatch<SetStateAction<Filter>>] {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const filter = useMemo(() => {
-    return searchParams.getAll('tag')
+    const tagop = searchParams.get('tagop')
+    return {
+      tags: searchParams.getAll('tag'),
+      operator: (tagop === 'and' || tagop === 'or' ? tagop : undefined) as
+        | 'and'
+        | 'or'
+        | undefined,
+    }
   }, [searchParams])
 
   const setFilter = useCallback(
-    (s: string[] | ((current: string[]) => string[])) => {
+    (s: Filter | ((current: Filter) => Filter)) => {
       setSearchParams((current) => {
         if (typeof s === 'function') {
-          s = s(searchParams.getAll('tag'))
+          const tagop = searchParams.get('tagop')
+          s = s({
+            tags: searchParams.getAll('tag'),
+            operator: tagop === 'and' || tagop === 'or' ? tagop : undefined,
+          })
         }
         current.delete('tag')
+        current.delete('tagop')
         if (s) {
-          for (const tag of s) {
+          for (const tag of s.tags) {
             current.append('tag', tag)
+          }
+          if (s.operator) {
+            current.set('tagop', s.operator)
           }
         }
         return current

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { Vulnerability } from './lib/osv/osv'
-import { type Tag, tagByName } from './tags'
+import { type Tag, Tags, tagByName } from './tags'
 
 export interface ImagePage {
   images: Image[]
@@ -168,6 +168,7 @@ export function useTags(): [Result<Tag[]>, () => void] {
 
 interface UseImagesProps {
   tags?: string[]
+  tagop?: 'and' | 'or'
   // Technically only "reference" | undefined, but let's be lax for now as we
   // otherwise would have to parse whatever query parameter we got and handle
   // errors
@@ -189,6 +190,10 @@ export function useImages(
       for (const tag of options.tags) {
         searchParams.append('tag', tag)
       }
+    }
+
+    if (options?.tagop !== undefined) {
+      searchParams.append('tagop', options.tagop)
     }
 
     if (options?.sort !== undefined) {
@@ -215,6 +220,7 @@ export function useImages(
     return searchParams
   }, [
     options?.tags,
+    options?.tagop,
     options?.sort,
     options?.order,
     options?.page,

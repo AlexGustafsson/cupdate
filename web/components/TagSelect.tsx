@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react'
 
+import type { Filter } from '../hooks'
 import { type Tag, compareTags } from '../tags'
 import { Badge } from './Badge'
 
@@ -24,8 +25,8 @@ export function TagSelect({
   onChange,
 }: PropsWithChildren<{
   tags: Tag[]
-  filter: string[]
-  onChange: React.Dispatch<React.SetStateAction<string[]>>
+  filter: Filter
+  onChange: React.Dispatch<React.SetStateAction<Filter>>
 }>): JSX.Element {
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -73,11 +74,14 @@ export function TagSelect({
         <select
           multiple
           className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none"
-          value={filter}
+          value={filter.tags}
           onChange={(e) =>
-            onChange(
-              Array.from(e.target.selectedOptions, (option) => option.value)
-            )
+            onChange({
+              tags: Array.from(
+                e.target.selectedOptions,
+                (option) => option.value
+              ),
+            })
           }
         >
           {tags
@@ -124,7 +128,7 @@ export function TagSelect({
       className="pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:bg-[#f5f5f5] dark:focus:bg-[#262626] focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-xs bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer"
     >
       <p className="text-sm">
-        {filter.length > 0 ? `${filter.length} selected` : 'Tags'}
+        {filter.tags.length > 0 ? `${filter.tags.length} selected` : 'Tags'}
       </p>
       <svg
         role="img"
@@ -153,8 +157,8 @@ export function TagSelect({
                 compareTags(
                   a.name,
                   b.name,
-                  filter.includes(a.name),
-                  filter.includes(b.name)
+                  filter.tags.includes(a.name),
+                  filter.tags.includes(b.name)
                 )
               )
               .map((x) => (
@@ -164,14 +168,14 @@ export function TagSelect({
                 >
                   <input
                     role="menuitemcheckbox"
-                    aria-checked={filter.includes(x.name)}
+                    aria-checked={filter.tags.includes(x.name)}
                     type="checkbox"
-                    checked={filter.includes(x.name)}
+                    checked={filter.tags.includes(x.name)}
                     onChange={(e) =>
                       onChange((current) =>
                         e.target.checked
-                          ? [...current, x.name]
-                          : current.filter((y) => y !== x.name)
+                          ? { tags: [...current.tags, x.name] }
+                          : { tags: current.tags.filter((y) => y !== x.name) }
                       )
                     }
                     className="scale-125 cursor-pointer"

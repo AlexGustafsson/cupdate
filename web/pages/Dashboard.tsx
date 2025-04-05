@@ -61,7 +61,8 @@ export function Dashboard(): JSX.Element {
   }, [query])
 
   const [images, imageSearchParams, updateImages] = useImages({
-    tags: filter,
+    tags: filter.tags,
+    tagop: filter.operator,
     sort: sort,
     order: sortOrder,
     page: page,
@@ -146,7 +147,7 @@ export function Dashboard(): JSX.Element {
             </div>
           </Link>
           <Link
-            to="/?tag=vulnerable"
+            to="/?tag=vulnerability:critical&tag=vulnerability:high&tag=vulnerability:medium&tag=vulnerability:low&tag=vulnerability:unspecified&tagop=or"
             className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
             tabIndex={0}
           >
