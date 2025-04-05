@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 )
 
 type Client struct {
@@ -17,7 +19,7 @@ type Client struct {
 
 // GetVulnerabilities retrieves a vulnerability scan of a manifest referenced by
 // its digest.
-func (c *Client) GetVulnerabilities(ctx context.Context, reference oci.Reference) ([]Vulnerability, error) {
+func (c *Client) GetVulnerabilities(ctx context.Context, reference oci.Reference) ([]osv.Vulnerability, error) {
 	if reference.Digest == "" {
 		return nil, fmt.Errorf("reference has no digest")
 	}
@@ -66,29 +68,46 @@ func (c *Client) GetVulnerabilities(ctx context.Context, reference oci.Reference
 		return nil, nil
 	}
 
-	vulnerabilities := make([]Vulnerability, 0)
+	vulnerabilities := make([]osv.Vulnerability, 0)
 	for _, feature := range result.Data.Layer.Features {
 		for _, vulnerability := range feature.Vulnerabilities {
-			severity := VulnerabilitySeverityUnspecified
+			severity := ""
 			switch vulnerability.Severity {
 			case "Critical":
-				severity = VulnerabilitySeverityCritical
+				severity = "CRITICAL"
 			case "High":
-				severity = VulnerabilitySeverityHigh
+				severity = "HIGH"
 			case "Medium":
-				severity = VulnerabilitySeverityMedium
+				severity = "MODERATE"
 			case "Low":
-				severity = VulnerabilitySeverityLow
+				severity = "LOW"
 			}
 
-			vulnerabilities = append(vulnerabilities, Vulnerability{
-				Name:           vulnerability.Name,
-				Description:    vulnerability.Description,
-				Links:          strings.Split(vulnerability.Link, " "),
-				FeatureName:    feature.Name,
-				FeatureVersion: feature.Version,
-				Layer:          feature.AddedBy,
-				Severity:       severity,
+			var references []osv.Reference
+			if vulnerability.Link != "" {
+				links := strings.Split(vulnerability.Link, " ")
+				if len(links) > 0 {
+					references = make([]osv.Reference, 0)
+					for _, link := range links {
+						references = append(references, osv.Reference{
+							Type: osv.ReferenceTypeWeb,
+							URL:  link,
+						})
+					}
+				}
+			}
+
+			databaseSpecific := make(map[string]any)
+			if severity != "" {
+				databaseSpecific["severity"] = severity
+			}
+
+			vulnerabilities = append(vulnerabilities, osv.Vulnerability{
+				ID:               vulnerability.Name,
+				Modified:         time.Now(), // TODO: Is there a better time to use?
+				Summary:          vulnerability.Description,
+				References:       references,
+				DatabaseSpecific: databaseSpecific,
 			})
 		}
 	}
