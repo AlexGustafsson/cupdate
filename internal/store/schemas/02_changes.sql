@@ -333,7 +333,7 @@ END;
 
 -- Update images_updates on UPDATE to images_sbom table
 CREATE TRIGGER images_changes_images_sbom_update AFTER UPDATE ON images_sbom WHEN
-    old.provenance <> new.provenance
+    old.sbom <> new.sbom
   BEGIN
   INSERT INTO images_changes(
     reference,
