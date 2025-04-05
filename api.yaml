@@ -32,6 +32,12 @@ paths:
             type: string
           required: false
         - in: query
+          name: tagop
+          description: Operator to use for matching tags.
+          schema:
+            type: string
+            enum: ["and", "or"]
+        - in: query
           name: sort
           description: Sort type.
           schema:

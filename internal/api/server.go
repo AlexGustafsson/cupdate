@@ -60,6 +60,14 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 			tags = make([]string, 0)
 		}
 
+		tagOperator := store.TagOperatorAnd
+		switch query.Get("tagop") {
+		case "and":
+			tagOperator = store.TagOperatorAnd
+		case "or":
+			tagOperator = store.TagOperatorOr
+		}
+
 		sort := query.Get("sort")
 		if sort != "" && sort != "reference" && sort != "bump" {
 			s.handleGenericResponse(w, r, ErrBadRequest)
@@ -104,12 +112,13 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		}
 
 		listOptions := &store.ListImageOptions{
-			Tags:  tags,
-			Order: store.Order(order),
-			Page:  int(page),
-			Limit: int(limit),
-			Sort:  store.Sort(sort),
-			Query: query.Get("query"),
+			Tags:        tags,
+			TagOperator: tagOperator,
+			Order:       store.Order(order),
+			Page:        int(page),
+			Limit:       int(limit),
+			Sort:        store.Sort(sort),
+			Query:       query.Get("query"),
 		}
 
 		response, err := api.ListImages(ctx, listOptions)
