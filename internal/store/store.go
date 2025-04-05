@@ -1062,9 +1062,18 @@ const (
 	SortBump      Sort = "bump"
 )
 
+type TagOperator string
+
+const (
+	TagOperatorAnd TagOperator = "and"
+	TagOperatorOr  TagOperator = "or"
+)
+
 type ListImageOptions struct {
 	// Tags defaults to nil (don't filter by tags).
 	Tags []string
+	// TagOperator is the operator to use for tags.
+	TagOperator TagOperator
 	// Order defaults to OrderAscending.
 	Order Order
 	// Page defaults to 0.
@@ -1118,6 +1127,16 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		}
 	}
 
+	var tagOperator TagOperator
+	switch options.TagOperator {
+	case TagOperatorAnd:
+		tagOperator = TagOperatorAnd
+	case TagOperatorOr:
+		tagOperator = TagOperatorOr
+	default:
+		tagOperator = TagOperatorAnd
+	}
+
 	page := max(options.Page, 0)
 
 	offset := page * limit
@@ -1157,7 +1176,7 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 	groupByClause := "GROUP BY images.reference"
 
 	havingClause := ""
-	if len(options.Tags) > 0 {
+	if len(options.Tags) > 0 && tagOperator == TagOperatorAnd {
 		havingClause = "HAVING COUNT(*) = ?"
 	}
 
@@ -1174,7 +1193,9 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		if options.Query != "" {
 			args = append(args, ftsEscape(options.Query))
 		}
-		args = append(args, len(options.Tags))
+		if havingClause != "" {
+			args = append(args, len(options.Tags))
+		}
 	} else if options.Query != "" {
 		args = append(args, ftsEscape(options.Query))
 	}
@@ -1214,7 +1235,9 @@ func (s *Store) ListImages(ctx context.Context, options *ListImageOptions) (*mod
 		if options.Query != "" {
 			args = append(args, strconv.Quote(options.Query))
 		}
-		args = append(args, len(options.Tags))
+		if havingClause != "" {
+			args = append(args, len(options.Tags))
+		}
 	} else if options.Query != "" {
 		args = append(args, ftsEscape(options.Query))
 	}
