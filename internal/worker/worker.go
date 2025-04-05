@@ -181,10 +181,25 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	}
 
 	// Add vulnerable label if there are specified severities
+	var maxSeverity models.Severity
 	for _, vulnerability := range data.Vulnerabilities {
-		if vulnerability.Severity != "unspecified" {
-			data.InsertTag("vulnerable")
-			break
+		if vulnerability.Severity.Compare(maxSeverity) < 0 {
+			maxSeverity = vulnerability.Severity
+		}
+	}
+
+	if maxSeverity != "" {
+		switch maxSeverity {
+		case models.SeverityCritical:
+			data.InsertTag("vulnerability:critical")
+		case models.SeverityHigh:
+			data.InsertTag("vulnerability:high")
+		case models.SeverityMedium:
+			data.InsertTag("vulnerability:medium")
+		case models.SeverityLow:
+			data.InsertTag("vulnerability:low")
+		default:
+			data.InsertTag("vulnerability:unspecified")
 		}
 	}
 

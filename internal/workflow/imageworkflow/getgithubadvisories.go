@@ -79,7 +79,7 @@ func GetGitHubAdvisoriesForRepository() workflow.Step {
 				}
 
 				vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-					Severity:  string(advisory.Severity),
+					Severity:  models.Severity(advisory.Severity),
 					Authority: "GitHub Advisory Database",
 					Links:     []string{fmt.Sprintf("https://github.com/advisories/%s", advisory.ID)},
 				})

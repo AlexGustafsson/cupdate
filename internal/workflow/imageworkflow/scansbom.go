@@ -60,13 +60,11 @@ func ScanSBOM() workflow.Step {
 									links[reference.URL] = struct{}{}
 								}
 
-								// TODO: For now I haven't seen that many cases of severity
-								// being specified...
-								severity := "unspecified"
-
 								vulnerabilities = append(vulnerabilities, models.ImageVulnerability{
-									ID:          vulnerability.ID,
-									Severity:    severity,
+									ID: vulnerability.ID,
+									// TODO: For now I haven't seen that many cases of severity
+									// being specified...
+									Severity:    models.SeverityUnspecified,
 									Authority:   "OSV",
 									Description: vulnerability.Summary,
 									Links:       slices.Collect(maps.Keys(links)),

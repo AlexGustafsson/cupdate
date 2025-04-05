@@ -68,7 +68,7 @@ func GetDockerHubVulnerabilities() workflow.Step {
 			for _, vulnerability := range vulns {
 				model := models.ImageVulnerability{
 					ID:          vulnerability.ID,
-					Severity:    vulnerability.Severity,
+					Severity:    models.Severity(vulnerability.Severity),
 					Authority:   "Docker Scout",
 					Description: vulnerability.Description,
 					Links:       make([]string, 0),
