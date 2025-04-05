@@ -4,14 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"maps"
 	"net/http"
 	"net/url"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 )
 
 type Client struct {
@@ -73,7 +76,7 @@ func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser s
 // GetVulnerabilities retrieves a Docker Scout vulnerability report for a
 // repository and image digest.
 // Returns nil if the results are inconclusive or an SBOM was not found.
-func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest string) ([]Vulnerability, error) {
+func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest string) ([]osv.Vulnerability, error) {
 	body, err := json.Marshal(map[string]any{
 		"query": `query imagePackagesForImageCoords($v1:Context!,$v2:IpImagePackagesForImageCoordsQuery!){imagePackagesForImageCoords(context:$v1,query:$v2){digest,sbomState,imagePackages{packages{package{vulnerabilities{sourceId,description,url,cvss{score,severity}}}}}}}`,
 		"variables": map[string]any{
@@ -121,8 +124,8 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 								Description string `json:"description"`
 								URL         string `json:"url"`
 								CVSS        struct {
-									Score    float32 `json:"score"`
-									Severity string  `json:"severity"`
+									Score    *float32 `json:"score"`
+									Severity string   `json:"severity"`
 								} `json:"cvss"`
 							} `json:"vulnerabilities"`
 						} `json:"package"`
@@ -139,7 +142,7 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 		return nil, nil
 	}
 
-	vulnerabilities := make(map[string]Vulnerability, 0)
+	vulnerabilities := make(map[string]osv.Vulnerability, 0)
 	for _, pkg := range result.Data.ImagePackagesForImageCoords.ImagePackages.Packages {
 		for _, vulnerability := range pkg.Package.Vulnerabilities {
 			// Sanity check
@@ -147,16 +150,46 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 				continue
 			}
 
-			severity := strings.ToLower(vulnerability.CVSS.Severity)
-			if severity == "" {
-				severity = "unspecified"
+			severity := ""
+			switch strings.ToLower(vulnerability.CVSS.Severity) {
+			case "critical":
+				severity = "CRITICAL"
+			case "high":
+				severity = "HIGH"
+			case "moderate", "medium":
+				severity = "MODERATE"
+			case "low":
+				severity = "LOW"
 			}
 
-			vulnerabilities[vulnerability.SourceID] = Vulnerability{
-				ID:          vulnerability.SourceID,
-				Description: vulnerability.Description,
-				URL:         vulnerability.URL,
-				Severity:    severity,
+			databaseSpecific := map[string]any{}
+			if severity != "" {
+				databaseSpecific["severity"] = severity
+			}
+
+			var severities []osv.Severity
+			if vulnerability.CVSS.Score != nil {
+				severities = []osv.Severity{
+					{
+						// NOTE: Assumed version
+						Type:  "CVSS_V3",
+						Score: fmt.Sprintf("%0.2f", float64(*vulnerability.CVSS.Score)),
+					},
+				}
+			}
+
+			vulnerabilities[vulnerability.SourceID] = osv.Vulnerability{
+				ID:       vulnerability.SourceID,
+				Modified: time.Now(), // TODO: Is there a better time to use?
+				Summary:  vulnerability.Description,
+				References: []osv.Reference{
+					{
+						Type: osv.ReferenceTypeWeb,
+						URL:  vulnerability.URL,
+					},
+				},
+				Severities:       severities,
+				DatabaseSpecific: databaseSpecific,
 			}
 		}
 	}

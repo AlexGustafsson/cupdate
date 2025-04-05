@@ -10,6 +10,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/httptest"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/osv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +19,7 @@ func TestGetVulnerabilities(t *testing.T) {
 	testCases := []struct {
 		Reference string
 		Requests  []httptest.Request
-		Expected  []Vulnerability
+		Expected  []osv.Vulnerability
 		Error     bool
 	}{
 		{
@@ -35,24 +36,47 @@ func TestGetVulnerabilities(t *testing.T) {
 					},
 				},
 			},
-			Expected: []Vulnerability{
+			Expected: []osv.Vulnerability{
 				{
-					Name:        "CVE-2020-11023",
-					Description: "A flaw was found in jQuery. HTML containing \\<option\\> elements from untrusted sources are passed, even after sanitizing, to one of jQuery's DOM manipulation methods, which may execute untrusted code. The highest threat from this vulnerability is to data confidentiality and integrity.",
-					Links: []string{
-						"https://access.redhat.com/security/cve/CVE-2020-11023",
-						"https://bugzilla.redhat.com/show_bug.cgi?id=1850004",
-						"https://www.cve.org/CVERecord?id=CVE-2020-11023",
-						"https://nvd.nist.gov/vuln/detail/CVE-2020-11023",
-						"https://blog.jquery.com/2020/04/10/jquery-3-5-0-released/",
-						"https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
-						"https://security.access.redhat.com/data/csaf/v2/vex/2020/cve-2020-11023.json",
-						"https://access.redhat.com/errata/RHSA-2025:1304",
+					ID:      "CVE-2020-11023",
+					Summary: "A flaw was found in jQuery. HTML containing \\<option\\> elements from untrusted sources are passed, even after sanitizing, to one of jQuery's DOM manipulation methods, which may execute untrusted code. The highest threat from this vulnerability is to data confidentiality and integrity.",
+					References: []osv.Reference{
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://access.redhat.com/security/cve/CVE-2020-11023",
+						},
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://bugzilla.redhat.com/show_bug.cgi?id=1850004",
+						},
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://www.cve.org/CVERecord?id=CVE-2020-11023",
+						},
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://nvd.nist.gov/vuln/detail/CVE-2020-11023",
+						},
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://blog.jquery.com/2020/04/10/jquery-3-5-0-released/",
+						},
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://www.cisa.gov/known-exploited-vulnerabilities-catalog",
+						},
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://security.access.redhat.com/data/csaf/v2/vex/2020/cve-2020-11023.json",
+						},
+						{
+							Type: osv.ReferenceTypeWeb,
+							URL:  "https://access.redhat.com/errata/RHSA-2025:1304",
+						},
 					},
-					FeatureName:    "libgomp",
-					FeatureVersion: "11.4.1-3.el9",
-					Layer:          "sha256:ae0badd537673e93bcbcf384ce6acda3cdfef75d43bd2f7bc766ef5ffba3e51a",
-					Severity:       VulnerabilitySeverityMedium,
+					DatabaseSpecific: map[string]any{
+						"severity": "MODERATE",
+					},
 				},
 			},
 		},
@@ -150,6 +174,13 @@ func TestGetVulnerabilities(t *testing.T) {
 			client := &Client{Client: httpClient}
 
 			actual, err := client.GetVulnerabilities(context.TODO(), ref)
+
+			// Set modified time to zero as to not check it. We currently don't have
+			// any means of finding the correct time from Docker Hub, so it's always
+			// the current time
+			for i := range actual {
+				actual[i].Modified = time.Time{}
+			}
 
 			if testCase.Error {
 				assert.Error(t, err)
