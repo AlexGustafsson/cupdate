@@ -34,8 +34,5 @@
     "typescript": "5.8.2",
     "vite": "6.2.5",
     "vitest": "3.1.1"
-  },
-  "resolutions": {
-    "vite@npm:^5.0.0 || ^6.0.0": "npm:6.2.4"
   }
 }
