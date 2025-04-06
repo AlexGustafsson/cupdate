@@ -158,9 +158,20 @@ export const Tags: Tag[] = [
     color: palette.negative,
   },
   {
+    // TODO: Remove in v1. Replaced with prefixed version
     name: 'failed',
     description: 'Failed images',
     color: palette.negative,
+  },
+  {
+    name: 'status:failed',
+    description: 'Failed images',
+    color: palette.negative,
+  },
+  {
+    name: 'status:incomplete',
+    description: 'Incomplete information',
+    color: palette.warning,
   },
 
   // Security warnings

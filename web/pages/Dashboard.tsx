@@ -161,7 +161,7 @@ export function Dashboard(): JSX.Element {
             </div>
           </Link>
           <Link
-            to="/?tag=failed"
+            to="/?tag=status:failed"
             className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
             tabIndex={0}
           >

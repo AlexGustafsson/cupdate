@@ -1411,7 +1411,7 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 	res.Close()
 
 	// Total raw images
-	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images_tags WHERE tag='failed';`)
+	res, err = s.db.QueryContext(ctx, `SELECT COUNT(1) FROM images_tags WHERE tag='status:failed';`)
 	if err != nil {
 		return nil, err
 	}

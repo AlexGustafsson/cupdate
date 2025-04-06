@@ -128,8 +128,14 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	workflow := imageworkflow.New(w.httpClient, data)
 	workflowRun, err := workflow.Run(ctx)
 	if err != nil {
-		log.ErrorContext(ctx, "Failed to run pipeline for image", slog.Any("error", err))
-		data.InsertTag("failed")
+		ociJobFailed := workflowRun.Jobs[0].Result == models.JobRunResultFailed
+		if ociJobFailed {
+			log.ErrorContext(ctx, "Failed to run image workflow", slog.Any("error", err))
+			data.InsertTag("status:failed")
+		} else {
+			log.WarnContext(ctx, "Failed to run a subset of image workflow", slog.Any("error", err))
+			data.InsertTag("status:incomplete")
+		}
 		// Fallthrough - insert what we have
 	}
 
