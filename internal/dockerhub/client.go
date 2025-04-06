@@ -5,10 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"maps"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
 	"time"
 
@@ -142,11 +140,17 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 		return nil, nil
 	}
 
-	vulnerabilities := make(map[string]osv.Vulnerability, 0)
+	vulnerabilities := make([]osv.Vulnerability, 0)
+	seen := make(map[string]struct{})
 	for _, pkg := range result.Data.ImagePackagesForImageCoords.ImagePackages.Packages {
 		for _, vulnerability := range pkg.Package.Vulnerabilities {
 			// Sanity check
 			if vulnerability.SourceID == "" {
+				continue
+			}
+
+			// Assume same data in all entries
+			if _, ok := seen[vulnerability.SourceID]; ok {
 				continue
 			}
 
@@ -178,7 +182,7 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 				}
 			}
 
-			vulnerabilities[vulnerability.SourceID] = osv.Vulnerability{
+			vulnerabilities = append(vulnerabilities, osv.Vulnerability{
 				ID:       vulnerability.SourceID,
 				Modified: time.Now(), // TODO: Is there a better time to use?
 				Summary:  vulnerability.Description,
@@ -190,9 +194,10 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 				},
 				Severities:       severities,
 				DatabaseSpecific: databaseSpecific,
-			}
+			})
+			seen[vulnerability.SourceID] = struct{}{}
 		}
 	}
 
-	return slices.Collect(maps.Values(vulnerabilities)), nil
+	return vulnerabilities, nil
 }
