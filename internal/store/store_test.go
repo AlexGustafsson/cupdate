@@ -62,16 +62,9 @@ func TestStoreInsertImage(t *testing.T) {
 				URL:  "https://docker.com/_/mongo",
 			},
 		},
-		Vulnerabilities: []models.ImageVulnerability{
-			{
-				Severity:    "low",
-				Authority:   "test",
-				Description: "Some CVE",
-				Links:       []string{"https://example.com"},
-			},
-		},
-		LastModified: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
-		Image:        "https://example.com/logo.png",
+		Vulnerabilities: 0,
+		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		Image:           "https://example.com/logo.png",
 	}
 
 	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
@@ -104,12 +97,6 @@ func TestStoreInsertImage(t *testing.T) {
 			Time:         changes[1].Time,
 			Type:         "insert",
 			ChangedLinks: true,
-		},
-		{
-			Reference:              "mongo:4",
-			Time:                   changes[2].Time,
-			Type:                   "insert",
-			ChangedVulnerabilities: true,
 		},
 	}, changes)
 }
@@ -175,14 +162,8 @@ func TestStoreImageDescription(t *testing.T) {
 			ChangedLinks: true,
 		},
 		{
-			Reference:              "mongo:4",
-			Time:                   changes[2].Time,
-			Type:                   "insert",
-			ChangedVulnerabilities: true,
-		},
-		{
 			Reference:          "mongo:4",
-			Time:               changes[3].Time,
+			Time:               changes[2].Time,
 			Type:               "insert",
 			ChangedDescription: true,
 		},
@@ -232,14 +213,8 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 			ChangedLinks: true,
 		},
 		{
-			Reference:              "mongo:4",
-			Time:                   changes[2].Time,
-			Type:                   "insert",
-			ChangedVulnerabilities: true,
-		},
-		{
 			Reference:           "mongo:4",
-			Time:                changes[3].Time,
+			Time:                changes[2].Time,
 			Type:                "insert",
 			ChangedReleaseNotes: true,
 		},
@@ -303,14 +278,8 @@ func TestStoreImageGraph(t *testing.T) {
 			ChangedLinks: true,
 		},
 		{
-			Reference:              "mongo:4",
-			Time:                   changes[2].Time,
-			Type:                   "insert",
-			ChangedVulnerabilities: true,
-		},
-		{
 			Reference:    "mongo:4",
-			Time:         changes[3].Time,
+			Time:         changes[2].Time,
 			Type:         "insert",
 			ChangedGraph: true,
 		},
@@ -333,7 +302,7 @@ func TestListImages(t *testing.T) {
 					URL:  "https://docker.com/_/mongo",
 				},
 			},
-			Vulnerabilities: []models.ImageVulnerability{},
+			Vulnerabilities: 0,
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 			Image:           "https://example.com/logo.png",
 		},
@@ -348,7 +317,7 @@ func TestListImages(t *testing.T) {
 					URL:  "https://docker.com/_/mongo",
 				},
 			},
-			Vulnerabilities: []models.ImageVulnerability{},
+			Vulnerabilities: 0,
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 			Image:           "https://example.com/logo.png",
 		},
@@ -421,7 +390,7 @@ func TestListImagesQuery(t *testing.T) {
 					URL:  "https://docker.com/_/mongo",
 				},
 			},
-			Vulnerabilities: []models.ImageVulnerability{},
+			Vulnerabilities: 0,
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 			Image:           "https://example.com/logo.png",
 		},
@@ -440,7 +409,7 @@ func TestListImagesQuery(t *testing.T) {
 						URL:  "https://docker.com/_/mongo",
 					},
 				},
-				Vulnerabilities: []models.ImageVulnerability{},
+				Vulnerabilities: 0,
 				LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 				Image:           "https://example.com/logo.png",
 			},
@@ -488,7 +457,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:1",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
-			Vulnerabilities: []models.ImageVulnerability{},
+			Vulnerabilities: 0,
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 		{
@@ -496,7 +465,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:2",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
-			Vulnerabilities: []models.ImageVulnerability{},
+			Vulnerabilities: 0,
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 		{
@@ -504,7 +473,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:3",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
-			Vulnerabilities: []models.ImageVulnerability{},
+			Vulnerabilities: 0,
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 		{
@@ -512,7 +481,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 			LatestReference: "mongo:4",
 			Tags:            []string{},
 			Links:           []models.ImageLink{},
-			Vulnerabilities: []models.ImageVulnerability{},
+			Vulnerabilities: 0,
 			LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 		},
 	}
@@ -524,7 +493,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 				LatestReference: "mongo:4",
 				Tags:            []string{},
 				Links:           []models.ImageLink{},
-				Vulnerabilities: []models.ImageVulnerability{},
+				Vulnerabilities: 0,
 				LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 			},
 		},
@@ -572,16 +541,9 @@ func TestStoreUpdateImageReference(t *testing.T) {
 				URL:  "https://docker.com/_/mongo",
 			},
 		},
-		Vulnerabilities: []models.ImageVulnerability{
-			{
-				Severity:    "low",
-				Authority:   "test",
-				Description: "Some CVE",
-				Links:       []string{"https://example.com"},
-			},
-		},
-		LastModified: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
-		Image:        "https://example.com/logo.png",
+		Vulnerabilities: 0,
+		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
+		Image:           "https://example.com/logo.png",
 	}
 
 	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
@@ -612,14 +574,8 @@ func TestStoreUpdateImageReference(t *testing.T) {
 			ChangedLinks: true,
 		},
 		{
-			Reference:              "mongo:4",
-			Time:                   changes[2].Time,
-			Type:                   "insert",
-			ChangedVulnerabilities: true,
-		},
-		{
 			Reference:    "mongo:4",
-			Time:         changes[3].Time,
+			Time:         changes[2].Time,
 			Type:         "update",
 			ChangedBasic: true,
 		},
@@ -645,7 +601,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 		Reference:       "mongo:4",
 		Tags:            []string{},
 		Links:           []models.ImageLink{},
-		Vulnerabilities: []models.ImageVulnerability{},
+		Vulnerabilities: 0,
 		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local).UTC(),
 	}
 
@@ -708,14 +664,7 @@ func TestCascadeDelete(t *testing.T) {
 				URL:  "https://docker.com/_/mongo",
 			},
 		},
-		Vulnerabilities: []models.ImageVulnerability{
-			{
-				Severity:    "low",
-				Authority:   "test",
-				Description: "Some CVE",
-				Links:       []string{"https://example.com"},
-			},
-		},
+		Vulnerabilities: 0,
 	}
 
 	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
