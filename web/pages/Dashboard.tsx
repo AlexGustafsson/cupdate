@@ -191,21 +191,21 @@ export function Dashboard(): JSX.Element {
         <hr className="my-6 w-3/4" />
 
         {/* Filters / controls */}
-        <div className="flex justify-between items-center w-full mt-2 max-w-[800px]">
-          <div className="flex items-center flex-wrap gap-x-1 sm:gap-x-2 gap-y-2 w-full">
-            <input
-              type="text"
-              placeholder="Search"
-              enterKeyHint="search"
-              value={queryInput}
-              onChange={(e) => setQueryInput(e.target.value)}
-              onKeyUp={(e) =>
-                e.key === 'Enter' ? e.currentTarget.blur() : undefined
-              }
-              className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full sm:w-min border border-[#e5e5e5] dark:border-[#333333]"
-            />
-
+        <div className="flex flex-col gap-y-2 items-center w-full mt-2 max-w-[800px]">
+          <input
+            type="text"
+            placeholder="Search"
+            enterKeyHint="search"
+            value={queryInput}
+            onChange={(e) => setQueryInput(e.target.value)}
+            onKeyUp={(e) =>
+              e.key === 'Enter' ? e.currentTarget.blur() : undefined
+            }
+            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full border border-[#e5e5e5] dark:border-[#333333]"
+          />
+          <div className="flex justify-end flex-wrap gap-x-1 sm:gap-x-2 gap-y-2 w-full">
             <Select
+              className="min-w-[150px] flex-grow sm:w-auto"
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               defaultValue=""
@@ -217,6 +217,7 @@ export function Dashboard(): JSX.Element {
               <option value="reference">Name</option>
             </Select>
             <Select
+              className="min-w-[150px] flex-grow sm:w-auto"
               value={sortOrder}
               onChange={(e) =>
                 setSortOrder(e.target.value as 'asc' | 'desc' | undefined)
@@ -229,7 +230,12 @@ export function Dashboard(): JSX.Element {
               <option value="asc">Ascending</option>
               <option value="desc">Descending</option>
             </Select>
-            <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
+            <TagSelect
+              className="min-w-[150px] flex-grow sm:w-auto"
+              tags={tags.value}
+              filter={filter}
+              onChange={setFilter}
+            />
             <div className="grid grid-cols-2 divide-x divide-[#e5e5e5] dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
               <button
                 type="button"

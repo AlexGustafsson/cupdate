@@ -23,10 +23,12 @@ export function TagSelect({
   tags,
   filter,
   onChange,
+  className,
 }: PropsWithChildren<{
   tags: Tag[]
   filter: Filter
   onChange: React.Dispatch<React.SetStateAction<Filter>>
+  className?: string
 }>): JSX.Element {
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -70,10 +72,12 @@ export function TagSelect({
   // Use the nice native multi-select input on iOS
   if (IOS) {
     return (
-      <div className="relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626]">
+      <div
+        className={`relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] ${className || ''}`}
+      >
         <select
           multiple
-          className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none"
+          className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none w-full"
           value={filter.tags}
           onChange={(e) =>
             onChange({
@@ -125,7 +129,7 @@ export function TagSelect({
       role="menu"
       // biome-ignore lint/a11y/noNoninteractiveTabindex: custom dropdown
       tabIndex={0}
-      className="pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:bg-[#f5f5f5] dark:focus:bg-[#262626] focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-xs bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer"
+      className={`pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:bg-[#f5f5f5] dark:focus:bg-[#262626] focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-xs bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer ${className || ''}`}
     >
       <p className="text-sm">
         {filter.tags.length > 0 ? `${filter.tags.length} selected` : 'Tags'}
