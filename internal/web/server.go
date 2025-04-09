@@ -46,8 +46,10 @@ func NewServer(public fs.FS) http.Handler {
 			w = gzip
 		}
 
+		// We don't serve directory indexes, so no need to look for directories.
+		// Instead we can serve the index file directly
 		path := r.URL.Path
-		if path == "/" {
+		if strings.HasSuffix(path, "/") {
 			path = "/index.html"
 		}
 
@@ -60,18 +62,19 @@ func NewServer(public fs.FS) http.Handler {
 				indexFile, err := public.Open("index.html")
 				if errors.Is(err, fs.ErrNotExist) {
 					w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+					w.WriteHeader(http.StatusNotFound)
 					w.Write([]byte("404 page not found\n"))
 					return
 				} else if err != nil {
 					slog.ErrorContext(r.Context(), "Failed to open fallback file", slog.Any("error", err))
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 					return
 				}
 
 				data, err := io.ReadAll(indexFile)
 				if err != nil {
 					slog.ErrorContext(r.Context(), "Failed to read fallback file", slog.Any("error", err))
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 					return
 				}
 
@@ -81,10 +84,12 @@ func NewServer(public fs.FS) http.Handler {
 				return
 			} else if err != nil {
 				slog.ErrorContext(r.Context(), "Failed to open fallback file", slog.Any("error", err))
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
-			file.Close()
+			if file != nil {
+				file.Close()
+			}
 		}
 
 		// Add cache header for (assumed) immutable assets
