@@ -216,6 +216,7 @@ export function WorkflowCard({
                 edges={edges}
                 nodes={nodes}
                 bounds={bounds}
+                direction="left-right"
                 onNodeClick={(node) => showJobRun(node.data)}
                 NodeElement={Job}
               />

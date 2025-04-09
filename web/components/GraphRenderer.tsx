@@ -1,5 +1,5 @@
 import type { ComponentType, JSX } from 'react'
-import { type Edge, EdgeRenderer } from './EdgeRenderer'
+import { type Edge, EdgeRenderer, type EdgeRendererProps } from './EdgeRenderer'
 import { Surface } from './Surface'
 
 export type NodeProps<T> = {
@@ -19,6 +19,7 @@ type GraphRendererProps<T> = {
   nodes: Node<T>[]
   edges: Edge[]
   bounds: { width: number; height: number }
+  direction: EdgeRendererProps['direction']
   onNodeClick?: (node: Node<T>) => void
   NodeElement: ComponentType<NodeProps<T>>
 }
@@ -27,6 +28,7 @@ export function GraphRenderer<T>({
   nodes,
   edges,
   bounds: { width, height },
+  direction,
   onNodeClick,
   NodeElement,
 }: GraphRendererProps<T>): JSX.Element {
@@ -37,7 +39,7 @@ export function GraphRenderer<T>({
           className="relative"
           style={{ width: `${width}px`, height: `${height}px` }}
         >
-          <EdgeRenderer edges={edges} />
+          <EdgeRenderer edges={edges} direction={direction} />
           {nodes.map((node) => (
             // biome-ignore lint/a11y/useKeyWithClickEvents: Nodes cannot be focused using keyboard
             <div

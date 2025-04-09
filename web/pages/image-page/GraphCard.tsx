@@ -212,6 +212,7 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
                 edges={edges}
                 nodes={nodes}
                 bounds={bounds}
+                direction="top-down"
                 onNodeClick={(node) => showGraphNode(node.data)}
                 NodeElement={DependencyGraphNode}
               />
