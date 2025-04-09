@@ -22,13 +22,19 @@ type ProvenanceAttestation struct {
 	// SourceRevision is the revision (typically sha-1) of the version built.
 	SourceRevision string
 	// Dockerfile contains the full Dockerfile of the image, if possible.
-	Dockerfile string
+	Dockerfile     string
+	BuildArguments map[string]string
 }
 
 func (a *ProvenanceAttestation) UnmarshalJSON(d []byte) error {
 	var attestation struct {
 		PredicateType string `json:"predicateType"`
 		Predicate     struct {
+			Invocation struct {
+				Parameters struct {
+					Args map[string]string `json:"args"`
+				} `json:"parameters"`
+			} `json:"invocation"`
 			Metadata struct {
 				BuildStartedOn   time.Time `json:"buildStartedOn"`
 				BuildFinishedOn  time.Time `json:"buildFinishedOn"`
@@ -58,6 +64,7 @@ func (a *ProvenanceAttestation) UnmarshalJSON(d []byte) error {
 	res := ProvenanceAttestation{
 		BuildStartedOn:  attestation.Predicate.Metadata.BuildStartedOn,
 		BuildFinishedOn: attestation.Predicate.Metadata.BuildFinishedOn,
+		BuildArguments:  attestation.Predicate.Invocation.Parameters.Args,
 	}
 
 	if meta := attestation.Predicate.Metadata.BuildKitMetadata; meta != nil {

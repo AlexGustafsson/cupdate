@@ -15,6 +15,15 @@ function BuildInfo({ buildInfo }: BuildInfoProps): JSX.Element {
           <code className="language-dockerfile">{buildInfo.dockerfile}</code>
         </pre>
       )}
+      {buildInfo.buildArguments && (
+        <pre>
+          <code>
+            {Object.entries(buildInfo.buildArguments)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join('\n')}
+          </code>
+        </pre>
+      )}
       <ul>
         <li>
           <div className="flex items-center">

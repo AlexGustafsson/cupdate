@@ -89,6 +89,7 @@ export interface ProvenanceBuildInfo {
   buildStartedOn?: string
   buildFinishedOn?: string
   dockerfile?: string
+  buildArguments?: Record<string, string>
 }
 
 export interface ImageSBOM {

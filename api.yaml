@@ -458,6 +458,10 @@ components:
           format: date
         dockerfile:
           type: string
+        buildArguments:
+          type: object
+          additionalProperties:
+            type: string
       required:
         - imageDigest
 

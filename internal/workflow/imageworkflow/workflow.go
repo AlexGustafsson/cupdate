@@ -166,6 +166,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 								BuildStartedOn:  attestation.BuildStartedOn,
 								BuildFinishedOn: attestation.BuildFinishedOn,
 								Dockerfile:      attestation.Dockerfile,
+								BuildArguments:  attestation.BuildArguments,
 							}
 
 							var imageManifest *oci.ImageManifest

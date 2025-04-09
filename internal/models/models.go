@@ -91,15 +91,16 @@ type ImageProvenance struct {
 }
 
 type ProvenanceBuildInfo struct {
-	ImageDigest         string    `json:"imageDigest"`
-	Architecture        string    `json:"architecture,omitempty"`
-	ArchitectureVariant string    `json:"architectureVariant,omitempty"`
-	OperatingSystem     string    `json:"operatingSystem,omitempty"`
-	Source              string    `json:"source,omitempty"`
-	SourceRevision      string    `json:"sourceRevision,omitempty"`
-	BuildStartedOn      time.Time `json:"buildStartedOn,omitempty"`
-	BuildFinishedOn     time.Time `json:"buildFinishedOn,omitempty"`
-	Dockerfile          string    `json:"dockerfile,omitempty"`
+	ImageDigest         string            `json:"imageDigest"`
+	Architecture        string            `json:"architecture,omitempty"`
+	ArchitectureVariant string            `json:"architectureVariant,omitempty"`
+	OperatingSystem     string            `json:"operatingSystem,omitempty"`
+	Source              string            `json:"source,omitempty"`
+	SourceRevision      string            `json:"sourceRevision,omitempty"`
+	BuildStartedOn      time.Time         `json:"buildStartedOn,omitempty"`
+	BuildFinishedOn     time.Time         `json:"buildFinishedOn,omitempty"`
+	Dockerfile          string            `json:"dockerfile,omitempty"`
+	BuildArguments      map[string]string `json:"buildArguments,omitempty"`
 }
 
 type ImageSBOM struct {
