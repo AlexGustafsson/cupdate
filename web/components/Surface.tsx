@@ -10,6 +10,9 @@ import { FluentFullScreenMaximize16Regular } from './icons/fluent-full-screen-ma
 import { FluentAdd16Regular } from './icons/fluent-plus-16-regular'
 import { FluentSubtract16Regular } from './icons/fluent-subtract-16-regular'
 
+const MAX_SCALE = 1.0
+const MIN_SCALE = 0.4
+
 export function Surface({
   children,
 }: PropsWithChildren<Record<never, never>>): JSX.Element {
@@ -49,7 +52,9 @@ export function Surface({
   )
 
   const onZoom = useCallback((delta: number) => {
-    setScale((current) => Math.min(Math.max(current + delta * 0.1, 0.4), 1))
+    setScale((current) =>
+      Math.min(Math.max(current + delta * 0.1, MIN_SCALE), MAX_SCALE)
+    )
   }, [])
 
   const onCenter = useCallback(() => {
@@ -68,7 +73,7 @@ export function Surface({
       surfaceHeight / contentHeight
     )
 
-    setScale(Math.min(Math.max(scale, 0.3), 1))
+    setScale(Math.min(Math.max(scale, MIN_SCALE), MAX_SCALE))
     setOffset({
       x: surfaceWidth / 2 - contentWidth / 2,
       y: surfaceHeight / 2 - contentHeight / 2,
@@ -77,7 +82,7 @@ export function Surface({
 
   const onWheel = useCallback((e: WheelEvent) => {
     setScale((current) =>
-      Math.min(Math.max(current - e.deltaY * 0.001, 0.3), 1)
+      Math.min(Math.max(current - e.deltaY * 0.001, MIN_SCALE), MAX_SCALE)
     )
     e.preventDefault()
   }, [])
@@ -112,41 +117,48 @@ export function Surface({
   }, [onContentResize])
 
   return (
-    <div
-      ref={surfaceRef}
-      className={`relative w-full h-full overflow-hidden select-none ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} touch-none`}
-    >
+    <div ref={surfaceRef} className="relative w-full h-full select-none">
       <div
-        ref={contentRef}
-        className="w-fit h-fit"
-        style={{
-          transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale}, ${scale})`,
-        }}
+        className={`overflow-hidden w-full h-full ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} touch-none`}
       >
-        {children}
+        <div
+          ref={contentRef}
+          className="w-fit h-fit"
+          style={{
+            transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${scale}, ${scale})`,
+          }}
+        >
+          {children}
+        </div>
       </div>
-      <div className="absolute left-0 bottom-0 rounded-sm bg-white dark:bg-[#1e1e1e] flex flex-col p-2 shadow-md gap-y-2 border border-[#e5e5e5] dark:border-[#333333]">
-        <button
-          type="button"
-          className="cursor-pointer"
-          onClick={() => onZoom(1)}
-        >
-          <FluentAdd16Regular />
-        </button>
-        <button
-          type="button"
-          className="cursor-pointer"
-          onClick={() => onZoom(-1)}
-        >
-          <FluentSubtract16Regular />
-        </button>
-        <button
-          type="button"
-          className="cursor-pointer"
-          onClick={() => onCenter()}
-        >
-          <FluentFullScreenMaximize16Regular />
-        </button>
+      <div className="absolute right-0 top-0 gap-x-2 flex flex-row">
+        <div className="rounded-sm bg-white dark:bg-[#1e1e1e] shadow-md border border-[#e5e5e5] dark:border-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]">
+          <button
+            type="button"
+            className="cursor-pointer p-2"
+            onClick={() => onCenter()}
+          >
+            <FluentFullScreenMaximize16Regular />
+          </button>
+        </div>
+        <div className="flex flex-row divide-x divide-[#e5e5e5] dark:divide-[#333333] rounded-sm bg-white dark:bg-[#1e1e1e] shadow-md border border-[#e5e5e5] dark:border-[#333333]">
+          <button
+            type="button"
+            disabled={scale === MIN_SCALE}
+            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-[#f5f5f5] dark:disabled:bg-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]"
+            onClick={() => onZoom(-1)}
+          >
+            <FluentSubtract16Regular />
+          </button>
+          <button
+            type="button"
+            disabled={scale === MAX_SCALE}
+            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-[#f5f5f5] dark:disabled:bg-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]"
+            onClick={() => onZoom(1)}
+          >
+            <FluentAdd16Regular />
+          </button>
+        </div>
       </div>
     </div>
   )
