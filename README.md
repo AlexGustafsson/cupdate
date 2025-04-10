@@ -24,16 +24,21 @@ Kubernetes and Docker in the [cookbook](docs/cookbook/README.md).
 
 Features:
 
-- Supports Kubernetes and Docker (one or more hosts, local or remote)
-- Zero configuration required
-- Performant and lightweight - uses virtually zero CPU and roughly 14MiB RAM
-- Auto-detect container images in Kubernetes and Docker
+- Performant and lightweight - uses virtually zero CPU and very little RAM
+- Auto-detect container images in use by Kubernetes or Docker (one or more
+  hosts, local or remote)
 - Auto-detect the latest available container image versions
-- UI for discovering updates
-- Subscribe to updates via an RSS feed
+- Vulnerability scanning
+  - Official and participating [Docker Hub](https://hub.docker.com) images
+    through [Docker Scout](https://docs.docker.com/scout/)
+  - Participating [Quay](https://www.projectquay.io) images through
+    [Clair](https://github.com/quay/clair)
+  - Images correlated to GitHub repositories with GitHub Advisories via
+    [vulndb](#vulndb)
+  - Images with SBOMs via [osv.dev](https://osv.dev)
 - Graphs image versions' dependants explaining why they're in use
-- Vulnerability scanning via Docker Scout, Quay and the
-  GitHub Advisory Database through [vulndb](#vulndb)
+- UI for discovering updates, release notes and more
+- Subscribe to updates via an RSS feed
 - APIs for custom integrations
 
 Supported registries:
@@ -50,15 +55,16 @@ Supported registries:
 Supported data sources:
 
 - Docker Hub, Docker Scout
-- GitHub, GitHub Container Registry
+- GitHub, GitHub Container Registry, GitHub Advisory Database
 - GitLab
 - Quay
 - OpenSSF Scorecard reports
+- OSV
 
 ## Getting started
 
 Cupdate can be deployed using Kubernetes or Docker. It's designed to run well
-with minimal required configuration. Refer to the platform-specific
+with zero or very little configuration. Refer to the platform-specific
 documentation for more information on how to get started with Cupdate:
 
 - Running Cupdate using Kubernetes:
@@ -73,7 +79,8 @@ If you want to deploy Cupdate as a container through other means, chose the
 latest [released version](https://github.com/AlexGustafsson/cupdate/releases)
 and refer to the general config documentation in
 [docs/config.md](docs/config.md). The `latest` tag tracks the main branch and is
-therefore not recommended to use unless you want to try out the latest features.
+therefore **not recommended** to use unless you want to try out the latest,
+potentially unstable features.
 
 Although not recommended or intended, Cupdate can be run directly on host. In
 that case, please build Cupdate and run it using the instructions in
