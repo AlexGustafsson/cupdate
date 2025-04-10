@@ -48,7 +48,7 @@ export function ProcessStatus({
   )
 
   return (
-    <>
+    <div className="flex justify-center">
       {status !== 'successful' && (
         <p>
           Last processed{' '}
@@ -76,6 +76,6 @@ export function ProcessStatus({
           </InfoTooltip>
         )}
       </button>
-    </>
+    </div>
   )
 }

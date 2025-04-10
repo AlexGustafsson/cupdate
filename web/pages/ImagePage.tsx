@@ -31,7 +31,6 @@ import { Card } from './image-page/Card'
 import { GraphCard } from './image-page/GraphCard'
 import { ImageLink } from './image-page/ImageLink'
 import { ImageSkeleton } from './image-page/ImageSkeleton'
-import { ProcessStatus } from './image-page/ProcessStatus'
 import { ProvenanceCard } from './image-page/ProvenanceCard'
 import { SBOMCard } from './image-page/SBOMCard'
 import { ScorecardCard } from './image-page/ScorecardCard'
@@ -289,15 +288,12 @@ export function ImagePage(): JSX.Element {
 
           {/* Workflow summary */}
           {workflowRun.value && (
-            <WorkflowCard workflowRun={workflowRun.value} />
-          )}
-
-          <div className="flex justify-center gap-x-2 items-center">
-            <ProcessStatus
+            <WorkflowCard
+              workflowRun={workflowRun.value}
               reference={image.value.reference}
               lastModified={image.value.lastModified}
             />
-          </div>
+          )}
         </main>
       </div>
     </>

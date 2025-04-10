@@ -15,6 +15,7 @@ import { FluentFlow16Regular } from '../../components/icons/fluent-flow-16-regul
 import { useGraphLayout } from '../../graph'
 import { formatDuration, formatRelativeTimeTo } from '../../time'
 import { Card } from './Card'
+import { ProcessStatus } from './ProcessStatus'
 
 function Job({
   data,
@@ -59,7 +60,9 @@ function Job({
 }
 
 export type WorkflowRunCardProps = {
+  reference: string
   workflowRun: WorkflowRun
+  lastModified: string
 }
 
 type StepRunListItemProps = {
@@ -161,7 +164,9 @@ function JobRunDialog({
 }
 
 export function WorkflowCard({
+  reference,
   workflowRun,
+  lastModified,
 }: WorkflowRunCardProps): JSX.Element {
   const [formattedGraph, options] = useMemo(() => {
     return [
@@ -206,21 +211,27 @@ export function WorkflowCard({
           icon: <FluentFlow16Regular />,
           label: 'Workflow',
           content: (
-            <div className="h-[480px]">
-              <JobRunDialog
-                ref={dialogRef}
-                traceId={workflowRun.traceId}
-                jobRun={jobRun}
+            <>
+              <div className="h-[480px]">
+                <JobRunDialog
+                  ref={dialogRef}
+                  traceId={workflowRun.traceId}
+                  jobRun={jobRun}
+                />
+                <GraphRenderer
+                  edges={edges}
+                  nodes={nodes}
+                  bounds={bounds}
+                  direction="left-right"
+                  onNodeClick={(node) => showJobRun(node.data)}
+                  NodeElement={Job}
+                />
+              </div>
+              <ProcessStatus
+                reference={reference}
+                lastModified={lastModified}
               />
-              <GraphRenderer
-                edges={edges}
-                nodes={nodes}
-                bounds={bounds}
-                direction="left-right"
-                onNodeClick={(node) => showJobRun(node.data)}
-                NodeElement={Job}
-              />
-            </div>
+            </>
           ),
         },
       ]}
