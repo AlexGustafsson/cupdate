@@ -108,7 +108,3 @@ For more information see [tools/vulndb/README.md](tools/vulndb/README.md).
 The database is updated daily and published as an OCI artifact used by Cupdate.
 The artifact is available here:
 <https://github.com/AlexGustafsson/cupdate/pkgs/container/cupdate%2Fvulndb>.
-
-For more advanced scanning requirements, use something like
-[Trivy](https://github.com/aquasecurity/trivy) or
-[Grype](https://github.com/anchore/grype).
