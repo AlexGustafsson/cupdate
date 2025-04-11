@@ -29,8 +29,8 @@ import { compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Card } from './image-page/Card'
 import { GraphCard } from './image-page/GraphCard'
-import { ImageLink } from './image-page/ImageLink'
 import { ImageSkeleton } from './image-page/ImageSkeleton'
+import { LinksCard } from './image-page/LinksCard'
 import { ProvenanceCard } from './image-page/ProvenanceCard'
 import { SBOMCard } from './image-page/SBOMCard'
 import { ScorecardCard } from './image-page/ScorecardCard'
@@ -193,7 +193,7 @@ export function ImagePage(): JSX.Element {
           <p className="mt-2">{image.value.description}</p>
         )}
         {/* Image tags */}
-        <div className="flex mt-4 items-center gap-1 flex-wrap justify-center">
+        <div className="flex mt-2 items-center gap-1 flex-wrap justify-center">
           {imageTags.map((x) => (
             <Link
               key={x.name}
@@ -208,16 +208,6 @@ export function ImagePage(): JSX.Element {
                 className="hover:opacity-90 group-focus/link:opacity-90"
               />
             </Link>
-          ))}
-        </div>
-        {/* Links */}
-        <div className="flex mt-2 space-x-4 items-center">
-          {image.value.links.map((link) => (
-            <ImageLink
-              key={`${link.type}:${link.url}`}
-              type={link.type}
-              url={link.url}
-            />
           ))}
         </div>
 
@@ -275,6 +265,11 @@ export function ImagePage(): JSX.Element {
                 },
               ]}
             />
+          )}
+
+          {/* Links */}
+          {image.value && image.value.links.length > 0 && (
+            <LinksCard links={image.value.links} />
           )}
 
           {/* Provenance report */}
