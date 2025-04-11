@@ -22,18 +22,29 @@ export function Surface({
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [scale, setScale] = useState<number>(1.0)
   const [isDragging, setIsDragging] = useState(false)
+  const [hasInteracted, setHasInteracted] = useState(false)
+
+  const scaleToFit =
+    surfaceRef.current && contentRef.current
+      ? Math.min(
+          surfaceRef.current.offsetWidth / contentRef.current.offsetWidth,
+          surfaceRef.current.offsetHeight / contentRef.current.offsetHeight
+        )
+      : MIN_SCALE
 
   const onPointerMove = useCallback((e: PointerEvent) => {
     setOffset((current) => ({
       x: current.x + e.movementX,
       y: current.y + e.movementY,
     }))
+    setHasInteracted(true)
   }, [])
   const onPointerUp = useCallback(
     (e: PointerEvent) => {
       document.removeEventListener('pointermove', onPointerMove)
 
       setIsDragging(false)
+      setHasInteracted(true)
     },
     [onPointerMove]
   )
@@ -47,15 +58,20 @@ export function Surface({
       document.addEventListener('pointerup', onPointerUp)
 
       setIsDragging(true)
+      setHasInteracted(true)
     },
     [onPointerMove, onPointerUp]
   )
 
-  const onZoom = useCallback((delta: number) => {
-    setScale((current) =>
-      Math.min(Math.max(current + delta * 0.1, MIN_SCALE), MAX_SCALE)
-    )
-  }, [])
+  const onZoom = useCallback(
+    (delta: number) => {
+      setScale((current) =>
+        Math.min(Math.max(current + delta * 0.1, scaleToFit), MAX_SCALE)
+      )
+      setHasInteracted(true)
+    },
+    [scaleToFit]
+  )
 
   const onCenter = useCallback(() => {
     if (!contentRef.current || !surfaceRef.current) {
@@ -68,24 +84,24 @@ export function Surface({
     const contentWidth = contentRef.current.offsetWidth
     const contentHeight = contentRef.current.offsetHeight
 
-    const scale = Math.min(
-      surfaceWidth / contentWidth,
-      surfaceHeight / contentHeight
-    )
-
-    setScale(Math.min(Math.max(scale, MIN_SCALE), MAX_SCALE))
+    setScale(scaleToFit)
     setOffset({
       x: surfaceWidth / 2 - contentWidth / 2,
       y: surfaceHeight / 2 - contentHeight / 2,
     })
-  }, [])
+    setHasInteracted(false)
+  }, [scaleToFit])
 
-  const onWheel = useCallback((e: WheelEvent) => {
-    setScale((current) =>
-      Math.min(Math.max(current - e.deltaY * 0.001, MIN_SCALE), MAX_SCALE)
-    )
-    e.preventDefault()
-  }, [])
+  const onWheel = useCallback(
+    (e: WheelEvent) => {
+      setScale((current) =>
+        Math.min(Math.max(current - e.deltaY * 0.001, scaleToFit), MAX_SCALE)
+      )
+      setHasInteracted(true)
+      e.preventDefault()
+    },
+    [scaleToFit]
+  )
 
   useEffect(() => {
     surfaceRef.current?.addEventListener('pointerdown', onPointerDown)
@@ -99,23 +115,23 @@ export function Surface({
 
   // Center on child re-size (which should only happen a couple of times the
   // first few renders)
-  const onContentResize = useCallback(
-    (entries: ResizeObserverEntry[], observer: ResizeObserver) => {
+  const onContentResize = useCallback(() => {
+    if (!hasInteracted) {
       onCenter()
-    },
-    [onCenter]
-  )
+    }
+  }, [hasInteracted, onCenter])
 
   useEffect(() => {
     const observer = new ResizeObserver(onContentResize)
     if (contentRef.current) {
       observer.observe(contentRef.current)
+      window.addEventListener('resize', onContentResize)
     }
     return () => {
       observer.disconnect()
+      window.removeEventListener('resize', onContentResize)
     }
   }, [onContentResize])
-
   return (
     <div ref={surfaceRef} className="relative w-full h-full select-none">
       <div
@@ -144,7 +160,7 @@ export function Surface({
         <div className="flex flex-row divide-x divide-[#e5e5e5] dark:divide-[#333333] rounded-sm bg-white dark:bg-[#1e1e1e] shadow-md border border-[#e5e5e5] dark:border-[#333333]">
           <button
             type="button"
-            disabled={scale === MIN_SCALE}
+            disabled={Math.abs(scale - scaleToFit) < 0.001}
             className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-[#f5f5f5] dark:disabled:bg-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]"
             onClick={() => onZoom(-1)}
           >
