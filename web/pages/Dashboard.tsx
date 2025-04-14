@@ -269,7 +269,7 @@ export function Dashboard(): JSX.Element {
 
         {/* Images */}
         <div
-          className={`mt-2 w-full ${layout === 'list' ? 'flex flex-col max-w-[800px] gap-y-4' : 'grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1'}`}
+          className={`mt-2 w-full ${layout === 'list' ? 'flex flex-col max-w-[800px] gap-y-4' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1'}`}
         >
           {images.value.images.map((x) => (
             <Link
