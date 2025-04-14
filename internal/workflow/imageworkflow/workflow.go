@@ -67,6 +67,8 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
+						data.Description = annotations.Description()
+
 						if url := annotations.Source(); url != "" {
 							data.InsertLink(models.ImageLink{
 								Type: "svc",
