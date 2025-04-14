@@ -81,14 +81,14 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							})
 						}
 
-						if url := annotations.DocumentationURL(); url != "" {
+						if url := annotations.Documentation(); url != "" {
 							data.InsertLink(models.ImageLink{
 								Type: "docs",
 								URL:  url,
 							})
 						}
 
-						if time := annotations.CreatedTime(); !time.IsZero() {
+						if time := annotations.Created(); !time.IsZero() {
 							data.Created = &time
 						}
 
@@ -105,7 +105,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						}
 
 						if latestAnnotations != nil {
-							time := latestAnnotations.CreatedTime()
+							time := latestAnnotations.Created()
 							if !time.IsZero() {
 								data.LatestCreated = &time
 							}
