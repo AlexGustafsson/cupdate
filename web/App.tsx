@@ -1,4 +1,4 @@
-import type { JSX } from 'react'
+import { type JSX, useLayoutEffect } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 
 import { EventProvider } from './EventProvider'
@@ -10,6 +10,11 @@ import { ImagePage } from './pages/ImagePage'
 
 export function App(): JSX.Element {
   const location = useLocation()
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Trigger on change
+  useLayoutEffect(() => {
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [location.pathname, location.search])
 
   return (
     <>
