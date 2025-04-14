@@ -90,14 +90,16 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
     <>
       <div className="flex w-full gap-x-2 items-center">
         {icon}
-        <p
-          className={`flex-grow truncate text-sm ${stepRun.result === 'skipped' ? 'opacity-60' : ''}`}
-        >
-          {stepRun.stepName}
-        </p>
-        <p className="text-nowrap text-sm opacity-60">
-          {stepRun.duration ? formatDuration(stepRun.duration) : ''}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center w-full">
+          <p
+            className={`flex-grow truncate text-sm ${stepRun.result === 'skipped' ? 'opacity-60' : ''}`}
+          >
+            {stepRun.stepName}
+          </p>
+          <p className="text-nowrap text-sm opacity-60">
+            {stepRun.duration ? formatDuration(stepRun.duration) : ''}
+          </p>
+        </div>
       </div>
       {stepRun.error && (
         <pre className="p-4 rounded-lg bg-[#fafafa] dark:bg-[#121212] text-xs overflow-x-scroll">
