@@ -27,8 +27,8 @@ kubectl apply -k 'https://github.com/AlexGustafsson/cupdate/deploy/overlays/rbac
 ## Config
 
 > [!NOTE]
-> As there are a lot of different ways to expose services, Cupdate is therefore
-> deployed without any ingress.
+> As there are a lot of different ways to expose services, Cupdate is deployed
+> without any ingress.
 
 > [!NOTE]
 > Without additional configuration, Cupdate is deployed without any persistent
