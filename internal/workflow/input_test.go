@@ -59,6 +59,11 @@ func TestGetAnyInput(t *testing.T) {
 	assert.Equal(t, "bar", value)
 	assert.NoError(t, err)
 
+	// Value is missing required ref
+	value, err = GetAnyInput(Context{Outputs: map[string]any{}, Step: Step{Inputs: map[string]Input{"foo": Ref{"step.1.foo"}}}}, "foo", true)
+	assert.Equal(t, nil, value)
+	assert.Error(t, err)
+
 	// Value is missing ref
 	value, err = GetAnyInput(Context{Outputs: map[string]any{}, Step: Step{Inputs: map[string]Input{"foo": Ref{"step.1.foo"}}}}, "foo", false)
 	assert.Equal(t, nil, value)

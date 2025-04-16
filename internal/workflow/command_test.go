@@ -27,16 +27,38 @@ func TestBatch(t *testing.T) {
 }
 
 func TestSetOutput(t *testing.T) {
-	ctx := Context{
-		Step: Step{
-			ID: "1",
+	testCases := []struct {
+		Name            string
+		StepID          string
+		Command         Command
+		ExpectedOutputs map[string]any
+	}{
+		{
+			Name:            "Happy path",
+			StepID:          "1",
+			Command:         SetOutput("foo", "bar"),
+			ExpectedOutputs: map[string]any{"step.1.foo": "bar"},
 		},
-		Outputs: make(map[string]any),
+		{
+			Name:            "Set value, no step id",
+			StepID:          "",
+			Command:         SetOutput("foo", "bar"),
+			ExpectedOutputs: map[string]any{},
+		},
 	}
 
-	command := SetOutput("foo", "bar")
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			ctx := Context{
+				Step: Step{
+					ID: testCase.StepID,
+				},
+				Outputs: make(map[string]any),
+			}
 
-	command(ctx)
+			testCase.Command(ctx)
 
-	assert.Equal(t, map[string]any{"step.1.foo": "bar"}, ctx.Outputs)
+			assert.Equal(t, testCase.ExpectedOutputs, ctx.Outputs)
+		})
+	}
 }
