@@ -107,9 +107,10 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 					if index != -1 {
 						select {
 						case <-ctx.Done():
-							mutex.Lock()
+							log.WarnContext(ctx, "Timed out waiting for dependant job to complete", slog.String("dependency", dependency))
+							workflowRun.Jobs[i].Result = models.JobRunResultFailed
 							errs[i] = ctx.Err()
-							mutex.Unlock()
+							return
 						case <-done[index]:
 							if errs[index] != nil {
 								log.WarnContext(ctx, "Skipping job as dependent job failed", slog.String("dependency", dependency))
@@ -138,6 +139,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 			started := time.Now()
 			ctx, err := job.Run(ctx)
 			if err == ErrSkipped {
+				errs[i] = ErrSkipped
 				return
 			}
 
@@ -174,6 +176,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 		span.SetStatus(codes.Ok, "")
 	} else {
 		span.SetStatus(codes.Error, "One or more jobs failed")
+		workflowRun.Result = models.WorkflowRunResultFailed
 	}
 	return workflowRun, err
 }
