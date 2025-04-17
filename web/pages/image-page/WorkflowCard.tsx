@@ -136,8 +136,6 @@ function JobRunDialog({
       status = ''
   }
 
-  traceId = 'fe39288ccaa21e41c764bc74466a48ad'
-
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: The dialog element already handles ESC
     <dialog
