@@ -254,3 +254,34 @@ func TestWorkflowRun(t *testing.T) {
 		})
 	}
 }
+
+func TestWorkflowRunRace(t *testing.T) {
+	const iterations = 100
+	const jobs = 100
+	const steps = 100
+
+	for range iterations {
+		workflow := Workflow{
+			Jobs: make([]Job, jobs),
+		}
+
+		for i := 0; i < len(workflow.Jobs); i++ {
+			workflow.Jobs[i] = Job{
+				ID:    fmt.Sprintf("job-%d", i),
+				Steps: make([]Step, steps),
+			}
+
+			for j := 0; j < len(workflow.Jobs[i].Steps); j++ {
+				workflow.Jobs[i].Steps[j] = Step{
+					ID: fmt.Sprintf("step-%d", j),
+					Main: func(ctx Context) (Command, error) {
+						return SetOutput("foo", "bar"), nil
+					},
+				}
+			}
+		}
+
+		_, err := workflow.Run(context.TODO())
+		assert.NoError(t, err)
+	}
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"maps"
 	"slices"
 	"sync"
 	"time"
@@ -36,8 +37,9 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 	log := slog.With(slog.String("workflow", w.Name))
 	log.DebugContext(ctx, "Running workflow")
 
-	var mutex sync.Mutex
 	errs := make([]error, len(w.Jobs))
+
+	var mutex sync.Mutex
 	outputs := make(map[string]any)
 
 	done := make([]chan struct{}, len(w.Jobs))
@@ -123,6 +125,8 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 				}
 			}
 
+			// TODO: This can race, mitigated through clone
+			mutex.Lock()
 			ctx := Context{
 				Context: ctx,
 
@@ -131,8 +135,9 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 				Job:         job,
 				JobIndex:    i,
 
-				Outputs: outputs,
+				Outputs: maps.Clone(outputs),
 			}
+			mutex.Unlock()
 
 			started := time.Now()
 			ctx, err := job.Run(ctx)
