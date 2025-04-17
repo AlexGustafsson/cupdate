@@ -3,10 +3,8 @@ package workflow
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 
@@ -179,33 +177,4 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 		workflowRun.Result = models.WorkflowRunResultFailed
 	}
 	return workflowRun, err
-}
-
-// Describe returns a mermaid flowchart describing the workflow.
-func (w Workflow) Describe() string {
-	var builder strings.Builder
-
-	fmt.Fprintf(&builder, `---
-title: %s
----
-flowchart LR
-`, w.Name)
-
-	fmt.Fprintf(&builder, "start[Start] --> job.0\n")
-	fmt.Fprintf(&builder, "job.%d --> stop[Stop]\n", len(w.Jobs)-1)
-
-	for i, job := range w.Jobs {
-		builder.WriteString(job.Describe(fmt.Sprintf("job.%d", i)))
-
-		for _, dependency := range job.DependsOn {
-			for j, job := range w.Jobs {
-				if job.ID == dependency {
-					fmt.Fprintf(&builder, "job.%d -- depends on --> job.%d\n", i, j)
-					break
-				}
-			}
-		}
-	}
-
-	return builder.String()
 }

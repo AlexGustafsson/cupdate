@@ -1,9 +1,7 @@
 package workflow
 
 import (
-	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"go.opentelemetry.io/otel"
@@ -134,16 +132,6 @@ func (s Step) RunPost(ctx Context) error {
 	stepSpan.SetStatus(codes.Ok, "")
 
 	return nil
-}
-
-// Describe returns part of a mermaid flowchart describing the step.
-// See [Workflow.Describe].
-func (s Step) Describe(namespace string) string {
-	var builder strings.Builder
-
-	fmt.Fprintf(&builder, "%s[%s]\n", namespace, s.Name)
-
-	return builder.String()
 }
 
 type StepFunc func(ctx Context) (Command, error)

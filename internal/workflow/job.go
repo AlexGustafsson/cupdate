@@ -2,10 +2,8 @@ package workflow
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"maps"
-	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/models"
@@ -140,24 +138,4 @@ func (j Job) Run(ctx Context) (Context, error) {
 	jobSpan.SetStatus(codes.Ok, "")
 	ctx.Outputs = outputs
 	return ctx, nil
-}
-
-// Describe returns part of a mermaid flowchart describing the job.
-// See [Workflow.Describe].
-func (j Job) Describe(namespace string) string {
-	var builder strings.Builder
-
-	fmt.Fprintf(&builder, "subgraph %s [%s]\n", namespace, j.Name)
-
-	for i, step := range j.Steps {
-		builder.WriteString(step.Describe(fmt.Sprintf("%s.step.%d", namespace, i)))
-	}
-
-	for i := 1; i < len(j.Steps); i++ {
-		fmt.Fprintf(&builder, "%s.step.%d --> %s.step.%d\n", namespace, i-1, namespace, i)
-	}
-
-	fmt.Fprintf(&builder, "end\n")
-
-	return builder.String()
 }
