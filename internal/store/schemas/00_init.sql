@@ -3,7 +3,7 @@ CREATE TABLE revision (
   id INTEGER PRIMARY KEY CHECK (id = 0),
   revision INT NOT NULL
 );
-INSERT INTO revision (id, revision) VALUES (0, 5);
+INSERT INTO revision (id, revision) VALUES (0, 6);
 
 CREATE TABLE raw_images (
   reference TEXT PRIMARY KEY NOT NULL,
