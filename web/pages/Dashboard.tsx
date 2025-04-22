@@ -206,9 +206,8 @@ export function Dashboard(): JSX.Element {
           <div className="flex justify-end flex-wrap gap-x-1 sm:gap-x-2 gap-y-2 w-full">
             <Select
               className="min-w-[150px] flex-grow sm:w-auto"
-              value={sort}
+              value={sort || ''}
               onChange={(e) => setSort(e.target.value)}
-              defaultValue=""
             >
               <option value="" disabled hidden>
                 Sort by
@@ -218,11 +217,10 @@ export function Dashboard(): JSX.Element {
             </Select>
             <Select
               className="min-w-[150px] flex-grow sm:w-auto"
-              value={sortOrder}
+              value={sortOrder || ''}
               onChange={(e) =>
                 setSortOrder(e.target.value as 'asc' | 'desc' | undefined)
               }
-              defaultValue=""
             >
               <option value="" disabled hidden>
                 Sort order
