@@ -1,5 +1,5 @@
 import type { JSX, ReactNode } from 'react'
-import type { GraphNode } from '../api'
+import type { GraphNode } from '../lib/api/models'
 import type { NodeProps } from './GraphRenderer'
 import { InfoTooltip } from './InfoTooltip'
 import { FluentTag16Regular } from './icons/fluent-tag-16-regular'

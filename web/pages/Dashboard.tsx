@@ -2,7 +2,6 @@ import { type JSX, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
-import { useImages, usePagination, useTags } from '../api'
 import { ImageCard } from '../components/ImageCard'
 import { Select } from '../components/Select'
 import { TagSelect } from '../components/TagSelect'
@@ -18,6 +17,7 @@ import {
   useQuery,
   useSort,
 } from '../hooks'
+import { useImages, usePagination, useTags } from '../lib/api/ApiProvider'
 import { fullVersion, name, version } from '../oci'
 import { DashboardSkeleton } from './dashboard-page/DashboardSkeleton'
 
@@ -60,19 +60,23 @@ export function Dashboard(): JSX.Element {
     setQueryInput(query || '')
   }, [query])
 
-  const [images, imageSearchParams, updateImages] = useImages({
-    tags: filter.tags,
-    tagop: filter.operator,
-    sort: sort,
-    order: sortOrder,
-    page: page,
-    limit: 30,
-    query: query,
-  })
+  const imageSearchOptions = useMemo(
+    () => ({
+      tags: filter.tags,
+      tagop: filter.operator,
+      sort: sort as 'reference' | 'bump' | undefined,
+      order: sortOrder,
+      page: page,
+      limit: 30,
+      query: query,
+    }),
+    [filter, sort, sortOrder, page, query]
+  )
+  const [images, updateImages] = useImages(imageSearchOptions)
 
   const pages = usePagination(
     images.status === 'resolved' ? images.value : undefined,
-    imageSearchParams
+    searchParams
   )
 
   // Go to the first page if the current page exceeds the available number of

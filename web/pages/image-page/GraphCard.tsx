@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { Graph, GraphNode } from '../../api'
 import { DependencyGraphNode } from '../../components/DependencyGraphNode'
 import { GraphRenderer } from '../../components/GraphRenderer'
 import { FluentBranch16Regular } from '../../components/icons/fluent-branch-16-regular'
@@ -14,6 +13,7 @@ import { SimpleIconsDocker } from '../../components/icons/simple-icons-docker'
 import { SimpleIconsKubernetes } from '../../components/icons/simple-icons-kubernetes'
 import { SimpleIconsOci } from '../../components/icons/simple-icons-oci'
 import { useGraphLayout } from '../../graph'
+import type { Graph, GraphNode } from '../../lib/api/models'
 import { parse } from '../../oci'
 import { Card } from './Card'
 

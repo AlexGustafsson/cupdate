@@ -6,13 +6,13 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { JobRun, StepRun, WorkflowRun } from '../../api'
 import { GraphRenderer } from '../../components/GraphRenderer'
 import { FluentCheckmarkCircle20Filled } from '../../components/icons/fluent-checkmark-circle-20-filled'
 import { FluentCheckmarkCircle20Regular } from '../../components/icons/fluent-checkmark-circle-20-regular'
 import { FluentDismissCircle20Filled } from '../../components/icons/fluent-dismiss-circle-20-filled'
 import { FluentFlow16Regular } from '../../components/icons/fluent-flow-16-regular'
 import { useGraphLayout } from '../../graph'
+import type { JobRun, StepRun, WorkflowRun } from '../../lib/api/models'
 import { formatDuration, formatRelativeTimeTo } from '../../time'
 import { Card } from './Card'
 import { ProcessStatus } from './ProcessStatus'

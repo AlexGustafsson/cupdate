@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
-import type { ImageScorecard } from '../../api'
 import { FluentBoxSearch16Regular } from '../../components/icons/fluent-box-search-16-regular'
+import type { ImageScorecard } from '../../lib/api/models'
 import { formatRelativeTimeTo } from '../../time'
 import { Card } from './Card'
 

@@ -2,9 +2,9 @@ import { type JSX, useLayoutEffect } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 
 import { EventProvider } from './EventProvider'
-import { RSSFeedEndpoint } from './api'
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
 import { SimpleIconsRss } from './components/icons/simple-icons-rss'
+import { DEFAULT_RSS_ENDPOINT } from './lib/api/api-client'
 import { Dashboard } from './pages/Dashboard'
 import { ImagePage } from './pages/ImagePage'
 
@@ -34,7 +34,7 @@ export function App(): JSX.Element {
           </Link>
         </div>
         <div className="justify-self-end mr-5">
-          <a target="_blank" href={RSSFeedEndpoint} rel="noreferrer">
+          <a target="_blank" href={DEFAULT_RSS_ENDPOINT} rel="noreferrer">
             <SimpleIconsRss className="text-orange-400" />
           </a>
         </div>

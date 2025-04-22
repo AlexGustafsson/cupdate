@@ -1,9 +1,9 @@
 import { type JSX, useCallback, useState } from 'react'
 import { useEvents } from '../../EventProvider'
-import { scheduleScan } from '../../api'
 import { InfoTooltip } from '../../components/InfoTooltip'
 import { FluentArrowSync16Regular } from '../../components/icons/fluent-arrow-sync-16-regular'
 import { FluentWarning16Filled } from '../../components/icons/fluent-warning-16-filled'
+import { useScheduleScan } from '../../lib/api/ApiProvider'
 import { formatRelativeTimeTo } from '../../time'
 
 type ProcessStatusProps = {
@@ -15,6 +15,8 @@ export function ProcessStatus({
   lastModified: initialLastModified,
   reference,
 }: ProcessStatusProps): JSX.Element {
+  const scheduleScan = useScheduleScan()
+
   const [status, setStatus] = useState<
     'idle' | 'in-flight' | 'successful' | 'failed'
   >('idle')
@@ -29,7 +31,7 @@ export function ProcessStatus({
     scheduleScan(reference)
       .then(() => setStatus('successful'))
       .catch(() => setStatus('failed'))
-  }, [reference])
+  }, [scheduleScan, reference])
 
   useEvents(
     (e) => {

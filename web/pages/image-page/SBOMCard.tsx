@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
-import type { ImageSBOM, SBOM } from '../../api'
 import { FluentBoxSearch16Regular } from '../../components/icons/fluent-box-search-16-regular'
+import type { ImageSBOM, SBOM } from '../../lib/api/models'
 import { Card } from './Card'
 
 type SBOMTabProps = {

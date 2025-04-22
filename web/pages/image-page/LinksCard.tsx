@@ -1,5 +1,4 @@
 import type { JSX, ReactNode } from 'react'
-import type { ImageLink } from '../../api'
 import { FluentBookQuestionMark24Filled } from '../../components/icons/fluent-book-question-mark-24-filled'
 import { FluentLink16Regular } from '../../components/icons/fluent-link-16-regular'
 import { FluentLink24Filled } from '../../components/icons/fluent-link-24-filled'
@@ -8,6 +7,7 @@ import { SimpleIconsDocker } from '../../components/icons/simple-icons-docker'
 import { SimpleIconsGit } from '../../components/icons/simple-icons-git'
 import { SimpleIconsGithub } from '../../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../../components/icons/simple-icons-gitlab'
+import type { ImageLink } from '../../lib/api/models'
 import { Card } from './Card'
 
 const titles: Record<string, string | undefined> = {

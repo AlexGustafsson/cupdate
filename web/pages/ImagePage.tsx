@@ -2,6 +2,16 @@ import { type JSX, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
+import { Badge } from '../components/Badge'
+import { HTML } from '../components/HTML'
+import { ImageLogo } from '../components/ImageLogo'
+import { InfoTooltip } from '../components/InfoTooltip'
+import { Markdown } from '../components/Markdown'
+import { Toast } from '../components/Toast'
+import { FluentBookOpen16Regular } from '../components/icons/fluent-book-open-16-regular'
+import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
+import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
+import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
 import {
   useImage,
   useImageDescription,
@@ -13,17 +23,7 @@ import {
   useImageVulnerabilities,
   useLatestWorkflowRun,
   useTags,
-} from '../api'
-import { Badge } from '../components/Badge'
-import { HTML } from '../components/HTML'
-import { ImageLogo } from '../components/ImageLogo'
-import { InfoTooltip } from '../components/InfoTooltip'
-import { Markdown } from '../components/Markdown'
-import { Toast } from '../components/Toast'
-import { FluentBookOpen16Regular } from '../components/icons/fluent-book-open-16-regular'
-import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
-import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
-import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
+} from '../lib/api/ApiProvider'
 import { fullVersion, name, version } from '../oci'
 import { compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'

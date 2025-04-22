@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
-import type { ImageProvenance, ProvenanceBuildInfo } from '../../api'
 import { FluentDocumentRibbon16Regular } from '../../components/icons/fluent-document-ribbon-16-regular'
+import type { ImageProvenance, ProvenanceBuildInfo } from '../../lib/api/models'
 import { Card } from './Card'
 
 type BuildInfoProps = {
