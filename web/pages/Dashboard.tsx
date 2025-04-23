@@ -2,6 +2,7 @@ import { type JSX, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
+import { DemoWarning } from '../components/DemoWarning'
 import { ImageCard } from '../components/ImageCard'
 import { Select } from '../components/Select'
 import { TagSelect } from '../components/TagSelect'
@@ -134,8 +135,9 @@ export function Dashboard(): JSX.Element {
           />
         )}
       </div>
-      <div className="flex flex-col items-center pt-6 pb-10 px-2">
-        <div className="grid grid-cols-3 sm:grid-cols-5">
+      <div className="flex flex-col items-center pt-2 pb-10 px-2">
+        <DemoWarning />
+        <div className="grid grid-cols-3 sm:grid-cols-5 mt-4">
           <Link
             to="/?tag=outdated"
             className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"

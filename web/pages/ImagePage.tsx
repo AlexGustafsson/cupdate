@@ -3,6 +3,7 @@ import { Link, Navigate, useSearchParams } from 'react-router-dom'
 
 import { type Event, useEvents } from '../EventProvider'
 import { Badge } from '../components/Badge'
+import { DemoWarning } from '../components/DemoWarning'
 import { HTML } from '../components/HTML'
 import { ImageLogo } from '../components/ImageLogo'
 import { InfoTooltip } from '../components/InfoTooltip'
@@ -121,11 +122,12 @@ export function ImagePage(): JSX.Element {
           />
         )}
       </div>
-      <div className="flex flex-col items-center w-full pt-6 pb-10 px-2">
+      <div className="flex flex-col items-center w-full pt-2 pb-10 px-2">
+        <DemoWarning />
         {/* Header */}
         <ImageLogo
           src={image.value.image}
-          className="w-[90px] h-[90px]"
+          className="w-[90px] h-[90px] mt-4"
           reference={image.value.reference}
         />
         {/* Image name */}
