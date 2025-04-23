@@ -4,6 +4,8 @@
 
 # Cupdate
 
+[Live demo](https://alexgustafsson.github.io/cupdate).
+
 Cupdate is a zero-config service that helps you keep your container images
 up-to-date. It automatically identifies container images in use in your
 Kubernetes cluster or on your Docker host. Cupdate then identifies the latest
@@ -87,6 +89,9 @@ that case, please build Cupdate and run it using the instructions in
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Screenshots
+
+To experience an always up-to-date version of Cupdate's UI, visit the
+[live demo](https://alexgustafsson.github.io/cupdate).
 
 | Light mode                                                                                            | Dark mode                                                                                           |
 | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
