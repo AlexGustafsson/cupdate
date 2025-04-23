@@ -1,0 +1,17 @@
+{
+  "tags": [],
+  "pages": [
+    {
+      "images": [],
+      "summary": {
+        "images": 0,
+        "outdated": 0,
+        "vulnerable": 0,
+        "processing": 0,
+        "failed": 0
+      },
+      "pagination": { "total": 0, "page": 1, "size": 30 }
+    }
+  ],
+  "resources": {}
+}

@@ -147,4 +147,60 @@ export class ApiClient implements IApiClient {
       throw new Error(`unexpected status - ${res.status}`)
     }
   }
+
+  async dump(): Promise<void> {
+    const tags = await this.getTags()
+
+    const pages = [await this.getImages()]
+
+    // Arbitrarily limit to 2 pages
+    for (let i = 1; i <= 2; i++) {
+      const totalPages = Math.ceil(
+        pages[0].pagination.total / pages[0].pagination.size
+      )
+
+      if (i > totalPages) {
+        break
+      }
+
+      pages.push(await this.getImages({ page: i }))
+    }
+
+    const resources: Record<string, unknown> = {}
+
+    // The loop is a naive attempt to lower memory usage a bit
+    for (let i = 0; i < pages.length; i++) {
+      for (let j = 0; j < pages[i].images.length; j++) {
+        const reference = pages[i].images[j].reference
+        resources[`${reference}`] = Object.fromEntries(
+          await Promise.all(
+            [
+              this.getImage,
+              this.getImageDescription,
+              this.getImageReleaseNotes,
+              this.getImageGraph,
+              this.getImageScorecard,
+              this.getImageProvenance,
+              this.getImageSBOM,
+              this.getImageVulnerabilities,
+              this.getLatestImageWorkflow,
+            ].map((x) =>
+              x
+                .bind(this)(reference)
+                .then((y) => [x.name, y])
+            )
+          )
+        )
+      }
+    }
+
+    const content = JSON.stringify({ tags, pages, resources })
+
+    const blob = new Blob([content], { type: 'application/json' })
+
+    const a = document.createElement('a')
+    a.download = 'cupdate-dump.json'
+    a.href = URL.createObjectURL(blob)
+    a.click()
+  }
 }

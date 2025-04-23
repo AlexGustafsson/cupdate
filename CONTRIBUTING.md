@@ -211,3 +211,26 @@ environment variables:
 export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
 export DOCKER_HOST="unix://$HOME/.colima/docker.sock"
 ```
+
+## Demo
+
+### Dumping demo data
+
+The demo runs on real-world data. To dump the data, open up the Cupdate UI and
+run `cupdate.dump()` in the browser's terminal. The file will be downloaded as
+soon as it's ready.
+
+The file can be used by replacing the one in `web/public/assets` and then
+running vite with `VITE_DEMO_MODE=true`.
+
+An OCI artifact containing a demo file is available in
+`ghcr.io/alexgustafsson/cupdate/demo:latest`.
+
+It is created and uploaded using oras:
+
+```shell
+oras push \
+  --artifact-type application/vnd.cupdate.demo.v1+json \
+  ghcr.io/alexgustafsson/cupdate/demo:latest \
+  demo.json:application/json
+```
