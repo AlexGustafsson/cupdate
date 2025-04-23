@@ -1,0 +1,87 @@
+name: Demo
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/demo.yaml
+      - web/**
+      - .yarn
+      - .yarnrc.yml
+      - biome.jsonc
+      - package.json
+      - tsconfig.json
+      - vite.config.ts
+      - yarn.lock
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build demo
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: read # Download demo data
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Setup oras
+        uses: oras-project/setup-oras@5c0b487ce3fe0ce3ab0d034e63669e426e294e4d # v1.2.2
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Download demo data
+        working-directory: web/public/assets
+        run: oras pull ghcr.io/alexgustafsson/cupdate/demo:latest
+
+      - name: Log out from GHCR
+        if: always()
+        run: oras logout ghcr.io 2>/dev/null || true
+
+      - name: Build web
+        env:
+          VITE_DEMO_MODE: "true"
+          VITE_BASE_PATH: "/cupdate"
+        run: yarn build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: internal/web/public
+
+  deploy:
+    name: Deploy demo
+    runs-on: ubuntu-latest
+    needs: build
+
+    permissions:
+      contents: read
+      pages: write # Deploy to pages
+      id-token: write # Verify the deployment originates from an appropriate source
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e #v4.0.5
