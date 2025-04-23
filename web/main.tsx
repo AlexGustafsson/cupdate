@@ -25,7 +25,7 @@ const root = document.getElementById('root')
 if (root) {
   createRoot(root).render(
     <React.StrictMode>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.VITE_BASE_PATH || '/'}>
         <ApiProvider client={apiClient}>
           <App />
         </ApiProvider>
