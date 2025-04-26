@@ -289,7 +289,7 @@ export function useLatestWorkflowRun(
 export function useScheduleScan(): (reference: string) => Promise<void> {
   const client = useApiClient()
 
-  return client.scheduleImageScan
+  return client.scheduleImageScan.bind(client)
 }
 
 export function usePagination<T extends { pagination: PaginationMetadata }>(
