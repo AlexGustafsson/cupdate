@@ -153,7 +153,7 @@ export function TagSelect({
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute -top-4 -left-4 p-2 z-50 text-black dark:text-[#dddddd]"
+          className="absolute -top-4 -left-4 p-2 z-150 text-black dark:text-[#dddddd]"
         >
           <div className="flex max-h-64 overflow-y-auto flex-col gap-y-2 py-2 px-3 pr-6 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d0d0d0]/95 dark:border-[#505050] rounded-lg w-max shadow">
             {tags
