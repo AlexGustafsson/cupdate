@@ -284,13 +284,11 @@ export function ImagePage(): JSX.Element {
           {graph.value && <GraphCard graph={graph.value} />}
 
           {/* Workflow summary */}
-          {workflowRun.value && (
-            <WorkflowCard
-              workflowRun={workflowRun.value}
-              reference={image.value.reference}
-              lastModified={image.value.lastModified}
-            />
-          )}
+          <WorkflowCard
+            workflowRun={workflowRun.value}
+            reference={image.value.reference}
+            lastModified={image.value.lastModified}
+          />
         </main>
       </div>
     </>

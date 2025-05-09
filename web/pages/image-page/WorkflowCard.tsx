@@ -61,7 +61,7 @@ function Job({
 
 export type WorkflowRunCardProps = {
   reference: string
-  workflowRun: WorkflowRun
+  workflowRun: WorkflowRun | null
   lastModified: string
 }
 
@@ -171,19 +171,21 @@ export function WorkflowCard({
   const [formattedGraph, options] = useMemo(() => {
     return [
       {
-        nodes: workflowRun.jobs.map((data, i) => ({
-          id: data.jobId || i.toString(),
-          width: 350,
-          height: 75,
-          data,
-        })),
-        edges: workflowRun.jobs.flatMap((job, i) =>
-          job.dependsOn.map((dependency) => ({
-            // Reverse order
-            from: dependency,
-            to: job.jobId || i.toString(),
-          }))
-        ),
+        nodes:
+          workflowRun?.jobs.map((data, i) => ({
+            id: data.jobId || i.toString(),
+            width: 350,
+            height: 75,
+            data,
+          })) || [],
+        edges:
+          workflowRun?.jobs.flatMap((job, i) =>
+            job.dependsOn.map((dependency) => ({
+              // Reverse order
+              from: dependency,
+              to: job.jobId || i.toString(),
+            }))
+          ) || [],
       },
       {
         'elk.algorithm': 'mrtree',
@@ -212,21 +214,23 @@ export function WorkflowCard({
           label: 'Workflow',
           content: (
             <>
-              <div className="h-[480px]">
-                <JobRunDialog
-                  ref={dialogRef}
-                  traceId={workflowRun.traceId}
-                  jobRun={jobRun}
-                />
-                <GraphRenderer
-                  edges={edges}
-                  nodes={nodes}
-                  bounds={bounds}
-                  direction="left-right"
-                  onNodeClick={(node) => showJobRun(node.data)}
-                  NodeElement={Job}
-                />
-              </div>
+              {workflowRun && (
+                <div className="h-[480px]">
+                  <JobRunDialog
+                    ref={dialogRef}
+                    traceId={workflowRun?.traceId}
+                    jobRun={jobRun}
+                  />
+                  <GraphRenderer
+                    edges={edges}
+                    nodes={nodes}
+                    bounds={bounds}
+                    direction="left-right"
+                    onNodeClick={(node) => showJobRun(node.data)}
+                    NodeElement={Job}
+                  />
+                </div>
+              )}
               <ProcessStatus
                 reference={reference}
                 lastModified={lastModified}
