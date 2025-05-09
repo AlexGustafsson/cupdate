@@ -18,6 +18,7 @@ export function Surface({
 }: PropsWithChildren<Record<never, never>>): JSX.Element {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const controlsRef = useRef<HTMLDivElement>(null)
 
   const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [scale, setScale] = useState<number>(1.0)
@@ -25,10 +26,12 @@ export function Surface({
   const [hasInteracted, setHasInteracted] = useState(false)
 
   const scaleToFit =
-    surfaceRef.current && contentRef.current
+    surfaceRef.current && contentRef.current && controlsRef.current
       ? Math.min(
           surfaceRef.current.offsetWidth / contentRef.current.offsetWidth,
-          surfaceRef.current.offsetHeight / contentRef.current.offsetHeight
+          (surfaceRef.current.offsetHeight -
+            controlsRef.current.offsetHeight * 2) /
+            contentRef.current.offsetHeight
         )
       : MIN_SCALE
 
@@ -147,7 +150,10 @@ export function Surface({
           {children}
         </div>
       </div>
-      <div className="absolute right-0 top-0 gap-x-2 flex flex-row">
+      <div
+        ref={controlsRef}
+        className="absolute right-0 top-0 gap-x-2 flex flex-row pb-4"
+      >
         <div className="rounded-sm bg-white dark:bg-[#1e1e1e] shadow-md border border-[#e5e5e5] dark:border-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]">
           <button
             type="button"
