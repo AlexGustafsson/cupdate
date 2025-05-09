@@ -458,11 +458,9 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				},
 			},
 			{
-				ID:   "github",
-				Name: "Get GitHub information",
-				// Depend on whatever provides us with the latest image version
-				// Implicitly depends on OCI
-				DependsOn: []string{"docker", "ghcr", "gitlab"},
+				ID:        "github",
+				Name:      "Get GitHub information",
+				DependsOn: []string{"oci"},
 				// Only run for images with a reference to GitHub
 				If: func(ctx workflow.Context) (bool, error) {
 					if data.ImageReference.Domain == "ghcr.io" {
