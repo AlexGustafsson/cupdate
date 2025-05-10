@@ -123,13 +123,61 @@ func TestWorkflowRun(t *testing.T) {
 					},
 					{
 						JobID:  "job4",
-						Result: models.JobRunResultSkipped,
+						Result: models.JobRunResultSucceeded,
 						Steps: []models.StepRun{
 							{
 								Result: models.StepRunResultSkipped,
 							},
 						},
 						DependsOn: []string{"job3"},
+					},
+				},
+			},
+		},
+		{
+			// Some jobs can have multiple dependencies, some of which are optional
+			Name: "Continues if dependency is skipped",
+			Workflow: Workflow{
+				Jobs: []Job{
+					{
+						ID: "job1",
+						If: ConditionFunc(func(ctx Context) (bool, error) {
+							return false, nil
+						}),
+						Steps: []Step{},
+					},
+					{
+						ID:        "job2",
+						DependsOn: []string{"job1"},
+						Steps: []Step{
+							{
+								ID: "step1",
+								Main: func(ctx Context) (Command, error) {
+									return nil, nil
+								},
+							},
+						},
+					},
+				},
+			},
+			ExpectedRun: models.WorkflowRun{
+				Result: models.WorkflowRunResultSucceeded,
+				Jobs: []models.JobRun{
+					{
+						JobID:     "job1",
+						Result:    models.JobRunResultSkipped,
+						Steps:     []models.StepRun{},
+						DependsOn: []string{},
+					},
+					{
+						JobID:  "job2",
+						Result: models.JobRunResultSucceeded,
+						Steps: []models.StepRun{
+							{
+								Result: models.StepRunResultSucceeded,
+							},
+						},
+						DependsOn: []string{"job1"},
 					},
 				},
 			},

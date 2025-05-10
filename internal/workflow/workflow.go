@@ -112,7 +112,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 							errs[i] = ctx.Err()
 							return
 						case <-done[index]:
-							if errs[index] != nil {
+							if errs[index] != nil && errs[index] != ErrSkipped {
 								log.WarnContext(ctx, "Skipping job as dependent job failed", slog.String("dependency", dependency))
 								// Propagate error so that jobs fail if a dependency's
 								// dependency fails.

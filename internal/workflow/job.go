@@ -25,7 +25,7 @@ type Job struct {
 	Steps []Step
 	// DependsOn optionally holds the ids of jobs that must complete for this job
 	// to run.
-	// Jobs will only run if its dependencies all succeeded.
+	// Jobs will not run if one of its dependencies fail.
 	DependsOn []string
 	// If holds a [Condition] that must pass for this job to run.
 	If Condition
