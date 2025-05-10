@@ -64,3 +64,23 @@ https://cupdate.home.local/image?reference=${__data.fields["reference"]}
 
 The panel's JSON can be found in
 [example-grafana-visualization.json](example-grafana-visualization.json)
+
+## Recommended Grafana and Loki config
+
+Cupdate logs its trace ids, this allows Grafana (and likely other services) to
+correlate logs with traces. You can get links from Cupdate's logs directly to
+the applicable trace by configuring Loki like so:
+
+```yaml
+- name: Loki
+  # ...
+  jsonData:
+    derivedFields:
+      # Link the traceId field to a tempo query
+      - datasourceName: Tempo
+        matcherRegex: '"traceId":"(\w+)"'
+        name: traceId
+        # This needs to be an absolute URL you use when accessing Grafana
+        url: https://<grafana host>/a/grafana-exploretraces-app/explore?traceId=$${__value.raw}
+        urlDisplayLabel: View trace
+```
