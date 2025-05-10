@@ -105,7 +105,9 @@ func (c *Client) do(req *http.Request, do func(req *http.Request) (*http.Respons
 		}
 	}
 
-	tokenRes, err := do(tokenReq)
+	// Never cache the token request itself, caching of token should be handled
+	// elsewhere
+	tokenRes, err := c.Do(tokenReq)
 	if err != nil {
 		return nil, err
 	}
