@@ -42,6 +42,7 @@ jobs:
         with:
           # We need the entire history to determine the current version
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Log in to the container registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -59,12 +60,13 @@ jobs:
       - name: Determine tag
         id: determine_tag
         run: |
-          TAG="${{ (github.ref_type == 'tag' && github.ref_name) || 'latest' }}"
           echo "tag=${TAG#v}" >> "$GITHUB_OUTPUT"
           echo -n "revision=" >> "$GITHUB_OUTPUT"
           git describe >> "$GITHUB_OUTPUT"
           echo -n "date=" >> "$GITHUB_OUTPUT"
           date --iso-8601=seconds >> "$GITHUB_OUTPUT"
+        env:
+          TAG: ${{ (github.ref_type == 'tag' && github.ref_name) || 'latest' }}
 
       - name: Build and publish
         uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6.16.0
