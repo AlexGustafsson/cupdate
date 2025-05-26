@@ -2,6 +2,7 @@ import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { type Plugin, type UserConfigExport, defineConfig } from 'vite'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // Markdown can have imgs using the "height" attribute. This is overridden by
 // tailwind's defaults as it has a higher specificity. The rule is unused by us
@@ -39,7 +40,7 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
   }
 
   return defineConfig({
-    plugins: [react(), tailwindcss(), removeUselessRule],
+    plugins: [react(), tailwindcss(), removeUselessRule, basicSsl()],
     root: 'web',
     base: process.env.VITE_BASE_PATH,
     build: {
@@ -52,5 +53,8 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
         '@': resolve(__dirname, '/web'),
       },
     },
+    server: {
+      https: true,
+    }
   })
 }

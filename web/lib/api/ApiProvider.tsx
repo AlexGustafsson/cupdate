@@ -368,3 +368,76 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
 
   return pages
 }
+
+declare global {
+  interface Window {
+    pushManager?: PushManager
+  }
+}
+
+export function usePushNotifications(): [
+  boolean,
+  PushSubscription | null,
+  () => void,
+  () => void,
+] {
+  const supported = window.pushManager !== undefined
+  const [subscription, setSubscription] = useState<PushSubscription | null>(
+    null
+  )
+
+  useEffect(() => {
+    if (!window.pushManager) {
+      return
+    }
+
+    window.pushManager
+      .getSubscription()
+      .then((subscription) => {
+        console.log(subscription)
+        setSubscription(subscription)
+      })
+      .catch((error) => {
+        console.error('Failed to get current subscription', error)
+      })
+  }, [])
+
+  const subscribe = useCallback(() => {
+    if (!window.pushManager) {
+      return Promise.reject(new Error('not supported'))
+    }
+
+    const options: PushSubscriptionOptionsInit = {
+      applicationServerKey:
+        'BOoKX5pU-ZMFDknU6ny_iRLuIiqXXykMTumqFaPEIAGATCi3unaV6qtUUcuCL5teYK00__BDd3CBuNiQi9yrn-c',
+      userVisibleOnly: true,
+    }
+
+    window.pushManager
+      .subscribe(options)
+      .then((subscription) => {
+        setSubscription(subscription)
+        console.log(subscription)
+      })
+      .catch((error) => {
+        console.error('Failed to subscribe to notifications', error)
+      })
+  }, [])
+
+  const unsubscribe = useCallback(() => {
+    if (!window.pushManager) {
+      return Promise.reject(new Error('not supported'))
+    }
+
+    subscription
+      ?.unsubscribe()
+      .then(() => {
+        window.pushManager!.getSubscription().then(setSubscription)
+      })
+      .catch((error) => {
+        console.error('Failed to unsubscribe to notifications', error)
+      })
+  }, [subscription])
+
+  return [supported, subscription, subscribe, unsubscribe]
+}
