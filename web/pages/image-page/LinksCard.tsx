@@ -12,6 +12,7 @@ import { Card } from './Card'
 
 const titles: Record<string, string | undefined> = {
   github: 'GitHub project page',
+  'github-releases': 'GitHub releases',
   ghcr: 'GHCR package page',
   gitlab: 'GitLab projectp age',
   docker: 'Docker Hub project page',
@@ -27,6 +28,7 @@ function Link({ type, url }: { type: string; url: string }): JSX.Element {
   let icon: ReactNode
   switch (type) {
     case 'github':
+    case 'github-releases':
     case 'ghcr':
       icon = (
         <SimpleIconsGithub className="text-black dark:text-[#dddddd] shrink-0" />

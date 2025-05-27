@@ -1,10 +1,36 @@
 import { type JSX, useEffect, useState } from 'react'
 import { FluentChevronDown20Regular } from '../../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../../components/icons/fluent-chevron-up-20-regular'
+import { FluentOpen16Regular } from '../../components/icons/fluent-open-16-regular'
+
+export type TabActionProps = {
+  action: TabAction
+}
+
+export function TabAction({ action }: TabActionProps): JSX.Element | undefined {
+  switch (action.type) {
+    case 'external-link':
+      return (
+        <a
+          target="_blank"
+          rel="noreferrer"
+          href={action.href}
+          title={action.title}
+          className="rounded p-1 focus:bg-[#f5f5f5] dark:focus:bg-[#262626] hover:bg-[#f5f5f5] dark:hover:bg-[#262626] cursor-pointer"
+          tabIndex={0}
+        >
+          <FluentOpen16Regular />
+        </a>
+      )
+    default:
+      return undefined
+  }
+}
 
 export type TabProps = {
   label: string
   icon?: JSX.Element
+  action?: TabAction
   disabled?: boolean
   active?: boolean
   onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined
@@ -13,6 +39,7 @@ export type TabProps = {
 export function Tab({
   icon,
   label,
+  action,
   disabled,
   active,
   onClick,
@@ -32,6 +59,7 @@ export function Tab({
       >
         {icon}
         <p>{label}</p>
+        {action && <TabAction action={action} />}
       </button>
     </div>
   )
@@ -46,7 +74,14 @@ export type CardProps = {
 export interface Tab {
   icon?: JSX.Element
   label: string
+  action?: TabAction
   content: JSX.Element
+}
+
+type TabAction = {
+  type: 'external-link'
+  href: string
+  title?: string
 }
 
 export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
@@ -87,6 +122,7 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
               key={tab.label}
               icon={tab.icon}
               label={tab.label}
+              action={tab.action}
               disabled={
                 i === selectedTabIndex || tabs.length === 1 || !showContent
               }

@@ -96,6 +96,10 @@ export function ImagePage(): JSX.Element {
     .filter((x) => image.value?.tags.includes(x.name))
     .toSorted((a, b) => compareTags(a.name, b.name))
 
+  const externalReleasesUrl = image.value?.links.find(
+    (x) => x.type === 'github-releases'
+  )?.url
+
   return (
     <>
       <div className="fixed bottom-0 right-0 p-4 z-100">
@@ -235,6 +239,13 @@ export function ImagePage(): JSX.Element {
                 {
                   icon: <FluentBookOpen16Regular />,
                   label: 'Release notes',
+                  action: externalReleasesUrl
+                    ? {
+                        type: 'external-link',
+                        href: externalReleasesUrl,
+                        title: `External releases page for ${name(image.value.reference)}`,
+                      }
+                    : undefined,
                   content: (
                     <div className="markdown-body">
                       <h1>{releaseNotes.value?.title}</h1>

@@ -516,6 +516,11 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							URL:  fmt.Sprintf("%s/%s/%s", endpoint, url.PathEscape(owner), url.PathEscape(repository)),
 						})
 
+						data.InsertLink(models.ImageLink{
+							Type: "github-releases",
+							URL:  fmt.Sprintf("%s/%s/%s/releases", endpoint, url.PathEscape(owner), url.PathEscape(repository)),
+						})
+
 						return nil, nil
 					}),
 					// TODO: Get description if not found
