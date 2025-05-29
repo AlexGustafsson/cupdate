@@ -1,6 +1,6 @@
 import { type JSX, useEffect, useState } from 'react'
-import { FluentChevronDown20Regular } from '../../components/icons/fluent-chevron-down-20-regular'
-import { FluentChevronUp20Regular } from '../../components/icons/fluent-chevron-up-20-regular'
+import { FluentChevronDown16Regular } from '../../components/icons/fluent-chevron-down-16-regular'
+import { FluentChevronUp16Regular } from '../../components/icons/fluent-chevron-up-16-regular'
 import { FluentOpen16Regular } from '../../components/icons/fluent-open-16-regular'
 
 export type TabActionProps = {
@@ -141,9 +141,9 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
             tabIndex={0}
           >
             {showContent ? (
-              <FluentChevronUp20Regular />
+              <FluentChevronUp16Regular />
             ) : (
-              <FluentChevronDown20Regular />
+              <FluentChevronDown16Regular />
             )}
           </button>
         </div>
