@@ -16,7 +16,7 @@ export function TabAction({ action }: TabActionProps): JSX.Element | undefined {
           rel="noreferrer"
           href={action.href}
           title={action.title}
-          className="rounded p-1 focus:bg-[#f5f5f5] dark:focus:bg-[#262626] hover:bg-[#f5f5f5] dark:hover:bg-[#262626] cursor-pointer"
+          className="ml-1 rounded p-1 focus:bg-[#f5f5f5] dark:focus:bg-[#262626] hover:bg-[#f5f5f5] dark:hover:bg-[#262626] cursor-pointer"
           tabIndex={0}
         >
           <FluentOpen16Regular />
@@ -54,11 +54,11 @@ export function Tab({
         role="tab"
         onClick={onClick}
         disabled={disabled}
-        className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:hover:bg-[#f5f5f5] enabled:focus:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] dark:enabled:focus:bg-[#262626] enabled:cursor-pointer"
+        className="flex items-center font-semibold text-sm rounded p-1 enabled:hover:bg-[#f5f5f5] enabled:focus:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] dark:enabled:focus:bg-[#262626] enabled:cursor-pointer"
         tabIndex={0}
       >
         {icon}
-        <p>{label}</p>
+        <p className={icon ? 'ml-2' : ''}>{label}</p>
         {action && <TabAction action={action} />}
       </button>
     </div>
