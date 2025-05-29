@@ -1,13 +1,16 @@
+# NOTE: This is just an example configuration, refer to
+# docs/docker/README.md and docs/config.md for more information
 services:
   cupdate:
     image: ghcr.io/alexgustafsson/cupdate:0.20.0
     ports:
       - 8080:8080
     environment:
-      CUPDATE_CACHE_PATH: /var/run/cachev1.boltdb
-      CUPDATE_DB_PATH: /var/run/dbv1.sqlite
       CUPDATE_DOCKER_HOST: unix:///var/run/docker.sock
+      CUPDATE_CACHE_PATH: /var/run/data/cachev1.boltdb
+      CUPDATE_DB_PATH: /var/run/data/dbv1.sqlite
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data:/var/run/data
       - target: /tmp
         type: tmpfs
