@@ -32,6 +32,20 @@ done using environment variables.
 | `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                                               |
 | `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.         | None.                                                 |
 
+### Persistence
+
+Cupdate stores its state in an SQLite database / file and its cache in a BoltDB
+file. Persisting these files is optional, but doing so will ensure that Cupdate
+can be started quickly and that the number of outgoing requests are kept to a
+minimum, which helps with rate-limited APIs.
+
+The database path is specified using the `CUPDATE_DB_PATH` environment variable,
+which defaults to `dbv1.sqlite`. Two additional files are saved alongside the
+sqlite file itself: `<sqlite file>-shm` and `<sqlite file>-wal`.
+
+The cache path is specified using the `CUPDATE_CACHE_PATH` environment variable,
+which defaults to `cachev1.boltdb`.
+
 ### Labels
 
 Cupdate can take additional resource-specific configuration via the use of
