@@ -119,7 +119,7 @@ export function Dashboard(): JSX.Element {
 
   return (
     <>
-      <div className="fixed bottom-0 right-0 p-4 z-100">
+      <div className="fixed bottom-[env(safe-area-inset-bottom))] flex justify-center w-full sm:w-auto sm:right-0 p-4 z-100">
         {isUpdateAvailable && (
           <Toast
             title="New data available"
