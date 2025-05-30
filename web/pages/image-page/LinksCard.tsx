@@ -19,6 +19,7 @@ const titles: Record<string, string | undefined> = {
   quay: 'Quay project page',
   git: 'Git project page',
   docs: 'Documentation',
+  'openssf-scorecard': 'OpenSSF scorecard',
   'oci-registry': "Project's OCI registry",
 }
 
