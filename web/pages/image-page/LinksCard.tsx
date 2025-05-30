@@ -69,7 +69,7 @@ function Link({ type, url }: { type: string; url: string }): JSX.Element {
   return (
     <a href={url}>
       <div className="flex items-center gap-x-2">
-        {icon} <p className="m-0 flex-shrink-0">{title}</p>
+        {icon} <p className="m-0 truncate">{title}</p>
       </div>
     </a>
   )
@@ -91,7 +91,7 @@ export function LinksCard({ links }: LinksCardProps): JSX.Element {
             <div className="markdown-body">
               <ul className="p-0">
                 {links.map((x) => (
-                  <li key={x.url} className="list-none w-min">
+                  <li key={x.url} className="list-none w-min max-w-full">
                     <Link type={x.type} url={x.url} />
                   </li>
                 ))}
