@@ -68,7 +68,7 @@ function Link({ type, url }: { type: string; url: string }): JSX.Element {
   }
 
   return (
-    <a href={url}>
+    <a href={url} target="_blank" rel="noreferrer">
       <div className="flex items-center gap-x-2">
         {icon} <p className="m-0 truncate">{title}</p>
       </div>
