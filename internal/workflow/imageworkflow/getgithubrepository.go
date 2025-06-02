@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/github"
-	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
 
@@ -14,7 +13,7 @@ func GetGitHubRepsitory() workflow.Step {
 	return workflow.Step{
 		Name: "Get GitHub repository",
 		Main: func(ctx workflow.Context) (workflow.Command, error) {
-			annotations, err := workflow.GetInput[oci.Annotations](ctx, "annotations", true)
+			source, err := workflow.GetInput[string](ctx, "repository", true)
 			if err != nil {
 				return nil, err
 			}
@@ -25,13 +24,9 @@ func GetGitHubRepsitory() workflow.Step {
 			}
 
 			// Find the repository's URL. Prefer the GHCR package's repository, if set
-			// otherwise try to use the annotations from the image's manifests
-			source := ""
+			// otherwise try to use the URL previously identified
 			if pkg != nil {
 				source = fmt.Sprintf("https://github.com/%s/%s", url.PathEscape(pkg.Owner), url.PathEscape(pkg.Repository))
-			}
-			if source == "" {
-				source = annotations.Source()
 			}
 
 			if !strings.Contains(source, "://github.com/") {

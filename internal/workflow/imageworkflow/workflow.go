@@ -243,6 +243,18 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				},
 			},
 			{
+				ID:        "determine_source",
+				Name:      "Determine source",
+				DependsOn: []string{"oci", "attestations"},
+				Steps: []workflow.Step{
+					DetermineSource().
+						WithID("source").
+						With("reference", data.ImageReference).
+						With("annotations", workflow.Ref{Key: "job.oci.step.annotations.annotations"}).
+						With("attestations", workflow.Ref{Key: "job.attestations.step.provenance.attestations"}),
+				},
+			},
+			{
 				ID:        "docker",
 				Name:      "Get Docker Hub information",
 				DependsOn: []string{"oci"},
@@ -395,15 +407,19 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 			{
 				ID:        "gitlab",
 				Name:      "Get GitLab information",
-				DependsOn: []string{"oci"},
-				// Only run for GitLab images
+				DependsOn: []string{"determine_source"},
 				If: func(ctx workflow.Context) (bool, error) {
-					domain, err := workflow.GetValue[string](ctx, "job.oci.step.registry.domain")
+					registry, err := workflow.GetValue[string](ctx, "job.determine_source.step.source.registry")
 					if err != nil {
 						return false, err
 					}
 
-					return domain == "registry.gitlab.com", nil
+					repository, err := workflow.GetValue[string](ctx, "job.determine_source.step.source.repository")
+					if err != nil {
+						return false, err
+					}
+
+					return registry == "registry.gitlab.com" || strings.HasPrefix(repository, "https://gitlab.com/"), nil
 				},
 				Steps: []workflow.Step{
 					GetGitLabDescription().
@@ -462,26 +478,19 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 			{
 				ID:        "github",
 				Name:      "Get GitHub information",
-				DependsOn: []string{"oci"},
-				// Only run for images with a reference to GitHub
+				DependsOn: []string{"oci", "determine_source", "ghcr"},
 				If: func(ctx workflow.Context) (bool, error) {
-					if data.ImageReference.Domain == "ghcr.io" {
-						return true, nil
-					}
-
-					annotations, err := workflow.GetValue[oci.Annotations](ctx, "job.oci.step.annotations.annotations")
+					registry, err := workflow.GetValue[string](ctx, "job.determine_source.step.source.registry")
 					if err != nil {
 						return false, err
-					} else if annotations == nil {
-						return false, nil
 					}
 
-					source := annotations.Source()
-					if strings.HasPrefix(source, "https://github.com/") {
-						return true, nil
+					repository, err := workflow.GetValue[string](ctx, "job.determine_source.step.source.repository")
+					if err != nil {
+						return false, err
 					}
 
-					return false, nil
+					return registry == "ghcr.io" || strings.HasPrefix(repository, "https://github.com/"), nil
 				},
 				Steps: []workflow.Step{
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
@@ -495,7 +504,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					}).WithID("init"),
 					GetGitHubRepsitory().
 						WithID("repository").
-						With("annotations", workflow.Ref{Key: "job.oci.step.annotations.annotations"}).
+						With("repository", workflow.Ref{Key: "job.determine_source.step.source.repository"}).
 						With("package", workflow.Ref{Key: "job.ghcr.step.package.package"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						endpoint, err := workflow.GetValue[string](ctx, "step.repository.endpoint")
