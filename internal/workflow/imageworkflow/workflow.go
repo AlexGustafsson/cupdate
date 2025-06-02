@@ -415,6 +415,8 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						With("reference", data.ImageReference).
 						With("httpClient", httpClient),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
+						data.InsertTag("gitlab")
+
 						data.InsertLink(models.ImageLink{
 							Type: "gitlab",
 							URL:  "https://gitlab.com/" + data.ImageReference.Path,
