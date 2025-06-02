@@ -10,6 +10,7 @@ export interface Edge {
     x: number
     y: number
   }
+  className?: string
 }
 
 export type EdgeRendererProps = {
@@ -86,11 +87,11 @@ export function EdgeRenderer({
   return (
     <svg role="img" aria-label="Graph edge" className="w-full h-full">
       <g>
-        {beziers.map((bezier) => (
+        {beziers.map((bezier, i) => (
           <path
             key={bezier}
             d={bezier}
-            className="fill-none stroke-2 stroke-[#ebebeb] dark:stroke-[#333333]"
+            className={`transition-all fill-none stroke-2 stroke-[#ebebeb] dark:stroke-[#333333] ${edges[i].className ?? ''}`}
           />
         ))}
       </g>

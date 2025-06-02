@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { GraphRenderer } from '../../components/GraphRenderer'
+import { GraphRenderer, type NodeProps } from '../../components/GraphRenderer'
 import { FluentCheckmarkCircle20Filled } from '../../components/icons/fluent-checkmark-circle-20-filled'
 import { FluentCheckmarkCircle20Regular } from '../../components/icons/fluent-checkmark-circle-20-regular'
 import { FluentDismissCircle20Filled } from '../../components/icons/fluent-dismiss-circle-20-filled'
@@ -17,11 +17,7 @@ import { formatDuration, formatRelativeTimeTo } from '../../time'
 import { Card } from './Card'
 import { ProcessStatus } from './ProcessStatus'
 
-function Job({
-  data,
-}: {
-  data: JobRun
-}): JSX.Element {
+function Job({ data, className }: NodeProps<JobRun>): JSX.Element {
   let label: ReactNode
   let status: string
   switch (data.result) {
@@ -43,7 +39,9 @@ function Job({
   }
 
   return (
-    <div className="px-4 py-2 cursor-pointer hover:shadow-md transition-shadow rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333]">
+    <div
+      className={`px-4 py-2 cursor-pointer hover:shadow-md transition-all rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333] ${className}`}
+    >
       <div className="flex">
         <div
           className={`rounded-full w-12 h-12 flex justify-center items-center ${data.result === 'succeeded' ? 'bg-green-400/20 dark:bg-green-800/20' : data.result === 'skipped' ? 'bg-gray-100 dark:bg-[#363a3a]' : 'bg-red-400/20 dark:bg-red-800/20'} shrink-0`}
@@ -168,6 +166,8 @@ export function WorkflowCard({
   workflowRun,
   lastModified,
 }: WorkflowRunCardProps): JSX.Element {
+  const [hoveredNode, setHoveredNode] = useState<string>()
+
   const [formattedGraph, options] = useMemo(() => {
     return [
       {
@@ -197,6 +197,23 @@ export function WorkflowCard({
 
   const [nodes, edges, bounds] = useGraphLayout<JobRun>(formattedGraph, options)
 
+  const styledNodes = nodes.map((node) => ({
+    ...node,
+    className:
+      hoveredNode && node.id !== hoveredNode
+        ? 'opacity-50 ease-linear'
+        : 'ease-linear',
+  }))
+
+  const styledEdges = edges.map((edge) => ({
+    ...edge,
+    className: hoveredNode
+      ? [edge.start.nodeId, edge.end.nodeId].includes(hoveredNode)
+        ? 'stroke-4 stroke-blue-400 dark:stroke-blue-700 ease-linear'
+        : 'ease-linear opacity-50'
+      : 'ease-linear',
+  }))
+
   const [jobRun, setJobRun] = useState<JobRun>()
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -222,11 +239,12 @@ export function WorkflowCard({
                     jobRun={jobRun}
                   />
                   <GraphRenderer
-                    edges={edges}
-                    nodes={nodes}
+                    edges={styledEdges}
+                    nodes={styledNodes}
                     bounds={bounds}
                     direction="left-right"
                     onNodeClick={(node) => showJobRun(node.data)}
+                    onNodeHover={(node) => setHoveredNode(node)}
                     NodeElement={Job}
                   />
                 </div>

@@ -1,9 +1,10 @@
-import type { ComponentType, JSX } from 'react'
+import { type ComponentType, type JSX, useEffect, useState } from 'react'
 import { type Edge, EdgeRenderer, type EdgeRendererProps } from './EdgeRenderer'
 import { Surface } from './Surface'
 
 export type NodeProps<T> = {
   data: T
+  className?: string
 }
 
 export interface Node<T> {
@@ -12,6 +13,7 @@ export interface Node<T> {
   height?: number
   x?: number
   y?: number
+  className?: string
   data: T
 }
 
@@ -21,6 +23,7 @@ type GraphRendererProps<T> = {
   bounds: { width: number; height: number }
   direction: EdgeRendererProps['direction']
   onNodeClick?: (node: Node<T>) => void
+  onNodeHover?: (node: string | undefined) => void
   NodeElement: ComponentType<NodeProps<T>>
 }
 
@@ -30,8 +33,17 @@ export function GraphRenderer<T>({
   bounds: { width, height },
   direction,
   onNodeClick,
+  onNodeHover,
   NodeElement,
 }: GraphRendererProps<T>): JSX.Element {
+  const [hoveredNode, setHoveredNode] = useState<string>()
+
+  useEffect(() => {
+    if (onNodeHover) {
+      onNodeHover(hoveredNode)
+    }
+  }, [hoveredNode, onNodeHover])
+
   return (
     <div className="w-full h-full">
       <Surface>
@@ -46,6 +58,12 @@ export function GraphRenderer<T>({
               key={node.id}
               className="absolute"
               onClick={() => onNodeClick?.(node)}
+              onPointerEnter={() => setHoveredNode(node.id)}
+              onPointerLeave={() =>
+                setHoveredNode((current) =>
+                  current === node.id ? undefined : current
+                )
+              }
               style={{
                 top: node.y === undefined ? undefined : `${node.y}px`,
                 left: node.x === undefined ? undefined : `${node.x}px`,
@@ -54,7 +72,7 @@ export function GraphRenderer<T>({
                   node.height === undefined ? undefined : `${node.height}px`,
               }}
             >
-              <NodeElement data={node.data} />
+              <NodeElement data={node.data} className={node.className} />
             </div>
           ))}
         </div>

@@ -156,6 +156,8 @@ type GraphCardProps = {
 }
 
 export function GraphCard({ graph }: GraphCardProps): JSX.Element {
+  const [hoveredNode, setHoveredNode] = useState<string>()
+
   const [formattedGraph, options] = useMemo(() => {
     return [
       {
@@ -190,6 +192,23 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
     options
   )
 
+  const styledNodes = nodes.map((node) => ({
+    ...node,
+    className:
+      hoveredNode && node.id !== hoveredNode
+        ? 'opacity-50 ease-linear'
+        : 'ease-linear',
+  }))
+
+  const styledEdges = edges.map((edge) => ({
+    ...edge,
+    className: hoveredNode
+      ? [edge.start.nodeId, edge.end.nodeId].includes(hoveredNode)
+        ? 'stroke-4 stroke-blue-400 dark:stroke-blue-700 ease-linear'
+        : 'ease-linear opacity-50'
+      : 'ease-linear',
+  }))
+
   const [graphNode, setGraphNode] = useState<GraphNode>()
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -209,11 +228,12 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
             <div className="h-[480px]">
               <GraphNodeDialog ref={dialogRef} graphNode={graphNode} />
               <GraphRenderer
-                edges={edges}
-                nodes={nodes}
+                edges={styledEdges}
+                nodes={styledNodes}
                 bounds={bounds}
                 direction="top-down"
                 onNodeClick={(node) => showGraphNode(node.data)}
+                onNodeHover={(node) => setHoveredNode(node)}
                 NodeElement={DependencyGraphNode}
               />
             </div>

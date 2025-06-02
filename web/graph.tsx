@@ -13,10 +13,12 @@ export interface Node<T> {
 export interface Edge {
   id: string
   start: {
+    nodeId: string
     x: number
     y: number
   }
   end: {
+    nodeId: string
     x: number
     y: number
   }
@@ -113,8 +115,16 @@ async function graphLayout<T>(
 
     edges.push({
       id: edge.id,
-      start,
-      end,
+      start: {
+        nodeId: startNode.id,
+        x: start.x,
+        y: start.y,
+      },
+      end: {
+        nodeId: endNode.id,
+        x: end.x,
+        y: end.y,
+      },
     })
   }
 
