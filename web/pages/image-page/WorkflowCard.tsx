@@ -43,7 +43,7 @@ function Job({
   }
 
   return (
-    <div className="px-4 py-2 cursor-pointer shadow-md hover:shadow-lg rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333]">
+    <div className="px-4 py-2 cursor-pointer hover:shadow-md transition-shadow rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333]">
       <div className="flex">
         <div
           className={`rounded-full w-12 h-12 flex justify-center items-center ${data.result === 'succeeded' ? 'bg-green-400/20 dark:bg-green-800/20' : data.result === 'skipped' ? 'bg-gray-100 dark:bg-[#363a3a]' : 'bg-red-400/20 dark:bg-red-800/20'} shrink-0`}
