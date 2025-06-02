@@ -14,7 +14,7 @@ const titles: Record<string, string | undefined> = {
   github: 'GitHub project page',
   'github-releases': 'GitHub releases',
   ghcr: 'GHCR package page',
-  gitlab: 'GitLab projectp age',
+  gitlab: 'GitLab project page',
   docker: 'Docker Hub project page',
   quay: 'Quay project page',
   git: 'Git project page',
