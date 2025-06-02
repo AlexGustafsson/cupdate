@@ -248,7 +248,9 @@ export function ImagePage(): JSX.Element {
                     : undefined,
                   content: (
                     <div className="markdown-body">
-                      <h1>{releaseNotes.value?.title}</h1>
+                      {releaseNotes.value?.title && (
+                        <h1>{releaseNotes.value?.title}</h1>
+                      )}
                       <HTML>{releaseNotes.value?.html}</HTML>
                     </div>
                   ),

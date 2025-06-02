@@ -293,7 +293,7 @@ func parseRelease(r io.Reader) (*Release, error) {
 
 func parseTitle(node *html.Node) (string, error) {
 	box := match(node, func(node *html.Node) bool {
-		return node.Data == "div" && attr(node, "class") == "Box"
+		return node.Data == "div" && attr(node, "data-pjax") == "#repo-content-pjax-container"
 	})
 	if box == nil {
 		return "", nil
