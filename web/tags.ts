@@ -15,7 +15,7 @@ const palette: Record<string, string | { light: string; dark: string }> = {
   kubernetes: { light: '#316ce6', dark: '#1955cc' },
   docker: { light: '#1d63ed', dark: '#104dc6' },
   github: { light: '#8B57E8', dark: '#571ac1' },
-  gitlab: { light: '#fc6d26', dark: '#c94503' },
+  gitlab: { light: '#7759c2', dark: '#2f2a6b' },
   quay: { light: '#40B4E5', dark: '#177ba6' },
 
   // Emotions
