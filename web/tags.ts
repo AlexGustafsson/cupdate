@@ -271,6 +271,11 @@ export const Tags: Tag[] = [
     description: 'A github project',
     color: palette.github,
   },
+  {
+    name: 'gitlab',
+    description: 'A gitlab project',
+    color: palette.gitlab,
+  },
 
   // Deployment information
   ...KubernetesTags,
