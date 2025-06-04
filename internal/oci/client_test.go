@@ -223,6 +223,32 @@ func TestClientGetTags(t *testing.T) {
 	}
 }
 
+func TestClientGetReferrers(t *testing.T) {
+	if testing.Short() {
+		t.Skip()
+	}
+
+	client := &Client{
+		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+	}
+
+	references := []string{
+		"ghcr.io/stefanprodan/podinfo:sha256-10af81c9659824cecaa7fe09134c6c318136341b4ae84c4a37f18d9bd8a33eac",
+	}
+
+	for _, reference := range references {
+		t.Run(reference, func(t *testing.T) {
+			ref, err := ParseReference(reference)
+			require.NoError(t, err)
+
+			tags, err := client.GetReferrers(context.TODO(), ref, ref.Digest)
+			require.NoError(t, err)
+			assert.NotNil(t, tags)
+			fmt.Printf("%+v\n", tags)
+		})
+	}
+}
+
 func TestIntegrationClientZotBasicAuth(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
