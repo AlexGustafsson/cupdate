@@ -478,7 +478,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 			{
 				ID:        "github",
 				Name:      "Get GitHub information",
-				DependsOn: []string{"oci", "determine_source", "ghcr"},
+				DependsOn: []string{"determine_source", "ghcr"},
 				If: func(ctx workflow.Context) (bool, error) {
 					registry, err := workflow.GetValue[string](ctx, "job.determine_source.step.source.registry")
 					if err != nil {
@@ -580,8 +580,10 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				},
 			},
 			{
-				ID:        "openssf",
-				Name:      "Get OpenSSF Scorecard",
+				ID:   "openssf",
+				Name: "Get OpenSSF Scorecard",
+				// NOTE: Doesn't really rely on the GitLab job, but for symmetry let's
+				// include it
 				DependsOn: []string{"github", "gitlab"},
 				If: func(ctx workflow.Context) (bool, error) {
 					githubRepository, err := workflow.GetValue[string](ctx, "job.github.step.repository.repository")
