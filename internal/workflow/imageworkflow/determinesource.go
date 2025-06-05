@@ -1,6 +1,8 @@
 package imageworkflow
 
 import (
+	"strings"
+
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/workflow"
 )
@@ -43,6 +45,17 @@ func DetermineSource() workflow.Step {
 						break
 					}
 				}
+			}
+
+			// Fall back to GitLab conventions
+			if repository == "" && reference.Domain == "registry.gitlab.com" {
+				// The repository path is <owner>/<group>/<project>
+				parts := strings.Split(reference.Path, "/")
+				if len(parts) < 3 {
+					return nil, nil
+				}
+
+				repository = "https://gitlab.com/" + strings.Join(parts[0:3], "/")
 			}
 
 			return workflow.Batch(

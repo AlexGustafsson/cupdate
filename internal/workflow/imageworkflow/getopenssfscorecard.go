@@ -2,6 +2,7 @@ package imageworkflow
 
 import (
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
@@ -23,6 +24,8 @@ func GetOpenSSFScorecard() workflow.Step {
 			if err != nil {
 				return nil, err
 			}
+			repository = strings.TrimPrefix(repository, "http://")
+			repository = strings.TrimPrefix(repository, "https://")
 
 			if !scorecard.RepositoryIsSupported(repository) {
 				return nil, nil

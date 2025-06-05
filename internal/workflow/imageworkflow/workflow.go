@@ -582,56 +582,23 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 			{
 				ID:   "openssf",
 				Name: "Get OpenSSF Scorecard",
-				// NOTE: Doesn't really rely on the GitLab job, but for symmetry let's
-				// include it
-				DependsOn: []string{"github", "gitlab"},
+				// Only use determined sources, not GitHub if the image is GHCR, for
+				// example - try to use common conventions for now.
+				DependsOn: []string{"determine_source"},
 				If: func(ctx workflow.Context) (bool, error) {
-					githubRepository, err := workflow.GetValue[string](ctx, "job.github.step.repository.repository")
+					repository, err := workflow.GetValue[string](ctx, "job.determine_source.step.source.repository")
 					if err != nil {
 						return false, err
 					}
 
-					gitlabRepository := ""
-					if data.ImageReference.Domain == "registry.gitlab.com" {
-						// The repository path is <owner>/<group>/<project>
-						parts := strings.Split(data.ImageReference.Path, "/")
-						if len(parts) < 3 {
-							return false, nil
-						}
-
-						gitlabRepository = "gitlab.com/" + strings.Join(parts[0:3], "/")
-					}
-
-					return githubRepository != "" || gitlabRepository != "", nil
+					// OpenSSF only supports GitHub and GitLab repositories for now
+					return strings.HasPrefix(repository, "https://github.com/") || strings.HasPrefix(repository, "https://gitlab.com/"), nil
 				},
 				Steps: []workflow.Step{
-					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
-						githubRepository, err := workflow.GetValue[string](ctx, "job.github.step.repository.repository")
-						if err != nil {
-							return nil, err
-						}
-
-						if githubRepository != "" {
-							return workflow.SetOutput("repository", githubRepository), nil
-						}
-
-						if data.ImageReference.Domain == "registry.gitlab.com" {
-							// The repository path is <owner>/<group>/<project>
-							parts := strings.Split(data.ImageReference.Path, "/")
-							if len(parts) < 3 {
-								return nil, nil
-							}
-
-							gitlabRepository := "gitlab.com/" + strings.Join(parts[0:3], "/")
-							return workflow.SetOutput("repository", gitlabRepository), nil
-						}
-
-						return nil, nil
-					}).WithID("repository"),
 					GetOpenSSFScorecard().
 						WithID("scorecard").
 						With("httpClient", httpClient).
-						With("repository", workflow.Ref{Key: "step.repository.repository"}),
+						With("repository", workflow.Ref{Key: "job.determine_source.step.source.repository"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						scorecard, err := workflow.GetValue[*models.ImageScorecard](ctx, "step.scorecard.scorecard")
 						if err != nil {
