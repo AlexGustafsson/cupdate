@@ -68,7 +68,12 @@ export class ApiClient implements IApiClient {
     }
 
     const res = await fetch(
-      `${this.#endpoint}/images?${searchParams.toString()}`
+      `${this.#endpoint}/images?${searchParams.toString()}`,
+      {
+        headers: {
+          accept: 'application/json',
+        },
+      }
     )
 
     if (res.status !== 200) {
@@ -82,7 +87,12 @@ export class ApiClient implements IApiClient {
     const query = new URLSearchParams({ reference })
 
     const res = await fetch(
-      `${this.#endpoint}${path}${query === undefined ? '' : `?${query.toString()}`}`
+      `${this.#endpoint}${path}${query === undefined ? '' : `?${query.toString()}`}`,
+      {
+        headers: {
+          accept: 'application/json',
+        },
+      }
     )
 
     if (res.status === 404) {
