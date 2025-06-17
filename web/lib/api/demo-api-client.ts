@@ -13,6 +13,7 @@ import type {
   ImageSBOM,
   ImageScorecard,
   PaginationMetadata,
+  WebPushSubscription,
   WorkflowRun,
 } from './models'
 
@@ -189,5 +190,21 @@ export class DemoApiClient implements ApiClient {
 
   async scheduleImageScan(reference: string): Promise<void> {
     return Promise.resolve()
+  }
+
+  getWebPushServerKey(): Promise<string> {
+    return Promise.reject(new Error('not available in demo mode'))
+  }
+
+  createWebPushSubscription(subscription: WebPushSubscription): Promise<void> {
+    return Promise.reject(new Error('not available in demo mode'))
+  }
+
+  deleteWebPushSubscription(digest: string): Promise<void> {
+    return Promise.reject(new Error('not available in demo mode'))
+  }
+
+  checkWebPushSubscription(digest: string): Promise<boolean> {
+    return Promise.reject(new Error('not available in demo mode'))
   }
 }

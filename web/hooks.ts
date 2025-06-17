@@ -8,6 +8,9 @@ import {
   useState,
 } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useApiClient } from './lib/api/ApiProvider'
+import type { WebPushSubscription } from './lib/api/models'
+import { webPushSubscriptionDigest } from './lib/api/util'
 
 export interface Filter {
   tags: string[]
@@ -190,4 +193,144 @@ export function useLayout(): [
   }, [layout])
 
   return [layout, setLayout]
+}
+
+// Polyfill until proper typing support exists
+declare global {
+  interface Window {
+    pushManager?: PushManager
+  }
+}
+
+type Result<T, E = Error> =
+  | { status: 'loading' }
+  | { status: 'resolved'; value: T }
+  | { status: 'rejected'; error: E }
+
+export function useWebPushSubscription(): [
+  boolean,
+  Result<PushSubscription | null>,
+  Result<boolean>,
+  () => void,
+  () => void,
+] {
+  const apiClient = useApiClient()
+
+  const supported = window.pushManager !== undefined
+
+  const [subscription, setSubscription] = useState<
+    Result<PushSubscription | null>
+  >({
+    status: 'loading',
+  })
+
+  const [synced, setSynced] = useState<Result<boolean>>({ status: 'loading' })
+
+  // Get the user agent's current subscription on load
+  useEffect(() => {
+    if (!window.pushManager) {
+      return
+    }
+
+    window.pushManager
+      .getSubscription()
+      .then((subscription) => {
+        setSubscription({
+          status: 'resolved',
+          value: subscription,
+        })
+      })
+      .catch((error) => {
+        setSubscription({ status: 'rejected', error })
+        console.error('failed to set subscription', error)
+      })
+  }, [])
+
+  // Keep synced state up-to-date
+  useEffect(() => {
+    if (subscription.status === 'loading') {
+      setSynced({ status: 'loading' })
+      return
+    } else if (subscription.status === 'rejected') {
+      setSynced({
+        status: 'rejected',
+        error: new Error('cannot check state when subscription status failed'),
+      })
+      return
+    }
+
+    if (subscription.value === null) {
+      // Assume synced as we have no way of knowing if the server has the
+      // subscription or not. In practice, the subscription will likely start
+      // bouncing when the user agent no longer has it - meaning the server
+      // should drop the subscription soon enough
+      setSynced({ status: 'resolved', value: true })
+      return
+    }
+
+    webPushSubscriptionDigest(subscription.value.toJSON())
+      .then((digest) => {
+        apiClient.checkWebPushSubscription(digest).then((ok) => {
+          setSynced({ status: 'resolved', value: ok })
+        })
+      })
+      .catch((error) => {
+        setSynced({ status: 'rejected', error })
+        console.error('failed to set sync status', error)
+      })
+  }, [subscription, apiClient])
+
+  const subscribe = useCallback(() => {
+    apiClient
+      .getWebPushServerKey()
+      .then((applicationServerKey) =>
+        window.pushManager
+          ?.subscribe({
+            applicationServerKey,
+            userVisibleOnly: true,
+          })
+          .then((subscription) =>
+            apiClient
+              .createWebPushSubscription(
+                subscription.toJSON() as WebPushSubscription
+              )
+              .then(() => subscription)
+          )
+          .then((subscription) => {
+            setSubscription({ status: 'resolved', value: subscription })
+          })
+      )
+      .catch((error) => {
+        console.error('failed to subscribe', error)
+      })
+  }, [apiClient])
+
+  const unsubscribe = useCallback(() => {
+    window.pushManager
+      ?.getSubscription()
+      .then((subscription) => {
+        if (!subscription) {
+          return
+        }
+
+        return webPushSubscriptionDigest(subscription.toJSON())
+          .then((digest) =>
+            subscription
+              .unsubscribe()
+              .then((ok) => [ok, digest] as [boolean, string])
+          )
+          .then(([ok, digest]) => {
+            if (!ok) {
+              throw new Error('Failed to unsubscribe')
+            }
+
+            return apiClient.deleteWebPushSubscription(digest)
+          })
+      })
+      .catch((error) => {
+        console.error('failed to unsubscribe', error)
+      })
+  }, [apiClient])
+
+  return [supported, subscription, synced, subscribe, unsubscribe]
 }

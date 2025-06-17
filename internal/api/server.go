@@ -399,6 +399,59 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		s.handleJSONResponse(w, r, response, err)
 	})
 
+	s.mux.HandleFunc("GET /api/v1/webpush/key", func(w http.ResponseWriter, r *http.Request) {
+		_, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/webpush/key"))
+
+		// TODO
+		response := models.WebPushServerKey{
+			Key: "1234",
+		}
+		s.handleJSONResponse(w, r, response, nil)
+	})
+
+	s.mux.HandleFunc("POST /api/v1/webpush/subscription", func(w http.ResponseWriter, r *http.Request) {
+		_, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/webpush/key"))
+
+		var subscription models.WebPushSubscription
+		if err := json.NewDecoder(r.Body).Decode(&subscription); err != nil {
+			s.handleGenericResponse(w, r, err)
+			return
+		}
+
+		// TODO
+		w.WriteHeader(http.StatusCreated)
+	})
+
+	s.mux.HandleFunc("HEAD /api/v1/webpush/subscription/{digest}", func(w http.ResponseWriter, r *http.Request) {
+		_, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/webpush/key"))
+
+		algorithm, _, ok := strings.Cut(r.PathValue("digest"), "-")
+		if !ok || algorithm != "sha256" {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
+
+		// TODO
+		w.WriteHeader(http.StatusOK)
+	})
+
+	s.mux.HandleFunc("DELETE /api/v1/webpush/subscription/{digest}", func(w http.ResponseWriter, r *http.Request) {
+		_, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/webpush/key"))
+
+		algorithm, _, ok := strings.Cut(r.PathValue("digest"), "-")
+		if !ok || algorithm != "sha256" {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
+
+		// TODO
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	return s
 }
 

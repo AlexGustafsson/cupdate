@@ -284,6 +284,61 @@ paths:
               schema:
                 $ref: "#/components/schemas/Summary"
 
+  /webpush/key:
+    get:
+      summary: Get the server's public key for Web Push. Note that this API is experimental.
+      responses:
+        "200":
+          description: Public key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebPushServerKey"
+
+  /webpush/subscription:
+    post:
+      summary: Create a subscription. Note that this API is experimental.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebPushSubscription"
+      responses:
+        "201":
+          description: Created.
+        "409":
+          description: The subscription already exists.
+  /webpush/subscription/{digest}:
+    head:
+      summary: Check a subscription. Note that this API is experimental.
+      parameters:
+        - in: path
+          name: digest
+          description: Digest of the subscription.
+          schemas:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: Subscription exists.
+        "404":
+          description: Subscription not found.
+    delete:
+      summary: Delete a subscription. Note that this API is experimental.
+      parameters:
+        - in: path
+          name: digest
+          description: Digest of the subscription.
+          schemas:
+            type: string
+          required: true
+      responses:
+        "204":
+          description: Deleted.
+        "404":
+          description: Subscription not found.
+
 components:
   schemas:
     ImagePage:
@@ -656,3 +711,30 @@ components:
           description: Set if step failed.
       required:
         - result
+
+    WebPushServerKey:
+      type: object
+      properties:
+        key:
+          type: string
+      required:
+        - key
+
+    WebPushSubscription:
+      type: object
+      properties:
+        endpoint:
+          type: string
+        keys:
+          type: object
+          properties:
+            p256dh:
+              type: string
+            auth:
+              type: string
+          required:
+            - p256dh
+            - auth
+      required:
+        - endpoint
+        - keys

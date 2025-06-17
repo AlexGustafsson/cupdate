@@ -89,4 +89,53 @@
   .break-word {
     word-break: break-word;
   }
+
+  .menu-button {
+    anchor-name: --menu;
+    cursor: pointer;
+  }
+
+  .menu-container {
+    position: absolute;
+    /* TODO: Can we really use the same name for all instances of the component? */
+    position-anchor: --menu;
+    /* TODO: This doesn't seem to work reliably - we want it center, but the
+    * only place it's used now looks best being left */
+    position-area: bottom left;
+    z-index: 100;
+    box-sizing: border-box;
+    min-width: 138px;
+    background-color: light-dark(white, #1e1e1e);
+    border-radius: 4px;
+    padding: 4px;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.28);
+    animation-name: slide-in;
+    animation-duration: 400ms;
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0, 0, 0, 1);
+  }
+
+  .menu-container li {
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .menu-container li:hover {
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: light-dark(#f5f5f5, #262626);
+  }
+
+  @keyframes slide-in {
+    0% {
+      transform: translate3d(0, -10px, 0);
+    }
+    100% {
+      transform: none;
+    }
+  }
 }
