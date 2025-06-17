@@ -190,3 +190,15 @@ const (
 	EventTypeImageProcessed           EventType = "imageProcessed"
 	EventTypeImageNewVersionAvailable EventType = "imageNewVersionAvailable"
 )
+
+type WebPushServerKey struct {
+	Key string `json:"key"`
+}
+
+type WebPushSubscription struct {
+	Endpoint string `json:"endpoint"`
+	Keys     struct {
+		P256DH string `json:"p256dh"`
+		Auth   string `json:"auth"`
+	} `json:"key"`
+}

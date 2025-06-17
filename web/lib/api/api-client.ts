@@ -9,6 +9,7 @@ import type {
   ImageReleaseNotes,
   ImageSBOM,
   ImageScorecard,
+  WebPushSubscription,
   WorkflowRun,
 } from './models'
 
@@ -141,6 +142,74 @@ export class ApiClient implements IApiClient {
 
   getLatestImageWorkflow(reference: string): Promise<WorkflowRun | null> {
     return this.#getResource('/image/workflows/latest', reference)
+  }
+
+  async getWebPushServerKey(): Promise<string> {
+    const res = await fetch(`${this.#endpoint}/webpush/key`, {
+      method: 'GET',
+      headers: {
+        accept: 'application/json',
+      },
+    })
+
+    if (res.status !== 200) {
+      throw new Error(`unexpected status code ${res.status}`)
+    }
+
+    const body = await res.json()
+    return body.key
+  }
+
+  async createWebPushSubscription(
+    subscription: WebPushSubscription
+  ): Promise<void> {
+    const res = await fetch(`${this.#endpoint}/webpush/key`, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(subscription),
+    })
+
+    if (res.status === 409) {
+      throw new Error('subscription already exists')
+    } else if (res.status !== 201) {
+      throw new Error(`unexpected status code ${res.status}`)
+    }
+  }
+
+  async deleteWebPushSubscription(digest: string): Promise<void> {
+    const res = await fetch(
+      `${this.#endpoint}/webpush/subscription/${encodeURIComponent(digest)}`,
+      {
+        method: 'DELETE',
+      }
+    )
+
+    if (res.status === 404) {
+      throw new Error('subscription does not exist')
+    } else if (res.status !== 201) {
+      throw new Error(`unexpected status code ${res.status}`)
+    }
+  }
+
+  async checkWebPushSubscription(digest: string): Promise<boolean> {
+    const res = await fetch(
+      `${this.#endpoint}/webpush/subscription/${encodeURIComponent(digest)}`,
+      {
+        method: 'HEAD',
+      }
+    )
+
+    switch (res.status) {
+      case 200:
+        return true
+      case 404:
+        return false
+      default:
+        throw new Error(`unexpected status code ${res.status}`)
+    }
   }
 
   async scheduleImageScan(reference: string): Promise<void> {
