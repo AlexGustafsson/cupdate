@@ -288,15 +288,20 @@ func (g *InformerGrapher) onEvent(isInitialList bool) {
 
 // OnAdd implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnAdd(object any, isInitialList bool) {
+	if !isInitialList {
+		slog.Debug("Kubernetes resource added", slog.String("type", fmt.Sprintf("%+T", object)))
+	}
 	g.onEvent(isInitialList)
 }
 
 // OnUpdate implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnUpdate(oldObject any, newObject any) {
+	slog.Debug("Kubernetes resource updated", slog.String("type", fmt.Sprintf("%+T", oldObject)))
 	g.onEvent(false)
 }
 
 // OnDelete implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnDelete(object any) {
+	slog.Debug("Kubernetes resource deleted", slog.String("type", fmt.Sprintf("%+T", object)))
 	g.onEvent(false)
 }
