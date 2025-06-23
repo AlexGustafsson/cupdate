@@ -17,9 +17,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.36.0
 	golang.org/x/net v0.41.0
 	golang.org/x/sync v0.15.0
-	k8s.io/api v0.33.1
-	k8s.io/apimachinery v0.33.1
-	k8s.io/client-go v0.33.1
+	k8s.io/api v0.33.2
+	k8s.io/apimachinery v0.33.2
+	k8s.io/client-go v0.33.2
 	modernc.org/sqlite v1.38.0
 	oras.land/oras-go/v2 v2.6.0
 )
