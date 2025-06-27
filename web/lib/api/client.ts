@@ -8,6 +8,7 @@ import type {
   ImageReleaseNotes,
   ImageSBOM,
   ImageScorecard,
+  WebPushSubscription,
   WorkflowRun,
 } from './models'
 
@@ -29,6 +30,10 @@ export interface ApiClient {
   getImageVulnerabilities(reference: string): Promise<Vulnerability[] | null>
   getLatestImageWorkflow(reference: string): Promise<WorkflowRun | null>
   scheduleImageScan(reference: string): Promise<void>
+  getWebPushServerKey(): Promise<string>
+  createWebPushSubscription(subscription: WebPushSubscription): Promise<void>
+  deleteWebPushSubscription(digest: string): Promise<void>
+  checkWebPushSubscription(digest: string): Promise<boolean>
 }
 
 export interface GetImagesOptions {

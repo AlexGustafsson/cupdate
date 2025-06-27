@@ -125,3 +125,15 @@ export interface StepRun {
   error?: string
   duration?: number
 }
+
+export interface WebPushServerKey {
+  key: string
+}
+
+export interface WebPushSubscription {
+  endpoint: string
+  keys: {
+    p256dh: string
+    auth: string
+  }
+}
