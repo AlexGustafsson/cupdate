@@ -30,6 +30,7 @@ type InformerGrapher struct {
 	close chan struct{}
 
 	includeOldReplicaSets bool
+	debounceInterval      time.Duration
 
 	mutex sync.Mutex
 }
@@ -38,12 +39,13 @@ type InformerGrapher struct {
 //
 //   - includeOldReplicaSets can be set to true to include all replica sets, no
 //     matter their age
-func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets bool) (*InformerGrapher, error) {
+func NewInformerGrapher(clientset *kubernetes.Clientset, includeOldReplicaSets bool, debounceInterval time.Duration) (*InformerGrapher, error) {
 	grapher := &InformerGrapher{
 		clientset: clientset,
 		// TODO: Make resync configurable
 		informerFactory:       informers.NewSharedInformerFactory(clientset, 30*time.Minute),
 		includeOldReplicaSets: includeOldReplicaSets,
+		debounceInterval:      debounceInterval,
 	}
 
 	informerFuncs := []cache.SharedIndexInformer{
@@ -76,12 +78,15 @@ func (g *InformerGrapher) Start() {
 	g.events = make(chan time.Time)
 	g.close = make(chan struct{})
 
+	// Debounce events
+	events := Debounce(g.events, g.debounceInterval)
+
 	// Handle events and produce graphs
 	go func() {
 		defer close(g.ch)
 
 		var lastRun time.Time
-		for eventTime := range g.events {
+		for eventTime := range events {
 			// We've already created a graph after the event was emitted
 			if eventTime.Before(lastRun) {
 				slog.Debug("Got old informer event from Kubernetes, ignoring")

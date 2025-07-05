@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"k8s.io/client-go/kubernetes"
@@ -17,11 +18,17 @@ type Platform struct {
 	clientset *kubernetes.Clientset
 
 	includeOldReplicaSets bool
+	debounceInterval      time.Duration
 }
 
 type Options struct {
 	// IncludeOldReplicaSets will include all replica sets, no matter their age.
+	// Defaults to false.
 	IncludeOldReplicaSets bool
+	// DebounceInterval is an interval controlling the minimum duration between
+	// graphs.
+	// Defaults to one minute.
+	DebounceInterval time.Duration
 }
 
 // NewPlatform initializes a new [Platform].
@@ -37,10 +44,16 @@ func NewPlatform(config *rest.Config, options *Options) (*Platform, error) {
 		return nil, err
 	}
 
+	debounceInterval := 1 * time.Minute
+	if options.DebounceInterval > 0 {
+		debounceInterval = options.DebounceInterval
+	}
+
 	return &Platform{
 		clientset: clientset,
 
 		includeOldReplicaSets: options.IncludeOldReplicaSets,
+		debounceInterval:      debounceInterval,
 	}, nil
 }
 
@@ -52,7 +65,7 @@ func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
 }
 
 func (p *Platform) GraphContinuously(ctx context.Context) (<-chan platform.Graph, error) {
-	grapher, err := NewInformerGrapher(p.clientset, p.includeOldReplicaSets)
+	grapher, err := NewInformerGrapher(p.clientset, p.includeOldReplicaSets, p.debounceInterval)
 	if err != nil {
 		return nil, err
 	}

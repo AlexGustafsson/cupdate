@@ -50,6 +50,16 @@ By default, Cupdate will ignore old replica sets kept around by Kubernetes to
 enable rollback of services. To include them, set
 `CUPDATE_KUBERNETES_INCLUDE_OLD_REPLICAS` to `true`.
 
+Cupdate uses an event-driven architecture to keep its state up-to-date and
+properly reflecting Kubernetes. That means that when applicable resources are
+changed, Cupdate will produce an initial graph of relationships and images in
+use and make it available to the user. Though the processing is cheap and the
+events are debounced and API calls cached by default, it could result in
+additional API calls made to the Kubernetes APIs. These should cheap as well. If
+resources are frequently changed, (more than once every minute or so) you can
+control the delay by using the `CUPDATE_KUBERNETES_DEBOUNCE_INTERVAL`
+environment variable.
+
 Whilst the commands above are enough to get you started with Cupdate, you might
 want to change some configuration to better suite your needs. Please see the
 additional documentation in [../config.md](../config.md).

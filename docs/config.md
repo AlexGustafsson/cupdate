@@ -25,6 +25,7 @@ done using environment variables.
 | `CUPDATE_WORKFLOW_CLEANUP_MAX_AGE`      | The maximum age of a workflow run before it's removed.                                                                | `48h`                                                 |
 | `CUPDATE_WORKFLOW_CLEANUP_INTERVAL`     | The time between workflow run cleanup iterations.                                                                     | `1h`                                                  |
 | `CUPDATE_KUBERNETES_HOST`               | The host of the Kubernetes API. For use with proxying.                                                                | Required to use Kubernetes.                           |
+| `CUPDATE_KUBERNETES_DEBOUNCE_INTERVAL`  | The minimum time between graphs.                                                                                      | `1m`                                                  |
 | `CUPDATE_DOCKER_HOST`                   | One or more comma-separated Docker host URIs. Supports unix://path, tcp://host:port, http:// and https:// URIs.       | Required to use Docker.                               |
 | `CUPDATE_DOCKER_TLS_PATH`               | Path to a directory containing certificates and keys for Docker. See Docker-specific docs for details.                | Required to use Docker with mTLS or a self-signed CA. |
 | `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS` | Whether or not to include containers in any state, not just running containers.                                       | `false`                                               |
