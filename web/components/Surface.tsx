@@ -58,7 +58,7 @@ export function Surface({
       }
 
       document.addEventListener('pointermove', onPointerMove)
-      document.addEventListener('pointerup', onPointerUp)
+      document.addEventListener('pointerup', onPointerUp, { once: true })
 
       setIsDragging(true)
       setHasInteracted(true)
