@@ -87,7 +87,11 @@ func main() {
 			os.Exit(1)
 		}
 
-		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, &kubernetes.Options{IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets})
+		options := &kubernetes.Options{
+			IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets,
+			DebounceInterval:      config.Kubernetes.DebounceInterval,
+		}
+		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, options)
 		if err != nil {
 			slog.ErrorContext(ctx, "Failed to create kubernetes source", slog.Any("error", err))
 			os.Exit(1)

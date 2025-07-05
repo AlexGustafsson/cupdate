@@ -60,8 +60,9 @@ type Config struct {
 	} `envPrefix:"WORKFLOW_"`
 
 	Kubernetes struct {
-		Host                  string `env:"HOST"`
-		IncludeOldReplicaSets bool   `env:"INCLUDE_OLD_REPLICAS"`
+		Host                  string        `env:"HOST"`
+		IncludeOldReplicaSets bool          `env:"INCLUDE_OLD_REPLICAS"`
+		DebounceInterval      time.Duration `env:"DEBOUNCE_INTERVAL" envDefault:"1m"`
 	} `envPrefix:"KUBERNETES_"`
 
 	Docker struct {
