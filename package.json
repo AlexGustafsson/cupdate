@@ -20,7 +20,7 @@
     "react-router-dom": "7.6.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.1.1",
     "@tailwindcss/vite": "4.1.11",
     "@types/dompurify": "3.2.0",
     "@types/node": "22.15.30",
