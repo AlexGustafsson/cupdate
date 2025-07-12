@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.1/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -19,24 +19,19 @@
       "style": {
         // Fine for small mapping functions. Catch on a review basis rather than
         // enforcing
-        "noParameterAssign": {
-          "level": "off" // Should be info. Biome LSP throws errors regardless of level.
-        },
+        "noParameterAssign": "off", // Should be info. Biome LSP throws errors regardless of level.
         // Type inference can't always deal with things like filtering arrays
         // and then using the filtered property. Catch on a review basis rather
         // than enforcing
-        "noNonNullAssertion": {
-          "level": "off" // Should be info. Biome LSP throws errors regardless of level.
-        },
+        "noNonNullAssertion": "off", // Should be info. Biome LSP throws errors regardless of level.
         // To allow error handling to be neat and concise, it can sometimes be
         // clearer to have a "useless" else to clearly state that all branches
         // are considered. Catch on a review basis rather than enforcing
-        "noUselessElse": {
-          "level": "off" // Should be info. Biome LSP throws errors regardless of level.
-        }
+        "noUselessElse": "off" // Should be info. Biome LSP throws errors regardless of level.
       },
       "correctness": {
-        "noUnusedImports": "error"
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
       }
     }
   },
