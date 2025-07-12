@@ -133,6 +133,12 @@ export class ApiClient implements IApiClient {
     return this.#getResource('/image/workflows/latest', reference)
   }
 
+  getLogoUrl(reference: string): string | undefined {
+    const query = new URLSearchParams()
+    query.set('reference', reference)
+    return `${this.#endpoint}/image/logo?${query.toString()}`
+  }
+
   async scheduleImageScan(reference: string): Promise<void> {
     const query = new URLSearchParams({ reference })
 
@@ -168,6 +174,22 @@ export class ApiClient implements IApiClient {
 
     const resources: Record<string, unknown> = {}
 
+    // Avoid storing images, only keep external logos. Identify these by
+    // checking for redirects
+    const getLogo = async (reference: string) => {
+      const url = this.getLogoUrl(reference)
+      if (!url) {
+        return undefined
+      }
+
+      const res = await fetch(url)
+      if (res.url === url) {
+        return undefined
+      }
+
+      return res.url
+    }
+
     // The loop is a naive attempt to lower memory usage a bit
     for (let i = 0; i < pages.length; i++) {
       for (let j = 0; j < pages[i].images.length; j++) {
@@ -184,6 +206,7 @@ export class ApiClient implements IApiClient {
               this.getImageSBOM,
               this.getImageVulnerabilities,
               this.getLatestImageWorkflow,
+              getLogo,
             ].map((x) =>
               x
                 .bind(this)(reference)

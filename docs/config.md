@@ -31,6 +31,7 @@ done using environment variables.
 | `CUPDATE_OTEL_TARGET`                   | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                 | Required to use Open Telemetry.                       |
 | `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                                               |
 | `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.         | None.                                                 |
+| `CUPDATE_LOGOS_PATH`                    | Path to a directory from which to serve logo images.                                                                  | None.                                                 |
 
 ### Persistence
 
@@ -136,3 +137,27 @@ services:
     labels:
       - cupdate.config.ignore: "true"
 ```
+
+## Custom logos
+
+There is no standard way of attaching a logo to an OCI image. As such, Cupdate
+can only automatically identify logos for registries that have a well-defined
+way of exposing them. At the time of writing that means only logos found on
+Docker Hub are used automatically.
+
+If you want to have logos for other images or override existing logos you can
+put them in the directory controlled by the `CUPDATE_LOGOS_PATH` environment
+variable (defaults to `logos`). Cupdate will then look for logos that match the
+image's name. For example, place a logo for `ghcr.io/alexgustafsson/cupdate` in
+the `ghcr.io/alexgustafsson` directory and name the image `cupdate.png`.
+
+Supported extensions:
+
+- `.png`
+- `.jpg` / `.jpeg`
+- `.svg`
+- `.webp`
+
+Note that the images are cached _even if not found_. That means that when you
+add, change or remove a logo, you might have to wait for a few minutes before
+the change shows. You can also ask your browser to clean its cache.

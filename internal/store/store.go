@@ -384,6 +384,33 @@ func (s *Store) GetImage(ctx context.Context, reference string) (*models.Image, 
 	return &image, nil
 }
 
+func (s *Store) GetImageLogo(ctx context.Context, reference string) (string, error) {
+	statement, err := s.db.PrepareContext(ctx, `SELECT imageUrl FROM images WHERE reference = ?;`)
+	if err != nil {
+		return "", err
+	}
+
+	res, err := statement.QueryContext(ctx, reference)
+	statement.Close()
+	if err != nil {
+		return "", err
+	}
+
+	if !res.Next() {
+		res.Close()
+		return "", res.Err()
+	}
+
+	var url string
+	err = res.Scan(&url)
+	res.Close()
+	if err != nil {
+		return "", err
+	}
+
+	return url, nil
+}
+
 func (s *Store) GetImagesTags(ctx context.Context, reference string) ([]string, error) {
 	statement, err := s.db.PrepareContext(ctx, `SELECT tag FROM images_tags WHERE reference = ?;`)
 	if err != nil {

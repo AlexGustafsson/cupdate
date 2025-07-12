@@ -99,6 +99,10 @@ func TestStoreInsertImage(t *testing.T) {
 			ChangedLinks: true,
 		},
 	}, changes)
+
+	url, err := store.GetImageLogo(context.TODO(), expected.Reference)
+	require.NoError(t, err)
+	assert.Equal(t, expected.Image, url)
 }
 
 func TestStoreTags(t *testing.T) {

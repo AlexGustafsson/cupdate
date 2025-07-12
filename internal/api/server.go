@@ -27,18 +27,20 @@ var (
 )
 
 type Server struct {
-	api *store.Store
-	hub *events.Hub[worker.Event]
-	mux *http.ServeMux
+	api       *store.Store
+	hub       *events.Hub[worker.Event]
+	logoProxy LogoProxy
+	mux       *http.ServeMux
 
 	WebAddress string
 }
 
-func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference]) *Server {
+func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference], logoProxy LogoProxy) *Server {
 	s := &Server{
-		api: api,
-		hub: hub,
-		mux: http.NewServeMux(),
+		api:       api,
+		hub:       hub,
+		logoProxy: logoProxy,
+		mux:       http.NewServeMux(),
 	}
 
 	s.mux.HandleFunc("GET /api/v1/tags", func(w http.ResponseWriter, r *http.Request) {
@@ -274,6 +276,31 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 
 		response, err := api.GetLatestWorkflowRun(ctx, reference)
 		s.handleJSONResponse(w, r, response, err)
+	})
+
+	s.mux.HandleFunc("GET /api/v1/image/logo", func(w http.ResponseWriter, r *http.Request) {
+		_, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/logo"))
+
+		query := r.URL.Query()
+
+		reference := query.Get("reference")
+
+		ref, err := oci.ParseReference(reference)
+		if err != nil {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
+
+		err = s.logoProxy.ServeLogo(w, r, ref)
+		if err == ErrNotFound {
+			// Ask user agents to cache that the image was not found for a few minutes
+			w.Header().Set("Cache-Control", "max-age=300")
+			s.handleGenericResponse(w, r, ErrNotFound)
+		} else if err != nil {
+			s.handleGenericResponse(w, r, err)
+			return
+		}
 	})
 
 	s.mux.HandleFunc("GET /api/v1/feed.rss", func(w http.ResponseWriter, r *http.Request) {

@@ -130,7 +130,6 @@ export function ImagePage(): JSX.Element {
         <DemoWarning />
         {/* Header */}
         <ImageLogo
-          src={image.value.image}
           className="w-[90px] h-[90px] mt-4"
           reference={image.value.reference}
         />

@@ -187,6 +187,15 @@ export class DemoApiClient implements ApiClient {
     )
   }
 
+  getLogoUrl(reference: string): string | undefined {
+    // NOTE: This API is synchronous. As only the demo code requires
+    // asynchronicity, don't wait for the promise.
+    // In practice, the logo should not be retrieved before the rest of the
+    // image data has been retrieved, meaning the demo data has loaded - so we
+    // should be fine
+    return this.#dump.resources[reference]?.getLogo as string | undefined
+  }
+
   async scheduleImageScan(reference: string): Promise<void> {
     return Promise.resolve()
   }

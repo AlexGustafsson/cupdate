@@ -420,9 +420,21 @@ func main() {
 		}
 	})
 
+	logoProxy := api.CompoundProxy{
+		Proxies: []api.LogoProxy{
+			&api.LogoFSProxy{
+				FS: os.DirFS(config.Logos.Path),
+			},
+			&api.LogoHTTPProxy{
+				Client: httpClient,
+				GetURL: readStore.GetImageLogo,
+			},
+		},
+	}
+
 	mux := http.NewServeMux()
 
-	apiServer := api.NewServer(readStore, worker.Hub, processQueue)
+	apiServer := api.NewServer(readStore, worker.Hub, processQueue, logoProxy)
 	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
 	mux.Handle("/metrics", promhttp.Handler())

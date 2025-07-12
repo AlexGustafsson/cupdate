@@ -238,6 +238,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowRun"
 
+  /image/logo:
+    get:
+      summary: Returns the logo of the image or an external link to it
+      parameters:
+        - in: query
+          name: reference
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: The image's logo
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/svg+xml:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        "307":
+          description: The image is found at an external URL
+          headers:
+            Location:
+              description: The image's external URL
+        "404":
+          description: Not found
+
   /events:
     get:
       summary: Server-sent events.
