@@ -1,5 +1,5 @@
 import { describe, expect } from 'vitest'
-import { type NormalizedSeverity, compareSeverity } from './severity'
+import { compareSeverity, type NormalizedSeverity } from './severity'
 
 describe('NormalizedSeverity', (it) => {
   it('is comparable', () => {

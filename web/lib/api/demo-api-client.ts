@@ -1,7 +1,6 @@
+import DemoDataUrl from '../../public/assets/demo.json?url'
 import type { Vulnerability } from '../osv/osv'
-
 import type { ApiClient, GetImagesOptions } from './client'
-
 import type {
   Graph,
   Image,
@@ -15,8 +14,6 @@ import type {
   PaginationMetadata,
   WorkflowRun,
 } from './models'
-
-import DemoDataUrl from '../../public/assets/demo.json?url'
 
 export interface Dump {
   tags: string[]
@@ -187,7 +184,7 @@ export class DemoApiClient implements ApiClient {
     )
   }
 
-  async scheduleImageScan(reference: string): Promise<void> {
+  async scheduleImageScan(_reference: string): Promise<void> {
     return Promise.resolve()
   }
 }

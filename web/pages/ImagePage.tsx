@@ -1,18 +1,17 @@
 import { type JSX, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
-
-import { type Event, useEvents } from '../EventProvider'
 import { Badge } from '../components/Badge'
 import { DemoWarning } from '../components/DemoWarning'
 import { HTML } from '../components/HTML'
 import { ImageLogo } from '../components/ImageLogo'
 import { InfoTooltip } from '../components/InfoTooltip'
-import { Markdown } from '../components/Markdown'
-import { Toast } from '../components/Toast'
 import { FluentBookOpen16Regular } from '../components/icons/fluent-book-open-16-regular'
 import { FluentChevronDown20Regular } from '../components/icons/fluent-chevron-down-20-regular'
 import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-20-regular'
 import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
+import { Markdown } from '../components/Markdown'
+import { Toast } from '../components/Toast'
+import { type Event, useEvents } from '../EventProvider'
 import {
   useImage,
   useImageDescription,

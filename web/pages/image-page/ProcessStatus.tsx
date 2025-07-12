@@ -1,8 +1,8 @@
 import { type JSX, useCallback, useState } from 'react'
-import { useEvents } from '../../EventProvider'
 import { InfoTooltip } from '../../components/InfoTooltip'
 import { FluentArrowSync16Regular } from '../../components/icons/fluent-arrow-sync-16-regular'
 import { FluentWarning16Filled } from '../../components/icons/fluent-warning-16-filled'
+import { useEvents } from '../../EventProvider'
 import { useScheduleScan } from '../../lib/api/ApiProvider'
 import { formatRelativeTimeTo } from '../../time'
 
