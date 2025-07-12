@@ -13,7 +13,7 @@ COPY web web
 ARG CUPDATE_VERSION="development build"
 RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
-FROM --platform=${BUILDPLATFORM} golang:1.24.3@sha256:81bf5927dc91aefb42e2bc3a5abdbe9bb3bae8ba8b107e2a4cf43ce3402534c6 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.24.5@sha256:14fd8a55e59a560704e5fc44970b301d00d344e45d6b914dda228e09f359a088 AS builder
 
 WORKDIR /src
 
