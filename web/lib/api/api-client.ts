@@ -87,7 +87,8 @@ export class ApiClient implements IApiClient {
 
     if (res.status === 404) {
       return null
-    } else if (res.status !== 200) {
+    }
+    if (res.status !== 200) {
       throw new Error(`unexpected status code ${res.status}`)
     }
 

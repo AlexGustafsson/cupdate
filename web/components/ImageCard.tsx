@@ -27,7 +27,6 @@ export type ImageCardProps = {
 export function ImageCard({
   reference,
   name,
-  logo,
   currentVersion,
   fullCurrentVersion,
   latestVersion,

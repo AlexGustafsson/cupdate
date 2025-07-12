@@ -1,8 +1,8 @@
 import {
+  createContext,
   type DependencyList,
   type JSX,
   type PropsWithChildren,
-  createContext,
   use,
   useCallback,
   useEffect,
@@ -87,6 +87,7 @@ export function EventProvider({ children }: PropsWithChildren): JSX.Element {
 export function useEvents(callback: EventHandler, deps: DependencyList) {
   const context = use(EventContext)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pass list
   const memoizedCallback = useCallback(callback, deps)
 
   useEffect(() => {
