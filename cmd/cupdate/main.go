@@ -434,6 +434,10 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	}))
 
+	if config.Logos.Path != "" {
+		apiServer.LogosFS = os.DirFS(config.Logos.Path)
+	}
+
 	if !config.Web.Disabled {
 		mux.Handle("/", web.MustNewEmbeddedServer())
 	}

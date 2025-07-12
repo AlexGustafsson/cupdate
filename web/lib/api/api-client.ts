@@ -133,6 +133,12 @@ export class ApiClient implements IApiClient {
     return this.#getResource('/image/workflows/latest', reference)
   }
 
+  getLogoUrl(reference: string): string | undefined {
+    const query = new URLSearchParams()
+    query.set('reference', reference)
+    return `${this.#endpoint}/image/logo?${query.toString()}`
+  }
+
   async scheduleImageScan(reference: string): Promise<void> {
     const query = new URLSearchParams({ reference })
 

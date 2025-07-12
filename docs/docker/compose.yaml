@@ -9,6 +9,7 @@ services:
       CUPDATE_DOCKER_HOST: unix:///var/run/docker.sock
       CUPDATE_CACHE_PATH: /var/run/data/cachev1.boltdb
       CUPDATE_DB_PATH: /var/run/data/dbv1.sqlite
+      CUPDATE_LOGOS_PATH: /var/run/data/logos
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./data:/var/run/data

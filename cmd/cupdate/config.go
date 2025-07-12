@@ -78,6 +78,10 @@ type Config struct {
 	Registry struct {
 		Secrets string `env:"SECRETS"`
 	} `envPrefix:"REGISTRY_"`
+
+	Logos struct {
+		Path string `env:"PATH" envDefault:"logos"`
+	} `envPrefix:"LOGOS_"`
 }
 
 func (c *Config) LogLevel() (slog.Level, error) {

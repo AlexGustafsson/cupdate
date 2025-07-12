@@ -5,6 +5,8 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -32,6 +34,7 @@ type Server struct {
 	mux *http.ServeMux
 
 	WebAddress string
+	LogosFS    fs.FS
 }
 
 func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference]) *Server {
@@ -274,6 +277,60 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 
 		response, err := api.GetLatestWorkflowRun(ctx, reference)
 		s.handleJSONResponse(w, r, response, err)
+	})
+
+	s.mux.HandleFunc("GET /api/v1/image/logo", func(w http.ResponseWriter, r *http.Request) {
+		_, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/image/logo"))
+
+		query := r.URL.Query()
+
+		// NOTE: We could get the image from the database and download it for the
+		// user, but that would potentially open up for some security issues. For
+		// now, let the user agent deal with fetching the registry-provided images
+		reference := query.Get("reference")
+
+		ref, err := oci.ParseReference(reference)
+		if err != nil {
+			s.handleGenericResponse(w, r, ErrBadRequest)
+			return
+		}
+
+		if s.LogosFS == nil {
+			// Ask user agents to cache images (found or not) for an hour
+			w.Header().Set("Cache-Control", "public, max-age=3600, immutable")
+			s.handleGenericResponse(w, r, ErrNotFound)
+			return
+		}
+
+		extensions := []string{".png", ".jpg", ".jpeg", ".svg", ".webp"}
+		mimeTypes := []string{"image/png", "image/jpeg", "image/jpeg", "image/svg+xml", "image/webp"}
+
+		var file fs.File
+		var mimeType string
+		for i, extension := range extensions {
+			f, err := s.LogosFS.Open(ref.Name() + extension)
+			if err == nil {
+				file = f
+				mimeType = mimeTypes[i]
+				break
+			} else if !errors.Is(err, fs.ErrNotExist) {
+				s.handleGenericResponse(w, r, err)
+				return
+			}
+		}
+
+		// Ask user agents to cache images (found or not) for an hour
+		w.Header().Set("Cache-Control", "public, max-age=3600, immutable")
+
+		if file == nil {
+			s.handleGenericResponse(w, r, ErrNotFound)
+			return
+		}
+		defer file.Close()
+
+		w.Header().Set("Content-Type", mimeType)
+		io.Copy(w, file)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/feed.rss", func(w http.ResponseWriter, r *http.Request) {
