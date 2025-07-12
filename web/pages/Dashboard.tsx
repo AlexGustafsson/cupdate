@@ -1,16 +1,15 @@
 import { type JSX, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-
-import { type Event, useEvents } from '../EventProvider'
 import { DemoWarning } from '../components/DemoWarning'
 import { ImageCard } from '../components/ImageCard'
-import { Select } from '../components/Select'
-import { TagSelect } from '../components/TagSelect'
-import { Toast } from '../components/Toast'
 import { FluentAlignSpaceEvenlyVertical20Filled } from '../components/icons/fluent-align-space-evenly-vertical-20-filled'
 import { FluentAlignSpaceEvenlyVertical20Regular } from '../components/icons/fluent-align-space-evenly-vertical-20-regular'
 import { FluentGrid20Filled } from '../components/icons/fluent-grid-20-filled'
 import { FluentGrid20Regular } from '../components/icons/fluent-grid-20-regular'
+import { Select } from '../components/Select'
+import { TagSelect } from '../components/TagSelect'
+import { Toast } from '../components/Toast'
+import { type Event, useEvents } from '../EventProvider'
 import {
   useDebouncedEffect,
   useFilter,

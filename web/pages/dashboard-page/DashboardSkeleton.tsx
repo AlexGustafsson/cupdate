@@ -5,6 +5,7 @@ export function DashboardSkeleton(): JSX.Element {
   const mountedDuration = useMountedDuration()
 
   if (mountedDuration < 500) {
+    // biome-ignore lint/complexity/noUselessFragments: bail
     return <></>
   }
 

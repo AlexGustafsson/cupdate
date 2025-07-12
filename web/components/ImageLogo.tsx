@@ -1,7 +1,6 @@
 import { type JSX, useCallback, useRef, useState } from 'react'
-import { SimpleIconsOci } from './icons/simple-icons-oci'
-
 import CupdateLogoURL from '../public/assets/icon.png'
+import { SimpleIconsOci } from './icons/simple-icons-oci'
 
 export type ImageLogoProps = {
   reference: string
