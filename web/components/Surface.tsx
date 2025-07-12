@@ -42,15 +42,12 @@ export function Surface({
     }))
     setHasInteracted(true)
   }, [])
-  const onPointerUp = useCallback(
-    (e: PointerEvent) => {
-      document.removeEventListener('pointermove', onPointerMove)
+  const onPointerUp = useCallback(() => {
+    document.removeEventListener('pointermove', onPointerMove)
 
-      setIsDragging(false)
-      setHasInteracted(true)
-    },
-    [onPointerMove]
-  )
+    setIsDragging(false)
+    setHasInteracted(true)
+  }, [onPointerMove])
   const onPointerDown = useCallback(
     (e: PointerEvent) => {
       if (e.buttons !== 1) {

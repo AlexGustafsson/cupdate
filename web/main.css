@@ -13,8 +13,9 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-tap-highlight-color: transparent;
     padding-bottom: env(safe-area-inset-bottom);
-    font-family: system, -apple-system, '.SFNSText-Regular', 'San Francisco',
-      'Roboto', 'Segoe UI', 'Helvetica Neue', 'Lucida Grande', sans-serif;
+    font-family:
+      system, -apple-system, '.SFNSText-Regular', 'San Francisco', 'Roboto',
+      'Segoe UI', 'Helvetica Neue', 'Lucida Grande', sans-serif;
   }
 
   input:focus,

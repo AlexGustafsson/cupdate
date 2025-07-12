@@ -334,9 +334,9 @@ export function compareTags(
 
   if (aSort > bSort) {
     return -1
-  } else if (aSort < bSort) {
-    return 1
-  } else {
-    return a.localeCompare(b)
   }
+  if (aSort < bSort) {
+    return 1
+  }
+  return a.localeCompare(b)
 }

@@ -37,11 +37,13 @@ export function version(reference: string): string {
   // For now, if both a tag and a digest is specified - show only the tag
   if (result.tag.length > 0) {
     return result.tag
-  } else if (result.digest.length > 0) {
-    return result.digest
-  } else {
-    return 'latest'
   }
+
+  if (result.digest.length > 0) {
+    return result.digest
+  }
+
+  return 'latest'
 }
 
 /**
@@ -60,11 +62,13 @@ export function fullVersion(reference: string): string {
     }
 
     return result.digest
-  } else if (result.tag.length > 0) {
-    return result.tag
-  } else {
-    return 'latest'
   }
+
+  if (result.tag.length > 0) {
+    return result.tag
+  }
+
+  return 'latest'
 }
 
 /** Name returns the name of the reference. I.e. its registry and path combo. */

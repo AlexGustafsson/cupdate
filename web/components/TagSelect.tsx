@@ -7,7 +7,7 @@ import {
 } from 'react'
 
 import type { Filter } from '../hooks'
-import { type Tag, compareTags } from '../tags'
+import { compareTags, type Tag } from '../tags'
 import { Badge } from './Badge'
 
 const IOS = [
@@ -127,7 +127,6 @@ export function TagSelect({
         }
       }}
       role="menu"
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: custom dropdown
       tabIndex={0}
       className={`pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:bg-[#f5f5f5] dark:focus:bg-[#262626] focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-xs bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer ${className || ''}`}
     >

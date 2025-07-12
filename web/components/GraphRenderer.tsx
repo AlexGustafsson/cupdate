@@ -49,12 +49,15 @@ export function GraphRenderer<T>({
       <Surface>
         <div
           className="relative"
+          role="tree"
           style={{ width: `${width}px`, height: `${height}px` }}
         >
           <EdgeRenderer edges={edges} direction={direction} />
           {nodes.map((node) => (
             // biome-ignore lint/a11y/useKeyWithClickEvents: Nodes cannot be focused using keyboard
+            // biome-ignore lint/a11y/useFocusableInteractive: Nodes cannot be focused using keyboard
             <div
+              role="treeitem"
               key={node.id}
               className="absolute"
               onClick={() => onNodeClick?.(node)}

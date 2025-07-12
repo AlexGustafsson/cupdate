@@ -19,6 +19,7 @@ export function DemoWarning(): JSX.Element {
   }, [showDemoWarning])
 
   if (!showDemoWarning) {
+    // biome-ignore lint/complexity/noUselessFragments: bail
     return <></>
   }
 

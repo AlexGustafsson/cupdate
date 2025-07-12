@@ -1,17 +1,7 @@
-import {
-  type JSX,
-  type ReactNode,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { type JSX, useCallback, useMemo, useRef, useState } from 'react'
 import { DependencyGraphNode } from '../../components/DependencyGraphNode'
 import { GraphRenderer } from '../../components/GraphRenderer'
 import { FluentBranch16Regular } from '../../components/icons/fluent-branch-16-regular'
-import { SimpleIconsDocker } from '../../components/icons/simple-icons-docker'
-import { SimpleIconsKubernetes } from '../../components/icons/simple-icons-kubernetes'
-import { SimpleIconsOci } from '../../components/icons/simple-icons-oci'
 import { useGraphLayout } from '../../graph'
 import type { Graph, GraphNode } from '../../lib/api/models'
 import { parse } from '../../oci'
@@ -56,18 +46,6 @@ type GraphNodeProps = {
 }
 
 function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
-  let label: ReactNode
-  switch (graphNode?.domain) {
-    case 'oci':
-      label = <SimpleIconsOci className="text-blue-400" />
-      break
-    case 'kubernetes':
-      label = <SimpleIconsKubernetes className="text-blue-400" />
-      break
-    case 'docker':
-      label = <SimpleIconsDocker className="text-blue-500" />
-  }
-
   const oci =
     graphNode?.domain === 'oci' && graphNode.type === 'image'
       ? parse(graphNode.name)
