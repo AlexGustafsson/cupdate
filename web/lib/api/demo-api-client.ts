@@ -187,6 +187,10 @@ export class DemoApiClient implements ApiClient {
     )
   }
 
+  getLogoUrl(reference: string): string | undefined {
+    return undefined
+  }
+
   async scheduleImageScan(reference: string): Promise<void> {
     return Promise.resolve()
   }

@@ -28,6 +28,7 @@ export interface ApiClient {
   getImageSBOM(reference: string): Promise<ImageSBOM | null>
   getImageVulnerabilities(reference: string): Promise<Vulnerability[] | null>
   getLatestImageWorkflow(reference: string): Promise<WorkflowRun | null>
+  getLogoUrl(reference: string): string | undefined
   scheduleImageScan(reference: string): Promise<void>
 }
 
