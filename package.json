@@ -14,7 +14,7 @@
     "dompurify": "3.2.6",
     "elkjs": "0.10.0",
     "github-markdown-css": "5.8.1",
-    "marked": "15.0.12",
+    "marked": "16.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-router-dom": "7.6.3"
