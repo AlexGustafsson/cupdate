@@ -77,7 +77,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/erikvarga/go-rpmdb v0.0.0-20250523120114-a15a62cd4593 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
+	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/go-git/go-git/v5 v5.16.2 // indirect
@@ -128,7 +128,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
 	github.com/opencontainers/selinux v1.12.0 // indirect
-	github.com/ossf/osv-schema/bindings/go v0.0.0-20250701001340-180f03cc6901 // indirect
+	github.com/ossf/osv-schema/bindings/go v0.0.0-20250715064423-7310c9ec4b2a // indirect
 	github.com/owenrumney/go-sarif/v3 v3.2.1 // indirect
 	github.com/package-url/packageurl-go v0.1.3 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
@@ -201,7 +201,7 @@ require (
 	modernc.org/libc v1.66.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	osv.dev/bindings/go v0.0.0-20250711005142-008c9112d045 // indirect
+	osv.dev/bindings/go v0.0.0-20250715014551-7102b14a4e5f // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0 // indirect
