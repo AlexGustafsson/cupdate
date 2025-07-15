@@ -184,7 +184,9 @@ export class ApiClient implements IApiClient {
 
       const res = await fetch(url)
       if (res.url === url) {
-        return undefined
+        // Try to keep the third-party URL of the image
+        const image = await this.getImage(reference)
+        return image?.image
       }
 
       return res.url
