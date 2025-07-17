@@ -9,20 +9,6 @@ export type VulnerabilitiesCardProps = {
   vulnerabilities: Vulnerability[]
 }
 
-function unique<T>(previousValue: T[], currentValue: T): T[] {
-  if (previousValue.includes(currentValue)) {
-    return previousValue
-  }
-
-  previousValue.push(currentValue)
-  return previousValue
-}
-
-function flattened<T>(previousValue: T[], currentValue: T[]): T[] {
-  previousValue.push(...currentValue)
-  return previousValue
-}
-
 type VulnerabilityCount = {
   critical: number
   high: number

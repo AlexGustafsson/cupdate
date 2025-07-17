@@ -127,7 +127,6 @@ export function useDebouncedEffect(
 ) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: effect should not be changed
   useEffect(() => {
     if (timeoutRef.current !== null) {
       clearTimeout(timeoutRef.current)
@@ -138,6 +137,7 @@ export function useDebouncedEffect(
       effect()
       timeoutRef.current = null
     }, 200)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: effect should not be changed
   }, deps)
 }
 
