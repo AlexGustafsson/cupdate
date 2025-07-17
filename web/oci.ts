@@ -38,9 +38,11 @@ export function version(reference: string): string {
   if (result.tag.length > 0) {
     return result.tag
   }
+
   if (result.digest.length > 0) {
     return result.digest
   }
+
   return 'latest'
 }
 
@@ -61,9 +63,11 @@ export function fullVersion(reference: string): string {
 
     return result.digest
   }
+
   if (result.tag.length > 0) {
     return result.tag
   }
+
   return 'latest'
 }
 
