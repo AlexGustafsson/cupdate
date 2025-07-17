@@ -1,12 +1,11 @@
 import type { JSX } from 'react'
 import { useMountedDuration } from '../../hooks/useMountedDuration'
 
-export function ImageSkeleton(): JSX.Element {
+export function ImageSkeleton(): JSX.Element | null {
   const mountedDuration = useMountedDuration()
 
   if (mountedDuration < 500) {
-    // biome-ignore lint/complexity/noUselessFragments: bail
-    return <></>
+    return null
   }
 
   return (

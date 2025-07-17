@@ -2,7 +2,7 @@ import { type JSX, useEffect, useState } from 'react'
 import { FluentDismiss16Regular } from './icons/fluent-dismiss-16-regular'
 import { FluentInfo16Regular } from './icons/fluent-info-16-regular'
 
-export function DemoWarning(): JSX.Element {
+export function DemoWarning(): JSX.Element | null {
   const [showDemoWarning, setShowDemoWarning] = useState(() => {
     const item = sessionStorage.getItem('showDemoWarning')
     if (item) {
@@ -19,8 +19,7 @@ export function DemoWarning(): JSX.Element {
   }, [showDemoWarning])
 
   if (!showDemoWarning) {
-    // biome-ignore lint/complexity/noUselessFragments: bail
-    return <></>
+    return null
   }
 
   return (
