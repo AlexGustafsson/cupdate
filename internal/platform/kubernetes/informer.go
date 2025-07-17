@@ -238,7 +238,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 			// Therefore ignore references without digests and assume that we'll get
 			// them soon, with a digest
 			if !ref.HasDigest {
-				slog.DebugContext(ctx, "Ignoring reference without digest", slog.String("reference", ref.Reference()), slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
+				slog.DebugContext(ctx, "Ignoring reference without digest", slog.String("image", ref.String()), slog.String("pod", pod.Name), slog.String("container", containerSpec.Name))
 				continue
 			}
 
