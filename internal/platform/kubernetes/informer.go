@@ -206,7 +206,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		for _, node := range nodes {
 			if node.Name == pod.Spec.NodeName {
 				nodeResource = resource{
-					id:     fmt.Sprintf("kubernetes/host/%s", node.Name),
+					id:     fmt.Sprintf("kubernetes/%s", node.UID),
 					kind:   ResourceKindCoreV1Node,
 					name:   node.Name,
 					labels: nil,
