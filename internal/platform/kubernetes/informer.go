@@ -288,20 +288,50 @@ func (g *InformerGrapher) onEvent(isInitialList bool) {
 
 // OnAdd implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnAdd(object any, isInitialList bool) {
+	log := slog.Default()
+
+	resource, ok := mapAnyToResource(object)
+	if ok {
+		log = log.With(
+			slog.String("resourceType", resource.Type()),
+			slog.String("resourceName", resource.Name()),
+		)
+	}
+
 	if !isInitialList {
-		slog.Debug("Kubernetes resource added", slog.String("type", fmt.Sprintf("%+T", object)))
+		log.Debug("Kubernetes resource added")
 	}
 	g.onEvent(isInitialList)
 }
 
 // OnUpdate implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnUpdate(oldObject any, newObject any) {
-	slog.Debug("Kubernetes resource updated", slog.String("type", fmt.Sprintf("%+T", oldObject)))
+	log := slog.Default()
+
+	resource, ok := mapAnyToResource(newObject)
+	if ok {
+		log = log.With(
+			slog.String("resourceType", resource.Type()),
+			slog.String("resourceName", resource.Name()),
+		)
+	}
+
+	log.Debug("Kubernetes resource updated")
 	g.onEvent(false)
 }
 
 // OnDelete implements cache.ResourceEventHandler.
 func (g *InformerGrapher) OnDelete(object any) {
-	slog.Debug("Kubernetes resource deleted", slog.String("type", fmt.Sprintf("%+T", object)))
+	log := slog.Default()
+
+	resource, ok := mapAnyToResource(object)
+	if ok {
+		log = log.With(
+			slog.String("resourceType", resource.Type()),
+			slog.String("resourceName", resource.Name()),
+		)
+	}
+
+	log.Debug("Kubernetes resource deleted")
 	g.onEvent(false)
 }

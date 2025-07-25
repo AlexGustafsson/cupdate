@@ -118,57 +118,8 @@ func addObjectToGraph(graph platform.Graph, nodeResource resource, resources map
 }
 
 func mapObjectToResource(object v1.Object) resource {
-	switch o := object.(type) {
-	case *appsv1.Deployment:
-		return resource{
-			kind:   ResourceKindAppsV1Deployment,
-			id:     fmt.Sprintf("kubernetes/%s", o.UID),
-			name:   o.Name,
-			labels: maps.Clone(o.Labels),
-		}
-	case *appsv1.DaemonSet:
-		return resource{
-			kind:   ResourceKindAppsV1DaemonSet,
-			id:     fmt.Sprintf("kubernetes/%s", o.UID),
-			name:   o.Name,
-			labels: maps.Clone(o.Labels),
-		}
-	case *appsv1.ReplicaSet:
-		return resource{
-			kind:   ResourceKindAppsV1ReplicaSet,
-			id:     fmt.Sprintf("kubernetes/%s", o.UID),
-			name:   o.Name,
-			labels: maps.Clone(o.Labels),
-		}
-	case *appsv1.StatefulSet:
-		return resource{
-			kind:   ResourceKindAppsV1StatefulSet,
-			id:     fmt.Sprintf("kubernetes/%s", o.UID),
-			name:   o.Name,
-			labels: maps.Clone(o.Labels),
-		}
-	case *batchv1.CronJob:
-		return resource{
-			kind:   ResourceKindBatchV1CronJob,
-			id:     fmt.Sprintf("kubernetes/%s", o.UID),
-			name:   o.Name,
-			labels: maps.Clone(o.Labels),
-		}
-	case *batchv1.Job:
-		return resource{
-			kind:   ResourceKindBatchV1Job,
-			id:     fmt.Sprintf("kubernetes/%s", o.UID),
-			name:   o.Name,
-			labels: maps.Clone(o.Labels),
-		}
-	case *corev1.Pod:
-		return resource{
-			kind:   ResourceKindCoreV1Pod,
-			id:     fmt.Sprintf("kubernetes/%s", o.UID),
-			name:   o.Name,
-			labels: maps.Clone(o.Labels),
-		}
-	default:
+	r, ok := mapAnyToResource(object)
+	if !ok {
 		// The object is not something common that we support, return a catch all
 		// resource
 		return resource{
@@ -176,5 +127,67 @@ func mapObjectToResource(object v1.Object) resource {
 			id:   fmt.Sprintf("kubernetes/%s", object.GetUID()),
 			name: object.GetName(),
 		}
+	}
+
+	return r
+}
+
+// mapAnyToResource maps any value to a resource, returning whether or not the
+// mapping was successful. If possible, use [mapObjectToResource] instead.
+// This is manly useful when implementing the [cache.ResourceEventHandler]
+// interface.
+func mapAnyToResource(object any) (resource, bool) {
+	switch o := object.(type) {
+	case *appsv1.Deployment:
+		return resource{
+			kind:   ResourceKindAppsV1Deployment,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	case *appsv1.DaemonSet:
+		return resource{
+			kind:   ResourceKindAppsV1DaemonSet,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	case *appsv1.ReplicaSet:
+		return resource{
+			kind:   ResourceKindAppsV1ReplicaSet,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	case *appsv1.StatefulSet:
+		return resource{
+			kind:   ResourceKindAppsV1StatefulSet,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	case *batchv1.CronJob:
+		return resource{
+			kind:   ResourceKindBatchV1CronJob,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	case *batchv1.Job:
+		return resource{
+			kind:   ResourceKindBatchV1Job,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	case *corev1.Pod:
+		return resource{
+			kind:   ResourceKindCoreV1Pod,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	default:
+		return resource{}, false
 	}
 }
