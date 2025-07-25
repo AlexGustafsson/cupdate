@@ -24,7 +24,7 @@ type InformerGrapher struct {
 	clientset       *kubernetes.Clientset
 	informerFactory informers.SharedInformerFactory
 
-	events chan struct{}
+	events chan time.Time
 	ch     chan platform.Graph
 
 	close chan struct{}
@@ -73,15 +73,24 @@ func (g *InformerGrapher) Start() {
 	defer g.mutex.Unlock()
 
 	g.ch = make(chan platform.Graph)
-	g.events = make(chan struct{})
+	g.events = make(chan time.Time)
 	g.close = make(chan struct{})
 
 	// Handle events and produce graphs
 	go func() {
 		defer close(g.ch)
 
-		for range g.events {
+		var lastRun time.Time
+		for eventTime := range g.events {
+			// We've already created a graph after the event was emitted
+			if eventTime.Before(lastRun) {
+				slog.Debug("Got old informer event from Kubernetes, ignoring")
+				continue
+			}
+
 			slog.Debug("Got informer event from Kubernetes, graphing")
+			lastRun = time.Now()
+
 			// TODO: Make the timeout configurable? 30s should be plenty, but who
 			// knows
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -99,7 +108,7 @@ func (g *InformerGrapher) Start() {
 	// Trigger once after sync
 	go func() {
 		g.informerFactory.WaitForCacheSync(g.close)
-		g.events <- struct{}{}
+		g.events <- time.Now()
 	}()
 
 	g.informerFactory.Start(g.close)
@@ -283,7 +292,7 @@ func (g *InformerGrapher) onEvent(isInitialList bool) {
 		return
 	}
 
-	g.events <- struct{}{}
+	g.events <- time.Now()
 }
 
 // OnAdd implements cache.ResourceEventHandler.
@@ -296,6 +305,8 @@ func (g *InformerGrapher) OnAdd(object any, isInitialList bool) {
 			slog.String("resourceType", resource.Type()),
 			slog.String("resourceName", resource.Name()),
 		)
+	} else {
+		log = log.With(slog.String("resourceType", fmt.Sprintf("unknown (%T)", object)))
 	}
 
 	if !isInitialList {
@@ -314,6 +325,8 @@ func (g *InformerGrapher) OnUpdate(oldObject any, newObject any) {
 			slog.String("resourceType", resource.Type()),
 			slog.String("resourceName", resource.Name()),
 		)
+	} else {
+		log = log.With(slog.String("resourceType", fmt.Sprintf("unknown (%T)", newObject)))
 	}
 
 	log.Debug("Kubernetes resource updated")
@@ -330,6 +343,8 @@ func (g *InformerGrapher) OnDelete(object any) {
 			slog.String("resourceType", resource.Type()),
 			slog.String("resourceName", resource.Name()),
 		)
+	} else {
+		log = log.With(slog.String("resourceType", fmt.Sprintf("unknown (%T)", object)))
 	}
 
 	log.Debug("Kubernetes resource deleted")
