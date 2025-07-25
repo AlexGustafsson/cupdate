@@ -180,6 +180,20 @@ func mapAnyToResource(object any) (resource, bool) {
 			name:   o.Name,
 			labels: maps.Clone(o.Labels),
 		}, true
+	case *corev1.Node:
+		return resource{
+			kind:   ResourceKindCoreV1Node,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
+	case *corev1.Namespace:
+		return resource{
+			kind:   ResourceKindCoreV1Namespace,
+			id:     fmt.Sprintf("kubernetes/%s", o.UID),
+			name:   o.Name,
+			labels: maps.Clone(o.Labels),
+		}, true
 	case *corev1.Pod:
 		return resource{
 			kind:   ResourceKindCoreV1Pod,
