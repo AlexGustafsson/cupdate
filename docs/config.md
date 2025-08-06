@@ -162,3 +162,13 @@ Supported extensions:
 Note that the images are cached _even if not found_. That means that when you
 add, change or remove a logo, you might have to wait for a few minutes before
 the change shows. You can also ask your browser to clean its cache.
+
+## Adding additional trusted certificates
+
+When using Cupdate with self-hosted OCI registries served using TLS, it's
+required to configure trust in the certificates in use. This is most commonly
+done by trusting the root CA.
+
+Adding a certificate is done by mounting it to the `/etc/ssl/certs` directory
+inside of Cupdate's container. The name of the file does not matter. How this is
+done differs depending on the platform in use.
