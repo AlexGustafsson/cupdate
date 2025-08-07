@@ -172,3 +172,9 @@ done by trusting the root CA.
 Adding a certificate is done by mounting it to the `/etc/ssl/certs` directory
 inside of Cupdate's container. The name of the file does not matter. How this is
 done differs depending on the platform in use.
+
+Note that the directory contains a default set of certificates in
+`ca-certificates.crt`. When mounting additional certificates, it must be done
+without affecting this file. In both Docker and Kubernetes, that means mounting
+the additional certificates file-by-file to a specific path in the directory as
+mounting the whole directory could override the file.
