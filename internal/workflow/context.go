@@ -31,7 +31,7 @@ type Context struct {
 	// Example:
 	//   ctx.Outputs["step.getManifests.manifests"]
 	//   ctx.Outputs["jobs.oci.step.getManifests.manifests"]
-	Outputs map[string]any
+	Outputs *Map[string, any]
 
 	// Error holds any current error of the context.
 	Error error

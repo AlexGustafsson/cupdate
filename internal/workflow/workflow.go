@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"maps"
 	"slices"
 	"sync"
 	"time"
@@ -39,8 +38,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 
 	errs := make([]error, len(w.Jobs))
 
-	var mutex sync.Mutex
-	outputs := make(map[string]any)
+	outputs := NewMap[string, any]()
 
 	done := make([]chan struct{}, len(w.Jobs))
 	for i := range w.Jobs {
@@ -125,8 +123,6 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 				}
 			}
 
-			// TODO: This can race, mitigated through clone
-			mutex.Lock()
 			ctx := Context{
 				Context: ctx,
 
@@ -135,9 +131,8 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 				Job:         job,
 				JobIndex:    i,
 
-				Outputs: maps.Clone(outputs),
+				Outputs: outputs.Clone(),
 			}
-			mutex.Unlock()
 
 			started := time.Now()
 			ctx, err := job.Run(ctx)
@@ -157,13 +152,11 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 
 			workflowRun.Jobs[i].Result = models.JobRunResultSucceeded
 
-			mutex.Lock()
 			if job.ID != "" {
-				for k, v := range ctx.Outputs {
-					outputs["job."+job.ID+"."+k] = v
+				for k, v := range ctx.Outputs.Iter() {
+					outputs.Set("job."+job.ID+"."+k, v)
 				}
 			}
-			mutex.Unlock()
 		}()
 	}
 
