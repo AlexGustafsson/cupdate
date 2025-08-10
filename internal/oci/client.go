@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"slices"
@@ -499,6 +500,32 @@ func (c *Client) getTags(ctx context.Context, ref Reference, options *GetTagsOpt
 	tags := page.Tags
 
 	return tags, req.URL, res.Header.Get("Link"), nil
+}
+
+func (c *Client) GetReferrers(ctx context.Context, ref Reference, digest string) ([]string, error) {
+	ref = c.rewriteReference(ref)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/referrers/%s", ref.Domain, ref.Path, digest), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept", "application/vnd.oci.image.manifest.v1+json")
+
+	// TODO: Support pagination via the Link header
+	res, err := c.DoCached(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := assertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
+	}
+
+	x, _ := io.ReadAll(res.Body)
+	fmt.Printf("%s\n", x)
+
+	return nil, nil
 }
 
 // rewriteReference rewrites ref to handle caveats like Docker's registry not
