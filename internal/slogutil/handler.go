@@ -30,9 +30,22 @@ func (h *Handler) Enabled(ctx context.Context, level slog.Level) bool {
 
 // Handle implements slog.Handler.
 func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
+	// Add otel semconv trace id attribute
 	span := trace.SpanContextFromContext(ctx)
 	if span.HasTraceID() {
 		record.AddAttrs(slog.String("traceId", span.TraceID().String()))
+	}
+
+	// Add otel semconv code attributes based on the source of the log
+	if source := record.Source(); source != nil && source.File != "" {
+		record.AddAttrs(slog.String("code.filepath", source.File))
+		// Line is 1-based
+		if source.Line != 0 {
+			record.AddAttrs(slog.Int("code.lineno", source.Line))
+		}
+		if source.Function != "" {
+			record.AddAttrs(slog.String("code.function", source.Function))
+		}
 	}
 
 	return h.handler.Handle(ctx, record)
