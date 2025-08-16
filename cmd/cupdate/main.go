@@ -456,7 +456,7 @@ func main() {
 
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", config.API.Address, config.API.Port),
-		Handler: mux,
+		Handler: http.NewCrossOriginProtection().Handler(mux),
 	}
 
 	wg.Go(func() error {
