@@ -88,9 +88,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 		job := w.Jobs[i]
 		log := log.With(slog.String("job", job.Name))
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			defer close(done[i])
 
 			if len(job.DependsOn) > 0 {
@@ -164,7 +162,7 @@ func (w Workflow) Run(ctx context.Context) (models.WorkflowRun, error) {
 				}
 			}
 			mutex.Unlock()
-		}()
+		})
 	}
 
 	wg.Wait()

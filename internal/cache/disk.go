@@ -74,10 +74,7 @@ func NewDiskCache(path string) (*DiskCache, error) {
 		return nil, err
 	}
 
-	cache.wg.Add(1)
-	go func() {
-		defer cache.wg.Done()
-
+	cache.wg.Go(func() {
 		ticker := time.NewTicker(30 * time.Minute)
 		defer ticker.Stop()
 
@@ -99,7 +96,7 @@ func NewDiskCache(path string) (*DiskCache, error) {
 				return
 			}
 		}
-	}()
+	})
 
 	return cache, nil
 }

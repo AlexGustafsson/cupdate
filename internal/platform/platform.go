@@ -227,11 +227,9 @@ func (g *CompoundGrapher) Graph(ctx context.Context) (Graph, error) {
 	// issues
 	var wg sync.WaitGroup
 	for i, grapher := range g.Graphers {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			graphs[i], errs[i] = grapher.Graph(ctx)
-		}()
+		})
 	}
 	wg.Wait()
 
