@@ -38,13 +38,13 @@ func (h *Handler) Handle(ctx context.Context, record slog.Record) error {
 
 	// Add otel semconv code attributes based on the source of the log
 	if source := record.Source(); source != nil && source.File != "" {
-		record.AddAttrs(slog.String("code.filepath", source.File))
+		record.AddAttrs(slog.String("code.file.path", source.File))
 		// Line is 1-based
 		if source.Line != 0 {
-			record.AddAttrs(slog.Int("code.lineno", source.Line))
+			record.AddAttrs(slog.Int("code.line.number", source.Line))
 		}
 		if source.Function != "" {
-			record.AddAttrs(slog.String("code.function", source.Function))
+			record.AddAttrs(slog.String("code.function.name", source.Function))
 		}
 	}
 
