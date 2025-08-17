@@ -21,7 +21,7 @@ namespace: cupdate
 
 images:
   - name: ghcr.io/alexgustafsson/cupdate
-    newTag: 0.21.1
+    newTag: 0.21.2
 
 resources:
   - namespace.yml
@@ -49,7 +49,7 @@ Let's say you have a compose file like the one below.
 # compose.yaml
 services:
   cupdate:
-    image: ghcr.io/alexgustafsson/cupdate:0.21.1
+    image: ghcr.io/alexgustafsson/cupdate:0.21.2
 ```
 
 You can then use a script like

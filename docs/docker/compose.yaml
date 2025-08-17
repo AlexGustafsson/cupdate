@@ -2,7 +2,7 @@
 # docs/docker/README.md and docs/config.md for more information
 services:
   cupdate:
-    image: ghcr.io/alexgustafsson/cupdate:0.21.1
+    image: ghcr.io/alexgustafsson/cupdate:0.21.2
     ports:
       - 8080:8080
     environment:

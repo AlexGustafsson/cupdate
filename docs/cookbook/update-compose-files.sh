@@ -4,7 +4,7 @@
 # so:
 # services:
 #   cupdate:
-#     image: ghcr.io/alexgustafsson/cupdate:0.21.1
+#     image: ghcr.io/alexgustafsson/cupdate:0.21.2
 #
 # For all such images, the script will perform a lookup towards Cupdate's API to
 # find the latest image and update the manifest in-place if the user whishes to
@@ -40,7 +40,7 @@ while read -r composeFile; do
   # For each image reference tag replacement found in the compose file, such as
   # services:
   #   cupdate:
-  #     image: ghcr.io/alexgustafsson/cupdate:0.21.1
+  #     image: ghcr.io/alexgustafsson/cupdate:0.21.2
   while read -r reference; do
     if [[ -z "$reference" ]]; then
       continue
