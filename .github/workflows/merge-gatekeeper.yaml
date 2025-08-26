@@ -1,0 +1,51 @@
+name: Merge Gatekeeper
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  merge-gatekeeper:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+    steps:
+      - name: Merge Gatekeeper
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea #v7.0.1
+        with:
+          script: |
+            while (true) {
+              // TODO: Doesn't work with pagination using github.paginate.iterator
+              // - the result is always empty. Without pagination, this should
+              // still be good for some hundred checks
+              const res = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: context.ref,
+              })
+
+              if (res.status !== 200) {
+                core.setFailed(`Failed to get check statues`)
+                break
+              }
+
+              const waiting = res.data.check_runs.filter((run) => run.status !== 'completed').length
+              const failed = res.data.check_runs.filter((run) =>
+                run.conclusion !== 'success' && run.conclusion !== 'neutral' && run.conclusion !== 'skipped'
+              ).length
+              core.debug(
+                `There are at least ${waiting} waiting and ${failed} failed runs`
+              )
+
+              if (failed > 0) {
+                core.setFailed('One or more actions failed')
+                break
+              }
+
+              if (res.data.check_runs.length === 0 || waiting > 0) {
+                core.debug('Waiting for all actions to complete')
+                await new Promise((resolve) => setTimeout(resolve, 10000))
+                continue
+              }
+            }
