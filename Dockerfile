@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} node:22.18.0@sha256:3218f0d1b9e4b63def322e9ae362d581fbeac1ef21b51fc502ef91386667ce92 AS web-builder
+FROM --platform=${BUILDPLATFORM} node:22.19.0@sha256:6fe286835c595e53cdafc4889e9eff903dd3008a3050c1675809148d8e0df805 AS web-builder
 
 WORKDIR /src
 
@@ -13,7 +13,7 @@ COPY web web
 ARG CUPDATE_VERSION="development build"
 RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
-FROM --platform=${BUILDPLATFORM} golang:1.25.0@sha256:9e56f0d0f043a68bb8c47c819e47dc29f6e8f5129b8885bed9d43f058f7f3ed6 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.25.0@sha256:5502b0e56fca23feba76dbc5387ba59c593c02ccc2f0f7355871ea9a0852cebe AS builder
 
 WORKDIR /src
 
