@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - workflows/zizmor.yaml
+      - workflows/**/*.yaml
   pull_request:
     branches:
       - main
+    paths:
+      - workflows/zizmor.yaml
+      - workflows/**/*.yaml
 
 permissions: {}
 
