@@ -62,6 +62,15 @@ func TestGetVulnerabilities(t *testing.T) {
 				{
 					ID:               "CVE-2023-45918",
 					DatabaseSpecific: map[string]any{"severity": "LOW"},
+					Affected: []osv.Affected{
+						{
+							Package: &osv.AffectedPackage{
+								Ecosystem: "apk",
+								Name:      "busybox",
+								Purl:      "pkg:apk/alpine/busybox@1.37.0-r18?os_name=alpine&os_version=3.22",
+							},
+						},
+					},
 					References: []osv.Reference{
 						{
 							Type: "WEB",
@@ -74,6 +83,15 @@ func TestGetVulnerabilities(t *testing.T) {
 				{
 					ID:               "CVE-2023-50495",
 					DatabaseSpecific: map[string]any{"severity": "LOW"},
+					Affected: []osv.Affected{
+						{
+							Package: &osv.AffectedPackage{
+								Ecosystem: "apk",
+								Name:      "busybox",
+								Purl:      "pkg:apk/alpine/busybox@1.37.0-r18?os_name=alpine&os_version=3.22",
+							},
+						},
+					},
 					References: []osv.Reference{
 						{
 							Type: "WEB",
@@ -174,6 +192,7 @@ func TestGetVulnerabilities(t *testing.T) {
 			// the current time
 			for i := range actual {
 				actual[i].Modified = time.Time{}
+				actual[i].Published = nil
 			}
 
 			if testCase.Error {

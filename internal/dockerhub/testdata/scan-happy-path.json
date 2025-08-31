@@ -12,6 +12,14 @@
           },
           {
             "package": {
+              "purl": "pkg:apk/alpine/busybox@1.37.0-r18?os_name=alpine&os_version=3.22",
+              "purlFields": {
+                "name": "busybox",
+                "namespace": "alpine",
+                "type": "apk",
+                "version": "1.37.0-r18",
+                "qualifiers": "os_name=alpine&os_version=3.22"
+              },
               "vulnerabilities": [
                 {
                   "sourceId": "CVE-2023-45918",

@@ -40,6 +40,13 @@ func TestGetVulnerabilities(t *testing.T) {
 				{
 					ID:      "CVE-2020-11023",
 					Summary: "A flaw was found in jQuery. HTML containing \\<option\\> elements from untrusted sources are passed, even after sanitizing, to one of jQuery's DOM manipulation methods, which may execute untrusted code. The highest threat from this vulnerability is to data confidentiality and integrity.",
+					Affected: []osv.Affected{
+						{
+							Package: &osv.AffectedPackage{
+								Name: "libgomp",
+							},
+						},
+					},
 					References: []osv.Reference{
 						{
 							Type: osv.ReferenceTypeWeb,

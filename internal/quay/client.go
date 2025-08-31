@@ -48,6 +48,7 @@ func (c *Client) GetVulnerabilities(ctx context.Context, reference oci.Reference
 			Layer struct {
 				Features []struct {
 					Name            string
+					NamespaceName   string
 					AddedBy         string
 					Version         string
 					Vulnerabilities []struct {
@@ -102,10 +103,24 @@ func (c *Client) GetVulnerabilities(ctx context.Context, reference oci.Reference
 				databaseSpecific["severity"] = severity
 			}
 
+			name := feature.Name
+			if feature.NamespaceName != "" {
+				name = feature.NamespaceName + "/" + name
+			}
+
+			affected := []osv.Affected{
+				{
+					Package: &osv.AffectedPackage{
+						Name: name,
+					},
+				},
+			}
+
 			vulnerabilities = append(vulnerabilities, osv.Vulnerability{
 				ID:               vulnerability.Name,
 				Modified:         time.Now(), // TODO: Is there a better time to use?
 				Summary:          vulnerability.Description,
+				Affected:         affected,
 				References:       references,
 				DatabaseSpecific: databaseSpecific,
 			})

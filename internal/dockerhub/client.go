@@ -76,7 +76,7 @@ func (c *Client) GetOrganizationOrUser(ctx context.Context, organizationOrUser s
 // Returns nil if the results are inconclusive or an SBOM was not found.
 func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest string) ([]osv.Vulnerability, error) {
 	body, err := json.Marshal(map[string]any{
-		"query": `query imagePackagesForImageCoords($v1:Context!,$v2:IpImagePackagesForImageCoordsQuery!){imagePackagesForImageCoords(context:$v1,query:$v2){digest,sbomState,imagePackages{packages{package{vulnerabilities{sourceId,description,url,cvss{score,severity}}}}}}}`,
+		"query": `query imagePackagesForImageCoords($v1:Context!,$v2:IpImagePackagesForImageCoordsQuery!){imagePackagesForImageCoords(context:$v1,query:$v2){digest,sbomState,imagePackages{packages{package{purl,purlFields{name,namespace,type,version,qualifiers},vulnerabilities{sourceId,publishedAt,description,url,cvss{score,severity}}}}}}}`,
 		"variables": map[string]any{
 			"v1": map[string]any{},
 			"v2": map[string]any{
@@ -117,10 +117,18 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 				ImagePackages struct {
 					Packages []struct {
 						Package struct {
+							PURL       string `json:"purl"`
+							PURLFields struct {
+								Name      string `json:"name"`
+								Namespace string `json:"namespace"`
+								Type      string `json:"type"`
+								Version   string `json:"version"`
+							} `json:"purlFields"`
 							Vulnerabilities []struct {
-								SourceID    string `json:"sourceId"`
-								Description string `json:"description"`
-								URL         string `json:"url"`
+								SourceID    string    `json:"sourceId"`
+								PublishedAt time.Time `json:"publishedAt"`
+								Description string    `json:"description"`
+								URL         string    `json:"url"`
 								CVSS        struct {
 									Score    *float32 `json:"score"`
 									Severity string   `json:"severity"`
@@ -182,10 +190,29 @@ func (c *Client) GetVulnerabilities(ctx context.Context, repo string, digest str
 				}
 			}
 
+			affected := make([]osv.Affected, 0)
+			if pkg.Package.PURL != "" {
+				affected = append(affected, osv.Affected{
+					Package: &osv.AffectedPackage{
+						Ecosystem: pkg.Package.PURLFields.Type,
+						Purl:      pkg.Package.PURL,
+						Name:      pkg.Package.PURLFields.Name,
+					},
+				})
+			}
+
+			date := vulnerability.PublishedAt
+			if date.IsZero() {
+				// TODO: Is there a better time to use?
+				date = time.Now()
+			}
+
 			vulnerabilities = append(vulnerabilities, osv.Vulnerability{
-				ID:       vulnerability.SourceID,
-				Modified: time.Now(), // TODO: Is there a better time to use?
-				Summary:  vulnerability.Description,
+				ID:        vulnerability.SourceID,
+				Modified:  date,
+				Published: &date,
+				Summary:   vulnerability.Description,
+				Affected:  affected,
 				References: []osv.Reference{
 					{
 						Type: osv.ReferenceTypeWeb,

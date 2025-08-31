@@ -94,10 +94,3 @@ type Entity struct {
 	Type             string    `json:"type"`
 	Badge            string    `json:"badge,omitempty"`
 }
-
-type Vulnerability struct {
-	ID          string `json:"id"`
-	Description string `json:"description,omitempty"`
-	URL         string `json:"url,omitempty"`
-	Severity    string `json:"severity,omitempty"`
-}
