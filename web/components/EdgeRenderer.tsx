@@ -81,6 +81,8 @@ export function EdgeRenderer({
           `L ${edge.end.x},${edge.end.y}`,
         ].join(' ')
       }
+
+      return undefined
     })
   }, [edges, direction])
 

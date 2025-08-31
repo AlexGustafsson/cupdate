@@ -2,6 +2,7 @@
 
 @layer theme, base, components, utilities;
 
+/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind theme */
 @theme {
   --shadow-around: 0 0 2px rgba(0, 0, 0, 0.22), 0 4px 8px rgba(0, 0, 0, 0.28);
 }
@@ -78,6 +79,7 @@
 
   /* Workaround for the <HTML> element wrapping content in a div*/
   .markdown-body > div:first-child > *:first-child {
+    /* biome-ignore lint/complexity/noImportantStyles: third-party CSS override */
     margin-top: 0 !important;
   }
 
