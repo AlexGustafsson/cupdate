@@ -1,0 +1,59 @@
+name: CodeQL JavaScript TypeScript
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - workflows/codeql-javascript-typescript.yaml
+      - web/**
+      - .yarn
+      - .yarnrc.yml
+      - biome.jsonc
+      - package.json
+      - tsconfig.json
+      - vite.config.ts
+      - yarn.lock
+  push:
+    branches:
+      - main
+    paths:
+      - workflows/codeql-javascript-typescript.yaml
+      - web/**
+      - .yarn
+      - .yarnrc.yml
+      - biome.jsonc
+      - package.json
+      - tsconfig.json
+      - vite.config.ts
+      - yarn.lock
+  schedule:
+    # Some random-ish cron to help with GitHub Actions scheduling, once a week
+    - cron: 29 11 * * 2
+
+permissions: {}
+
+jobs:
+  analyze:
+    name: Analyze GitHub Actions
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # Required for all workflows
+      packages: read # Required to fetch internal or private CodeQL packs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        with:
+          languages: javascript-typescript
+          build-mode: autobuild
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        with:
+          category: "/language:javascript-typescript"
