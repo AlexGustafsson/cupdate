@@ -5,14 +5,14 @@ on:
     branches:
       - main
     paths:
-      - workflows/codeql-actions.yaml
-      - workflows/**/*.yaml
+      - .github/workflows/codeql-actions.yaml
+      - .github/workflows/**/*.yaml
   push:
     branches:
       - main
     paths:
-      - workflows/codeql-actions.yaml
-      - workflows/**/*.yaml
+      - .github/workflows/codeql-actions.yaml
+      - .github/workflows/**/*.yaml
   schedule:
     # Some random-ish cron to help with GitHub Actions scheduling, once a week
     - cron: 29 11 * * 2

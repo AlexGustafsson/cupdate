@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - workflows/codeql-go.yaml
+      - .github/workflows/codeql-go.yaml
       - go.mod
       - go.sum
       - "**/*.go"
@@ -13,7 +13,7 @@ on:
     branches:
       - main
     paths:
-      - workflows/codeql-go.yaml
+      - .github/workflows/codeql-go.yaml
       - go.mod
       - go.sum
       - "**/*.go"
