@@ -37,7 +37,7 @@ func TestClientGetDescription(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	release, err := c.GetDescription(context.TODO(), "renovatebot", "renovate")
+	release, err := c.GetDescription(context.TODO(), "jellyfin", "jellyfin")
 	require.NoError(t, err)
 
 	fmt.Printf("%+v\n", release)

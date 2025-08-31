@@ -262,7 +262,7 @@ func parseAbout(r io.Reader) (string, error) {
 		return "", err
 	}
 
-	return strings.TrimSpace(buffer.String()), nil
+	return html.UnescapeString(strings.TrimSpace(buffer.String())), nil
 }
 
 func parseRelease(r io.Reader) (*Release, error) {
