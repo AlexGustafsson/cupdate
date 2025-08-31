@@ -8,6 +8,7 @@ import { ImageLogo } from './ImageLogo'
 import { InfoTooltip } from './InfoTooltip'
 import { FluentShieldError16Filled } from './icons/fluent-shield-error-16-filled'
 import { FluentWarning16Filled } from './icons/fluent-warning-16-filled'
+import { WordBreak } from './WordBreak'
 
 export type ImageCardProps = {
   reference: string
@@ -52,7 +53,9 @@ export function ImageCard({
           <div
             className={`${compact ? 'flex flex-col-reverse' : 'flex items-center'}`}
           >
-            <p className="text-sm line-clamp-2 font-semibold">{name}</p>
+            <p className="text-sm line-clamp-2 font-semibold">
+              <WordBreak delimiter="/">{name}</WordBreak>
+            </p>
             {(tags.includes('vulnerability:critical') ||
               tags.includes('vulnerability:high')) && (
               <InfoTooltip

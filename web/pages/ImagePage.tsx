@@ -11,6 +11,7 @@ import { FluentChevronUp20Regular } from '../components/icons/fluent-chevron-up-
 import { FluentWarning16Filled } from '../components/icons/fluent-warning-16-filled'
 import { Markdown } from '../components/Markdown'
 import { Toast } from '../components/Toast'
+import { WordBreak } from '../components/WordBreak'
 import { type Event, useEvents } from '../EventProvider'
 import {
   useImage,
@@ -134,7 +135,7 @@ export function ImagePage(): JSX.Element {
         />
         {/* Image name */}
         <h1 className="text-2xl font-medium">
-          {name(image.value.reference).replaceAll('/', '/\u200b')}
+          <WordBreak delimiter="/">{name(image.value.reference)}</WordBreak>
         </h1>
         {/* Image version */}
         {/* Digests are formatted like <algo>:<digest>, such as sha256:<digest>. Show a maximum of 5 hex digits before truncating with ellipsis (hence 15ch) */}

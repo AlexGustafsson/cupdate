@@ -285,7 +285,7 @@ export function Dashboard(): JSX.Element {
               <ImageCard
                 className={`group/link-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus/link:bg-[#f5f5f5] dark:group-focus/link:bg-[#262626] dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
                 reference={x.reference}
-                name={name(x.reference).replaceAll('/', '/\u200b')}
+                name={name(x.reference)}
                 currentVersion={version(x.reference)}
                 fullCurrentVersion={fullVersion(x.reference)}
                 latestVersion={
