@@ -102,7 +102,11 @@ export function ProvenanceCard({
               </p>
               <p>
                 More information can be found here:{' '}
-                <a href="https://docs.docker.com/build/metadata/attestations/slsa-provenance/">
+                <a
+                  href="https://docs.docker.com/build/metadata/attestations/slsa-provenance/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   https://docs.docker.com/build/metadata/attestations/slsa-provenance/
                 </a>
                 .
