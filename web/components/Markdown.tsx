@@ -14,5 +14,9 @@ export function Markdown({
     [children]
   )
 
+  if (typeof html !== 'string') {
+    console.log(html)
+  }
+
   return <HTML>{html}</HTML>
 }
