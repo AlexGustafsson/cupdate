@@ -123,11 +123,12 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
               icon={tab.icon}
               label={tab.label}
               action={tab.action}
-              disabled={
-                i === selectedTabIndex || tabs.length === 1 || !showContent
-              }
+              disabled={showContent ? i === selectedTabIndex : false}
               active={tabs.length > 1 && i === selectedTabIndex && showContent}
-              onClick={() => setSelectedTabIndex(i)}
+              onClick={() => {
+                setSelectedTabIndex(i)
+                setShowContent(true)
+              }}
             />
           ))}
         </div>
