@@ -84,10 +84,6 @@ Symlink the Docker socket.
 ln -s ~/.colima/default/docker.sock docker.sock
 ```
 
-```shell
-kubectl proxy
-```
-
 Source the default dev config for the Docker platform.
 
 ```shell
