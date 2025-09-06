@@ -211,8 +211,8 @@ func (p *Platform) GetImage(ctx context.Context, nameOrID string) (*Image, error
 	}
 	defer res.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
+	if err := httputil.AssertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
 	}
 
 	var result Image
