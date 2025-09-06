@@ -6,6 +6,7 @@
 /*.sqlite*
 /*.boltdb
 /docker.sock
+/podman.sock
 /integration/zot/htpasswd
 /coverage.out
 /internal/vulndb/vulndb.sqlite

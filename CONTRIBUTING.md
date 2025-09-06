@@ -84,10 +84,6 @@ Symlink the Docker socket.
 ln -s ~/.colima/default/docker.sock docker.sock
 ```
 
-```shell
-kubectl proxy
-```
-
 Source the default dev config for the Docker platform.
 
 ```shell
@@ -99,6 +95,31 @@ source .env-docker
 
 # Fish
 export (cat .env-docker | xargs -L 1)
+```
+
+### Preparing for Podman
+
+On macOS, use `podman machine` to manage a VM. When starting the VM you're
+shown the path to the "docker socket".
+
+Symlink the Podman socket.
+
+```shell
+# NOTE: The path might be different on your machine
+ln -s /var/folders/f3/y2mpkxhx0g79s3xsd5q5xk2r0000gn/T/podman/podman-machine-default-api.sock podman.sock
+```
+
+Source the default dev config for the Docker platform.
+
+```shell
+# Inspect
+cat .env-podman
+
+# Bash etc.
+source .env-podman
+
+# Fish
+export (cat .env-podman | xargs -L 1)
 ```
 
 ### Running Cupdate
