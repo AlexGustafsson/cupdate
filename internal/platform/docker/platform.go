@@ -237,6 +237,14 @@ func (p *Platform) Graph(ctx context.Context) (*graph.Graph[platform.Node], erro
 
 	images := make(map[string]*Image)
 	for _, container := range containers {
+		// When running Podman pods, containers can be reported without an image.
+		// Ignore such containers as the Podman image API will throw internal server
+		// errors when requests are made using these empty ids.
+		if container.ImageID == "" || container.ImageID == "sha256:" {
+			slog.Warn("Ignoring container with invalid image id", slog.String("containerId", container.ID))
+			continue
+		}
+
 		_, ok := images[container.ImageID]
 		if !ok {
 			image, err := p.GetImage(ctx, container.ImageID)
