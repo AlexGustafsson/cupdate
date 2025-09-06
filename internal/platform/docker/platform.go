@@ -29,7 +29,6 @@ type Platform struct {
 	includeAllContainers bool
 	version              Version
 	dockerURI            string
-	name                 string
 }
 
 type Options struct {
