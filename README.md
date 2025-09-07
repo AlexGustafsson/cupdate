@@ -8,9 +8,9 @@
 
 Cupdate is a zero-config service that helps you keep your container images
 up-to-date. It automatically identifies container images in use in your
-Kubernetes cluster or on your Docker host. Cupdate then identifies the latest
-available version and makes this data and more available to you via a UI, API or
-through an RSS feed.
+Kubernetes cluster or on your Docker or Podman<sup>1</sup> host. Cupdate then
+identifies the latest available version and makes this data and more available
+to you via a UI, API or through an RSS feed.
 
 Cupdate is for those who like the process of keeping their services up-to-date,
 looking through what's outdated and what features new updates bring. Cupdate
@@ -27,8 +27,8 @@ Kubernetes and Docker in the [cookbook](docs/cookbook/README.md).
 Features:
 
 - Performant and lightweight - uses virtually zero CPU and very little RAM
-- Auto-detect container images in use by Kubernetes or Docker (one or more
-  hosts, local or remote)
+- Auto-detect container images in use by Kubernetes, Docker or
+  Podman<sup>1</sup> (one or more hosts, local or remote)
 - Auto-detect the latest available container image versions
 - Vulnerability scanning
   - Official and participating [Docker Hub](https://hub.docker.com) images
@@ -63,16 +63,22 @@ Supported data sources:
 - OpenSSF Scorecard reports
 - OSV
 
+<sup>1 Podman support is in beta and subject to change. Requires the
+Docker socket compatibility mode.</sup>
+
 ## Getting started
 
-Cupdate can be deployed using Kubernetes or Docker. It's designed to run well
-with zero or very little configuration. Refer to the platform-specific
-documentation for more information on how to get started with Cupdate:
+Cupdate can be deployed using Kubernetes, Docker or Podman<sup>1</sup>. It's
+designed to run well with zero or very little configuration. Refer to the
+platform-specific documentation for more information on how to get started with
+Cupdate:
 
 - Running Cupdate using Kubernetes:
   [docs/kubernetes/README.md](docs/kubernetes/README.md)
 - Running Cupdate using Docker:
   [docs/docker/README.md](docs/docker/README.md)
+- Running Cupdate using Podman:
+  [docs/podman/README.md](docs/podman/README.md)
 
 Cupdate can expose metrics and traces. For more information on how to use them,
 see [docs/observability/README.md](docs/observability/README.md).
@@ -87,6 +93,9 @@ potentially unstable features.
 Although not recommended or intended, Cupdate can be run directly on host. In
 that case, please build Cupdate and run it using the instructions in
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+<sup>1 Podman support is in beta and subject to change. Requires the
+Docker socket compatibility mode.</sup>
 
 ## Screenshots
 
