@@ -8,20 +8,20 @@ To get started, run the command below to inspect the manifests about to be
 applied.
 
 ```shell
-kubectl apply --dry-run=client -o yaml 'https://github.com/AlexGustafsson/cupdate/deploy?ref=v0.21.2'
+kubectl apply --dry-run=client -o yaml 'https://github.com/AlexGustafsson/cupdate/deploy?ref=v0.22.0'
 ```
 
 Next, run the following command to apply the manifests.
 
 ```shell
-kubectl apply -k 'https://github.com/AlexGustafsson/cupdate/deploy?ref=v0.21.2'
+kubectl apply -k 'https://github.com/AlexGustafsson/cupdate/deploy?ref=v0.22.0'
 ```
 
 If you're running Kubernetes with RBAC, Cupdate needs additional configuration.
 To install Cupdate with support for RBAC, run the following command.
 
 ```shell
-kubectl apply -k 'https://github.com/AlexGustafsson/cupdate/deploy/overlays/rbac?ref=v0.21.2'
+kubectl apply -k 'https://github.com/AlexGustafsson/cupdate/deploy/overlays/rbac?ref=v0.22.0'
 ```
 
 ## Config
@@ -43,7 +43,7 @@ For even more configurability, build the complete manifests and modify them to
 your liking.
 
 ```shell
-kustomize build 'https://github.com/AlexGustafsson/cupdate/deploy/overlays/rbac?ref=v0.21.2' > cupdate.yaml
+kustomize build 'https://github.com/AlexGustafsson/cupdate/deploy/overlays/rbac?ref=v0.22.0' > cupdate.yaml
 ```
 
 By default, Cupdate will ignore old replica sets kept around by Kubernetes to

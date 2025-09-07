@@ -23,7 +23,7 @@ podman run --interactive --tty --rm \
   --mount type=tmpfs,destination=/tmp \
   --env CUPDATE_DOCKER_HOST=unix:///var/run/podman.sock \
   --publish 8080:8080 \
-  ghcr.io/alexgustafsson/cupdate:0.21.2
+  ghcr.io/alexgustafsson/cupdate:0.22.0
 ```
 
 As the Podman support is based on the Docker-compatible socket, the rest of the
