@@ -11,7 +11,7 @@ on:
     # potential load on the servers
     - cron: "57 03 * * 0"
 
-permissions: read-all
+permissions: {}
 
 jobs:
   analysis:
@@ -21,6 +21,10 @@ jobs:
     permissions:
       security-events: write # Upload results
       id-token: write # Publish results
+      contents: read
+      issues: read
+      pull-requests: read
+      checks: read
 
     steps:
       - name: Checkout code
