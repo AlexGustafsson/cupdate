@@ -1,0 +1,64 @@
+name: Merge Gatekeeper
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        name: Merge Gatekeeper
+        with:
+          script: |
+            const conclusions = ['success', 'skipped', 'neutral']
+
+            while (true) {
+              const runs = (await github.paginate(
+                github.rest.actions.listWorkflowRunsForRepo,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  event: 'pull_request',
+                  branch: context.payload.pull_request.head.ref,
+                }
+              ))
+              .filter(x => x.head_sha === context.payload.pull_request.head.sha)
+              .filter(x => x.name !== 'Merge Gatekeeper')
+
+              if (runs.length === 0) {
+                core.info('Waiting for all workflows to be scheduled')
+                await new Promise((resolve) => setTimeout(resolve, 7500))
+                continue
+              }
+
+              const failed = runs
+                .filter((x) => x.status === 'completed')
+                .filter((x) => !conclusions.includes(x.conclusion))
+              if (failed.length > 0) {
+                core.setFailed(
+                  `One or more workflows failed:\n${failed.map((x) => `- ${x.name}`).join('\n')}`
+                )
+                return
+              }
+
+              const incomplete = runs.filter((x) => x.status !== 'completed')
+              if (incomplete.length > 0) {
+                core.info(
+                  `Waiting for all workflows to complete:\n${incomplete.map((x) => `- ${x.name}`).join('\n')}`
+                )
+                await new Promise((resolve) => setTimeout(resolve, 7500))
+                continue
+              }
+
+              core.info(
+                `All workflows completed successfully:\n${runs.map((x) => `- ${x.name}: ${x.status} (${x.conclusion})`).join('\n')}`
+              )
+              return
+            }
