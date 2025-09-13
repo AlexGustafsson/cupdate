@@ -276,6 +276,7 @@ type GetAnnotationsOptions struct {
 // Fetches manifests as necessary.
 // To narrow down the search and to avoid unnecessary fetches, specify the
 // available options.
+// NOTE: The filter is only applied if more than one manifest exists.
 func (c *Client) GetAnnotations(ctx context.Context, ref Reference, options *GetAnnotationsOptions) (Annotations, error) {
 	if options == nil {
 		options = &GetAnnotationsOptions{}
@@ -296,28 +297,33 @@ func (c *Client) GetAnnotations(ctx context.Context, ref Reference, options *Get
 		}
 	}
 
-	if options.Digest != "" {
-		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
-			return m.Digest != options.Digest
-		})
-	}
+	// Only apply the filter if ther are more than one manifest. If there's only
+	// one manifest, there's simply nothing else that could be used by the client
+	// it must be the manifest in use
+	if len(manifests) > 1 {
+		if options.Digest != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Digest != options.Digest
+			})
+		}
 
-	if options.Architecture != "" {
-		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
-			return m.Platform == nil || m.Platform.Architecture != options.Architecture
-		})
-	}
+		if options.Architecture != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Platform == nil || m.Platform.Architecture != options.Architecture
+			})
+		}
 
-	if options.OS != "" {
-		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
-			return m.Platform == nil || m.Platform.OS != options.OS
-		})
-	}
+		if options.OS != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Platform == nil || m.Platform.OS != options.OS
+			})
+		}
 
-	if options.Variant != "" {
-		manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
-			return m.Platform == nil || m.Platform.Variant != options.Variant
-		})
+		if options.Variant != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Platform == nil || m.Platform.Variant != options.Variant
+			})
+		}
 	}
 
 	if len(manifests) == 0 {
