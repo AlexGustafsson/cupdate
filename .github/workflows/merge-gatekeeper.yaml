@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  actions: read
+  actions: read # List running workflows
   contents: read
 
 jobs:

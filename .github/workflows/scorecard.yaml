@@ -22,9 +22,9 @@ jobs:
       security-events: write # Upload results
       id-token: write # Publish results
       contents: read
-      issues: read
-      pull-requests: read
-      checks: read
+      issues: read # Read issues
+      pull-requests: read # Read review status etc.
+      checks: read # Read PR status etc.
 
     steps:
       - name: Checkout code
