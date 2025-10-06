@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/distribution/reference v0.6.0
-	github.com/google/osv-scanner/v2 v2.2.2
+	github.com/google/osv-scanner/v2 v2.2.3
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/stretchr/testify v1.11.1
@@ -26,12 +26,12 @@ require (
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
-	deps.dev/api/v3 v3.0.0-20250729065307-991cf8720f82 // indirect
-	deps.dev/api/v3alpha v0.0.0-20250729065307-991cf8720f82 // indirect
-	deps.dev/util/maven v0.0.0-20250729065307-991cf8720f82 // indirect
-	deps.dev/util/pypi v0.0.0-20250729065307-991cf8720f82 // indirect
-	deps.dev/util/resolve v0.0.0-20250729065307-991cf8720f82 // indirect
-	deps.dev/util/semver v0.0.0-20250729065307-991cf8720f82 // indirect
+	deps.dev/api/v3 v3.0.0-20250917073939-6ff3dd7d2eea // indirect
+	deps.dev/api/v3alpha v0.0.0-20250903005441-604c45d5b44b // indirect
+	deps.dev/util/maven v0.0.0-20250917073939-6ff3dd7d2eea // indirect
+	deps.dev/util/pypi v0.0.0-20250903005441-604c45d5b44b // indirect
+	deps.dev/util/resolve v0.0.0-20250917073939-6ff3dd7d2eea // indirect
+	deps.dev/util/semver v0.0.0-20250917073939-6ff3dd7d2eea // indirect
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6 // indirect
 	github.com/AdamKorcz/go-118-fuzz-build v0.0.0-20250520111509-a70c2aa677fa // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
@@ -105,7 +105,7 @@ require (
 	github.com/google/gnostic-models v0.7.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.20.6 // indirect
-	github.com/google/osv-scalibr v0.3.2 // indirect
+	github.com/google/osv-scalibr v0.3.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.2 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20250628045327-2d64ad6b7ec5 // indirect
@@ -141,7 +141,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
 	github.com/opencontainers/selinux v1.12.0 // indirect
-	github.com/ossf/osv-schema/bindings/go v0.0.0-20250829054949-28da80b6fd7c // indirect
+	github.com/ossf/osv-schema/bindings/go v0.0.0-20250926044009-f6ae0b6bae32 // indirect
 	github.com/owenrumney/go-sarif/v3 v3.2.3 // indirect
 	github.com/package-url/packageurl-go v0.1.3 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
@@ -170,6 +170,7 @@ require (
 	github.com/tidwall/jsonc v0.3.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tink-crypto/tink-go/v2 v2.4.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0 // indirect
@@ -204,8 +205,8 @@ require (
 	google.golang.org/genproto v0.0.0-20250826171959-ef028d996bc1 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250826171959-ef028d996bc1 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250826171959-ef028d996bc1 // indirect
-	google.golang.org/grpc v1.75.0 // indirect
-	google.golang.org/protobuf v1.36.8 // indirect
+	google.golang.org/grpc v1.75.1 // indirect
+	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -217,7 +218,7 @@ require (
 	modernc.org/libc v1.66.8 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	osv.dev/bindings/go v0.0.0-20250829035940-066efdc50b3b // indirect
+	osv.dev/bindings/go v0.0.0-20250929041518-3b73304a1688 // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
