@@ -93,5 +93,5 @@ export function useEvents(callback: EventHandler, deps: DependencyList) {
   useEffect(() => {
     context.addCallback(memoizedCallback)
     return () => context.removeCallback(memoizedCallback)
-  }, [context.addCallback, context.removeCallback, memoizedCallback])
+  }, [context, memoizedCallback])
 }
