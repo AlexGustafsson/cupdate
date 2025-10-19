@@ -95,11 +95,11 @@ jobs:
           GOTOOLCHAIN: auto
         run: go test -race -short -v ./...
 
-      - name: Run go integration tests
+      - name: Run go Zot integration tests
         env:
           # Use the toolchain specified in go.mod, or newer
           GOTOOLCHAIN: auto
-        run: go test -v -run TestIntegration ./...
+        run: go test -v -run TestIntegrationClientZot ./...
 
       - name: Run web tests
         run: yarn run test
