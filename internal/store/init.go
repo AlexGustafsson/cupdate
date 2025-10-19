@@ -5,10 +5,8 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"slices"
-	"strings"
 
 	_ "embed" // Embed SQL files
 )
@@ -18,8 +16,8 @@ const Revision = 6
 //go:embed migrations
 var migrations embed.FS
 
-//go:embed schemas
-var schemas embed.FS
+//go:embed init.sql
+var initsql string
 
 // Initialize initializes a database, migrating and creating tables as
 // necessary.
@@ -41,28 +39,28 @@ func Initialize(ctx context.Context, uri string) error {
 	if len(tables) == 0 {
 		slog.InfoContext(ctx, "Initializing store")
 		if err := initialize(ctx, db); err != nil {
-			slog.ErrorContext(ctx, "Failed to migrate store", slog.Any("error", err))
+			slog.ErrorContext(ctx, "Failed to initialize store", slog.Any("error", err))
 			return err
 		}
 		slog.DebugContext(ctx, "Successfully initialized store")
-	} else {
-		sourceRevision := 0
-		// TODO: In v1, remove this check as we can assume the revision table is
-		// part of the core set of tables
-		if slices.Contains(tables, "revision") {
-			sourceRevision, err = getStoreRevision(ctx, db)
-			if err != nil {
-				return err
-			}
-		}
+	}
 
-		slog.InfoContext(ctx, "Migrating store", slog.Int("sourceRevision", sourceRevision), slog.Int("targetRevision", Revision))
-		if err := migrate(ctx, db, sourceRevision, Revision); err != nil {
-			slog.ErrorContext(ctx, "Failed to migrate store", slog.Any("error", err))
+	sourceRevision := 0
+	// TODO: In v1, remove this check as we can assume the revision table is
+	// part of the core set of tables
+	if slices.Contains(tables, "revision") {
+		sourceRevision, err = getStoreRevision(ctx, db)
+		if err != nil {
 			return err
 		}
-		slog.DebugContext(ctx, "Successfully migrated store", slog.Int("sourceRevision", sourceRevision), slog.Int("targetRevision", Revision))
 	}
+
+	slog.InfoContext(ctx, "Migrating store", slog.Int("sourceRevision", sourceRevision), slog.Int("targetRevision", Revision))
+	if err := migrate(ctx, db, sourceRevision, Revision); err != nil {
+		slog.ErrorContext(ctx, "Failed to migrate store", slog.Any("error", err))
+		return err
+	}
+	slog.DebugContext(ctx, "Successfully migrated store", slog.Int("sourceRevision", sourceRevision), slog.Int("targetRevision", Revision))
 
 	return nil
 }
@@ -146,34 +144,14 @@ func initialize(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 	defer tx.Rollback()
+	slog.DebugContext(ctx, "Running init script")
 
-	entries, err := schemas.ReadDir("schemas")
+	_, err = tx.ExecContext(ctx, initsql)
 	if err != nil {
 		return err
 	}
 
-	// Sort lexicalogrally as the scripts are prefixed with a number controlling
-	// their execution order
-	slices.SortStableFunc(entries, func(a fs.DirEntry, b fs.DirEntry) int {
-		return strings.Compare(a.Name(), b.Name())
-	})
-
-	for _, entry := range entries {
-		log := slog.With(slog.String("script", entry.Name()))
-
-		log.DebugContext(ctx, "Running init script")
-		script, err := schemas.ReadFile("schemas/" + entry.Name())
-		if err != nil {
-			return err
-		}
-
-		_, err = tx.ExecContext(ctx, string(script))
-		if err != nil {
-			return err
-		}
-
-		log.DebugContext(ctx, "Successfully ran script")
-	}
+	slog.DebugContext(ctx, "Successfully ran init script")
 
 	return tx.Commit()
 }
