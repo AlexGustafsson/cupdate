@@ -67,6 +67,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
+						data.Annotations = annotations
 						data.Description = annotations.Description()
 
 						if url := annotations.Source(); url != "" {
@@ -105,6 +106,8 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						if err != nil {
 							return nil, err
 						}
+
+						data.LatestAnnotations = latestAnnotations
 
 						if latestAnnotations != nil {
 							time := latestAnnotations.Created()

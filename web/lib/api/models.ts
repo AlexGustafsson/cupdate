@@ -24,8 +24,10 @@ export interface PaginationMetadata {
 export interface Image {
   reference: string
   created?: string
+  annotations?: Record<string, string>
   latestReference?: string
   latestCreated?: string
+  latestAnnotations?: Record<string, string>
   description?: string
   tags: string[]
   links: ImageLink[]

@@ -110,15 +110,17 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 
 	log.DebugContext(ctx, "Running workflow")
 	data := &imageworkflow.Data{
-		ImageReference:  reference,
-		Image:           "",
-		LatestReference: nil,
-		Tags:            make([]string, 0),
-		Description:     "",
-		Links:           make([]models.ImageLink, 0),
-		Vulnerabilities: make([]models.ImageVulnerability, 0),
-		Graph:           image.Graph,
-		RegistryAuth:    w.registryAuth,
+		ImageReference:    reference,
+		Image:             "",
+		Annotations:       nil,
+		LatestReference:   nil,
+		LatestAnnotations: nil,
+		Tags:              make([]string, 0),
+		Description:       "",
+		Links:             make([]models.ImageLink, 0),
+		Vulnerabilities:   make([]models.ImageVulnerability, 0),
+		Graph:             image.Graph,
+		RegistryAuth:      w.registryAuth,
 	}
 
 	for _, tag := range image.Tags {
@@ -216,8 +218,10 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	result := models.Image{
 		Reference:           data.ImageReference.String(),
 		Created:             data.Created,
+		Annotations:         data.Annotations,
 		LatestReference:     "",
 		LatestCreated:       data.LatestCreated,
+		LatestAnnotations:   data.LatestAnnotations,
 		VersionDiffSortable: versionDiffSortable,
 		Description:         data.Description,
 		Tags:                data.Tags,

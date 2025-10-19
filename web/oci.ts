@@ -80,3 +80,36 @@ export function name(reference: string): string {
 
   return result.name
 }
+
+/**
+ * Returns a string representing the reference's version in a way users would
+ * normally associate with an image. If that ends up being a digest or the
+ * 'latest' tag, any known version annotation will be included in the string.
+ */
+export function formattedVersion(
+  reference: string,
+  annotations?: Record<string, string>
+): string {
+  let versionString = version(reference)
+  if (
+    (versionString === 'latest' || versionString.startsWith('sha256:')) &&
+    annotations
+  ) {
+    const versionAnnotationString = versionAnnotation(annotations)
+    if (versionAnnotationString) {
+      versionString = `${versionString} (${versionAnnotationString})`
+    }
+  }
+
+  return versionString
+}
+
+export function versionAnnotation(
+  annotations: Record<string, string>
+): string | undefined {
+  return (
+    annotations['org.opencontainers.image.version'] ||
+    annotations['org.label-schema.version'] ||
+    annotations.version
+  )
+}

@@ -20,22 +20,24 @@ type Result[T any] struct {
 
 type Data struct {
 	sync.Mutex
-	ImageReference  oci.Reference
-	Created         *time.Time
-	Image           string
-	LatestReference *oci.Reference
-	LatestCreated   *time.Time
-	Tags            []string
-	Description     string
-	FullDescription Result[*models.ImageDescription]
-	ReleaseNotes    Result[*models.ImageReleaseNotes]
-	Links           []models.ImageLink
-	Vulnerabilities []models.ImageVulnerability
-	Graph           models.Graph
-	Scorecard       Result[*models.ImageScorecard]
-	Provenance      Result[*models.ImageProvenance]
-	SBOM            Result[*models.ImageSBOM]
-	RegistryAuth    *httputil.AuthMux
+	ImageReference    oci.Reference
+	Created           *time.Time
+	Image             string
+	Annotations       oci.Annotations
+	LatestReference   *oci.Reference
+	LatestCreated     *time.Time
+	LatestAnnotations oci.Annotations
+	Tags              []string
+	Description       string
+	FullDescription   Result[*models.ImageDescription]
+	ReleaseNotes      Result[*models.ImageReleaseNotes]
+	Links             []models.ImageLink
+	Vulnerabilities   []models.ImageVulnerability
+	Graph             models.Graph
+	Scorecard         Result[*models.ImageScorecard]
+	Provenance        Result[*models.ImageProvenance]
+	SBOM              Result[*models.ImageSBOM]
+	RegistryAuth      *httputil.AuthMux
 }
 
 func (d *Data) InsertTag(tag string) {

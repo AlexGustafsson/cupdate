@@ -18,7 +18,7 @@ import {
   useSort,
 } from '../hooks'
 import { useImages, usePagination, useTags } from '../lib/api/ApiProvider'
-import { fullVersion, name, version } from '../oci'
+import { formattedVersion, fullVersion, name } from '../oci'
 import { DashboardSkeleton } from './dashboard-page/DashboardSkeleton'
 
 export function Dashboard(): JSX.Element {
@@ -286,10 +286,12 @@ export function Dashboard(): JSX.Element {
                 className={`group/link-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus/link:bg-[#f5f5f5] dark:group-focus/link:bg-[#262626] dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
                 reference={x.reference}
                 name={name(x.reference)}
-                currentVersion={version(x.reference)}
+                currentVersion={formattedVersion(x.reference, x.annotations)}
                 fullCurrentVersion={fullVersion(x.reference)}
                 latestVersion={
-                  x.latestReference ? version(x.latestReference) : undefined
+                  x.latestReference
+                    ? formattedVersion(x.latestReference, x.latestAnnotations)
+                    : undefined
                 }
                 fullLatestVersion={
                   x.latestReference ? fullVersion(x.latestReference) : undefined

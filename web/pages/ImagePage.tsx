@@ -25,7 +25,7 @@ import {
   useLatestWorkflowRun,
   useTags,
 } from '../lib/api/ApiProvider'
-import { fullVersion, name, version } from '../oci'
+import { formattedVersion, fullVersion, name } from '../oci'
 import { compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Card } from './image-page/Card'
@@ -146,7 +146,10 @@ export function ImagePage(): JSX.Element {
                 className="font-medium max-w-[15ch] truncate"
                 title={fullVersion(image.value.reference)}
               >
-                {version(image.value.reference)}{' '}
+                {formattedVersion(
+                  image.value.reference,
+                  image.value.annotations
+                )}{' '}
               </p>
               <InfoTooltip
                 icon={<FluentWarning16Filled className="text-yellow-600" />}
@@ -161,7 +164,7 @@ export function ImagePage(): JSX.Element {
               className="font-medium max-w-[15ch] truncate"
               title={fullVersion(image.value.reference)}
             >
-              {version(image.value.reference)}
+              {formattedVersion(image.value.reference, image.value.annotations)}
             </p>
           ) : (
             <>
@@ -170,14 +173,20 @@ export function ImagePage(): JSX.Element {
                 className="font-medium text-red-600 max-w-[15ch] truncate"
                 title={fullVersion(image.value.reference)}
               >
-                {version(image.value.reference)}
+                {formattedVersion(
+                  image.value.reference,
+                  image.value.annotations
+                )}
               </p>
               <p
                 className="font-medium ml-4 text-green-600 max-w-[15ch] truncate"
                 title={fullVersion(image.value.latestReference)}
               >
                 {image.value.latestReference
-                  ? version(image.value.latestReference)
+                  ? formattedVersion(
+                      image.value.latestReference,
+                      image.value.latestAnnotations
+                    )
                   : 'unknown'}
               </p>
               <FluentChevronUp20Regular className="text-green-600" />

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/models"
+	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -52,10 +53,16 @@ func TestStoreInsertImage(t *testing.T) {
 	defer store.Close()
 
 	expected := &models.Image{
-		Reference:       "mongo:4",
+		Reference: "mongo:4",
+		Annotations: oci.Annotations{
+			"version": "4.0.0",
+		},
 		LatestReference: "mongo:4",
-		Description:     "Mongo is a database",
-		Tags:            []string{"docker"},
+		LatestAnnotations: oci.Annotations{
+			"version": "4.0.0",
+		},
+		Description: "Mongo is a database",
+		Tags:        []string{"docker"},
 		Links: []models.ImageLink{
 			{
 				Type: "docker",

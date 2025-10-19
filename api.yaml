@@ -373,12 +373,20 @@ components:
           format: datetime
         description:
           type: string
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
         lasestReference:
           type: string
           description: The latest available version on the same track
         latestCreated:
           type: string
           format: datetime
+        latestAnnotations:
+          type: object
+          additionalProperties:
+            type: string
         tags:
           type: array
           items:
