@@ -252,7 +252,7 @@ func TestIntegrationClientZotBasicAuth(t *testing.T) {
 	htpasswd := `username:$2y$05$uAaTn0C6bgrELr8oDCGkaurrdjctUCnb2LHl7M6GMhRmw45fSJEHe`
 
 	zotRequest := testcontainers.ContainerRequest{
-		Image:        "ghcr.io/project-zot/zot:v2.1.3-rc3",
+		Image:        "ghcr.io/project-zot/zot:v2.1.10",
 		ExposedPorts: []string{"9090/tcp"},
 		Files: []testcontainers.ContainerFile{
 			{
@@ -392,7 +392,7 @@ func TestIntegrationClientZotBearerAuth(t *testing.T) {
 `, authServer.URL)
 
 	zotRequest := testcontainers.ContainerRequest{
-		Image:        "ghcr.io/project-zot/zot:v2.1.3-rc3",
+		Image:        "ghcr.io/project-zot/zot:v2.1.10",
 		ExposedPorts: []string{"9090/tcp"},
 		Files: []testcontainers.ContainerFile{
 			{
