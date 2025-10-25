@@ -323,39 +323,43 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		// by that
 		// TODO: We currently use the default count. IIRC, it's good practice in RSS
 		// to return just the latest ~20 items.
-		options := &store.ListImageOptions{
-			Tags: []string{"outdated"},
+		options := &store.GetUpdateOptions{
+			Limit: 20,
 		}
 
-		page, err := api.ListImages(ctx, options)
+		updates, err := api.GetUpdates(ctx, options)
 		if err != nil {
 			s.handleGenericResponse(w, r, err)
 			return
 		}
 
-		items := make([]rss.Item, len(page.Images))
-		for i, image := range page.Images {
-			if image.LatestReference == "" {
-				continue
-			}
-
-			ref, err := oci.ParseReference(image.LatestReference)
+		items := make([]rss.Item, len(updates))
+		for i, update := range updates {
+			// TODO: Use annotations to identify some human readable version like the
+			// UI, as opposed to using the reference immediately if it's just a shaid
+			newRef, err := oci.ParseReference(update.NewReference)
 			if err != nil {
 				s.handleGenericResponse(w, r, err)
 				return
 			}
 
-			pubDate := image.LastModified
-			if image.LatestCreated != nil {
-				pubDate = *image.LatestCreated
+			oldRef, err := oci.ParseReference(update.OldReference)
+			if err != nil {
+				s.handleGenericResponse(w, r, err)
+				return
+			}
+
+			pubDate := update.Identified
+			if update.Released != nil {
+				pubDate = *update.Released
 			}
 
 			items[i] = rss.Item{
-				GUID:        rss.NewDeterministicGUID(fmt.Sprintf("%s->%s", image.Reference, image.LatestReference)),
+				GUID:        rss.NewDeterministicGUID(update.NewReference),
 				PubDate:     rss.Time(pubDate),
-				Title:       fmt.Sprintf("%s updated", ref.Name()),
-				Link:        requestURL.Scheme + "://" + requestURL.Host + "/image?reference=" + url.QueryEscape(image.Reference),
-				Description: fmt.Sprintf("%s updated to %s", ref.Name(), ref.Version()),
+				Title:       fmt.Sprintf("%s updated", newRef.Name()),
+				Link:        requestURL.Scheme + "://" + requestURL.Host + "/image?reference=" + url.QueryEscape(update.OldReference),
+				Description: fmt.Sprintf("%s updated to %s from %s", newRef.Name(), newRef.Version(), oldRef.Version()),
 			}
 		}
 
