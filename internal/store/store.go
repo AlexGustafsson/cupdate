@@ -1633,6 +1633,72 @@ func (s *Store) DeleteChanges(ctx context.Context, options *DeleteChangesOptions
 	return nil
 }
 
+type GetUpdateOptions struct {
+	// Limit specifies how many entries to return.
+	// Defaults to all.
+	Limit int
+}
+
+func (s *Store) GetUpdates(ctx context.Context, options *GetUpdateOptions) ([]models.ImageUpdate, error) {
+	query := `SELECT newReference, newAnnotations, oldReference, oldAnnotations, identified, released FROM images_updates ORDER BY identified DESC`
+	parameters := []any{}
+	if options != nil && options.Limit != 0 {
+		query += ` LIMIT ?`
+		parameters = append(parameters, options.Limit)
+	}
+
+	statement, err := s.db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := statement.QueryContext(ctx, parameters...)
+	statement.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	updates := make([]models.ImageUpdate, 0)
+	for res.Next() {
+		var update models.ImageUpdate
+		var newAnnotations *string
+		var oldAnnotations *string
+
+		err := res.Scan(
+			&update.NewReference,
+			&newAnnotations,
+			&update.OldReference,
+			&oldAnnotations,
+			&update.Identified,
+			&update.Released,
+		)
+		if err != nil {
+			res.Close()
+			return nil, err
+		}
+
+		if newAnnotations != nil {
+			if err := json.Unmarshal([]byte(*newAnnotations), &update.NewAnnotations); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal annotations: %w", err)
+			}
+		}
+
+		if oldAnnotations != nil {
+			if err := json.Unmarshal([]byte(*oldAnnotations), &update.OldAnnotations); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal annotations: %w", err)
+			}
+		}
+
+		updates = append(updates, update)
+	}
+	res.Close()
+	if err := res.Err(); err != nil {
+		return nil, err
+	}
+
+	return updates, nil
+}
+
 func (s *Store) Close() error {
 	return s.db.Close()
 }

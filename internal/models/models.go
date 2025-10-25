@@ -193,3 +193,14 @@ const (
 	EventTypeImageProcessed           EventType = "imageProcessed"
 	EventTypeImageNewVersionAvailable EventType = "imageNewVersionAvailable"
 )
+
+type ImageUpdate struct {
+	NewReference   string          `json:"newReference"`
+	NewAnnotations oci.Annotations `json:"newAnnotations,omitempty"`
+
+	OldReference   string          `json:"oldReference"`
+	OldAnnotations oci.Annotations `json:"oldAnnotations,omitempty"`
+
+	Identified time.Time  `json:"identified"`
+	Released   *time.Time `json:"released,omitempty"`
+}

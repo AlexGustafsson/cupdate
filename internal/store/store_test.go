@@ -748,3 +748,83 @@ func TestCascadeDelete(t *testing.T) {
 	require.NoError(t, res.Err())
 	require.NoError(t, res.Close())
 }
+
+func TestStoreGetUpdates(t *testing.T) {
+	store := newStore(t, false)
+	defer store.Close()
+
+	// Insert a base image (test INSERT)
+	updateReleasedAt := time.Date(2025, 10, 27, 16, 31, 0, 0, time.Local)
+	base := &models.Image{
+		Reference: "mongo:4",
+		Annotations: oci.Annotations{
+			"version": "4.0.0",
+		},
+		LatestReference: "mongo:5",
+		LatestAnnotations: oci.Annotations{
+			"version": "5.0.0",
+		},
+		LatestCreated:       &updateReleasedAt,
+		VersionDiffSortable: 1,
+	}
+
+	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: base.Reference,
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImage(context.TODO(), base)
+	require.NoError(t, err)
+
+	// Insert an image update (test UPDATE)
+	updated := &models.Image{
+		Reference: "mongo:5",
+		Annotations: oci.Annotations{
+			"version": "5.0.0",
+		},
+		LatestReference: "mongo:6",
+		LatestAnnotations: oci.Annotations{
+			"version": "6.0.0",
+		},
+		LatestCreated:       &updateReleasedAt,
+		VersionDiffSortable: 1,
+	}
+
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: updated.Reference,
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImage(context.TODO(), updated)
+	require.NoError(t, err)
+
+	// Expect there to be an update
+	updates, err := store.GetUpdates(context.TODO(), nil)
+	require.NoError(t, err)
+	assert.EqualValues(t, []models.ImageUpdate{
+		{
+			NewReference: "mongo:6",
+			NewAnnotations: oci.Annotations{
+				"version": "6.0.0",
+			},
+			OldReference: "mongo:5",
+			OldAnnotations: oci.Annotations{
+				"version": "5.0.0",
+			},
+			Identified: updates[0].Identified, // Difficult to assert
+			Released:   &updateReleasedAt,
+		},
+		{
+			NewReference: "mongo:5",
+			NewAnnotations: oci.Annotations{
+				"version": "5.0.0",
+			},
+			OldReference: "mongo:4",
+			OldAnnotations: oci.Annotations{
+				"version": "4.0.0",
+			},
+			Identified: updates[1].Identified, // Difficult to assert
+			Released:   &updateReleasedAt,
+		},
+	}, updates)
+}
