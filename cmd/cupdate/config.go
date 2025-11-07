@@ -71,6 +71,10 @@ type Config struct {
 		TLSPath              string   `env:"TLS_PATH"`
 	} `envPrefix:"DOCKER_"`
 
+	Static struct {
+		FilePath string `env:"FILE_PATH"`
+	} `envPrefix:"STATIC_"`
+
 	OTEL struct {
 		Target   string `env:"TARGET"`
 		Insecure bool   `env:"INSECURE"`
