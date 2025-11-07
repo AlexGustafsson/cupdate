@@ -54,6 +54,23 @@ Cupdate supports both Kubernetes and Docker as the target platforms. Typically
 Cupdate will run inside of these environments, but for development it can run
 on a host and communicate the the platforms' APIs remotely.
 
+### Preparing for static file
+
+Running Cupdate using a static file containing references is the easiest way to
+get started with developing Cupdate as it doesn't require access to Kubernetes
+or Docker APIs.
+
+```shell
+# Inspect
+cat .env-static
+
+# Bash etc.
+source .env-static
+
+# Fish
+export (cat .env-static | xargs -L 1)
+```
+
 ### Preparing for Kubernetes
 
 Proxy the Kubernetes API server.

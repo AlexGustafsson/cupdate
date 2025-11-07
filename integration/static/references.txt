@@ -1,0 +1,3 @@
+# Example images using the full reference format (tag + digest)
+rhasspy/wyoming-whisper:2.5.0@sha256:0d78ad506e450fb113616650b7328233385905e2f2ed07fa59221012144500e3
+victoriametrics/victoria-metrics:v1.128.0@sha256:c27e736a8aff888cf30c4f20ec648b767358694993d87e89afc6bf80f28991da

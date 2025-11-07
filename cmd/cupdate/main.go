@@ -21,6 +21,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
 	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
+	"github.com/AlexGustafsson/cupdate/internal/platform/static"
 	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
 	"github.com/AlexGustafsson/cupdate/internal/web"
@@ -80,23 +81,7 @@ func main() {
 	// Set up the configured platform (Docker if specified, auto discovery of
 	// Kubernetes otherwise)
 	var targetPlatform platform.Grapher
-	if len(config.Docker.Hosts) == 0 {
-		kubernetesConfig, err := config.KubernetesClientConfig()
-		if err != nil {
-			slog.ErrorContext(ctx, "Failed to configure Kubernetes client", slog.Any("error", err))
-			os.Exit(1)
-		}
-
-		options := &kubernetes.Options{
-			IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets,
-			DebounceInterval:      config.Kubernetes.DebounceInterval,
-		}
-		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, options)
-		if err != nil {
-			slog.ErrorContext(ctx, "Failed to create kubernetes source", slog.Any("error", err))
-			os.Exit(1)
-		}
-	} else {
+	if len(config.Docker.Hosts) > 0 {
 		graphers := make([]platform.Grapher, 0)
 		for _, host := range config.Docker.Hosts {
 			options := &docker.Options{
@@ -131,6 +116,26 @@ func main() {
 		}
 		targetPlatform = &platform.CompoundGrapher{
 			Graphers: graphers,
+		}
+	} else if config.Static.FilePath != "" {
+		targetPlatform = &static.Platform{
+			FilePath: config.Static.FilePath,
+		}
+	} else {
+		kubernetesConfig, err := config.KubernetesClientConfig()
+		if err != nil {
+			slog.ErrorContext(ctx, "Failed to configure Kubernetes client", slog.Any("error", err))
+			os.Exit(1)
+		}
+
+		options := &kubernetes.Options{
+			IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets,
+			DebounceInterval:      config.Kubernetes.DebounceInterval,
+		}
+		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, options)
+		if err != nil {
+			slog.ErrorContext(ctx, "Failed to create kubernetes source", slog.Any("error", err))
+			os.Exit(1)
 		}
 	}
 
