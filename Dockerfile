@@ -13,6 +13,28 @@ COPY web web
 ARG CUPDATE_VERSION="development build"
 RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
+# TODO: Download and install osv-scanner as an (optional) runtime dependency
+# instead of including 100s of dependencies. Somehow include in SBOM...
+FROM --platform=${BUILDPLATFORM} golang:1.25.3@sha256:6bac879c5b77e0fc9c556a5ed8920e89dab1709bd510a854903509c828f67f96 AS osv-scanner-builder
+
+ARG TARGETARCH
+ARG TARGETOS
+
+ARG OSV_SCANNER_VERSION="v2.2.4"
+ARG OSV_SCANNER_CHECKSUM_amd64="7702cd1e5d9f5059dd9570f4ad967f27d3c5f5391b371ec937b384c238177f55"
+ARG OSV_SCANNER_CHECKSUM_arm64="94d1c520b30a7e28b0189b2a1dd24c7b08f41887186e8ae3f811067ec9ed7043"
+
+SHELL ["/bin/bash", "-c"]
+
+WORKDIR /src
+
+RUN wget \
+    -qO osv-scanner \
+    "https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_${TARGETOS}_${TARGETARCH}" && \
+  OSV_SCANNER_CHECKSUM_VAR="OSV_SCANNER_CHECKSUM_${TARGETARCH}"; \
+    echo "${!OSV_SCANNER_CHECKSUM_VAR}" "osv-scanner" | sha256sum --check --strict && \
+  chmod +x osv-scanner
+
 FROM --platform=${BUILDPLATFORM} golang:1.25.3@sha256:6bac879c5b77e0fc9c556a5ed8920e89dab1709bd510a854903509c828f67f96 AS builder
 
 WORKDIR /src
@@ -40,6 +62,7 @@ COPY --from=builder /src/cupdate cupdate
 FROM export
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=osv-scanner-builder /src/osv-scanner osv-scanner
 
 ENV PATH=/
 
