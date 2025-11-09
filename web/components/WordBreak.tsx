@@ -1,4 +1,4 @@
-import type { JSX } from 'react'
+import { Fragment, type JSX } from 'react'
 
 export type WordBreakProps = {
   delimiter: string
@@ -19,7 +19,7 @@ export function WordBreak({
   return (
     <>
       {parts.map((part, i) => (
-        <>
+        <Fragment key={`${delimiter}-${i}-${part}`}>
           {part}
           {i < parts.length - 1 && (
             <>
@@ -27,7 +27,7 @@ export function WordBreak({
               <wbr />
             </>
           )}
-        </>
+        </Fragment>
       ))}
     </>
   )
