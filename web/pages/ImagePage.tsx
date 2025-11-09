@@ -1,4 +1,4 @@
-import { type JSX, useState } from 'react'
+import React, { type JSX, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { Badge } from '../components/Badge'
 import { DemoWarning } from '../components/DemoWarning'
@@ -29,15 +29,55 @@ import { formattedVersion, fullVersion, name } from '../oci'
 import { compareTags } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Card } from './image-page/Card'
-import { GraphCard } from './image-page/GraphCard'
 import { ImageSkeleton } from './image-page/ImageSkeleton'
-import { LinksCard } from './image-page/LinksCard'
-import { ProvenanceCard } from './image-page/ProvenanceCard'
-import { SBOMCard } from './image-page/SBOMCard'
-import { ScorecardCard } from './image-page/ScorecardCard'
-import { SettingsCard } from './image-page/SettingsCard'
-import { VulnerabilitiesCard } from './image-page/VulnerabilitiesCard'
-import { WorkflowCard } from './image-page/WorkflowCard'
+
+const GraphCard = React.lazy(() =>
+  import('./image-page/GraphCard').then((module) => ({
+    default: module.GraphCard,
+  }))
+)
+
+const LinksCard = React.lazy(() =>
+  import('./image-page/LinksCard').then((module) => ({
+    default: module.LinksCard,
+  }))
+)
+
+const ProvenanceCard = React.lazy(() =>
+  import('./image-page/ProvenanceCard').then((module) => ({
+    default: module.ProvenanceCard,
+  }))
+)
+
+const SBOMCard = React.lazy(() =>
+  import('./image-page/SBOMCard').then((module) => ({
+    default: module.SBOMCard,
+  }))
+)
+
+const ScorecardCard = React.lazy(() =>
+  import('./image-page/ScorecardCard').then((module) => ({
+    default: module.ScorecardCard,
+  }))
+)
+
+const SettingsCard = React.lazy(() =>
+  import('./image-page/SettingsCard').then((module) => ({
+    default: module.SettingsCard,
+  }))
+)
+
+const VulnerabilitiesCard = React.lazy(() =>
+  import('./image-page/VulnerabilitiesCard').then((module) => ({
+    default: module.VulnerabilitiesCard,
+  }))
+)
+
+const WorkflowCard = React.lazy(() =>
+  import('./image-page/WorkflowCard').then((module) => ({
+    default: module.WorkflowCard,
+  }))
+)
 
 export function ImagePage(): JSX.Element {
   const [params, _] = useSearchParams()

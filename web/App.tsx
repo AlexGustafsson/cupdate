@@ -1,11 +1,14 @@
-import { type JSX, useLayoutEffect } from 'react'
+import React, { type JSX, useLayoutEffect } from 'react'
 import { Link, Route, Routes, useLocation } from 'react-router-dom'
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
 import { SimpleIconsRss } from './components/icons/simple-icons-rss'
 import { EventProvider } from './EventProvider'
 import { DEFAULT_RSS_ENDPOINT } from './lib/api/api-client'
 import { Dashboard } from './pages/Dashboard'
-import { ImagePage } from './pages/ImagePage'
+
+const ImagePage = React.lazy(() =>
+  import('./pages/ImagePage').then((module) => ({ default: module.ImagePage }))
+)
 
 export function App(): JSX.Element {
   const location = useLocation()
