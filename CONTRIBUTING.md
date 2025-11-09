@@ -122,6 +122,19 @@ source .env-podman
 export (cat .env-podman | xargs -L 1)
 ```
 
+### Preparing for static
+
+```shell
+# Inspect
+cat .env-static
+
+# Bash etc.
+source .env-static
+
+# Fish
+export (cat .env-static | xargs -L 1)
+```
+
 ### Running Cupdate
 
 Start Cupdate.

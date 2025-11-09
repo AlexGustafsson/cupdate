@@ -79,6 +79,8 @@ Cupdate:
   [docs/docker/README.md](docs/docker/README.md)
 - Running Cupdate using Podman:
   [docs/podman/README.md](docs/podman/README.md)
+- Running Cupdate with a static set of images:
+  [docs/static/README.md](docs/static/README.md)
 
 Cupdate can expose metrics and traces. For more information on how to use them,
 see [docs/observability/README.md](docs/observability/README.md).
