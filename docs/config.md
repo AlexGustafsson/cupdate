@@ -33,6 +33,7 @@ done using environment variables.
 | `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                                               |
 | `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.         | None.                                                 |
 | `CUPDATE_LOGOS_PATH`                    | Path to a directory from which to serve logo images.                                                                  | None.                                                 |
+| `CUPDATE_STATIC_FILE_PATH`              | Path to a file containing OCI references.                                                                             | None.                                                 |
 
 ### Persistence
 
