@@ -5,7 +5,8 @@
 
 In cases where a user can't or doesn't want to have Cupdate automatically
 discover images in use, a static file containing OCI references can be used
-instead.
+instead. Running Cupdate in a container is still the only supported way, so see
+also the documentation for the other platforms.
 
 Example use cases include but are not limited to:
 
