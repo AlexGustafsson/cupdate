@@ -1,0 +1,70 @@
+name: Build and publish Docker image
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+    paths:
+      - .github/workflows/cd-publish.yaml
+      - .github/actions/build-push-cupdate/**
+      - .dockerignore
+      - Dockerfile
+      - cmd/**
+      - internal/**
+      - go.*
+      - web/**
+      - .yarn
+      - .yarnrc.yml
+      - biome.jsonc
+      - package.json
+      - tsconfig.json
+      - vite.config.ts
+      - yarn.lock
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write # Publish OCI image
+      attestations: write # Publish attestations
+      id-token: write # Publish attestations
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          # We need the entire history to determine the current version
+          fetch-depth: 0
+
+      - name: Determine tag
+        id: determine_tag
+        env:
+          TAG: ${{ (github.ref_type == 'tag' && github.ref_name) || 'latest' }}
+        run: |
+          echo "tag=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo -n "revision=" >> "$GITHUB_OUTPUT"
+          git describe >> "$GITHUB_OUTPUT"
+          echo -n "date=" >> "$GITHUB_OUTPUT"
+          date --iso-8601=seconds >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        uses: ./.github/actions/build-push-cupdate
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.determine_tag.outputs.tag }}
+          revision: ${{ steps.determine_tag.outputs.revision }}
+          date: ${{ steps.determine_tag.outputs.date }}
+          push: true

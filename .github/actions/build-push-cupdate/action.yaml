@@ -1,0 +1,74 @@
+name: Build and push Cupdate
+description: Build and push Cupdate
+
+inputs:
+  token:
+    description: GITHUB_TOKEN
+    required: true
+  tag:
+    description: Version / Docker tag
+    required: true
+  revision:
+    description: Version / revision (i.e. git describe output)
+    required: true
+  date:
+    description: The build date
+    required: true
+  push:
+    description: Whether or not to push to GHCR (true/false)
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+
+    - name: Log in to the container registry
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+      if: ${{ inputs.push == 'true' }}
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ inputs.token }}
+
+    - name: Build and publish
+      uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+      id: push
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      with:
+        context: .
+        push: ${{ inputs.push == 'true' }}
+        # NOTE: Includes build args and full Dockerfile. No secrets are ever
+        # used in build args
+        provenance: mode=max
+        # NOTE: This currently only identifies golang dependencies. Additional
+        # work is required for the frontend
+        sbom: true
+        platforms: linux/amd64,linux/arm64
+        tags: ghcr.io/alexgustafsson/cupdate:${{ inputs.tag }}
+        build-args: |
+          CUPDATE_VERSION=${{ inputs.revision }}
+        labels: |
+          org.opencontainers.image.title=Cupdate
+          org.opencontainers.image.description=Cupdate keeps track of image updates.
+          org.opencontainers.image.source=https://github.com/AlexGustafsson/cupdate
+          org.opencontainers.image.version=${{ inputs.tag }}
+          org.opencontainers.image.revision=${{ inputs.revision }}
+          org.opencontainers.image.created=${{ inputs.date }}
+          org.opencontainers.image.licenses=MIT
+
+    - name: Attest
+      uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a #v3.0.0
+      if: ${{ inputs.push == 'true' }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      with:
+        subject-name: ghcr.io/alexgustafsson/cupdate
+        subject-digest: ${{ steps.push.outputs.digest }}
+        push-to-registry: true

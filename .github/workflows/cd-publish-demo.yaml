@@ -1,4 +1,4 @@
-name: Demo
+name: Build and publish demo
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -10,7 +10,7 @@ on:
     branches:
       - main
     paths:
-      - .github/workflows/demo.yaml
+      - .github/workflows/cd-publish-demo.yaml
       - web/**
       - .yarn
       - .yarnrc.yml

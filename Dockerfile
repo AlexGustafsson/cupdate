@@ -5,13 +5,15 @@ WORKDIR /src
 COPY .yarnrc.yml package.json yarn.lock .
 COPY .yarn .yarn
 
-RUN yarn install --immutable
+RUN --mount=type=cache,target=node_modules  \
+  yarn install --immutable
 
 COPY tsconfig.json vite.config.ts .
 COPY web web
 
 ARG CUPDATE_VERSION="development build"
-RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
+RUN --mount=type=cache,target=node_modules \
+  VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
 # TODO: Download and install osv-scanner as an (optional) runtime dependency
 # instead of including 100s of dependencies. Somehow include in SBOM...

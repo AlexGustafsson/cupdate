@@ -1,0 +1,53 @@
+name: Lint
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/ci-lint.yaml
+      - cmd/**
+      - internal/**
+      - Dockerfile
+      - go.*
+      - web/**
+      - .yarn
+      - .yarnrc.yml
+      - biome.jsonc
+      - package.json
+      - tsconfig.json
+      - vite.config.ts
+      - yarn.lock
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup node
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Lint
+        run: yarn run lint
+
+      - name: Lint store migrations
+        run: ./tools/ci/lint-store-migrations.sh

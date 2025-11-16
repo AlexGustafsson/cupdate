@@ -1,0 +1,64 @@
+name: Build and publish Docker preview image
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: PR number
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write # Publish OCI image
+      attestations: write # Publish attestations
+      id-token: write # Publish attestations
+
+    steps:
+      - name: Determine ref
+        id: determine_ref
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_PR: ${{ inputs.pr }}
+        run: |
+          echo -n "ref=" >> "$GITHUB_OUTPUT"
+          gh pr view --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid "$GITHUB_PR" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+          # We need the entire history to determine the current version
+          fetch-depth: 0
+          ref: ${{ steps.determine_ref.outputs.ref }}
+
+      - name: Determine tag
+        id: determine_tag
+        env:
+          GITHUB_PR: ${{ inputs.pr }}
+        run: |
+          echo "tag=pr-$GITHUB_PR" >> "$GITHUB_OUTPUT"
+          echo -n "revision=" >> "$GITHUB_OUTPUT"
+          git describe >> "$GITHUB_OUTPUT"
+          echo -n "date=" >> "$GITHUB_OUTPUT"
+          date --iso-8601=seconds >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        uses: ./.github/actions/build-push-cupdate
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.determine_tag.outputs.tag }}
+          revision: ${{ steps.determine_tag.outputs.revision }}
+          date: ${{ steps.determine_tag.outputs.date }}
+          push: true

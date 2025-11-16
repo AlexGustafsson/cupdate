@@ -11,12 +11,14 @@ on:
     paths:
       - .github/workflows/zizmor.yaml
       - .github/workflows/**/*.yaml
+      - .github/actions/**/*.yaml
   pull_request:
     branches:
       - main
     paths:
       - .github/workflows/zizmor.yaml
       - .github/workflows/**/*.yaml
+      - .github/actions/**/*.yaml
   schedule:
     # Some random-ish cron to help with GitHub Actions scheduling, once a week
     - cron: 29 11 * * 2
