@@ -1640,7 +1640,9 @@ type GetUpdateOptions struct {
 }
 
 func (s *Store) GetUpdates(ctx context.Context, options *GetUpdateOptions) ([]models.ImageUpdate, error) {
-	query := `SELECT newReference, newAnnotations, oldReference, oldAnnotations, identified, released FROM images_updates ORDER BY identified DESC`
+	// If the identified time is the same (to the precision stored), ensure the
+	// sort is stable by sorting by reference
+	query := `SELECT newReference, newAnnotations, oldReference, oldAnnotations, identified, released FROM images_updates ORDER BY identified DESC, newReference DESC, oldReference DESC`
 	parameters := []any{}
 	if options != nil && options.Limit != 0 {
 		query += ` LIMIT ?`

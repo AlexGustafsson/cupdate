@@ -11,7 +11,7 @@ import (
 	_ "embed" // Embed SQL files
 )
 
-const Revision = 9
+const Revision = 10
 
 //go:embed migrations
 var migrations embed.FS

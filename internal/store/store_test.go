@@ -753,78 +753,147 @@ func TestStoreGetUpdates(t *testing.T) {
 	store := newStore(t, false)
 	defer store.Close()
 
-	// Insert a base image (test INSERT)
-	updateReleasedAt := time.Date(2025, 10, 27, 16, 31, 0, 0, time.Local)
-	base := &models.Image{
-		Reference: "mongo:4",
+	// Insert two similar base image (test INSERT)
+	update1ReleasedAt := time.Date(2025, 10, 27, 16, 31, 0, 0, time.Local)
+	update2ReleasedAt := time.Date(2025, 10, 28, 16, 31, 0, 0, time.Local)
+
+	base1 := &models.Image{
+		Reference: "mongo:4.0.0",
 		Annotations: oci.Annotations{
 			"version": "4.0.0",
 		},
-		LatestReference: "mongo:5",
+		LatestReference: "mongo:5.0.0",
 		LatestAnnotations: oci.Annotations{
 			"version": "5.0.0",
 		},
-		LatestCreated:       &updateReleasedAt,
+		LatestCreated:       &update1ReleasedAt,
 		VersionDiffSortable: 1,
 	}
 
 	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
-		Reference: base.Reference,
+		Reference: base1.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), base)
+	err = store.InsertImage(context.TODO(), base1)
 	require.NoError(t, err)
 
-	// Insert an image update (test UPDATE)
-	updated := &models.Image{
-		Reference: "mongo:5",
+	base2 := &models.Image{
+		Reference: "mongo:4.0.1",
 		Annotations: oci.Annotations{
+			"version": "4.0.1",
+		},
+		LatestReference: "mongo:5.0.0",
+		LatestAnnotations: oci.Annotations{
 			"version": "5.0.0",
 		},
-		LatestReference: "mongo:6",
-		LatestAnnotations: oci.Annotations{
-			"version": "6.0.0",
-		},
-		LatestCreated:       &updateReleasedAt,
+		LatestCreated:       &update1ReleasedAt,
 		VersionDiffSortable: 1,
 	}
 
 	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
-		Reference: updated.Reference,
+		Reference: base2.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), updated)
+	err = store.InsertImage(context.TODO(), base2)
 	require.NoError(t, err)
 
-	// Expect there to be an update
+	// Insert image updates (test UPDATE)
+	updated1 := &models.Image{
+		Reference: "mongo:4.0.0",
+		Annotations: oci.Annotations{
+			"version": "4.0.0",
+		},
+		LatestReference: "mongo:5.0.1",
+		LatestAnnotations: oci.Annotations{
+			"version": "5.0.1",
+		},
+		LatestCreated:       &update2ReleasedAt,
+		VersionDiffSortable: 1,
+	}
+
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: updated1.Reference,
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImage(context.TODO(), updated1)
+	require.NoError(t, err)
+
+	updated2 := &models.Image{
+		Reference: "mongo:4.0.1",
+		Annotations: oci.Annotations{
+			"version": "4.0.1",
+		},
+		LatestReference: "mongo:5.0.1",
+		LatestAnnotations: oci.Annotations{
+			"version": "5.0.1",
+		},
+		LatestCreated:       &update2ReleasedAt,
+		VersionDiffSortable: 1,
+	}
+
+	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+		Reference: updated2.Reference,
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImage(context.TODO(), updated2)
+	require.NoError(t, err)
+
+	// Expect there to be updates
 	updates, err := store.GetUpdates(context.TODO(), nil)
 	require.NoError(t, err)
+
 	assert.EqualValues(t, []models.ImageUpdate{
 		{
-			NewReference: "mongo:6",
+			NewReference: "mongo:5.0.1",
 			NewAnnotations: oci.Annotations{
-				"version": "6.0.0",
+				"version": "5.0.1",
 			},
-			OldReference: "mongo:5",
+			OldReference: "mongo:4.0.1",
 			OldAnnotations: oci.Annotations{
-				"version": "5.0.0",
+				"version": "4.0.1",
 			},
 			Identified: updates[0].Identified, // Difficult to assert
-			Released:   &updateReleasedAt,
+			Released:   &update2ReleasedAt,
 		},
 		{
-			NewReference: "mongo:5",
+			NewReference: "mongo:5.0.1",
 			NewAnnotations: oci.Annotations{
-				"version": "5.0.0",
+				"version": "5.0.1",
 			},
-			OldReference: "mongo:4",
+			OldReference: "mongo:4.0.0",
 			OldAnnotations: oci.Annotations{
 				"version": "4.0.0",
 			},
 			Identified: updates[1].Identified, // Difficult to assert
-			Released:   &updateReleasedAt,
+			Released:   &update2ReleasedAt,
+		},
+		{
+			NewReference: "mongo:5.0.0",
+			NewAnnotations: oci.Annotations{
+				"version": "5.0.0",
+			},
+			OldReference: "mongo:4.0.1",
+			OldAnnotations: oci.Annotations{
+				"version": "4.0.1",
+			},
+			Identified: updates[2].Identified, // Difficult to assert
+			Released:   &update1ReleasedAt,
+		},
+		{
+			NewReference: "mongo:5.0.0",
+			NewAnnotations: oci.Annotations{
+				"version": "5.0.0",
+			},
+			OldReference: "mongo:4.0.0",
+			OldAnnotations: oci.Annotations{
+				"version": "4.0.0",
+			},
+			Identified: updates[3].Identified, // Difficult to assert
+			Released:   &update1ReleasedAt,
 		},
 	}, updates)
 }
