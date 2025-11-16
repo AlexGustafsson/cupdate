@@ -15,7 +15,7 @@ RUN VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
 # TODO: Download and install osv-scanner as an (optional) runtime dependency
 # instead of including 100s of dependencies. Somehow include in SBOM...
-FROM --platform=${BUILDPLATFORM} golang:1.25.3@sha256:6d4e5e74f47db00f7f24da5f53c1b4198ae46862a47395e30477365458347bf2 AS osv-scanner-builder
+FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:e68f6a00e88586577fafa4d9cefad1349c2be70d21244321321c407474ff9bf2 AS osv-scanner-builder
 
 ARG TARGETARCH
 ARG TARGETOS
@@ -35,7 +35,7 @@ RUN wget \
     echo "${!OSV_SCANNER_CHECKSUM_VAR}" "osv-scanner" | sha256sum --check --strict && \
   chmod +x osv-scanner
 
-FROM --platform=${BUILDPLATFORM} golang:1.25.3@sha256:6d4e5e74f47db00f7f24da5f53c1b4198ae46862a47395e30477365458347bf2 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:e68f6a00e88586577fafa4d9cefad1349c2be70d21244321321c407474ff9bf2 AS builder
 
 WORKDIR /src
 
