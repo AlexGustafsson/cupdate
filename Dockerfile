@@ -20,20 +20,26 @@ FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:e68f6a00e88586577fafa4d9ce
 ARG TARGETARCH
 ARG TARGETOS
 
-ARG OSV_SCANNER_VERSION="v2.2.4"
-ARG OSV_SCANNER_CHECKSUM_amd64="7702cd1e5d9f5059dd9570f4ad967f27d3c5f5391b371ec937b384c238177f55"
-ARG OSV_SCANNER_CHECKSUM_arm64="94d1c520b30a7e28b0189b2a1dd24c7b08f41887186e8ae3f811067ec9ed7043"
-
-SHELL ["/bin/bash", "-c"]
+ARG OSV_SCANNER_REPO="https://github.com/google/osv-scanner"
+ARG OSV_SCANNER_REF="9e193da824d674ebaa946876a1905c7c3adbf114"
 
 WORKDIR /src
 
-RUN wget \
-    -qO osv-scanner \
-    "https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_${TARGETOS}_${TARGETARCH}" && \
-  OSV_SCANNER_CHECKSUM_VAR="OSV_SCANNER_CHECKSUM_${TARGETARCH}"; \
-    echo "${!OSV_SCANNER_CHECKSUM_VAR}" "osv-scanner" | sha256sum --check --strict && \
-  chmod +x osv-scanner
+# Use the toolchain specified in go.mod, or newer
+ENV GOTOOLCHAIN=auto
+
+RUN git clone --filter=tree:0 --depth=1 --no-checkout --sparse "${OSV_SCANNER_REPO}" . && \
+  git sparse-checkout init --sparse-index --cone && \
+  git sparse-checkout add cmd/osv-scanner internal pkg && \
+  git checkout "${OSV_SCANNER_REF}"
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+  go mod download && go mod verify
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+  GOARCH=${TARGETARCH} GOOS=${TARGETOS} CGO_ENABLED=0 go build -a -ldflags="-s -w" -o osv-scanner ./cmd/osv-scanner/main.go
 
 FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:e68f6a00e88586577fafa4d9cefad1349c2be70d21244321321c407474ff9bf2 AS builder
 
