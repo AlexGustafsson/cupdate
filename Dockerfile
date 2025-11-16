@@ -5,7 +5,7 @@ WORKDIR /src
 COPY .yarnrc.yml package.json yarn.lock .
 COPY .yarn .yarn
 
-RUN yarn install
+RUN yarn install --immutable
 
 COPY tsconfig.json vite.config.ts .
 COPY web web
