@@ -43,7 +43,9 @@ WORKDIR /src
 ENV GOTOOLCHAIN=auto
 
 COPY go.mod go.sum .
-RUN go mod download && go mod verify
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+  go mod download && go mod verify
 
 COPY cmd cmd
 COPY internal internal
@@ -53,7 +55,9 @@ COPY --from=web-builder /src/internal/web/public /src/internal/web/public
 ARG CUPDATE_VERSION="development build"
 ARG TARGETARCH
 ARG TARGETOS
-RUN GOARCH=${TARGETARCH} GOOS=${TARGETOS} CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'main.Version=$CUPDATE_VERSION'" -o cupdate cmd/cupdate/*.go
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+  GOARCH=${TARGETARCH} GOOS=${TARGETOS} CGO_ENABLED=0 go build -a -ldflags="-s -w -X 'main.Version=$CUPDATE_VERSION'" -o cupdate cmd/cupdate/*.go
 
 FROM scratch AS export
 
