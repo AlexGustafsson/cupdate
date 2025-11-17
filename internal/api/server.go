@@ -260,7 +260,7 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 			return
 		}
 
-		processQueue.Push(reference)
+		processQueue.PushFront(reference)
 		w.WriteHeader(http.StatusAccepted)
 	})
 

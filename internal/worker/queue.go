@@ -72,9 +72,35 @@ func NewQueue[T comparable](burst int, tick time.Duration) *Queue[T] {
 	return q
 }
 
-// Push puts one or more items at the end of the queue.
+// PushFront puts one or more unique items at the front of the queue.
 // Panics if the queue is closed.
-func (q *Queue[T]) Push(items ...T) {
+func (q *Queue[T]) PushFront(items ...T) {
+	q.setFunc(func(backlog []T) []T {
+		// Add unique items from the backlog to the end of the list of new items
+		for _, item := range backlog {
+			if !slices.Contains(items, item) {
+				items = append(items, item)
+			}
+		}
+		return items
+	})
+}
+
+// PushBack puts one or more unique items at the back of the queue.
+// Panics if the queue is closed.
+func (q *Queue[T]) PushBack(items ...T) {
+	q.setFunc(func(backlog []T) []T {
+		// Add unique items to the backlog
+		for _, item := range items {
+			if !slices.Contains(backlog, item) {
+				backlog = append(backlog, item)
+			}
+		}
+		return backlog
+	})
+}
+
+func (q *Queue[T]) setFunc(f func([]T) []T) {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
 
@@ -82,12 +108,7 @@ func (q *Queue[T]) Push(items ...T) {
 		panic("worker: push on closed queue")
 	}
 
-	// Push unique items to the backlog
-	for _, item := range items {
-		if !slices.Contains(q.backlog, item) {
-			q.backlog = append(q.backlog, item)
-		}
-	}
+	q.backlog = f(q.backlog)
 
 	q.lengthGauge.Set(float64(len(q.backlog)))
 	q.cond.Broadcast()

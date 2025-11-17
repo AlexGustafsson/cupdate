@@ -204,7 +204,7 @@ func main() {
 						return err
 					}
 
-					processQueue.Push(reference)
+					processQueue.PushBack(reference)
 				}
 
 				cancel()
@@ -385,7 +385,7 @@ func main() {
 				// Try to schedule the image for processing
 				if inserted {
 					slog.DebugContext(ctx, "Raw image inserted for first time - scheduling for processing")
-					processQueue.Push(imageNode.Reference)
+					processQueue.PushBack(imageNode.Reference)
 				}
 			}
 
