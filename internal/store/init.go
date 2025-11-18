@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
-
-	_ "embed" // Embed SQL files
 )
 
 const Revision = 10
