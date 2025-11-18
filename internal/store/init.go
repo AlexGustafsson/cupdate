@@ -23,7 +23,7 @@ var initsql string
 // necessary.
 func Initialize(ctx context.Context, uri string) error {
 	// Use WAL to allow multiple readers
-	uri += "?_pragma=journal_mode(WAL)&_time_format=sqlite"
+	uri += "?_pragma=journal_mode(WAL)&_pragma=busy_timeout(1000)&_time_format=sqlite"
 
 	db, err := sql.Open("sqlite", uri)
 	if err != nil {
