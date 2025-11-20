@@ -5,6 +5,6 @@
 -- TODO: Remove in v1
 
 -- Clean up
-DROP TABLE images_tags_old;
+DROP TABLE IF EXISTS images_tags_old;
 
 INSERT INTO revision (id, revision) VALUES (0, 7) ON CONFLICT DO UPDATE SET revision=excluded.revision;
