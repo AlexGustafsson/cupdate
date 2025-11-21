@@ -141,10 +141,10 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 	}
 
 	testCases := []struct {
-		Version            string
-		StayOnCurrentMajor bool
-		Expected           string
-		OK                 bool
+		Version  string
+		Filters  []FilterFunc
+		Expected string
+		OK       bool
 	}{
 		{
 			// End of major, expected latest major
@@ -154,16 +154,53 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 		},
 		{
 			// End of major, expected same major
-			Version:            "5",
-			StayOnCurrentMajor: true,
-			Expected:           "5",
-			OK:                 true,
+			Version:  "5",
+			Filters:  []FilterFunc{StayOnCurrentMajor()},
+			Expected: "5",
+			OK:       true,
 		},
 		{
 			// Patch on same major track
 			Version:  "5.0.1",
 			Expected: "5.0.30",
 			OK:       true,
+		},
+		{
+			// Stay below 8.0.0
+			Version: "5.0.1",
+			Filters: []FilterFunc{
+				StayBelow(&Version{
+					Release: []int{8, 0, 0},
+					// Only the release is used to filter versions as the selected version
+					// will still have to be compatible with the current one
+					Suffix:     "ignored",
+					Prerelease: "ignored",
+				}),
+			},
+			Expected: "5.0.30",
+			OK:       true,
+		},
+		{
+			// Can't upgrade to max version or beyond
+			Version: "5.0.1",
+			Filters: []FilterFunc{
+				StayBelow(&Version{
+					Release: []int{5, 0, 1},
+				}),
+			},
+			Expected: "5.0.1",
+			OK:       false,
+		},
+		{
+			// Non-matching number of release segments
+			Version: "5.0.1",
+			Filters: []FilterFunc{
+				StayBelow(&Version{
+					Release: []int{5, 0, 0, 0},
+				}),
+			},
+			Expected: "5.0.1",
+			OK:       false,
 		},
 		{
 			// Does not exist, assume newer
@@ -211,10 +248,10 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 		},
 		{
 			// Apparent end of same major track - recommend newest
-			Version:            "6.0.19",
-			StayOnCurrentMajor: true,
-			Expected:           "6.0.19",
-			OK:                 true,
+			Version:  "6.0.19",
+			Filters:  []FilterFunc{StayOnCurrentMajor()},
+			Expected: "6.0.19",
+			OK:       true,
 		},
 		{
 			// Latest available
@@ -245,7 +282,7 @@ func TestLatestVersionOnSameTrack(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Version, func(t *testing.T) {
-			actual, ok := LatestOpinionatedVersionString(testCase.Version, versions, testCase.StayOnCurrentMajor)
+			actual, ok := LatestOpinionatedVersionString(testCase.Version, versions, testCase.Filters...)
 			assert.Equal(t, testCase.Expected, actual)
 			assert.Equal(t, testCase.OK, ok)
 		})

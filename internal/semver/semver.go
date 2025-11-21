@@ -76,7 +76,7 @@ func (v *Version) Diff(other *Version) string {
 	return ""
 }
 
-// Compare compares two versions.
+// Compare compares two compatible versions.
 // Returns a negative number when v < other, a positive number when v > other
 // and zero when v == other.
 func (v *Version) Compare(other *Version) int {

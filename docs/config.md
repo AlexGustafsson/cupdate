@@ -90,6 +90,24 @@ be updated as the newer version is no longer on the same major.
 This is useful for databases where updating to a newer major version can take a
 lot of time and require changes to applications.
 
+#### `stay-below`
+
+- Kubernetes: `config.cupdate/stay-below`
+- Docker: `cupdate.config.stay-below`
+
+Set to a semantic version (e.g. `20.0.0`) to keep Cupdate from recommending
+upgrades beyond a certain version.
+
+This is useful when the project has moved from using calendar versioning to
+semantic versioning, meaning there could be versions like `2021.12.16` or
+`20.04.1`, but the latest version is in fact `5.1.2`.
+
+Setting `stay-below` to `2000.0.0` or `20.0.0`, for example, will ensure Cupdate
+ignores any previous calendar versions. Note that the value must be a valid
+semantic version and match the number of segments used by the image itself
+(typically just three). Any prefix (e.g. `v`) or suffix (e.g. `-rc.1`) must be
+excluded.
+
 #### `pin`
 
 - Kubernetes: `config.cupdate/pin`
