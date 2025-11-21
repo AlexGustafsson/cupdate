@@ -50,9 +50,25 @@ func GetLatestReference() workflow.Step {
 					return nil, err
 				}
 
+				filters := make([]semver.FilterFunc, 0)
+
+				if labels.StayOnCurrentMajor() {
+					// TODO: This is essentially just an alias for
+					// StayBelow(current + 1 major)
+					filters = append(filters, semver.StayOnCurrentMajor())
+				}
+
+				stayBelow, err := labels.StayBelow()
+				if err != nil {
+					return nil, err
+				}
+				if stayBelow != nil {
+					filters = append(filters, semver.StayBelow(stayBelow))
+				}
+
 				// We only want to specify a latest reference when we're certain of it,
 				// for example, when it has been seen in the list of tags
-				latest, ok := semver.LatestOpinionatedVersionString(reference.Tag, tags, labels.StayOnCurrentMajor())
+				latest, ok := semver.LatestOpinionatedVersionString(reference.Tag, tags, filters...)
 				if ok {
 					l := reference
 

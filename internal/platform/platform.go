@@ -12,6 +12,7 @@ import (
 
 	"github.com/AlexGustafsson/cupdate/internal/graph"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
+	"github.com/AlexGustafsson/cupdate/internal/semver"
 )
 
 // Node is a platform resource represented as a graph node.
@@ -47,6 +48,26 @@ func (l Labels) Pin() bool {
 func (l Labels) StayOnCurrentMajor() bool {
 	v, _ := l.oneOf("config.cupdate/stay-on-current-major", "cupdate.config.stay-on-current-major")
 	return v == "true"
+}
+
+// StayBelow returns the a semver if the Cupdate stay-below label is set.
+// Returns an error if the value is set, but invalid.
+func (l Labels) StayBelow() (*semver.Version, error) {
+	v, ok := l.oneOf("config.cupdate/stay-below", "cupdate.config.stay-below")
+	if !ok {
+		return nil, nil
+	}
+
+	version, err := semver.ParseVersion(v)
+	if err != nil {
+		return nil, fmt.Errorf("label: %w", err)
+	}
+
+	if version.Prerelease != "" || version.Suffix != "" {
+		return nil, fmt.Errorf("label: invalid semver - only specify release")
+	}
+
+	return version, nil
 }
 
 func (l Labels) oneOf(keys ...string) (string, bool) {
