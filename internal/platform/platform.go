@@ -32,54 +32,35 @@ type Labels map[string]string
 
 // Ignore returns true if the Cupdate ignore label is set to true.
 func (l Labels) Ignore() bool {
-	if l == nil {
-		return false
-	}
-
-	if v, ok := l["config.cupdate/ignore"]; ok {
-		return v == "true"
-	}
-
-	if v, ok := l["cupdate.config.ignore"]; ok {
-		return v == "true"
-	}
-
-	return false
+	v, _ := l.oneOf("config.cupdate/ignore", "cupdate.config.ignore")
+	return v == "true"
 }
 
-// Ignore returns true if the Cupdate pin label is set to true.
+// Pin returns true if the Cupdate pin label is set to true.
 func (l Labels) Pin() bool {
-	if l == nil {
-		return false
-	}
-
-	if v, ok := l["config.cupdate/pin"]; ok {
-		return v == "true"
-	}
-
-	if v, ok := l["cupdate.config.pin"]; ok {
-		return v == "true"
-	}
-
-	return false
+	v, _ := l.oneOf("config.cupdate/pin", "cupdate.config.pin")
+	return v == "true"
 }
 
-// Ignore returns true if the Cupdate stay-on-current-major label is set to
-// true.
+// StayOnCurrentMajor returns true if the Cupdate stay-on-current-major label is
+// set to true.
 func (l Labels) StayOnCurrentMajor() bool {
+	v, _ := l.oneOf("config.cupdate/stay-on-current-major", "cupdate.config.stay-on-current-major")
+	return v == "true"
+}
+
+func (l Labels) oneOf(keys ...string) (string, bool) {
 	if l == nil {
-		return false
+		return "", false
 	}
 
-	if v, ok := l["config.cupdate/stay-on-current-major"]; ok {
-		return v == "true"
+	for _, k := range keys {
+		if v, ok := l[k]; ok {
+			return v, ok
+		}
 	}
 
-	if v, ok := l["cupdate.config.stay-on-current-major"]; ok {
-		return v == "true"
-	}
-
-	return false
+	return "", false
 }
 
 // RemoveUnsupported removes unsupported labels.
