@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
@@ -14,7 +15,7 @@ import (
 	"github.com/AlexGustafsson/cupdate/internal/worker"
 )
 
-func HandleGraphs(ctx context.Context, targetPlatform platform.ContinuousGrapher, writeStore *store.Store, processQueue *worker.Queue[oci.Reference]) {
+func HandleGraphs(ctx context.Context, targetPlatform platform.ContinuousGrapher, platformEvents *events.Hub[models.PlatformEvent], writeStore *store.Store, processQueue *worker.Queue[oci.Reference]) {
 	defer slog.Debug("Closed graphing")
 	for {
 		select {
@@ -34,6 +35,7 @@ func HandleGraphs(ctx context.Context, targetPlatform platform.ContinuousGrapher
 
 			roots := graph.Roots()
 
+			totalInserted := 0
 			for _, root := range roots {
 				imageNode := root.(platform.ImageNode)
 
@@ -159,6 +161,7 @@ func HandleGraphs(ctx context.Context, targetPlatform platform.ContinuousGrapher
 				// Try to schedule the image for processing
 				if inserted {
 					slog.Debug("Raw image inserted for first time - scheduling for processing")
+					totalInserted++
 					processQueue.PushBack(imageNode.Reference)
 				}
 			}
@@ -170,11 +173,15 @@ func HandleGraphs(ctx context.Context, targetPlatform platform.ContinuousGrapher
 			}
 
 			slog.Debug("Cleaning up removed images")
-			removed, err := writeStore.DeleteNonPresent(ctx, allReferences)
+			totalRemoved, err := writeStore.DeleteNonPresent(ctx, allReferences)
 			if err == nil {
-				slog.Debug("Cleaned up removed images successfully", slog.Int64("removed", removed))
+				slog.Debug("Cleaned up removed images successfully", slog.Int64("removed", totalRemoved))
 			} else {
 				slog.Error("Failed to clean up removed images", slog.Any("error", err))
+			}
+
+			if totalInserted > 0 || totalRemoved > 0 {
+				platformEvents.Broadcast(ctx, models.PlatformEvent{Type: models.EventTypeGraphUpdated})
 			}
 		}
 	}

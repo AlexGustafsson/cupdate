@@ -6,7 +6,9 @@ import (
 	"os"
 
 	"github.com/AlexGustafsson/cupdate/internal/api"
+	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
+	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/store"
@@ -19,7 +21,8 @@ func ConfigureServer(
 	config *Config,
 	httpClient *httputil.Client,
 	readStore *store.Store,
-	worker *worker.Worker,
+	workerHub *events.Hub[worker.Event],
+	platformHub *events.Hub[models.PlatformEvent],
 	processQueue *worker.Queue[oci.Reference],
 	targetPlatform platform.ContinuousGrapher,
 ) *http.Server {
@@ -37,7 +40,7 @@ func ConfigureServer(
 
 	mux := http.NewServeMux()
 
-	apiServer := api.NewServer(readStore, worker.Hub, processQueue, logoProxy, targetPlatform)
+	apiServer := api.NewServer(readStore, workerHub, platformHub, processQueue, logoProxy, targetPlatform)
 	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
 	mux.Handle("/metrics", promhttp.Handler())

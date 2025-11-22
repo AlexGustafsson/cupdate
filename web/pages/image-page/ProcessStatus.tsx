@@ -35,7 +35,7 @@ export function ProcessStatus({
 
   useEvents(
     (e) => {
-      if (e.reference === reference && e.type === 'imageProcessed') {
+      if (e.type === 'imageProcessed' && e.reference === reference) {
         // TODO: Use time from event rather then the current time
         setLastModified(new Date())
 

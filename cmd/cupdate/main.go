@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
+	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
+	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
 	"github.com/AlexGustafsson/cupdate/internal/store"
@@ -100,7 +102,9 @@ func run(environ []string, signals <-chan os.Signal) ExitCode {
 		worker := worker.New(httpClient, writeStore, config.RegistryAuth())
 		prometheus.DefaultRegisterer.MustRegister(worker)
 
-		httpServer := ConfigureServer(config, httpClient, readStore, worker, processQueue, targetPlatform)
+		platformHub := events.NewHub[models.PlatformEvent]()
+
+		httpServer := ConfigureServer(config, httpClient, readStore, worker.Hub, platformHub, processQueue, targetPlatform)
 
 		wg.Go(func() {
 			HandleScheduling(runCtx, config, processQueue, readStore)
@@ -112,7 +116,7 @@ func run(environ []string, signals <-chan os.Signal) ExitCode {
 		})
 
 		wg.Go(func() {
-			HandleGraphs(runCtx, targetPlatform, writeStore, processQueue)
+			HandleGraphs(runCtx, targetPlatform, platformHub, writeStore, processQueue)
 		})
 
 		wg.Go(func() {

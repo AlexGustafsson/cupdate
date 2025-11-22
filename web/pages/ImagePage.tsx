@@ -103,8 +103,8 @@ export function ImagePage(): JSX.Element {
       // All data but the workflow runs are covered by the image updated event,
       // include the image processed event to cover workflow runs changing
       if (
-        e.reference === reference &&
-        (e.type === 'imageUpdated' || e.type === 'imageProcessed')
+        (e.type === 'imageUpdated' || e.type === 'imageProcessed') &&
+        e.reference === reference
       ) {
         setIsUpdateAvailable(true)
       }

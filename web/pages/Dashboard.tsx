@@ -114,7 +114,7 @@ export function Dashboard(): JSX.Element {
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
 
   useEvents((e: Event) => {
-    if (e.type === 'imageUpdated') {
+    if (e.type === 'imageUpdated' || e.type === 'graphUpdated') {
       setIsUpdateAvailable(true)
     }
   }, [])

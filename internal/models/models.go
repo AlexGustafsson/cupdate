@@ -186,12 +186,17 @@ type ImageEvent struct {
 	Type      EventType `json:"type"`
 }
 
+type PlatformEvent struct {
+	Type EventType `json:"type"`
+}
+
 type EventType string
 
 const (
 	EventTypeImageUpdated             EventType = "imageUpdated"
 	EventTypeImageProcessed           EventType = "imageProcessed"
 	EventTypeImageNewVersionAvailable EventType = "imageNewVersionAvailable"
+	EventTypeGraphUpdated             EventType = "graphUpdated"
 )
 
 type ImageUpdate struct {

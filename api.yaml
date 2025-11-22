@@ -601,6 +601,7 @@ components:
       type: object
       oneOf:
         - $ref: "#/components/schemas/ImageEvent"
+        - $ref: "#/components/schemas/PlatformEvent"
 
     ImageEvent:
       type: object
@@ -610,6 +611,13 @@ components:
         type:
           type: string
           enum: ["imageUpdated", "imageProcessed", "imageNewVersionAvailable"]
+
+    PlatformEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["graphUpdated"]
 
     Summary:
       type: object
