@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"maps"
-	"strings"
 	"sync"
 	"time"
 
@@ -24,73 +22,6 @@ type Node interface {
 	Labels() Labels
 	// InternalLabels returns labels set by Cupdate.
 	InternalLabels() InternalLabels
-}
-
-// Labels holds labels / annotations found by platform implementations, which
-// map to things like Docker labels or Kubernetes resource annotations.
-type Labels map[string]string
-
-// Ignore returns true if the Cupdate ignore label is set to true.
-func (l Labels) Ignore() bool {
-	if l == nil {
-		return false
-	}
-
-	if v, ok := l["config.cupdate/ignore"]; ok {
-		return v == "true"
-	}
-
-	if v, ok := l["cupdate.config.ignore"]; ok {
-		return v == "true"
-	}
-
-	return false
-}
-
-// Ignore returns true if the Cupdate pin label is set to true.
-func (l Labels) Pin() bool {
-	if l == nil {
-		return false
-	}
-
-	if v, ok := l["config.cupdate/pin"]; ok {
-		return v == "true"
-	}
-
-	if v, ok := l["cupdate.config.pin"]; ok {
-		return v == "true"
-	}
-
-	return false
-}
-
-// Ignore returns true if the Cupdate stay-on-current-major label is set to
-// true.
-func (l Labels) StayOnCurrentMajor() bool {
-	if l == nil {
-		return false
-	}
-
-	if v, ok := l["config.cupdate/stay-on-current-major"]; ok {
-		return v == "true"
-	}
-
-	if v, ok := l["cupdate.config.stay-on-current-major"]; ok {
-		return v == "true"
-	}
-
-	return false
-}
-
-// RemoveUnsupported removes unsupported labels.
-func (l Labels) RemoveUnsupported() Labels {
-	clone := maps.Clone(l)
-	for k := range l {
-		if !strings.HasPrefix(k, "config.cupdate/") && !strings.HasPrefix(k, "cupdate.config.") {
-			delete(clone, k)
-		}
-	}
-	return clone
 }
 
 const (

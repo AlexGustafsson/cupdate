@@ -8,13 +8,43 @@ func CompareVersions(a *Version, b *Version) int {
 	return a.Compare(b)
 }
 
+// FilterFunc returns whether or not other should be considered as a potential
+// upgrade for current. The versions are always compatible.
+type FilterFunc func(current *Version, other *Version) bool
+
+// StayOnCurrentMajor returns a filter only including versions on the current
+// major.
+func StayOnCurrentMajor() FilterFunc {
+	// TODO: This is essentially just an alias for
+	// StayBelow(current + 1 major)
+	return func(current *Version, other *Version) bool {
+		if len(current.Release) == 0 {
+			return true
+		}
+
+		return other.Release[0] == current.Release[0]
+	}
+}
+
+// StayBelow returns a filter only including versions below the specified
+// version.
+func StayBelow(version *Version) FilterFunc {
+	return func(current *Version, other *Version) bool {
+		if len(other.Release) != len(version.Release) {
+			return false
+		}
+
+		return other.Compare(version) < 0
+	}
+}
+
 // LatestOpinionatedVersionString returns the latest compatible version and
 // whether or not a compatible version was found.
 // If there is a new version on the same major as the current, it is preferred.
 // If the current version is the newest version of the major, the latest version
 // is returned. This allows more graceful handling of version tracks for things
 // like databases where multiple majors are supported concurrently.
-func LatestOpinionatedVersionString(current string, versions []string, stayOnCurrentMajor bool) (string, bool) {
+func LatestOpinionatedVersionString(current string, versions []string, filters ...FilterFunc) (string, bool) {
 	if current == "latest" {
 		return current, true
 	}
@@ -38,7 +68,17 @@ func LatestOpinionatedVersionString(current string, versions []string, stayOnCur
 			// Perhaps conduct some data-driven experiment and check the state of the
 			// ecosystem?
 			if v.Prerelease == "" || v.Prerelease != "" && currentVersion.Prerelease != "" {
-				compatibleVersions = append(compatibleVersions, v)
+				include := true
+				for _, filter := range filters {
+					if !filter(currentVersion, v) {
+						include = false
+						break
+					}
+				}
+
+				if include {
+					compatibleVersions = append(compatibleVersions, v)
+				}
 			}
 		}
 	}
@@ -51,6 +91,8 @@ func LatestOpinionatedVersionString(current string, versions []string, stayOnCur
 	latestVersion := currentVersion
 	compatibleFound := false
 	for _, version := range compatibleVersions {
+		// NOTE: We already know the releases are compatible, so we can safely
+		// assume that there are as many "segments" in both versions
 		if len(version.Release) > 0 && len(currentVersion.Release) > 0 &&
 			version.Release[0] == currentVersion.Release[0] &&
 			version.Compare(latestVersionOfSameMajor) > 0 {
@@ -66,9 +108,8 @@ func LatestOpinionatedVersionString(current string, versions []string, stayOnCur
 		}
 	}
 
-	// End of major track, return the latest version unless we want to stay on the
-	// current major
-	if latestVersionOfSameMajor.Equals(currentVersion) && !stayOnCurrentMajor {
+	// End of major track, return the latest version
+	if latestVersionOfSameMajor.Equals(currentVersion) {
 		return latestVersion.raw, compatibleFound
 	}
 
