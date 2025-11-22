@@ -196,4 +196,8 @@ export class DemoApiClient implements ApiClient {
   async scheduleImageScan(_reference: string): Promise<void> {
     return Promise.resolve()
   }
+
+  async pollImages(): Promise<void> {
+    return Promise.resolve()
+  }
 }

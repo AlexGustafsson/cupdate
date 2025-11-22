@@ -233,7 +233,7 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 	if data.LatestReference != nil {
 		result.LatestReference = data.LatestReference.String()
 	}
-	if err := w.store.InsertImage(context.TODO(), &result); err != nil {
+	if err := w.store.InsertImage(ctx, &result); err != nil {
 		log.ErrorContext(ctx, "Failed to insert image", slog.Any("error", err))
 		// Fallthrough - try to insert what we have
 	}

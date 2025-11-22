@@ -15,7 +15,12 @@ export type ImageEvent = {
   reference: string
 }
 
-export type Event = ImageEvent
+/** PlatformEvent holds event information for platform events. */
+export type PlatformEvent = {
+  type: 'graphUpdated'
+}
+
+export type Event = ImageEvent | PlatformEvent
 
 type EventHandler = (e: Event) => void
 

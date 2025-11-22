@@ -156,6 +156,16 @@ export class ApiClient implements IApiClient {
     }
   }
 
+  async pollImages(): Promise<void> {
+    const res = await fetch(`${this.#endpoint}/images/poll`, {
+      method: 'POST',
+    })
+
+    if (res.status !== 200) {
+      throw new Error(`unexpected status - ${res.status}`)
+    }
+  }
+
   async dump(): Promise<void> {
     const tags = await this.getTags()
 

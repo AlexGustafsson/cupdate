@@ -17,7 +17,7 @@ func TestInitializeNew(t *testing.T) {
 	err := Initialize(context.TODO(), uri)
 	require.NoError(t, err)
 
-	store, err := New(uri, true)
+	store, err := New(context.TODO(), uri, true)
 	require.NoError(t, err)
 
 	err = store.Close()
@@ -46,7 +46,7 @@ func TestInitializeRandom(t *testing.T) {
 		err := Initialize(context.TODO(), uri)
 		require.NoError(t, err)
 
-		store, err := New(uri, true)
+		store, err := New(context.TODO(), uri, true)
 		require.NoError(t, err)
 
 		err = store.Close()

@@ -367,3 +367,23 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
 
   return pages
 }
+
+export function useRefreshImages(): [boolean, () => void] {
+  const client = useApiClient()
+
+  const [isRefreshingImages, setIsRefreshingImages] = useState(false)
+
+  const refresh = useCallback(() => {
+    if (isRefreshingImages) {
+      return
+    }
+
+    setIsRefreshingImages(true)
+
+    client.pollImages().finally(() => {
+      setIsRefreshingImages(false)
+    })
+  }, [isRefreshingImages, client])
+
+  return [isRefreshingImages, refresh]
+}

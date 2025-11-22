@@ -87,11 +87,20 @@ type Config struct {
 	Logos struct {
 		Path string `env:"PATH" envDefault:"logos"`
 	} `envPrefix:"LOGOS_"`
+
+	registryAuth *httputil.AuthMux
+	databaseURI  string
+	logLevel     slog.Level
 }
 
-func (c *Config) LogLevel() (slog.Level, error) {
-	var logLevel slog.Level
+// LogLevel returns the configured log level.
+// Valid once the config has been parsed.
+func (c *Config) LogLevel() slog.Level {
+	return c.logLevel
+}
 
+func (c *Config) parseLogLevel() error {
+	var logLevel slog.Level
 	switch c.Log.Level {
 	case "debug":
 		logLevel = slog.LevelDebug
@@ -102,28 +111,34 @@ func (c *Config) LogLevel() (slog.Level, error) {
 	case "error":
 		logLevel = slog.LevelError
 	default:
-		return logLevel, fmt.Errorf("invalid log level")
+		return fmt.Errorf("invalid log level")
 	}
 
-	return logLevel, nil
+	c.logLevel = logLevel
+	return nil
 }
 
-// RegistryAuth parses the configuration to use of authenticating with OCI
+// RegistryAuth returns the config to use when communicating with OCI
 // registries.
-func (c *Config) RegistryAuth() (*httputil.AuthMux, error) {
+// Valid once the config has been parsed.
+func (c *Config) RegistryAuth() *httputil.AuthMux {
+	return c.registryAuth
+}
+
+func (c *Config) parseRegistryAuth() error {
 	registryAuth := httputil.NewAuthMux()
 
 	if c.Registry.Secrets != "" {
 		file, err := os.Open(c.Registry.Secrets)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read registry secrets: %w", err)
+			return fmt.Errorf("failed to read registry secrets: %w", err)
 		}
 
 		var dockerConfig *docker.ConfigFile
 		err = json.NewDecoder(file).Decode(&dockerConfig)
 		file.Close()
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse registry secrets: %w", err)
+			return fmt.Errorf("failed to parse registry secrets: %w", err)
 		}
 
 		for k, v := range dockerConfig.HttpHeaders {
@@ -139,12 +154,12 @@ func (c *Config) RegistryAuth() (*httputil.AuthMux, error) {
 			} else {
 				value, err := base64.StdEncoding.DecodeString(auth.Auth)
 				if err != nil {
-					return nil, fmt.Errorf("invalid registry secrets file: %w", err)
+					return fmt.Errorf("invalid registry secrets file: %w", err)
 				}
 
 				username, password, ok := strings.Cut(string(value), ":")
 				if !ok {
-					return nil, fmt.Errorf("invalid registry secrets file: invalid auth field")
+					return fmt.Errorf("invalid registry secrets file: invalid auth field")
 				}
 
 				registryAuth.Handle(pattern, httputil.BasicAuthHandler{
@@ -155,7 +170,8 @@ func (c *Config) RegistryAuth() (*httputil.AuthMux, error) {
 		}
 	}
 
-	return registryAuth, nil
+	c.registryAuth = registryAuth
+	return nil
 }
 
 // KubernetesClientConfig returns the config to use for Kubernetes.
@@ -170,18 +186,41 @@ func (c *Config) KubernetesClientConfig() (*rest.Config, error) {
 }
 
 // DatabaseURI returns a URI for the database, for direct use with sqlite.
-func (c *Config) DatabaseURI() (string, error) {
-	absolutePath, err := filepath.Abs(c.Database.Path)
-	if err != nil {
-		return "", err
-	}
-
-	return "file://" + absolutePath, nil
+// Valid once the config has been parsed.
+func (c *Config) DatabaseURI() string {
+	return c.databaseURI
 }
 
-func ParseConfigFromEnv() (*Config, error) {
+func (c *Config) parseDatabaseURI() error {
+	absolutePath, err := filepath.Abs(c.Database.Path)
+	if err != nil {
+		return fmt.Errorf("failed to parse database URI: %w", err)
+	}
+
+	c.databaseURI = "file://" + absolutePath
+	return nil
+}
+
+// ParseConfigFromEnv parses a [Config] from environment variables.
+// Example:
+//
+//	ParseConfigFromEnv(os.Env())
+func ParseConfigFromEnv(environ []string) (*Config, error) {
 	var config Config
-	if err := env.ParseWithOptions(&config, env.Options{Prefix: "CUPDATE_"}); err != nil {
+
+	if err := env.ParseWithOptions(&config, env.Options{Prefix: "CUPDATE_", Environment: env.ToMap(environ)}); err != nil {
+		return nil, err
+	}
+
+	if err := config.parseRegistryAuth(); err != nil {
+		return nil, err
+	}
+
+	if err := config.parseDatabaseURI(); err != nil {
+		return nil, err
+	}
+
+	if err := config.parseLogLevel(); err != nil {
 		return nil, err
 	}
 

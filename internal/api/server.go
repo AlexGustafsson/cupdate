@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -26,21 +27,36 @@ var (
 	ErrBadRequest = errors.New("bad request")
 )
 
+type Platform interface {
+	Graph(context.Context) error
+}
+
 type Server struct {
-	api       *store.Store
-	hub       *events.Hub[worker.Event]
-	logoProxy LogoProxy
-	mux       *http.ServeMux
+	api         *store.Store
+	platform    Platform
+	workerHub   *events.Hub[worker.Event]
+	platformHub *events.Hub[models.PlatformEvent]
+	logoProxy   LogoProxy
+	mux         *http.ServeMux
 
 	WebAddress string
 }
 
-func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference], logoProxy LogoProxy) *Server {
+func NewServer(
+	api *store.Store,
+	workerHub *events.Hub[worker.Event],
+	platformHub *events.Hub[models.PlatformEvent],
+	processQueue *worker.Queue[oci.Reference],
+	logoProxy LogoProxy,
+	platform Platform,
+) *Server {
 	s := &Server{
-		api:       api,
-		hub:       hub,
-		logoProxy: logoProxy,
-		mux:       http.NewServeMux(),
+		api:         api,
+		platform:    platform,
+		workerHub:   workerHub,
+		platformHub: platformHub,
+		logoProxy:   logoProxy,
+		mux:         http.NewServeMux(),
 	}
 
 	s.mux.HandleFunc("GET /api/v1/tags", func(w http.ResponseWriter, r *http.Request) {
@@ -398,26 +414,40 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 		w.Header().Set("Connection", "keep-alive")
 		w.WriteHeader(http.StatusOK)
 
-		for event := range s.hub.Subscribe(ctx) {
-			var eventType models.EventType
-			switch event.Type {
-			case worker.EventTypeUpdated:
-				eventType = models.EventTypeImageUpdated
-			case worker.EventTypeProcessed:
-				eventType = models.EventTypeImageProcessed
-			case worker.EventTypeNewVersionAvailable:
-				eventType = models.EventTypeImageNewVersionAvailable
+		workerEvents := s.workerHub.Subscribe(ctx)
+		platformEvents := s.platformHub.Subscribe(ctx)
+		for {
+			var data []byte
+			var err error
+			select {
+			case <-r.Context().Done():
+				return
+			case event := <-workerEvents:
+				var eventType models.EventType
+				switch event.Type {
+				case worker.EventTypeUpdated:
+					eventType = models.EventTypeImageUpdated
+				case worker.EventTypeProcessed:
+					eventType = models.EventTypeImageProcessed
+				case worker.EventTypeNewVersionAvailable:
+					eventType = models.EventTypeImageNewVersionAvailable
+				}
+
+				data, err = json.Marshal(models.ImageEvent{
+					Reference: event.Reference,
+					Type:      eventType,
+				})
+			case event := <-platformEvents:
+				data, err = json.Marshal(event)
 			}
 
-			data, err := json.Marshal(models.ImageEvent{
-				Reference: event.Reference,
-				Type:      eventType,
-			})
 			if err == nil {
 				_, _ = fmt.Fprintf(w, "data:%s\n\n", data)
 				if flusher, ok := w.(http.Flusher); ok {
 					flusher.Flush()
 				}
+			} else {
+				slog.Warn("Failed to marshal event", slog.Any("error", err))
 			}
 		}
 	})
@@ -428,6 +458,14 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 
 		response, err := api.Summary(ctx)
 		s.handleJSONResponse(w, r, response, err)
+	})
+
+	s.mux.HandleFunc("POST /api/v1/images/poll", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/images/poll"))
+
+		err := platform.Graph(ctx)
+		s.handleGenericResponse(w, r, err)
 	})
 
 	return s

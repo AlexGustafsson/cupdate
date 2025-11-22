@@ -22,7 +22,7 @@ type Store struct {
 
 // TODO: For single rows use QueryRowContext instead of QueryContext
 
-func New(uri string, readonly bool) (*Store, error) {
+func New(ctx context.Context, uri string, readonly bool) (*Store, error) {
 	// Use WAL to allow multiple readers
 	uri += "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(1000)&_time_format=sqlite"
 	if readonly {
@@ -34,7 +34,7 @@ func New(uri string, readonly bool) (*Store, error) {
 		return nil, err
 	}
 
-	revision, err := getStoreRevision(context.TODO(), db)
+	revision, err := getStoreRevision(ctx, db)
 	if err != nil {
 		return nil, err
 	}
