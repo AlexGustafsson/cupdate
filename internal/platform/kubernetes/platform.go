@@ -69,6 +69,7 @@ func (p *Platform) Graphs() <-chan platform.Graph {
 }
 
 // Close closes the platform.
-func (p *Platform) Close() {
-	p.grapher.Stop()
+func (p *Platform) Close() error {
+	p.grapher.Close()
+	return nil
 }

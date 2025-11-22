@@ -5,499 +5,226 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
-	"path/filepath"
+	"sync"
 	"time"
 
-	"github.com/AlexGustafsson/cupdate/internal/api"
 	"github.com/AlexGustafsson/cupdate/internal/cache"
-	"github.com/AlexGustafsson/cupdate/internal/configutils"
 	"github.com/AlexGustafsson/cupdate/internal/httputil"
-	"github.com/AlexGustafsson/cupdate/internal/models"
 	"github.com/AlexGustafsson/cupdate/internal/oci"
-	"github.com/AlexGustafsson/cupdate/internal/otelutil"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
-	"github.com/AlexGustafsson/cupdate/internal/platform/docker"
-	"github.com/AlexGustafsson/cupdate/internal/platform/kubernetes"
-	"github.com/AlexGustafsson/cupdate/internal/platform/static"
-	"github.com/AlexGustafsson/cupdate/internal/slogutil"
 	"github.com/AlexGustafsson/cupdate/internal/store"
-	"github.com/AlexGustafsson/cupdate/internal/web"
+	"github.com/AlexGustafsson/cupdate/internal/syncutil"
 	"github.com/AlexGustafsson/cupdate/internal/worker"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"golang.org/x/sync/errgroup"
 )
 
-func main() {
-	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})).With(slog.String("service.version", Version)).With(slog.String("service.name", "cupdate")))
+type ExitCode int
 
-	config, err := ParseConfigFromEnv()
-	if err != nil {
-		slog.Error("Failed to parse config from environment variables", slog.Any("error", err))
-		os.Exit(1)
-	}
+const (
+	ExitCodeOK    ExitCode = 0
+	ExitCodeNotOK ExitCode = 1
+)
 
-	var logLevel slog.Level
-	switch config.Log.Level {
-	case "debug":
-		logLevel = slog.LevelDebug
-	case "info":
-		logLevel = slog.LevelInfo
-	case "warn":
-		logLevel = slog.LevelWarn
-	case "error":
-		logLevel = slog.LevelError
-	default:
-		slog.Error("Failed to parse config - invalid log level")
-		os.Exit(1)
-	}
-	slog.SetDefault(slog.New(slogutil.NewHandler(os.Stderr, &slog.HandlerOptions{Level: logLevel})).With(slog.String("service.version", Version)).With(slog.String("service.name", "cupdate")))
-
-	slog.Debug("Parsed config", slog.Any("config", config))
-
-	registryAuth, err := config.RegistryAuth()
-	if err != nil {
-		slog.Error("Failed to parse registry auth", slog.Any("error", err))
-		os.Exit(1)
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	if config.OTEL.Target != "" {
-		shutdown, err := otelutil.Init(ctx, config.OTEL.Target, config.OTEL.Insecure)
-		if err != nil {
-			slog.ErrorContext(ctx, "Failed to initialize otel", slog.Any("error", err))
-			os.Exit(1)
-		}
-
-		// TODO: This won't be invoked on exit, make it part of the shutdown
-		// procedure
-		defer shutdown(ctx)
-	}
-
-	// Set up the configured platform
-	var targetPlatform platform.ContinuousGrapher
-	if len(config.Docker.Hosts) > 0 {
-		graphers := make([]platform.Grapher, 0)
-		for _, host := range config.Docker.Hosts {
-			options := &docker.Options{
-				IncludeAllContainers: config.Docker.IncludeAllContainers,
-			}
-
-			if config.Docker.TLSPath != "" {
-				uri, err := url.Parse(host)
-				if err != nil {
-					slog.ErrorContext(ctx, "Failed to parse docker URI", slog.Any("error", err), slog.String("host", host))
-					os.Exit(1)
-				}
-
-				tlsConfig, err := configutils.LoadTLSConfig(
-					filepath.Join(config.Docker.TLSPath, uri.Hostname()),
-					config.Docker.TLSPath,
-				)
-				if err != nil {
-					slog.ErrorContext(ctx, "Failed to read docker TLS files", slog.Any("error", err), slog.String("host", host))
-				}
-
-				options.TLSClientConfig = tlsConfig
-			}
-
-			platform, err := docker.NewPlatform(ctx, host, options)
-			if err != nil {
-				slog.ErrorContext(ctx, "Failed to create docker source", slog.Any("error", err), slog.String("host", host))
-				os.Exit(1)
-			}
-
-			graphers = append(graphers, platform)
-		}
-		targetPlatform = platform.NewPollGrapher(
-			&platform.CompoundGrapher{
-				Graphers: graphers,
-			},
-			config.Processing.Interval,
-		)
-	} else if config.Static.FilePath != "" {
-		targetPlatform = platform.NewPollGrapher(
-			&static.Platform{
-				FilePath: config.Static.FilePath,
-			},
-			config.Processing.Interval,
-		)
-	} else {
-		kubernetesConfig, err := config.KubernetesClientConfig()
-		if err != nil {
-			slog.ErrorContext(ctx, "Failed to configure Kubernetes client", slog.Any("error", err))
-			os.Exit(1)
-		}
-
-		options := &kubernetes.Options{
-			IncludeOldReplicaSets: config.Kubernetes.IncludeOldReplicaSets,
-			DebounceInterval:      config.Kubernetes.DebounceInterval,
-		}
-		targetPlatform, err = kubernetes.NewPlatform(kubernetesConfig, options)
-		if err != nil {
-			slog.ErrorContext(ctx, "Failed to create kubernetes source", slog.Any("error", err))
-			os.Exit(1)
-		}
+// setup configures base resources and returns them.
+// If any resource failes to initialize, those that succeeded are still
+// returned. The caller should therefore make sure to clean up the initialized
+// resources upon receiving an error.
+func setup(ctx context.Context, config *Config) (*cache.DiskCache, *store.Store, *store.Store, platform.ContinuousGrapher, error) {
+	if err := ConfigureOtel(ctx, config); err != nil {
+		slog.ErrorContext(ctx, "Failed to initialize otel", slog.Any("error", err))
+		return nil, nil, nil, nil, err
 	}
 
 	cache, err := cache.NewDiskCache(config.Cache.Path)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to create disk cache", slog.Any("error", err))
-		os.Exit(1)
+		return nil, nil, nil, nil, err
 	}
 	prometheus.DefaultRegisterer.MustRegister(cache)
 
-	databaseURI, err := config.DatabaseURI()
+	if err := store.Initialize(ctx, config.DatabaseURI()); err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to initialize database: %w", err)
+	}
+
+	readStore, err := store.New(ctx, config.DatabaseURI(), true)
 	if err != nil {
-		slog.Error("Failed to resolve database path", slog.Any("error", err))
-		os.Exit(1)
+		return nil, nil, nil, nil, fmt.Errorf("failed to configure read database: %w", err)
 	}
 
-	if err := store.Initialize(ctx, databaseURI); err != nil {
-		slog.ErrorContext(ctx, "Failed to initialize database", slog.Any("error", err))
-		os.Exit(1)
-	}
-
-	readStore, err := store.New(databaseURI, true)
+	writeStore, err := store.New(ctx, config.DatabaseURI(), false)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to load database", slog.Any("error", err))
-		os.Exit(1)
+		return cache, readStore, nil, nil, fmt.Errorf("failed to configure write database: %w", err)
 	}
-	writeStore, err := store.New(databaseURI, false)
+
+	targetPlatform, err := ConfigurePlatform(ctx, config)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to load database", slog.Any("error", err))
-		os.Exit(1)
+		slog.ErrorContext(ctx, "Failed to configure platform", slog.Any("error", err))
+		return cache, readStore, writeStore, nil, err
 	}
 
-	var wg errgroup.Group
+	return cache, readStore, writeStore, targetPlatform, nil
+}
 
-	processQueue := worker.NewQueue[oci.Reference](config.Processing.QueueBurst, config.Processing.QueueRate)
-	prometheus.DefaultRegisterer.MustRegister(processQueue)
+func run(environ []string, signals <-chan os.Signal) ExitCode {
+	// Configure logging once with defaults, before any configuration is available
+	// and then again once configuration is available
+	ConfigureLogging(nil)
+	config, err := ParseConfigFromEnv(environ)
+	if err != nil {
+		slog.Error("Failed to parse config from environment variables", slog.Any("error", err))
+		return ExitCodeNotOK
+	}
+	ConfigureLogging(config)
+	slog.Debug("Parsed config", slog.Any("config", config))
 
-	wg.Go(func() error {
-		ticker := time.NewTicker(config.Processing.Interval)
-		defer ticker.Stop()
-		defer processQueue.Close()
+	setupCtx, cancelSetup := context.WithTimeout(context.Background(), 60*time.Second)
+	cache, readStore, writeStore, targetPlatform, startErr := setup(setupCtx, config)
+	cancelSetup()
+	if startErr != nil {
+		slog.Error("Failed to set up resources", slog.Any("error", err))
+		// Fallthrough - clean up resources
+	}
 
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-ticker.C:
-				ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	var wg sync.WaitGroup
+	runCtx, cancelRun := context.WithCancel(context.Background())
+	if startErr == nil {
+		processQueue := worker.NewQueue[oci.Reference](config.Processing.QueueBurst, config.Processing.QueueRate)
+		prometheus.DefaultRegisterer.MustRegister(processQueue)
 
-				slog.DebugContext(ctx, "Identifying old references to process")
-				images, err := readStore.ListRawImages(ctx, &store.ListRawImagesOptions{
-					NotUpdatedSince: time.Now().Add(-config.Processing.MinAge),
-					Limit:           config.Processing.Items,
-				})
-				if err != nil {
-					slog.ErrorContext(ctx, "Failed to process old references", slog.Any("error", err))
-					cancel()
-					continue
-				}
+		httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
+		httpClient.UserAgent = config.HTTP.UserAgent
+		prometheus.DefaultRegisterer.MustRegister(httpClient)
 
-				for _, image := range images {
-					reference, err := oci.ParseReference(image.Reference)
-					if err != nil {
-						slog.ErrorContext(ctx, "Unexpectedly failed to parse reference from store", slog.Any("error", err), slog.String("reference", image.Reference))
-						cancel()
-						return err
-					}
+		worker := worker.New(httpClient, writeStore, config.RegistryAuth())
+		prometheus.DefaultRegisterer.MustRegister(worker)
 
-					processQueue.PushBack(reference)
-				}
+		httpServer := ConfigureServer(config, httpClient, readStore, worker, processQueue, targetPlatform)
 
-				cancel()
-			}
-		}
-	})
+		wg.Go(func() {
+			HandleScheduling(runCtx, config, processQueue, readStore)
+			processQueue.Close()
+		})
 
-	httpClient := httputil.NewClient(cache, config.Cache.MaxAge)
-	httpClient.UserAgent = config.HTTP.UserAgent
-	prometheus.DefaultRegisterer.MustRegister(httpClient)
+		wg.Go(func() {
+			HandleProcessing(runCtx, config, worker, processQueue)
+		})
 
-	worker := worker.New(httpClient, writeStore, registryAuth)
-	prometheus.DefaultRegisterer.MustRegister(worker)
+		wg.Go(func() {
+			HandleGraphs(runCtx, targetPlatform, writeStore, processQueue)
+		})
 
-	wg.Go(func() error {
-		for reference := range processQueue.Pull() {
-			ctx, cancel := context.WithTimeout(ctx, config.Processing.Timeout)
-			err := worker.ProcessRawImage(ctx, reference)
-			cancel()
+		wg.Go(func() {
+			HandleWorkflowCleanup(runCtx, config, writeStore)
+		})
+
+		// Close the HTTP signal on shutdown
+		go func() {
+			<-signals
+			slog.Info("Caught signal, exiting gracefully")
+
+			shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 15*time.Second)
+			slog.Debug("Shutting down HTTP server")
+			err := httpServer.Shutdown(shutdownCtx)
+			cancelShutdown()
 			if err != nil {
-				slog.ErrorContext(ctx, "Failed to process queued raw image", slog.Any("error", err), slog.String("reference", reference.String()))
+				slog.Error("Failed to shut down HTTP server", slog.Any("error", err))
+				return
 			}
-		}
+		}()
 
-		return nil
-	})
-
-	wg.Go(func() error {
-		for graph := range targetPlatform.Graphs() {
-			slog.DebugContext(ctx, "Got updated platform graph")
-
-			// Delete ignored images / trees
-			graph.DeleteFunc(func(n platform.Node) bool {
-				return n.Labels().Ignore()
-			})
-
-			roots := graph.Roots()
-
-			for _, root := range roots {
-				imageNode := root.(platform.ImageNode)
-
-				subgraph := graph.Subgraph(root.ID())
-
-				edges := subgraph.Edges()
-				nodes := subgraph.Nodes()
-
-				var namespaceNode *platform.Node
-
-				mappedNodes := make(map[string]models.GraphNode)
-				for _, node := range nodes {
-					switch n := node.(type) {
-					case kubernetes.Resource:
-						mappedNodes[node.ID()] = models.GraphNode{
-							Domain:         "kubernetes",
-							Type:           string(n.Kind()),
-							Name:           n.Name(),
-							Labels:         n.Labels().RemoveUnsupported(),
-							InternalLabels: n.InternalLabels(),
-						}
-						if node.Type() == "kubernetes/"+kubernetes.ResourceKindCoreV1Namespace {
-							namespaceNode = &node
-						}
-					case docker.Resource:
-						mappedNodes[node.ID()] = models.GraphNode{
-							Domain:         "docker",
-							Type:           string(n.Kind()),
-							Name:           n.Name(),
-							Labels:         n.Labels().RemoveUnsupported(),
-							InternalLabels: n.InternalLabels(),
-						}
-						if node.Type() == "docker/"+docker.ResourceKindSwarmNamespace || node.Type() == "docker/"+docker.ResourceKindComposeProject {
-							namespaceNode = &node
-						}
-					case platform.ImageNode:
-						// This node is added later on
-					default:
-						panic(fmt.Sprintf("mapping unimplemented node type: %s", node.Type()))
-					}
-				}
-
-				// Resolve labels for the image node. The nearest label takes precedence
-				resolvedLabels := make(map[string]string)
-				queue := []string{root.ID()}
-				for len(queue) > 0 {
-					id := queue[0]
-					queue = queue[1:]
-
-					for k, v := range mappedNodes[id].Labels {
-						_, ok := resolvedLabels[k]
-						if !ok {
-							resolvedLabels[k] = v
-						}
-					}
-
-					for adjacent, isChild := range edges[id] {
-						if isChild {
-							queue = append(queue, adjacent)
-						}
-					}
-				}
-				mappedNodes[root.ID()] = models.GraphNode{
-					Domain:         "oci",
-					Type:           "image",
-					Name:           imageNode.Reference.String(),
-					Labels:         resolvedLabels,
-					InternalLabels: nil,
-				}
-
-				tags := []string{}
-
-				// Set tags for resources
-				if namespaceNode != nil {
-					children := edges[(*namespaceNode).ID()]
-					for childID, isParent := range children {
-						if isParent {
-							continue
-						}
-
-						var childNode *platform.Node
-						for _, node := range nodes {
-							var n = node
-							if node.ID() == childID {
-								childNode = &n
-								break
-							}
-						}
-
-						if childNode != nil {
-							switch resource := (*childNode).(type) {
-							case kubernetes.Resource:
-								kind := resource.Kind()
-								if kind.IsSupported() {
-									tags = append(tags, kubernetes.TagName(resource.Kind()))
-								}
-							case docker.Resource:
-								tags = append(tags, docker.TagName(resource.Kind()))
-							}
-						}
-					}
-				}
-
-				mappedGraph := models.Graph{
-					Edges: edges,
-					Nodes: mappedNodes,
-				}
-
-				rawImage := &models.RawImage{
-					Reference: imageNode.Reference.String(),
-					Tags:      tags,
-					Graph:     mappedGraph,
-				}
-
-				// TODO: Do this inside of the worker as well?
-				slog.DebugContext(ctx, "Inserting raw image", slog.String("reference", rawImage.Reference))
-				inserted, err := writeStore.InsertRawImage(context.TODO(), rawImage)
-				if err != nil {
-					slog.ErrorContext(ctx, "Failed to insert raw image", slog.Any("error", err))
-					return err
-				}
-
-				// Try to schedule the image for processing
-				if inserted {
-					slog.DebugContext(ctx, "Raw image inserted for first time - scheduling for processing")
-					processQueue.PushBack(imageNode.Reference)
-				}
-			}
-
-			allReferences := make([]string, 0)
-			for _, root := range roots {
-				imageNode := root.(platform.ImageNode)
-				allReferences = append(allReferences, imageNode.Reference.String())
-			}
-
-			slog.DebugContext(ctx, "Cleaning up removed images")
-			removed, err := writeStore.DeleteNonPresent(context.TODO(), allReferences)
-			if err == nil {
-				slog.DebugContext(ctx, "Cleaned up removed images successfully", slog.Int64("removed", removed))
-			} else {
-				slog.ErrorContext(ctx, "Failed to clean up removed images", slog.Any("error", err))
-			}
-		}
-
-		return nil
-	})
-
-	wg.Go(func() error {
-		ticker := time.NewTicker(config.Workflow.CleanupInterval)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-ticker.C:
-				ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-				slog.DebugContext(ctx, "Cleaning up old workflow runs")
-				removed, err := writeStore.DeleteWorkflowRuns(context.TODO(), time.Now().Add(-config.Workflow.CleanupMaxAge))
-				cancel()
-				if err == nil {
-					slog.DebugContext(ctx, "Cleaned up old workflow runs successfully", slog.Int64("removed", removed))
-				} else {
-					slog.ErrorContext(ctx, "Failed to clean up old workflow runs", slog.Any("error", err))
-				}
-			}
-		}
-	})
-
-	logoProxy := api.CompoundProxy{
-		Proxies: []api.LogoProxy{
-			&api.LogoFSProxy{
-				FS: os.DirFS(config.Logos.Path),
-			},
-			&api.LogoHTTPProxy{
-				Client: httpClient,
-				GetURL: readStore.GetImageLogo,
-			},
-		},
-	}
-
-	mux := http.NewServeMux()
-
-	apiServer := api.NewServer(readStore, worker.Hub, processQueue, logoProxy, targetPlatform)
-	apiServer.WebAddress = config.Web.Address
-	mux.Handle("/api/v1/", apiServer)
-	mux.Handle("/metrics", promhttp.Handler())
-	mux.Handle("/livez", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	mux.Handle("/readyz", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO: Figure out what checks to have
-		w.WriteHeader(http.StatusOK)
-	}))
-
-	if !config.Web.Disabled {
-		mux.Handle("/", web.MustNewEmbeddedServer())
-	}
-
-	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", config.API.Address, config.API.Port),
-		Handler: http.NewCrossOriginProtection().Handler(mux),
-	}
-
-	wg.Go(func() error {
-		slog.InfoContext(ctx, "Starting HTTP server")
-		err := httpServer.ListenAndServe()
+		slog.InfoContext(runCtx, "Starting HTTP server")
+		err = httpServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			slog.ErrorContext(ctx, "Failed to serve", slog.Any("error", err))
-			return err
+			slog.ErrorContext(runCtx, "Failed to serve", slog.Any("error", err))
+			// Fallthrough
 		}
-		return nil
-	})
+	}
 
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt)
-	caught := 0
+	slog.Debug("Canceling processing")
+	cancelRun()
+
+	// Close ungracefully on another signal
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 60*time.Second)
 	go func() {
-		for range signals {
-			caught++
-			if caught == 1 {
-				slog.InfoContext(ctx, "Caught signal, exiting gracefully")
-				if err := httpServer.Close(); err != nil {
-					slog.ErrorContext(ctx, "Failed to close server", slog.Any("error", err))
-					// Fallthrough
-				}
-				if err := cache.Close(); err != nil {
-					slog.ErrorContext(ctx, "Failed to close cache", slog.Any("error", err))
-					// Fallthrough
-				}
-				if err := readStore.Close(); err != nil {
-					slog.ErrorContext(ctx, "Failed to close read store", slog.Any("error", err))
-					// Fallthrough
-				}
-				if err := writeStore.Close(); err != nil {
-					slog.ErrorContext(ctx, "Failed to close write store", slog.Any("error", err))
-					// Fallthrough
-				}
-				// Cancel goroutines started in main last as to block on all of the
-				// above calls
-				cancel()
-			} else {
-				slog.InfoContext(ctx, "Caught signal, exiting now")
-				os.Exit(1)
-			}
-		}
+		<-signals
+
+		slog.WarnContext(runCtx, "Caught signal, exiting ungracefully immediately")
+		cancelShutdown()
 	}()
 
-	if err := wg.Wait(); err != nil && err != ctx.Err() {
-		slog.ErrorContext(ctx, "Failed to run", slog.Any("error", err))
-		os.Exit(1)
+	slog.Debug("Waiting for processing to end")
+	if err := syncutil.WaitContext(shutdownCtx, &wg); err != nil {
+		slog.Error("Failed to wait for processing to end", slog.Any("error", err))
+		return ExitCodeNotOK
 	}
+
+	// Gracefully shut down resources
+
+	if cache != nil {
+		wg.Go(func() {
+			slog.Debug("Closing cache")
+			err := cache.Close()
+			if err != nil {
+				slog.Error("Failed to close cache", slog.Any("error", err))
+				return
+			}
+		})
+	}
+
+	if readStore != nil {
+		wg.Go(func() {
+			slog.Debug("Closing read store")
+			err := readStore.Close()
+			if err != nil {
+				slog.Error("Failed to close read store", slog.Any("error", err))
+				return
+			}
+		})
+	}
+
+	if writeStore != nil {
+		wg.Go(func() {
+			slog.Debug("Closing write store")
+			err := writeStore.Close()
+			if err != nil {
+				slog.Error("Failed to close read store", slog.Any("error", err))
+				return
+			}
+		})
+	}
+
+	if targetPlatform != nil {
+		wg.Go(func() {
+			slog.Debug("Closing platform")
+			err := targetPlatform.Close()
+			if err != nil {
+				slog.Error("Failed to close platform", slog.Any("error", err))
+				return
+			}
+		})
+	}
+
+	slog.Debug("Waiting for resources to close")
+	if err := syncutil.WaitContext(shutdownCtx, &wg); err != nil {
+		slog.Error("Failed to wait for resources to close", slog.Any("error", err))
+		return ExitCodeNotOK
+	}
+
+	slog.Info("Shut down successfully")
+	if startErr == nil {
+		return ExitCodeOK
+	} else {
+		return ExitCodeNotOK
+	}
+}
+
+func main() {
+	// NOTE: In order to allow for testing and use of defer, think twice before
+	// adding logic to the main function
+	signals := make(chan os.Signal, 2)
+	signal.Notify(signals, os.Interrupt)
+	exitCode := run(os.Environ(), signals)
+	os.Exit(int(exitCode))
 }

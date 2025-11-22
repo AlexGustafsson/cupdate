@@ -20,7 +20,7 @@ func newStore(t *testing.T, readOnly bool) *Store {
 	err := Initialize(context.TODO(), uri)
 	require.NoError(t, err)
 
-	store, err := New(uri, readOnly)
+	store, err := New(context.TODO(), uri, readOnly)
 	require.NoError(t, err)
 
 	return store

@@ -115,9 +115,9 @@ func (g *InformerGrapher) Start() {
 	g.informerFactory.Start(g.close)
 }
 
-// Stop stops the grapher and cleans up resources.
+// Close closes the grapher and cleans up resources.
 // A stopped grapher cannot be started again.
-func (g *InformerGrapher) Stop() {
+func (g *InformerGrapher) Close() {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 

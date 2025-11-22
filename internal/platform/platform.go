@@ -169,6 +169,8 @@ type ContinuousGrapher interface {
 	// the platform whenever the graph changes.
 	// The graph's roots are [ImageNode]s.
 	Graphs() <-chan Graph
+	// Close closes the grapher.
+	Close() error
 }
 
 var _ (ContinuousGrapher) = (*PollGrapher)(nil)
@@ -178,26 +180,40 @@ var _ (ContinuousGrapher) = (*PollGrapher)(nil)
 type PollGrapher struct {
 	grapher Grapher
 	graphs  chan Graph
+	ticker  *time.Ticker
+
+	close chan struct{}
+	done  chan struct{}
 }
 
 func NewPollGrapher(grapher Grapher, interval time.Duration) *PollGrapher {
 	g := &PollGrapher{
 		grapher: grapher,
 		graphs:  make(chan Graph),
+		ticker:  time.NewTicker(interval),
+
+		close: make(chan struct{}),
+		done:  make(chan struct{}),
 	}
 
 	go func() {
-		ticker := time.NewTicker(interval)
-		for range ticker.C {
-			// TODO: Make the timeout configurable? 30s should be plenty, but who
-			// knows
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			slog.DebugContext(ctx, "Polling graph")
-			err := g.Graph(ctx)
-			cancel()
-			if err != nil {
-				slog.ErrorContext(ctx, "Failed to poll graph", slog.Any("error", err))
-				continue
+		defer close(g.done)
+		for {
+			select {
+			case <-g.close:
+				// time.Ticker's channel is not closed on stop
+				return
+			case <-g.ticker.C:
+				// TODO: Make the timeout configurable? 30s should be plenty, but who
+				// knows
+				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+				slog.DebugContext(ctx, "Polling graph")
+				err := g.Graph(ctx)
+				cancel()
+				if err != nil {
+					slog.ErrorContext(ctx, "Failed to poll graph", slog.Any("error", err))
+					continue
+				}
 			}
 		}
 	}()
@@ -223,6 +239,13 @@ func (g *PollGrapher) Graph(ctx context.Context) error {
 // Graphs implements ContinuousGrapher.
 func (g *PollGrapher) Graphs() <-chan Graph {
 	return g.graphs
+}
+
+func (g *PollGrapher) Close() error {
+	g.ticker.Stop()
+	close(g.close)
+	<-g.done
+	return nil
 }
 
 // CompoundGrapher creates a graph from one or more [Grapher] simultaneously.
