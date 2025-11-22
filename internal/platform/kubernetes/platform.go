@@ -2,7 +2,6 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/platform"
@@ -10,15 +9,11 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-var _ platform.Grapher = (*Platform)(nil)
 var _ platform.ContinuousGrapher = (*Platform)(nil)
 
 // Platform implements graphing for the Kubernetes platform.
 type Platform struct {
-	clientset *kubernetes.Clientset
-
-	includeOldReplicaSets bool
-	debounceInterval      time.Duration
+	grapher *InformerGrapher
 }
 
 type Options struct {
@@ -49,33 +44,31 @@ func NewPlatform(config *rest.Config, options *Options) (*Platform, error) {
 		debounceInterval = options.DebounceInterval
 	}
 
-	return &Platform{
-		clientset: clientset,
-
-		includeOldReplicaSets: options.IncludeOldReplicaSets,
-		debounceInterval:      debounceInterval,
-	}, nil
-}
-
-// Graph implements platform.Platform.
-func (p *Platform) Graph(ctx context.Context) (platform.Graph, error) {
-	// TODO: Do we need to adhere to this interface if we only ever intend for
-	// GraphContinuously to be used? Could Graph use GraphContinuously once?
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (p *Platform) GraphContinuously(ctx context.Context) (<-chan platform.Graph, error) {
-	grapher, err := NewInformerGrapher(p.clientset, p.includeOldReplicaSets, p.debounceInterval)
+	grapher, err := NewInformerGrapher(clientset, options.IncludeOldReplicaSets, debounceInterval)
 	if err != nil {
 		return nil, err
 	}
 
+	p := &Platform{
+		grapher: grapher,
+	}
+
 	grapher.Start()
 
-	go func() {
-		<-ctx.Done()
-		grapher.Stop()
-	}()
+	return p, nil
+}
 
-	return grapher.Graphs(), nil
+// Graph implements platform.ContinuousGrapher.
+func (p *Platform) Graph(ctx context.Context) error {
+	return p.grapher.Graph(ctx)
+}
+
+// Graphs implements platform.ContinuousGrapher.
+func (p *Platform) Graphs() <-chan platform.Graph {
+	return p.grapher.Graphs()
+}
+
+// Close closes the platform.
+func (p *Platform) Close() {
+	p.grapher.Stop()
 }

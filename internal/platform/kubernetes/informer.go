@@ -83,8 +83,6 @@ func (g *InformerGrapher) Start() {
 
 	// Handle events and produce graphs
 	go func() {
-		defer close(g.ch)
-
 		var lastRun time.Time
 		for eventTime := range events {
 			// We've already created a graph after the event was emitted
@@ -99,14 +97,12 @@ func (g *InformerGrapher) Start() {
 			// TODO: Make the timeout configurable? 30s should be plenty, but who
 			// knows
 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			graph, err := g.Graph(ctx)
+			err := g.Graph(ctx)
 			cancel()
 			if err != nil {
 				slog.ErrorContext(ctx, "Failed to graph informer", slog.Any("error", err))
 				continue
 			}
-
-			g.ch <- graph
 		}
 	}()
 
@@ -136,15 +132,20 @@ func (g *InformerGrapher) Stop() {
 		close(g.events)
 		g.events = nil
 	}
+
+	if g.ch != nil {
+		close(g.ch)
+		g.ch = nil
+	}
 }
 
 // Graph implements platform.Platform.
-func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
+func (g *InformerGrapher) Graph(ctx context.Context) error {
 	resources := make(map[types.UID]v1.Object)
 
 	deployments, err := g.informerFactory.Apps().V1().Deployments().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, object := range deployments {
 		resources[object.UID] = object
@@ -152,7 +153,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 
 	daemonSets, err := g.informerFactory.Apps().V1().DaemonSets().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, object := range daemonSets {
 		resources[object.UID] = object
@@ -160,7 +161,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 
 	replicaSets, err := g.informerFactory.Apps().V1().ReplicaSets().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, object := range replicaSets {
 		resources[object.UID] = object
@@ -168,7 +169,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 
 	statefulSets, err := g.informerFactory.Apps().V1().StatefulSets().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, object := range statefulSets {
 		resources[object.UID] = object
@@ -176,7 +177,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 
 	cronJobs, err := g.informerFactory.Batch().V1().CronJobs().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, object := range cronJobs {
 		resources[object.UID] = object
@@ -184,7 +185,7 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 
 	jobs, err := g.informerFactory.Batch().V1().Jobs().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, object := range jobs {
 		resources[object.UID] = object
@@ -192,12 +193,12 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 
 	nodes, err := g.informerFactory.Core().V1().Nodes().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	pods, err := g.informerFactory.Core().V1().Pods().Lister().List(labels.Everything())
 	if err != nil {
-		return nil, err
+		return err
 	}
 	for _, object := range pods {
 		resources[object.UID] = object
@@ -283,7 +284,12 @@ func (g *InformerGrapher) Graph(ctx context.Context) (platform.Graph, error) {
 		}
 	}
 
-	return graph, nil
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case g.ch <- graph:
+		return nil
+	}
 }
 
 // Graphs returns a channel which will receive all graphs produced by the

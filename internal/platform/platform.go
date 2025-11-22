@@ -154,17 +154,21 @@ func (n ImageNode) String() string {
 
 // Grapher provides graphs of resources in a platform.
 type Grapher interface {
-	// Graph returns a graph of all images found on the platform.
+	// Graph graphs all images found on the platform.
 	// The graph's roots are [ImageNode]s.
 	Graph(context.Context) (Graph, error)
 }
 
 // Grapher provides asynchronous updates of graphs of resources in a platform.
 type ContinuousGrapher interface {
-	// GraphContinuously returns a channel which will receive a graph of all
-	// images found on the platform whenever the graph changes.
+	// Graph graphs all images found on the platform.
+	// The graph is published on the channel returned by Graphs.
 	// The graph's roots are [ImageNode]s.
-	GraphContinuously(context.Context) (<-chan Graph, error)
+	Graph(context.Context) error
+	// Graphs returns a channel which will receive a graph of all images found on
+	// the platform whenever the graph changes.
+	// The graph's roots are [ImageNode]s.
+	Graphs() <-chan Graph
 }
 
 var _ (ContinuousGrapher) = (*PollGrapher)(nil)
@@ -172,45 +176,53 @@ var _ (ContinuousGrapher) = (*PollGrapher)(nil)
 // PollGrapher is a [ContinuousGrapher] implementation which polls an underlying
 // [Grapher] implementation.
 type PollGrapher struct {
-	Grapher  Grapher
-	Interval time.Duration
+	grapher Grapher
+	graphs  chan Graph
 }
 
-// GraphContinuously implements ContinuousGrapher.
-func (g *PollGrapher) GraphContinuously(ctx context.Context) (<-chan Graph, error) {
-	ch := make(chan Graph, 1)
-
-	slog.DebugContext(ctx, "Polling graph")
-	graph, err := g.Grapher.Graph(ctx)
-	if err != nil {
-		return nil, err
+func NewPollGrapher(grapher Grapher, interval time.Duration) *PollGrapher {
+	g := &PollGrapher{
+		grapher: grapher,
+		graphs:  make(chan Graph),
 	}
-	ch <- graph
 
 	go func() {
-		defer close(ch)
-
-		ticker := time.NewTicker(g.Interval)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				slog.DebugContext(ctx, "Polling graph")
-				graph, err := g.Grapher.Graph(ctx)
-				if err != nil {
-					slog.ErrorContext(ctx, "Failed to poll graph", slog.Any("error", err))
-					continue
-				}
-
-				ch <- graph
+		ticker := time.NewTicker(interval)
+		for range ticker.C {
+			// TODO: Make the timeout configurable? 30s should be plenty, but who
+			// knows
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			slog.DebugContext(ctx, "Polling graph")
+			err := g.Graph(ctx)
+			cancel()
+			if err != nil {
+				slog.ErrorContext(ctx, "Failed to poll graph", slog.Any("error", err))
+				continue
 			}
 		}
 	}()
 
-	return ch, nil
+	return g
+}
+
+// Graph implements ContinuousGrapher.
+func (g *PollGrapher) Graph(ctx context.Context) error {
+	graph, err := g.grapher.Graph(ctx)
+	if err != nil {
+		return err
+	}
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case g.graphs <- graph:
+		return nil
+	}
+}
+
+// Graphs implements ContinuousGrapher.
+func (g *PollGrapher) Graphs() <-chan Graph {
+	return g.graphs
 }
 
 // CompoundGrapher creates a graph from one or more [Grapher] simultaneously.
