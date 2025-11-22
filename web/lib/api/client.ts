@@ -30,6 +30,7 @@ export interface ApiClient {
   getLatestImageWorkflow(reference: string): Promise<WorkflowRun | null>
   getLogoUrl(reference: string): string | undefined
   scheduleImageScan(reference: string): Promise<void>
+  pollImages(): Promise<void>
 }
 
 export interface GetImagesOptions {

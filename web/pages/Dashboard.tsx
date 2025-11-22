@@ -4,6 +4,7 @@ import { DemoWarning } from '../components/DemoWarning'
 import { ImageCard } from '../components/ImageCard'
 import { FluentAlignSpaceEvenlyVertical20Filled } from '../components/icons/fluent-align-space-evenly-vertical-20-filled'
 import { FluentAlignSpaceEvenlyVertical20Regular } from '../components/icons/fluent-align-space-evenly-vertical-20-regular'
+import { FluentArrowSync20Regular } from '../components/icons/fluent-arrow-sync-20-regular'
 import { FluentGrid20Filled } from '../components/icons/fluent-grid-20-filled'
 import { FluentGrid20Regular } from '../components/icons/fluent-grid-20-regular'
 import { Select } from '../components/Select'
@@ -17,7 +18,12 @@ import {
   useQuery,
   useSort,
 } from '../hooks'
-import { useImages, usePagination, useTags } from '../lib/api/ApiProvider'
+import {
+  useImages,
+  usePagination,
+  useRefreshImages,
+  useTags,
+} from '../lib/api/ApiProvider'
 import { formattedVersion, fullVersion, name } from '../oci'
 import { DashboardSkeleton } from './dashboard-page/DashboardSkeleton'
 
@@ -73,6 +79,7 @@ export function Dashboard(): JSX.Element {
     [filter, sort, sortOrder, page, query]
   )
   const [images, updateImages] = useImages(imageSearchOptions)
+  const [isRefreshingImages, refreshImages] = useRefreshImages()
 
   const pages = usePagination(
     images.status === 'resolved' ? images.value : undefined,
@@ -196,7 +203,8 @@ export function Dashboard(): JSX.Element {
         <hr className="my-6 w-3/4" />
 
         {/* Filters / controls */}
-        <div className="flex flex-col gap-y-2 items-center w-full mt-2 max-w-[800px]">
+        <div className="flex flex-col items-center w-full mt-2 gap-y-2 max-w-[800px]">
+          {/* Search */}
           <input
             type="text"
             placeholder="Search"
@@ -208,9 +216,9 @@ export function Dashboard(): JSX.Element {
             }
             className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full border border-[#e5e5e5] dark:border-[#333333]"
           />
-          <div className="flex justify-end flex-wrap gap-x-1 sm:gap-x-2 gap-y-2 w-full">
+          {/* Filters */}
+          <div className="grid grid-cols-3 gap-x-2 w-full">
             <Select
-              className="min-w-[150px] flex-grow sm:w-auto"
               value={sort || ''}
               onChange={(e) => setSort(e.target.value)}
             >
@@ -221,7 +229,6 @@ export function Dashboard(): JSX.Element {
               <option value="reference">Name</option>
             </Select>
             <Select
-              className="min-w-[150px] flex-grow sm:w-auto"
               value={sortOrder || ''}
               onChange={(e) =>
                 setSortOrder(e.target.value as 'asc' | 'desc' | undefined)
@@ -233,12 +240,10 @@ export function Dashboard(): JSX.Element {
               <option value="asc">Ascending</option>
               <option value="desc">Descending</option>
             </Select>
-            <TagSelect
-              className="min-w-[150px] flex-grow sm:w-auto"
-              tags={tags.value}
-              filter={filter}
-              onChange={setFilter}
-            />
+            <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
+          </div>
+          {/* Toolbar */}
+          <div className="flex flex-row items-center justify-end gap-x-2 w-full">
             <div className="grid grid-cols-2 divide-x divide-[#e5e5e5] dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
               <button
                 type="button"
@@ -267,6 +272,18 @@ export function Dashboard(): JSX.Element {
                 )}
               </button>
             </div>
+            <button
+              type="button"
+              title="Refresh images"
+              className="border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px] px-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+              tabIndex={0}
+              onClick={refreshImages}
+              disabled={isRefreshingImages}
+            >
+              <FluentArrowSync20Regular
+                className={isRefreshingImages ? 'animate-spin' : ''}
+              />
+            </button>
           </div>
         </div>
 

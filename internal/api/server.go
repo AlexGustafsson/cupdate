@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -26,8 +27,13 @@ var (
 	ErrBadRequest = errors.New("bad request")
 )
 
+type Platform interface {
+	Graph(context.Context) error
+}
+
 type Server struct {
 	api       *store.Store
+	platform  Platform
 	hub       *events.Hub[worker.Event]
 	logoProxy LogoProxy
 	mux       *http.ServeMux
@@ -35,9 +41,10 @@ type Server struct {
 	WebAddress string
 }
 
-func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference], logoProxy LogoProxy) *Server {
+func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *worker.Queue[oci.Reference], logoProxy LogoProxy, platform Platform) *Server {
 	s := &Server{
 		api:       api,
+		platform:  platform,
 		hub:       hub,
 		logoProxy: logoProxy,
 		mux:       http.NewServeMux(),
@@ -428,6 +435,14 @@ func NewServer(api *store.Store, hub *events.Hub[worker.Event], processQueue *wo
 
 		response, err := api.Summary(ctx)
 		s.handleJSONResponse(w, r, response, err)
+	})
+
+	s.mux.HandleFunc("POST /api/v1/images/poll", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/images/poll"))
+
+		err := platform.Graph(ctx)
+		s.handleGenericResponse(w, r, err)
 	})
 
 	return s

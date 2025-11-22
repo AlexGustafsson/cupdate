@@ -78,9 +78,8 @@ func main() {
 		defer shutdown(ctx)
 	}
 
-	// Set up the configured platform (Docker if specified, auto discovery of
-	// Kubernetes otherwise)
-	var targetPlatform platform.Grapher
+	// Set up the configured platform
+	var targetPlatform platform.ContinuousGrapher
 	if len(config.Docker.Hosts) > 0 {
 		graphers := make([]platform.Grapher, 0)
 		for _, host := range config.Docker.Hosts {
@@ -114,13 +113,19 @@ func main() {
 
 			graphers = append(graphers, platform)
 		}
-		targetPlatform = &platform.CompoundGrapher{
-			Graphers: graphers,
-		}
+		targetPlatform = platform.NewPollGrapher(
+			&platform.CompoundGrapher{
+				Graphers: graphers,
+			},
+			config.Processing.Interval,
+		)
 	} else if config.Static.FilePath != "" {
-		targetPlatform = &static.Platform{
-			FilePath: config.Static.FilePath,
-		}
+		targetPlatform = platform.NewPollGrapher(
+			&static.Platform{
+				FilePath: config.Static.FilePath,
+			},
+			config.Processing.Interval,
+		)
 	} else {
 		kubernetesConfig, err := config.KubernetesClientConfig()
 		if err != nil {
@@ -233,24 +238,7 @@ func main() {
 	})
 
 	wg.Go(func() error {
-		slog.InfoContext(ctx, "Starting platform grapher")
-
-		grapher, ok := targetPlatform.(platform.ContinuousGrapher)
-		if !ok {
-			slog.DebugContext(ctx, "Platform lacks native continuous graphing support. Falling back to polling", slog.Duration("interval", config.Processing.Interval))
-			grapher = &platform.PollGrapher{
-				Grapher:  targetPlatform,
-				Interval: config.Processing.Interval,
-			}
-		}
-
-		graphs, err := grapher.GraphContinuously(ctx)
-		if err != nil {
-			slog.ErrorContext(ctx, "Failed to start graphing platform", slog.Any("error", err))
-			return err
-		}
-
-		for graph := range graphs {
+		for graph := range targetPlatform.Graphs() {
 			slog.DebugContext(ctx, "Got updated platform graph")
 
 			// Delete ignored images / trees
@@ -443,7 +431,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	apiServer := api.NewServer(readStore, worker.Hub, processQueue, logoProxy)
+	apiServer := api.NewServer(readStore, worker.Hub, processQueue, logoProxy, targetPlatform)
 	apiServer.WebAddress = config.Web.Address
 	mux.Handle("/api/v1/", apiServer)
 	mux.Handle("/metrics", promhttp.Handler())

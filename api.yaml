@@ -304,6 +304,13 @@ paths:
         "201":
           description: Accepted
 
+  /images/poll:
+    post:
+      summary: Poll available images from the platform in use.
+      responses:
+        "200":
+          description: Images polled successfully
+
   /feed.rss:
     get:
       summary: Get an RSS feed of outdated images.
