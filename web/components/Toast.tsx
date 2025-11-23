@@ -8,7 +8,7 @@ export type ToastProps = {
   primaryAction: string
 
   onSecondaryAction?: () => void
-  secondaryAction: string
+  secondaryAction?: string
 }
 
 export function Toast({
@@ -24,13 +24,15 @@ export function Toast({
       <p className="font-semibold">{title}</p>
       <p className="mt-1">{body}</p>
       <div className="flex items-center justify-end gap-x-2 mt-2">
-        <button
-          type="button"
-          className="text-blue-500 hover:underline cursor-pointer"
-          onClick={() => onSecondaryAction?.()}
-        >
-          {secondaryAction}
-        </button>
+        {secondaryAction && (
+          <button
+            type="button"
+            className="text-blue-500 hover:underline cursor-pointer"
+            onClick={() => onSecondaryAction?.()}
+          >
+            {secondaryAction}
+          </button>
+        )}
         <button
           type="button"
           className="text-blue-500 hover:underline cursor-pointer"

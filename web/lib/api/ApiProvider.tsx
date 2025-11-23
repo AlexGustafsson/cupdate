@@ -6,6 +6,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 import { type Tag, Tags, tagByName } from '../../tags'
@@ -368,22 +369,41 @@ export function usePagination<T extends { pagination: PaginationMetadata }>(
   return pages
 }
 
-export function useRefreshImages(): [boolean, () => void] {
+export function useRefreshImages(): [boolean, () => Promise<void>] {
   const client = useApiClient()
 
   const [isRefreshingImages, setIsRefreshingImages] = useState(false)
 
+  const inFlight = useRef<Promise<void>>(null)
+
   const refresh = useCallback(() => {
-    if (isRefreshingImages) {
-      return
+    if (inFlight.current != null) {
+      return inFlight.current
     }
 
-    setIsRefreshingImages(true)
+    inFlight.current = new Promise((resolve, reject) => {
+      setIsRefreshingImages(true)
 
-    client.pollImages().finally(() => {
-      setIsRefreshingImages(false)
+      const poll = client.pollImages()
+
+      // Check the status after a minimum of 1s in order to have the value nicely
+      // debounced and useful for animation
+      setTimeout(() => {
+        poll.finally(() => {
+          setIsRefreshingImages(false)
+        })
+      }, 1000)
+
+      poll
+        .then(resolve)
+        .catch(reject)
+        .finally(() => {
+          inFlight.current = null
+        })
     })
-  }, [isRefreshingImages, client])
+
+    return inFlight.current
+  }, [client])
 
   return [isRefreshingImages, refresh]
 }

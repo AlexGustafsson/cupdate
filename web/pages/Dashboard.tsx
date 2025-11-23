@@ -112,6 +112,9 @@ export function Dashboard(): JSX.Element {
   }, [tags, navigate, searchParams])
 
   const [isUpdateAvailable, setIsUpdateAvailable] = useState(false)
+  const [scanResult, setScanResult] = useState<
+    'resolved' | 'rejected' | undefined
+  >(undefined)
 
   useEvents((e: Event) => {
     if (e.type === 'imageUpdated' || e.type === 'graphUpdated') {
@@ -125,7 +128,7 @@ export function Dashboard(): JSX.Element {
 
   return (
     <>
-      <div className="fixed bottom-[env(safe-area-inset-bottom))] flex justify-center w-full sm:w-auto sm:right-0 p-4 z-100">
+      <div className="fixed bottom-[env(safe-area-inset-bottom))] flex flex-col gap-y-2 items-center w-full sm:w-auto sm:right-0 p-4 z-100">
         {isUpdateAvailable && (
           <Toast
             title="New data available"
@@ -137,6 +140,26 @@ export function Dashboard(): JSX.Element {
               setIsUpdateAvailable(false)
               updateImages()
               updateTags()
+            }}
+          />
+        )}
+        {scanResult === 'resolved' && (
+          <Toast
+            title="Scan successful"
+            body="The platform was successfully scanned. Potential changes queued for processing."
+            primaryAction="Dismiss"
+            onPrimaryAction={() => {
+              setScanResult(undefined)
+            }}
+          />
+        )}
+        {scanResult === 'rejected' && (
+          <Toast
+            title="Scan unsuccessful"
+            body="Unable to scan the platform. Check logs for errors."
+            primaryAction="Dismiss"
+            onPrimaryAction={() => {
+              setScanResult(undefined)
             }}
           />
         )}
@@ -277,7 +300,11 @@ export function Dashboard(): JSX.Element {
               title="Refresh images"
               className="border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px] px-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
               tabIndex={0}
-              onClick={refreshImages}
+              onClick={() => {
+                refreshImages()
+                  .then(() => setScanResult('resolved'))
+                  .catch(() => setScanResult('rejected'))
+              }}
               disabled={isRefreshingImages}
             >
               <FluentArrowSync20Regular
