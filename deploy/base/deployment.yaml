@@ -15,6 +15,7 @@ spec:
       labels:
         app: cupdate
     spec:
+      terminationGracePeriodSeconds: 120
       securityContext:
         runAsNonRoot: true
         runAsUser: 2000
