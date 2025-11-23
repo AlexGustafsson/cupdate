@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"syscall"
 
 	"github.com/AlexGustafsson/cupdate/internal/osv"
 	"github.com/AlexGustafsson/cupdate/tools/vulndb/internal/db"
@@ -25,7 +26,7 @@ func main() {
 
 	go func() {
 		signals := make(chan os.Signal, 1)
-		signal.Notify(signals, os.Interrupt)
+		signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
 
 		<-signals
 		slog.InfoContext(ctx, "Caught signal, exiting gracefully")

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/cache"
@@ -228,7 +229,7 @@ func main() {
 	// NOTE: In order to allow for testing and use of defer, think twice before
 	// adding logic to the main function
 	signals := make(chan os.Signal, 2)
-	signal.Notify(signals, os.Interrupt)
+	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT)
 	exitCode := run(os.Environ(), signals)
 	os.Exit(int(exitCode))
 }
