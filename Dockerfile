@@ -15,7 +15,7 @@ ARG CUPDATE_VERSION="development build"
 RUN --mount=type=cache,target=node_modules \
   VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 
-FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:e68f6a00e88586577fafa4d9cefad1349c2be70d21244321321c407474ff9bf2 AS osv-scanner-builder
+FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:698183780de28062f4ef46f82a79ec0ae69d2d22f7b160cf69f71ea8d98bf25d AS osv-scanner-builder
 
 ARG TARGETARCH
 ARG TARGETOS
@@ -41,7 +41,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
   GOARCH=${TARGETARCH} GOOS=${TARGETOS} CGO_ENABLED=0 go build -a -ldflags="-s -w" -o osv-scanner ./cmd/osv-scanner/main.go
 
-FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:e68f6a00e88586577fafa4d9cefad1349c2be70d21244321321c407474ff9bf2 AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.25.4@sha256:698183780de28062f4ef46f82a79ec0ae69d2d22f7b160cf69f71ea8d98bf25d AS builder
 
 WORKDIR /src
 
