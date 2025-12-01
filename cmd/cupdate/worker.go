@@ -21,7 +21,7 @@ func HandleScheduling(ctx context.Context, config *Config, processQueue *worker.
 			return
 		case <-ticker.C:
 			slog.Debug("Identifying old references to process")
-			ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+			ctx, cancel := context.WithTimeout(ctx, 90*time.Second)
 			images, err := readStore.ListRawImages(ctx, &store.ListRawImagesOptions{
 				NotUpdatedSince: time.Now().Add(-config.Processing.MinAge),
 				Limit:           config.Processing.Items,
