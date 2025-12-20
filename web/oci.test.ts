@@ -43,11 +43,8 @@ test.each([
     '1.0.0',
   ],
   ['192.168.1.2/test/image:1.0.0', '192.168.1.2/test/image', '1.0.0', '1.0.0'],
-])(
-  'oci name and version from %s',
-  (reference, expectedName, expectedVersion, expectedFullVersion) => {
-    expect(name(reference)).toBe(expectedName)
-    expect(version(reference)).toBe(expectedVersion)
-    expect(fullVersion(reference)).toBe(expectedFullVersion)
-  }
-)
+])('oci name and version from %s', (reference, expectedName, expectedVersion, expectedFullVersion) => {
+  expect(name(reference)).toBe(expectedName)
+  expect(version(reference)).toBe(expectedVersion)
+  expect(fullVersion(reference)).toBe(expectedFullVersion)
+})
