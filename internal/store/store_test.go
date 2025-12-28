@@ -426,10 +426,10 @@ func TestListImagesQuery(t *testing.T) {
 			},
 		},
 		Summary: models.ImagePageSummary{
-			Images:     1,
-			Outdated:   1,
-			Vulnerable: 0,
-			Processing: 0,
+			Images:      1,
+			Outdated:    1,
+			Vulnerable:  0,
+			Unprocessed: 0,
 		},
 		Pagination: models.PaginationMetadata{
 			Total:    1,

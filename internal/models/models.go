@@ -15,11 +15,11 @@ type ImagePage struct {
 }
 
 type ImagePageSummary struct {
-	Images     int `json:"images"`
-	Outdated   int `json:"outdated"`
-	Vulnerable int `json:"vulnerable"`
-	Processing int `json:"processing"`
-	Failed     int `json:"failed"`
+	Images      int `json:"images"`
+	Outdated    int `json:"outdated"`
+	Vulnerable  int `json:"vulnerable"`
+	Unprocessed int `json:"unprocessed"`
+	Failed      int `json:"failed"`
 }
 
 type PaginationMetadata struct {
