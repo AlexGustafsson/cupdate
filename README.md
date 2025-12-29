@@ -46,13 +46,14 @@ Features:
 Supported registries:
 
 - docker.io
+- dhi.io
 - ghcr.io
 - quay.io
 - lscr.io
 - registry.k8s.io
 - k8s.gcr.io, gke.gcr.io, gcr.io
 - registry.gitlab.com
-- ... other OCI-compliant registries (Zot, Harbor, Gitea)
+- ... other OCI-compliant registries (Zot, Harbor, Gitea, Forgejo)
 
 Supported data sources:
 
