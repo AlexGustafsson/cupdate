@@ -12,11 +12,9 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -76,18 +74,23 @@ func TestClientGetManifest(t *testing.T) {
 	}
 }
 
-func TestClientGetAttestationManifest(t *testing.T) {
+func TestClientGetAttestationManifests(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
 	}
 
+	mux := httputil.NewAuthMux()
+	mux.Handle("dhi.io", httputil.BasicAuthHandler{Username: "", Password: ""})
+
 	client := &Client{
-		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+		Client:   httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
+		AuthFunc: mux.HandleAuth,
 	}
 
 	references := []string{
-		"ghcr.io/alexgustafsson/cupdate",
-		"mongo:6.0.20",
+		"dhi.io/alpine-base:3.22",        // Uses referrer
+		"ghcr.io/alexgustafsson/cupdate", // Uses attestation
+		"mongo:6.0.20",                   // Uses attestation
 	}
 
 	for _, reference := range references {
@@ -95,40 +98,13 @@ func TestClientGetAttestationManifest(t *testing.T) {
 			ref, err := ParseReference(reference)
 			require.NoError(t, err)
 
-			manifest, err := client.GetManifest(context.TODO(), ref)
-			require.NoError(t, err)
+			manifests, err := client.GetAttestationManifests(context.TODO(), ref, nil)
+			assert.NoError(t, err)
 
-			index, ok := manifest.(*ImageIndex)
-			require.True(t, ok)
-
-			for manifestDigest, attestationManifestDigest := range index.AttestationManifestDigest() {
-				fmt.Println("Getting manifest", manifestDigest)
-				fmt.Println("Getting attestation", attestationManifestDigest)
-
-				attestationManifest, err := client.GetAttestationManifest(context.TODO(), ref, attestationManifestDigest)
-				require.NoError(t, err)
-
-				fmt.Printf("%+v\n", attestationManifest)
-
-				provenancePredicateType, provenanceDigest, ok := attestationManifest.ProvenanceDigest()
-				require.True(t, ok)
-				fmt.Println(provenancePredicateType, provenanceDigest)
-
-				blob, err := client.GetBlob(context.TODO(), ref, provenanceDigest, false)
-				require.NoError(t, err)
-				io.Copy(os.Stdout, io.LimitReader(blob, 1024))
-				fmt.Println()
-				blob.Close()
-
-				sbomPredicateType, sbomDigest, ok := attestationManifest.SBOMDigest()
-				require.True(t, ok)
-				fmt.Println(sbomPredicateType, sbomDigest)
-
-				blob, err = client.GetBlob(context.TODO(), ref, sbomDigest, false)
-				require.NoError(t, err)
-				io.Copy(os.Stdout, io.LimitReader(blob, 1024))
-				fmt.Println()
-				blob.Close()
+			for _, manifest := range manifests {
+				fmt.Printf("%+v\n", manifest)
+				fmt.Println(manifest.SBOMLayerDigest())
+				fmt.Println(manifest.ProvenanceLayerDigest())
 			}
 		})
 	}

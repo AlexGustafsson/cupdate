@@ -21,6 +21,10 @@ type ImageManifest struct {
 	Platform *Platform
 	// Digest is the digest of the index, including the "sha256:" prefix.
 	Digest string
+	// ArtifactType, if set, is the media type of the artifact.
+	ArtifactType string
+	// Layers, if available, contains individual layers of the image.
+	Layers []Layer
 	// Annotations contains user-defined labels of the manifest.
 	Annotations Annotations
 }
@@ -46,10 +50,16 @@ type ImageIndex struct {
 	Annotations Annotations
 }
 
+type Layer struct {
+	Annotations Annotations
+	Digest      string
+	MediaType   string
+}
+
 // AttestationManifestDigests returns the digests for attestation manifests
 // contained in the index, mapped by the manifest digest the attestation is for.
 // SEE: https://docs.docker.com/build/metadata/attestations/attestation-storage/#attestation-manifest-descriptor.
-func (i *ImageIndex) AttestationManifestDigest() map[string]string {
+func (i *ImageIndex) AttestationManifestDigests() map[string]string {
 	digests := make(map[string]string)
 	for _, manifest := range i.Manifests {
 		dockerReferenceType := manifest.Annotations.DockerReferenceType()
@@ -76,15 +86,10 @@ func (i *ImageIndex) HasAttestationManifest() bool {
 	return false
 }
 
-// AttestationManifest represent an attestation image manifest.
-type AttestationManifest struct {
-	Layers []AttestationManifestLayer `json:"layers"`
-}
-
-// ProvenanceDigest returns the in-toto predicate type and digest of the first
-// layer containing provenance.
-func (a *AttestationManifest) ProvenanceDigest() (string, string, bool) {
-	for _, layer := range a.Layers {
+// ProvenanceLayerDigest returns the in-toto predicate type and digest of the
+// first layer containing provenance.
+func (i *ImageManifest) ProvenanceLayerDigest() (string, string, bool) {
+	for _, layer := range i.Layers {
 		if layer.MediaType != "application/vnd.in-toto+json" {
 			continue
 		}
@@ -98,31 +103,23 @@ func (a *AttestationManifest) ProvenanceDigest() (string, string, bool) {
 	return "", "", false
 }
 
-// SBOMDigest returns the in-toto predicate type and digest of the first layer
-// containing a (well-known type of) SBOM.
-func (a *AttestationManifest) SBOMDigest() (string, string, bool) {
-	for _, layer := range a.Layers {
+// SBOMLayerDigest returns the in-toto predicate type and digest of the first
+// layer containing a (well-known type of) SBOM.
+func (i *ImageManifest) SBOMLayerDigest() (string, string, bool) {
+	for _, layer := range i.Layers {
 		if layer.MediaType != "application/vnd.in-toto+json" {
 			continue
 		}
 
 		predicateType := layer.Annotations.InTotoPredicateType()
-		switch predicateType {
-		case "https://spdx.dev/Document":
+		// NOTE: Docker Hardened Images reports CyclonedX, but its predicate is just
+		// null, just report SPDX for now
+		if predicateType == "https://spdx.dev/Document" {
 			return predicateType, layer.Digest, true
 		}
 	}
 
 	return "", "", false
-}
-
-// AttestationManifestLayer represents a layer entry in an attestation image
-// manifest.
-type AttestationManifestLayer struct {
-	MediaType   string      `json:"mediaType"`
-	Digest      string      `json:"digest"`
-	Size        int         `json:"size"`
-	Annotations Annotations `json:"annotations"`
 }
 
 type Platform struct {
@@ -272,6 +269,12 @@ func manifestFromBlob(blob Blob) (any, error) {
 			SchemaVersion int               `json:"schemaVersion"`
 			MediaType     string            `json:"mediaType"`
 			Annotations   map[string]string `json:"annotations,omitempty"`
+			Layers        []struct {
+				MediaType   string            `json:"mediaType"`
+				Digest      string            `json:"digest"`
+				Size        int               `json:"size"`
+				Annotations map[string]string `json:"annotations"`
+			} `json:"layers"`
 		}
 
 		if err := json.NewDecoder(blob).Decode(&manifest); err != nil {
@@ -295,11 +298,24 @@ func manifestFromBlob(blob Blob) (any, error) {
 			annotations = manifest.Annotations
 		}
 
+		var layers []Layer
+		if manifest.Layers != nil {
+			layers = make([]Layer, 0)
+			for _, layer := range manifest.Layers {
+				layers = append(layers, Layer{
+					Annotations: layer.Annotations,
+					Digest:      layer.Digest,
+					MediaType:   layer.MediaType,
+				})
+			}
+		}
+
 		return &ImageManifest{
 			ContentType:   contentType,
 			SchemaVersion: 2,
 			MediaType:     "application/vnd.oci.image.manifest.v1+json",
 			Digest:        digest,
+			Layers:        layers,
 			Annotations:   annotations,
 		}, nil
 	// OCI Image Manifest List v1 is a standardized "fat" image format.

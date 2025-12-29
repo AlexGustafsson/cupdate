@@ -30,7 +30,7 @@ func GetSBOMAttestations() workflow.Step {
 				return nil, err
 			}
 
-			manifests, err := workflow.GetInput[map[string]*oci.AttestationManifest](ctx, "manifests", true)
+			manifests, err := workflow.GetInput[map[string]*oci.ImageManifest](ctx, "manifests", true)
 			if err != nil {
 				return nil, err
 			}
@@ -40,7 +40,7 @@ func GetSBOMAttestations() workflow.Step {
 			// from the graph to only get data for the architectures in use
 			attestations := make(map[string]oci.SBOMAttestation)
 			for manifestDigest, attestationManifest := range manifests {
-				_, sbomBlobDigest, ok := attestationManifest.SBOMDigest()
+				_, sbomBlobDigest, ok := attestationManifest.SBOMLayerDigest()
 				if !ok {
 					return nil, nil
 				}
@@ -49,10 +49,17 @@ func GetSBOMAttestations() workflow.Step {
 				if err != nil {
 					return nil, err
 				}
+				defer blob.Close()
 
 				var attestation oci.SBOMAttestation
 				if err := json.NewDecoder(blob).Decode(&attestation); err != nil {
 					return nil, err
+				}
+
+				// NOTE: Docker Hardened Images reports CyclonedX, but its predicate is
+				// just null, ignore them
+				if attestation.SBOM == "null" {
+					continue
 				}
 
 				attestations[manifestDigest] = attestation

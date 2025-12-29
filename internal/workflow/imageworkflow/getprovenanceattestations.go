@@ -30,7 +30,7 @@ func GetProvenanceAttestations() workflow.Step {
 				return nil, err
 			}
 
-			manifests, err := workflow.GetInput[map[string]*oci.AttestationManifest](ctx, "manifests", true)
+			manifests, err := workflow.GetInput[map[string]*oci.ImageManifest](ctx, "manifests", true)
 			if err != nil {
 				return nil, err
 			}
@@ -40,7 +40,7 @@ func GetProvenanceAttestations() workflow.Step {
 			// from the graph to only get data for the architectures in use
 			attestations := make(map[string]oci.ProvenanceAttestation)
 			for manifestDigest, attestationManifest := range manifests {
-				_, provenanceBlobDigest, ok := attestationManifest.ProvenanceDigest()
+				_, provenanceBlobDigest, ok := attestationManifest.ProvenanceLayerDigest()
 				if !ok {
 					return nil, nil
 				}
@@ -49,6 +49,7 @@ func GetProvenanceAttestations() workflow.Step {
 				if err != nil {
 					return nil, err
 				}
+				defer blob.Close()
 
 				var attestation oci.ProvenanceAttestation
 				if err := json.NewDecoder(blob).Decode(&attestation); err != nil {

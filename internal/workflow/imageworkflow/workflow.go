@@ -128,8 +128,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					GetAttestationManifests().
 						WithID("attestations").
 						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
-						With("reference", data.ImageReference).
-						With("manifest", workflow.Ref{Key: "job.oci.step.manifest.manifest"}),
+						With("reference", data.ImageReference),
 					GetProvenanceAttestations().
 						WithID("provenance").
 						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
@@ -213,7 +212,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						for imageDigest, attestation := range sbomAttestations {
 							sbom := models.SBOM{
 								ImageDigest: imageDigest,
-								Type:        string(attestation.Type),
+								Type:        attestation.PredicateType,
 								SBOM:        attestation.SBOM,
 							}
 

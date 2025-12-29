@@ -22,7 +22,7 @@ func TestSBOMAttestationUnmarshalJSON(t *testing.T) {
 		{
 			Path: "sbom.json",
 			Expected: &SBOMAttestation{
-				Type: SBOMTypeSPDX,
+				PredicateType: "https://spdx.dev/Document",
 				SBOM: `{
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
@@ -140,7 +140,7 @@ func TestSBOMAttestationUnmarshalJSON(t *testing.T) {
 			var attestation SBOMAttestation
 			require.NoError(t, json.Unmarshal(content, &attestation))
 
-			assert.Equal(t, testCase.Expected.SBOM, attestation.SBOM)
+			assert.Equal(t, testCase.Expected, &attestation)
 		})
 	}
 }

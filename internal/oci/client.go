@@ -175,36 +175,69 @@ func (c *Client) GetManifest(ctx context.Context, ref Reference) (any, error) {
 	return manifestFromBlob(blob)
 }
 
-// GetAttestationManifest downloads an [AttestationManifest] from an OCI
-// registry.
-// Helper method for [Client.GetManifestBlob] followed by parsing and validating
-// an [AttestationManifest].
-func (c *Client) GetAttestationManifest(ctx context.Context, ref Reference, digest string) (*AttestationManifest, error) {
+// GetReferrers returns an OCI referrers manifest.
+// Returns nil if the registry does not support referrers or no manifest was
+// found.
+// SEE: https://github.com/opencontainers/distribution-spec/blob/main/spec.md#listing-referrers.
+func (c *Client) GetReferrers(ctx context.Context, ref Reference, digest string) (*ImageIndex, error) {
 	ref = c.rewriteReference(ref)
 
-	ref.HasDigest = true
-	ref.Digest = digest
-
-	blob, err := c.GetManifestBlob(ctx, ref)
+	// TODO: Support filtering
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://%s/v2/%s/referrers/%s", ref.Domain, ref.Path, digest), nil)
 	if err != nil {
 		return nil, err
 	}
-	defer blob.Close()
 
-	var manifest struct {
-		AttestationManifest
-		SchemaVersion int    `json:"schemaVersion"`
-		MediaType     string `json:"mediaType"`
-	}
-	if err := json.NewDecoder(blob).Decode(&manifest); err != nil {
+	req.Header.Set("Accept", "application/vnd.oci.image.index.v1+json")
+
+	// TODO: Support pagination via the Link header
+	res, err := c.DoCached(req)
+	if err != nil {
 		return nil, err
 	}
 
-	if manifest.SchemaVersion != 2 || manifest.MediaType != "application/vnd.oci.image.manifest.v1+json" {
-		return nil, fmt.Errorf("invalid attestation manifest")
+	if res.StatusCode == http.StatusNotFound {
+		return nil, nil
 	}
 
-	return &manifest.AttestationManifest, nil
+	if err := assertStatusCode(res, http.StatusOK); err != nil {
+		return nil, err
+	}
+
+	// NOTE: So far the only registry seen using referrers is Docker Hub for their
+	// dhi.io images. In that case, they're returning non-standard manifests,
+	// despite using the correct content type. For now, we need to be lax on the
+	// parsing
+
+	var manifest struct {
+		Manifests []struct {
+			MediaType    string            `json:"mediaType"`
+			Digest       string            `json:"digest"`
+			Size         int               `json:"size"`
+			ArtifactType string            `json:"artifactType"`
+			Annotations  map[string]string `json:"annotations"`
+		} `json:"manifests"`
+	}
+
+	if err := json.NewDecoder(res.Body).Decode(&manifest); err != nil {
+		return nil, err
+	}
+
+	manifests := make([]ImageManifest, 0)
+	for _, manifest := range manifest.Manifests {
+		manifests = append(manifests, ImageManifest{
+			MediaType:    manifest.MediaType,
+			Digest:       manifest.Digest,
+			ArtifactType: manifest.ArtifactType,
+			Annotations:  manifest.Annotations,
+		})
+	}
+
+	return &ImageIndex{
+		SchemaVersion: 2,
+		MediaType:     "application/vnd.oci.image.index.v1+json",
+		Manifests:     manifests,
+	}, nil
 }
 
 // GetBlob downloads a blob from an OCI registry.
@@ -297,7 +330,7 @@ func (c *Client) GetAnnotations(ctx context.Context, ref Reference, options *Get
 		}
 	}
 
-	// Only apply the filter if ther are more than one manifest. If there's only
+	// Only apply the filter if there are more than one manifest. If there's only
 	// one manifest, there's simply nothing else that could be used by the client
 	// it must be the manifest in use
 	if len(manifests) > 1 {
@@ -387,6 +420,144 @@ func (c *Client) GetAnnotations(ctx context.Context, ref Reference, options *Get
 	}
 
 	return annotations.Merge(configContent.Config.Labels), nil
+}
+
+type GetAttestationsOptions struct {
+	Digest       string
+	Architecture string
+	OS           string
+	Variant      string
+}
+
+// GetAttestationManifests tries to identify attestations for the reference.
+// Fetches manifests as necessary.
+// To narrow down the search and to avoid unnecessary fetches, specify the
+// available options.
+// NOTE: The filter is only applied if more than one manifest exists.
+func (c *Client) GetAttestationManifests(ctx context.Context, ref Reference, options *GetAttestationsOptions) (map[string]*ImageManifest, error) {
+	if options == nil {
+		options = &GetAttestationsOptions{}
+	}
+
+	manifestOrIndex, err := c.GetManifest(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	var manifests []ImageManifest
+	switch m := manifestOrIndex.(type) {
+	case *ImageManifest:
+		manifests = []ImageManifest{*m}
+	case *ImageIndex:
+		manifests = m.Manifests
+	}
+
+	// Only apply the filter if there are more than one manifest. If there's only
+	// one manifest, there's simply nothing else that could be used by the client
+	// it must be the manifest in use
+	if len(manifests) > 1 {
+		if options.Digest != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Digest != options.Digest
+			})
+		}
+
+		if options.Architecture != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Platform == nil || m.Platform.Architecture != options.Architecture
+			})
+		}
+
+		if options.OS != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Platform == nil || m.Platform.OS != options.OS
+			})
+		}
+
+		if options.Variant != "" {
+			manifests = slices.DeleteFunc(manifests, func(m ImageManifest) bool {
+				return m.Platform == nil || m.Platform.Variant != options.Variant
+			})
+		}
+	}
+
+	if len(manifests) == 0 {
+		return nil, nil
+	}
+
+	attestationManifests := make(map[string]*ImageManifest)
+	for _, manifest := range manifests {
+		// First we try to find attestations through Docker's annotations as that's
+		// the cheapest and most widely used signaling mechanism
+		if index, ok := manifestOrIndex.(*ImageIndex); ok {
+			digests := index.AttestationManifestDigests()
+			digest, ok := digests[manifest.Digest]
+			if ok {
+				// Resolve the reference for the manifest
+				ref := ref
+				ref.Digest = digest
+				ref.HasDigest = true
+
+				manifestOrIndex, err := c.GetManifest(context.TODO(), ref)
+				if err != nil {
+					return nil, err
+				}
+
+				attestationManifest, ok := manifestOrIndex.(*ImageManifest)
+				if !ok {
+					return nil, fmt.Errorf("expected an image manifest, got an image index manifest")
+				}
+
+				attestationManifests[manifest.Digest] = attestationManifest
+				continue
+			}
+		}
+
+		// Next, we try to use the OCI referrers API, which is not as widespread
+		referrersManifest, err := c.GetReferrers(ctx, ref, manifest.Digest)
+		if err != nil {
+			return nil, err
+		}
+
+		if referrersManifest == nil {
+			continue
+		}
+
+		attestationManifest := &ImageManifest{
+			SchemaVersion: 2,
+			MediaType:     "application/vnd.oci.image.manifest.v1+json",
+			Layers:        make([]Layer, 0),
+		}
+
+		for _, manifest := range referrersManifest.Manifests {
+			if manifest.ArtifactType == "application/vnd.in-toto+json" && manifest.Annotations.InTotoPredicateType() == "https://spdx.dev/Document" ||
+				manifest.ArtifactType == "application/vnd.in-toto+json" && strings.HasPrefix(manifest.Annotations.InTotoPredicateType(), "https://slsa.dev/provenance/") ||
+				manifest.ArtifactType == "application/vnd.in-toto+json" && strings.HasPrefix(manifest.Annotations.InTotoPredicateType(), "https://cyclonedx.org/bom/") {
+				ref := ref
+				ref.Digest = manifest.Digest
+				ref.HasDigest = true
+				indexOrManifest, err := c.GetManifest(ctx, ref)
+				if err != nil {
+					return nil, err
+				}
+
+				manifest, ok := indexOrManifest.(*ImageManifest)
+				if !ok {
+					return nil, fmt.Errorf("expected an image manifest, got an image index manifest")
+				}
+
+				if len(manifest.Layers) != 1 {
+					return nil, fmt.Errorf("expected a single layer in referred manifest")
+				}
+
+				attestationManifest.Layers = append(attestationManifest.Layers, manifest.Layers[0])
+			}
+		}
+
+		attestationManifests[manifest.Digest] = attestationManifest
+	}
+
+	return attestationManifests, nil
 }
 
 type GetTagsOptions struct {

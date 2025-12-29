@@ -537,6 +537,8 @@ components:
       properties:
         imageDigest:
           type: string
+        # TODO: In v1, change name to predicateType and just keep the predicate
+        # type from the registry
         type:
           type: string
           enum:

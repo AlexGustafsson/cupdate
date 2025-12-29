@@ -95,7 +95,7 @@ export interface ImageSBOM {
 
 export interface SBOM {
   imageDigest: string
-  type: 'spdx'
+  type: string
   sbom: string
   architecture?: string
   architectureVariant?: string

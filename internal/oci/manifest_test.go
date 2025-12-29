@@ -330,6 +330,20 @@ func TestManifestFromBlob(t *testing.T) {
 				SchemaVersion: 2,
 				MediaType:     "application/vnd.oci.image.manifest.v1+json",
 				Digest:        "sha256:d701f04d63badebf6532354e76d8d36fdba8fed2c5f1ab538cb1847baab3de22",
+				Layers: []Layer{
+					{
+						MediaType: "application/vnd.oci.image.layer.v1.tar+gzip",
+						Digest:    "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+					},
+					{
+						MediaType: "application/vnd.oci.image.layer.v1.tar+gzip",
+						Digest:    "sha256:3c3a4604a545cdc127456d94e421cd355bca5b528f4a9c1905b15da2eb4a4c6b",
+					},
+					{
+						MediaType: "application/vnd.oci.image.layer.v1.tar+gzip",
+						Digest:    "sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736",
+					},
+				},
 				Annotations: Annotations{
 					"com.example.key1": "value1",
 					"com.example.key2": "value2",
