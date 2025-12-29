@@ -221,6 +221,7 @@ paths:
                     items:
                       $ref: "https://raw.githubusercontent.com/ossf/osv-schema/main/validation/schema.json"
 
+  # /workflows/mongo?tag=1.0.0&digest=sha256:1234
   /image/workflows/latest:
     get:
       summary: Returns an image's latest workflow run
@@ -238,6 +239,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/WorkflowRun"
 
+  # /logos/ghcr.io/
   /image/logo:
     get:
       summary: Returns the logo of the image or an external link to it
@@ -291,6 +293,7 @@ paths:
 
   # TODO: This API is rather simplified. Perhaps we should expose more internals
   # like processing logs, time to process etc.
+  # POST /workflows/ghcr.io/
   /image/scans:
     post:
       summary: Schedule a new scan.
@@ -631,9 +634,7 @@ components:
         vulnerable:
           description: Total number of vulnerable images
           type: number
-        # TODO in v1: rename this to "unprocessed"
-        # TODO in v1: expose actual queue size from worker queue?
-        processing:
+        unprocessed:
           description: Total number of unprocessed images
           type: number
         failed:
@@ -643,7 +644,7 @@ components:
         - images
         - outdated
         - vulnerable
-        - processing
+        - unprocessed
         - failed
 
     WorkflowRun:
@@ -719,3 +720,15 @@ components:
           description: Set if step failed.
       required:
         - result
+
+    Collection:
+      type: object
+      properties:
+        page:
+          type: number
+        size:
+          type: number
+        count:
+          type: number
+        total:
+          type: number

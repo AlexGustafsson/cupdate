@@ -1,0 +1,100 @@
+{
+  "name": "ghcr.io/alexgustafsson/cupdate",
+  "tag": "1.0.0",
+  "digest": "sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0",
+  "created": "2025-12-28T16:38:35+01:00",
+  "lastModified": "2025-12-28T16:38:35+01:00",
+  "_embedded": {
+    "cupdate:tags": {
+      "tags": [
+        "attestation",
+        "deployment",
+        "github",
+        "namespace:cupdate",
+        "sbom",
+        "up-to-date",
+        "vulnerability:medium"
+      ],
+      "_links": {
+        "self": {
+          "href": "/tags/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+        }
+      }
+    },
+    "cupdate:annotations": {
+      "annotations": {
+        "org.opencontainers.image.created": "2025-11-25T15:42:02+00:00",
+        "org.opencontainers.image.description": "Cupdate keeps track of image updates.",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "v0.22.2-63-ge02c9ea",
+        "org.opencontainers.image.source": "https://github.com/AlexGustafsson/cupdate",
+        "org.opencontainers.image.title": "Cupdate",
+        "org.opencontainers.image.version": "0.23.0-beta.1"
+      },
+      "latestAnnotations": {
+        "org.opencontainers.image.created": "2025-11-25T15:42:02+00:00",
+        "org.opencontainers.image.description": "Cupdate keeps track of image updates.",
+        "org.opencontainers.image.licenses": "MIT",
+        "org.opencontainers.image.revision": "v0.22.2-63-ge02c9ea",
+        "org.opencontainers.image.source": "https://github.com/AlexGustafsson/cupdate",
+        "org.opencontainers.image.title": "Cupdate",
+        "org.opencontainers.image.version": "0.23.0-beta.1"
+      },
+      "_links": {
+        "self": {
+          "href": "/annotations/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+        }
+      }
+    },
+    "cupdate:vulnerabilities": {
+      "total": 10,
+      "_links": {
+        "self": {
+          "href": "/vulnerabilities/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+        }
+      }
+    }
+  },
+  "_links": {
+    "curies": [
+      {
+        "href": "https://github.com/AlexGustafsson/cupdate/blob/main/docs/config.md#{rel}",
+        "name": "cupdate",
+        "templated": true
+      }
+    ],
+    "self": {
+      "href": "/images/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:tags": {
+      "href": "/tags/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:annotations": {
+      "href": "/vulnerabilities/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:vulnerabilities": {
+      "href": "/vulnerabilities/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:sbom-attestations": {
+      "href": "/sbom-attestations/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:provenance-attestations": {
+      "href": "/provenance-attestations/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:scorecard": {
+      "href": "/scorecards/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:description": {
+      "href": "/descriptions/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:graph": {
+      "href": "/graphs/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:release-notes": {
+      "href": "/release-notes/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    },
+    "cupdate:workflows": {
+      "href": "/workflows/ghcr.io/alexgustafsson/cupdate?tag=1.0.0&digest=sha256:69e0388d5a891fe5b64bb661755e7e1ec20b36e4544f8a8ea7cb1a672f72aed0"
+    }
+  }
+}

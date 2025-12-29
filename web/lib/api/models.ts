@@ -8,7 +8,7 @@ export interface ImagePageSummary {
   images: number
   outdated: number
   vulnerable: number
-  processing: number
+  unprocessed: number
   failed: number
 }
 

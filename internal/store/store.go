@@ -1492,11 +1492,11 @@ func (s *Store) Summary(ctx context.Context) (*models.ImagePageSummary, error) {
 	res.Close()
 
 	return &models.ImagePageSummary{
-		Images:     totalImages,
-		Outdated:   totalOutdatedImages,
-		Vulnerable: totalVulnerableImages,
-		Processing: totalRawImages - totalImages,
-		Failed:     totalFailedImages,
+		Images:      totalImages,
+		Outdated:    totalOutdatedImages,
+		Vulnerable:  totalVulnerableImages,
+		Unprocessed: totalRawImages - totalImages,
+		Failed:      totalFailedImages,
 	}, nil
 }
 

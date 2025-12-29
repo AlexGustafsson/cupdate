@@ -212,7 +212,7 @@ export function Dashboard(): JSX.Element {
           <div className="py-2 px-4">
             <p className="text-sm">Queued</p>
             <p className="text-3xl font-semibold">
-              {images.value.summary.processing}
+              {images.value.summary.unprocessed}
             </p>
           </div>
           <div className="py-2 px-4">
