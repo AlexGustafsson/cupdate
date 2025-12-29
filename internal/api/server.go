@@ -59,12 +59,89 @@ func NewServer(
 		mux:         http.NewServeMux(),
 	}
 
+	s.mux.HandleFunc("GET /api/v1/", func(w http.ResponseWriter, r *http.Request) {
+		resource := Resource{
+			Links: Links{
+				"self": []Link{
+					{
+						Href: r.URL.Path,
+					},
+				},
+				"curies": []Link{
+					{
+						Name:      "cupdate",
+						Href:      "https://github.com/AlexGustafsson/cupdate/blob/main/docs/api.md#{rel}",
+						Templated: true,
+					},
+				},
+				"cupdate:summary": []Link{
+					{
+						Href: "/api/v1/summary",
+					},
+				},
+				"cupdate:images": []Link{
+					{
+						Href: "/api/v1/images{?tag,tagop,sort,order,page,limit,query}",
+					},
+				},
+				// ... TODO
+			},
+		}
+
+		s.handleHALResponse(w, r, resource, nil)
+	})
+
 	s.mux.HandleFunc("GET /api/v1/tags", func(w http.ResponseWriter, r *http.Request) {
 		ctx, span := httputil.SpanFromRequest(r)
 		span.SetAttributes(semconv.HTTPRoute("/api/v1/tags"))
 
 		tags, err := api.GetTags(ctx)
-		s.handleJSONResponse(w, r, tags, err)
+		if err != nil {
+			s.handleGenericResponse(w, r, err)
+			return
+		}
+
+		resource := TagsResource{
+			Resource: Resource{
+				Links: Links{
+					"self": []Link{
+						{
+							Href: r.URL.Path,
+						},
+					},
+				},
+			},
+			Tags: tags,
+		}
+
+		s.handleHALResponse(w, r, resource, err)
+	})
+
+	// Collection, links to full items
+	s.mux.HandleFunc("GET /api/v1/attestations", func(w http.ResponseWriter, r *http.Request) {
+		ctx, span := httputil.SpanFromRequest(r)
+		span.SetAttributes(semconv.HTTPRoute("/api/v1/tags"))
+
+		tags, err := api.GetTags(ctx)
+		if err != nil {
+			s.handleGenericResponse(w, r, err)
+			return
+		}
+
+		resource := TagsResource{
+			Resource: Resource{
+				Links: Links{
+					"self": []Link{
+						{
+							Href: r.URL.Path,
+						},
+					},
+				},
+			},
+			Tags: tags,
+		}
+
+		s.handleHALResponse(w, r, resource, err)
 	})
 
 	s.mux.HandleFunc("GET /api/v1/images", func(w http.ResponseWriter, r *http.Request) {
@@ -471,6 +548,8 @@ func NewServer(
 	return s
 }
 
+// TODO: Just rename to handleError and let caller take care of conditionally
+// invoking it
 func (s *Server) handleGenericResponse(w http.ResponseWriter, r *http.Request, err error) bool {
 	if err == ErrBadRequest {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -500,6 +579,18 @@ func (s *Server) handleJSONResponse(w http.ResponseWriter, r *http.Request, resp
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		slog.ErrorContext(r.Context(), "Failed to write response", slog.Any("error", err))
+	}
+}
+
+func (s *Server) handleHALResponse(w http.ResponseWriter, r *http.Request, response any, err error) {
+	ok := s.handleGenericResponse(w, r, err)
+	if !ok {
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/hal+json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		slog.ErrorContext(r.Context(), "Failed to write response", slog.Any("error", err))
 	}
