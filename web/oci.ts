@@ -96,7 +96,7 @@ export function formattedVersion(
     annotations
   ) {
     const versionAnnotationString = versionAnnotation(annotations)
-    if (versionAnnotationString) {
+    if (versionAnnotationString && versionAnnotationString !== versionString) {
       versionString = `${versionString} (${versionAnnotationString})`
     }
   }
