@@ -28,7 +28,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.2",
     "@vitest/coverage-v8": "4.0.16",
-    "globals": "16.5.0",
+    "globals": "17.0.0",
     "prettier": "3.7.4",
     "tailwindcss": "4.1.18",
     "typescript": "5.9.3",
