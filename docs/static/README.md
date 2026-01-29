@@ -30,6 +30,6 @@ victoriametrics/victoria-metrics:v1.128.0@sha256:c27e736a8aff888cf30c4f20ec648b7
 ```
 
 An example file is included in
-[../../integration/static/references.txt](integration/static/references.txt).
+[../../integration/static/references.txt](../../integration/static/references.txt).
 
 - [Configuration](../config.md)
