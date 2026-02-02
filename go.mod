@@ -20,7 +20,7 @@ require (
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
-	modernc.org/sqlite v1.44.2
+	modernc.org/sqlite v1.44.3
 	oras.land/oras-go/v2 v2.6.0
 )
 
