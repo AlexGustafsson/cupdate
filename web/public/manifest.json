@@ -4,6 +4,13 @@
   "icons": [
     {
       "src": "/assets/icon.png",
+      "purpose": "any",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/maskable-icon.png",
+      "purpose": "maskable",
       "sizes": "512x512",
       "type": "image/png"
     }
