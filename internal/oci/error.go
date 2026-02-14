@@ -147,8 +147,7 @@ func ErrorIsResourceUnknown(err error) bool {
 		return false
 	}
 
-	var apiErr APIError
-	if errors.As(err, &apiErr) {
+	if apiErr, ok := errors.AsType[APIError](err); ok {
 		switch apiErr.Code {
 		case APIErrorCodeBlobUnknown, APIErrorCodeManifestUnknown, APIErrorCodeNameUnknown:
 			return true
