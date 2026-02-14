@@ -36,10 +36,10 @@ func ScanSPDX(ctx context.Context, sbom string) ([]Vulnerability, error) {
 	cmd.Stdout = &buffer
 
 	err = cmd.Run()
-	if exitErr := (*exec.ExitError)(nil); errors.As(err, &exitErr) {
+	if _, ok := errors.AsType[*exec.ExitError](err); ok {
 		// Ignore - if vulnerabilities are found the exit code is 1 but there is
 		// still output
-	} else if execErr := (*exec.Error)(nil); errors.As(err, &execErr) {
+	} else if _, ok := errors.AsType[*exec.Error](err); ok {
 		return nil, ErrScannerNotFound
 	} else if err != nil {
 		return nil, err
