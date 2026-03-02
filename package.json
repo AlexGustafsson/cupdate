@@ -14,14 +14,14 @@
     "dompurify": "3.3.1",
     "elkjs": "0.11.0",
     "github-markdown-css": "5.9.0",
-    "marked": "17.0.2",
+    "marked": "17.0.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-router-dom": "7.13.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.0",
-    "@tailwindcss/vite": "4.1.18",
+    "@biomejs/biome": "2.4.4",
+    "@tailwindcss/vite": "4.2.0",
     "@types/dompurify": "3.2.0",
     "@types/node": "24.10.8",
     "@types/react": "19.2.14",
@@ -30,7 +30,7 @@
     "@vitest/coverage-v8": "4.0.18",
     "globals": "17.3.0",
     "prettier": "3.8.1",
-    "tailwindcss": "4.1.18",
+    "tailwindcss": "4.2.0",
     "typescript": "5.9.3",
     "vite": "7.3.1",
     "vitest": "4.0.18"
