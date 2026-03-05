@@ -25,12 +25,13 @@ func TestClientGetRepository(t *testing.T) {
 	client := &Client{
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
-	ref, err := oci.ParseReference("mongo")
+	ref, err := oci.ParseReference("homeassistant/home-assistant")
 	require.NoError(t, err)
 	repository, err := client.GetRepository(context.TODO(), ref)
 	require.NoError(t, err)
 
 	fmt.Println(repository.FullDescription)
+	fmt.Println(repository.Namespace)
 
 	json.NewEncoder(os.Stdout).Encode(repository)
 }
