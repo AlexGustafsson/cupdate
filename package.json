@@ -12,15 +12,15 @@
   },
   "dependencies": {
     "dompurify": "3.3.3",
-    "elkjs": "0.11.0",
+    "elkjs": "0.11.1",
     "github-markdown-css": "5.9.0",
-    "marked": "17.0.3",
+    "marked": "17.0.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-router-dom": "7.13.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.4",
+    "@biomejs/biome": "2.4.5",
     "@tailwindcss/vite": "4.2.1",
     "@types/dompurify": "3.2.0",
     "@types/node": "24.10.8",
@@ -28,7 +28,7 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.4",
     "@vitest/coverage-v8": "4.0.18",
-    "globals": "17.3.0",
+    "globals": "17.4.0",
     "prettier": "3.8.1",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
