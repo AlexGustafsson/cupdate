@@ -19,6 +19,7 @@ export function WordBreak({
   return (
     <>
       {parts.map((part, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: No other possible key
         <Fragment key={`${delimiter}-${i}-${part}`}>
           {part}
           {i < parts.length - 1 && (
