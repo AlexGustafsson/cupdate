@@ -184,6 +184,7 @@ func TestClientGetTags(t *testing.T) {
 		"registry.k8s.io/kube-state-metrics/kube-state-metrics",
 		"gcr.io/zenika-hub/alpine-chrome",
 		"mongo",
+		"codeberg.org/forgejo/forgejo:14.0.2-rootless",
 	}
 
 	for _, reference := range references {

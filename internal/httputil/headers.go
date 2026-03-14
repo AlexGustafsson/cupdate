@@ -74,6 +74,8 @@ func ParseLinkHeader(origin *url.URL, header string) ([]Link, error) {
 // ParseWWWAuthenticateHeader parses a Www-Authenticate header.
 // Returns the scheme and parameters.
 //
+// NOTE: Only returns the first scheme, any following scheme is ignored.
+//
 // SEE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate.
 func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error) {
 	var scheme string
@@ -83,8 +85,9 @@ func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error
 	paramKey := ""
 	paramValue := ""
 	gotParamDelimiter := false
+loop:
 	for i, c := range header {
-		isAlpha := c >= 'a' && c <= 'z'
+		isAlpha := (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'z')
 		isNumeric := c >= '0' && c <= '0'
 		isAlphaNumeric := isAlpha || isNumeric || c == '-'
 		isEnd := i == len(header)-1
@@ -104,6 +107,12 @@ func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error
 				}
 			}
 		case "paramKey":
+			// For now, only parse the first scheme
+			if paramKey == "Bearer" || paramKey == "Basic" {
+				state = "end"
+				break loop
+			}
+
 			// Consume optional whitespace after params delimiter
 			if gotParamDelimiter && c == ' ' {
 				continue

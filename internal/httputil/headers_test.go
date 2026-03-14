@@ -201,6 +201,16 @@ func TestParseWWWAuthenticateHeader(t *testing.T) {
 			Error: false,
 		},
 		{
+			Header:         `Bearer realm="https://codeberg.org/v2/token",service="container_registry",scope="*",Basic realm="https://codeberg.org/v2",service="container_registry",scope="*"`,
+			ExpectedScheme: "Bearer",
+			ExpectedParams: map[string]string{
+				"realm":   "https://codeberg.org/v2/token",
+				"service": "container_registry",
+				"scope":   "*",
+			},
+			Error: false,
+		},
+		{
 			Header: `Basic realm="Dev" charset="ASCII" charset="UTF-8"`,
 			Error:  true,
 		},
