@@ -7,16 +7,13 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "module": "ESNext",
+    "lib": ["DOM", "ESNext"],
     "moduleResolution": "bundler",
     "newLine": "lf",
     "noEmit": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,
-    "strict": true,
-    "target": "ESNext",
     "types": ["vite/client"]
   },
   "include": ["web"]
