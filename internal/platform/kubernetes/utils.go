@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"fmt"
 	"maps"
+	"strings"
 
 	"github.com/AlexGustafsson/cupdate/internal/oci"
 	"github.com/AlexGustafsson/cupdate/internal/platform"
@@ -33,9 +34,16 @@ func getImageReference(specImage string, statusImage string, statusImageID strin
 	// "containerID": "containerd://dadf5d1aca357f514cd558b11140786e46e729f25ddc7f847382fdff127a44b8"
 	//
 	// Note that the digest is not always to the manifest list, but might as well
-	// be to the actual manifest in use. It is not well-defined
+	// be to the actual manifest in use. Additionally, the id might be the full
+	// reference, or just the digest. It is not well-defined
 	statusRef, statusErr := oci.ParseReference(statusImage)
-	statusRuntimeRef, statusRuntimeErr := oci.ParseReference(statusImageID)
+	var statusRuntimeRef oci.Reference
+	var statusRuntimeErr error
+	if strings.HasPrefix(statusImageID, "sha256:") {
+		statusRuntimeRef, statusRuntimeErr = oci.ParseReference(statusImage + "@" + statusImageID)
+	} else {
+		statusRuntimeRef, statusRuntimeErr = oci.ParseReference(statusImageID)
+	}
 
 	// In the best of worlds, the status' image id contains a tag and a digest, if
 	// so, try to use it
