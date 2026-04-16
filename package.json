@@ -11,7 +11,7 @@
     "format": "biome check --write --no-errors-on-unmatched . && prettier --write '**/*.{md,yml,yaml}'"
   },
   "dependencies": {
-    "dompurify": "3.3.3",
+    "dompurify": "3.4.0",
     "elkjs": "0.11.1",
     "github-markdown-css": "5.9.0",
     "marked": "17.0.5",
