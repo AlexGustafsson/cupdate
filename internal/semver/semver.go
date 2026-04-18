@@ -56,7 +56,7 @@ func (v *Version) IsCompatible(other *Version) bool {
 // Returns an empty string in cases where a bump could not be found.
 func (v *Version) Diff(other *Version) string {
 	length := max(len(v.Release), len(other.Release))
-	for i := 0; i < length; i++ {
+	for i := range length {
 		if other.Release[i] > v.Release[i] {
 			switch i {
 			case 0:
@@ -81,7 +81,7 @@ func (v *Version) Diff(other *Version) string {
 // and zero when v == other.
 func (v *Version) Compare(other *Version) int {
 	length := max(len(v.Release), len(other.Release))
-	for i := 0; i < length; i++ {
+	for i := range length {
 		// Shorter is bigger 2.1 > 2.1.1
 		if i >= len(v.Release) {
 			return 1
@@ -143,7 +143,7 @@ func ParseVersion(version string) (*Version, error) {
 	ver := matchGroups[1]
 	prerelease := matchGroups[2]
 	release := make([]int, 0)
-	for _, x := range strings.Split(ver, ".") {
+	for x := range strings.SplitSeq(ver, ".") {
 		n, err := strconv.ParseInt(x, 10, 32)
 		if err != nil {
 			return nil, err

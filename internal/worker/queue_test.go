@@ -29,7 +29,7 @@ func TestQueueBacklog(t *testing.T) {
 
 	next, stop := iter.Pull(q.Pull())
 
-	for i := 0; i < len(items); i++ {
+	for i := range items {
 		expected := items[i]
 		actual, ok := next()
 		assert.Equal(t, expected, actual)
@@ -60,7 +60,7 @@ func TestQueuePushBack(t *testing.T) {
 
 	next, stop := iter.Pull(q.Pull())
 
-	for i := 0; i < len(items); i++ {
+	for i := range items {
 		expected := items[i]
 		actual, ok := next()
 		assert.Equal(t, expected, actual)
@@ -103,7 +103,7 @@ func TestQueueMultipleConsumers(t *testing.T) {
 
 	// Keep track of which worker handled with item
 	items := make([]int, 5)
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		go func() {
 			for item := range q.Pull() {
 				items[item] = i

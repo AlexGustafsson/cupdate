@@ -325,7 +325,7 @@ func TestIntegrationClientZotBearerAuth(t *testing.T) {
 			}
 
 			header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"EdDSA","typ":"JWT"}`))
-			payload := base64.RawURLEncoding.EncodeToString([]byte(fmt.Sprintf(`{"iat":%d,"access":[{"type":"registry","name":"catalog","action":"*"}]}`, time.Now().Unix())))
+			payload := base64.RawURLEncoding.EncodeToString(fmt.Appendf(nil, `{"iat":%d,"access":[{"type":"registry","name":"catalog","action":"*"}]}`, time.Now().Unix()))
 
 			jwt := header + "." + payload
 

@@ -51,7 +51,7 @@ type RawImage struct {
 	Reference     string    `json:"reference"`
 	Tags          []string  `json:"tags"`
 	Graph         Graph     `json:"graph"`
-	LastProcessed time.Time `json:"lastProcessed,omitempty"`
+	LastProcessed time.Time `json:"lastProcessed,omitzero"`
 }
 
 type ImageDescription struct {
@@ -63,7 +63,7 @@ type ImageReleaseNotes struct {
 	Title    string    `json:"title"`
 	HTML     string    `json:"html,omitempty"`
 	Markdown string    `json:"markdown,omitempty"`
-	Released time.Time `json:"released,omitempty"`
+	Released time.Time `json:"released,omitzero"`
 }
 
 type ImageLink struct {
@@ -100,8 +100,8 @@ type ProvenanceBuildInfo struct {
 	OperatingSystem     string            `json:"operatingSystem,omitempty"`
 	Source              string            `json:"source,omitempty"`
 	SourceRevision      string            `json:"sourceRevision,omitempty"`
-	BuildStartedOn      time.Time         `json:"buildStartedOn,omitempty"`
-	BuildFinishedOn     time.Time         `json:"buildFinishedOn,omitempty"`
+	BuildStartedOn      time.Time         `json:"buildStartedOn,omitzero"`
+	BuildFinishedOn     time.Time         `json:"buildFinishedOn,omitzero"`
 	Dockerfile          string            `json:"dockerfile,omitempty"`
 	BuildArguments      map[string]string `json:"buildArguments,omitempty"`
 }
@@ -148,7 +148,7 @@ type JobRun struct {
 	DependsOn       []string     `json:"dependsOn"`
 	JobID           string       `json:"jobId,omitempty"`
 	JobName         string       `json:"jobName,omitempty"`
-	Started         time.Time    `json:"started,omitempty"`
+	Started         time.Time    `json:"started,omitzero"`
 	DurationSeconds float64      `json:"duration,omitempty"`
 }
 
@@ -163,7 +163,7 @@ const (
 type StepRun struct {
 	Result          StepRunResult `json:"result"`
 	StepName        string        `json:"stepName,omitempty"`
-	Started         time.Time     `json:"started,omitempty"`
+	Started         time.Time     `json:"started,omitzero"`
 	DurationSeconds float64       `json:"duration,omitempty"`
 	Error           string        `json:"error,omitempty"`
 }

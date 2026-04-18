@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"encoding/base64"
+	"maps"
 	"net/http"
 	"net/url"
 	"strings"
@@ -71,9 +72,7 @@ func (a *AuthMux) HandleAuth(r *http.Request) error {
 		handler = a.patterns[""]
 	}
 
-	for k, v := range a.header {
-		r.Header[k] = v
-	}
+	maps.Copy(r.Header, a.header)
 
 	a.mutex.RUnlock()
 
@@ -153,7 +152,7 @@ func (a *AuthMux) match(url *url.URL) AuthHandler {
 		}
 
 		matched := true
-		for i := 0; i < len(patternParts); i++ {
+		for i := range patternParts {
 			if strings.HasPrefix(patternParts[i], "*") {
 				if !strings.HasSuffix(urlParts[i], patternParts[i][1:]) {
 					matched = false
@@ -187,11 +186,7 @@ func (a *AuthMux) Copy(other *AuthMux) {
 	other.mutex.RLock()
 	defer other.mutex.RUnlock()
 
-	for pattern, handler := range other.patterns {
-		a.patterns[pattern] = handler
-	}
+	maps.Copy(a.patterns, other.patterns)
 
-	for k, v := range other.header {
-		a.header[k] = v
-	}
+	maps.Copy(a.header, other.header)
 }

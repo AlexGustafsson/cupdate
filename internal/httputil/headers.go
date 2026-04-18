@@ -78,7 +78,7 @@ func ParseLinkHeader(origin *url.URL, header string) ([]Link, error) {
 //
 // SEE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/WWW-Authenticate.
 func ParseWWWAuthenticateHeader(header string) (string, map[string]string, error) {
-	var scheme string
+	var scheme strings.Builder
 	params := make(map[string]string)
 
 	state := "scheme"
@@ -101,7 +101,7 @@ loop:
 					state = "paramKey"
 				}
 			} else {
-				scheme += string(c)
+				scheme.WriteString(string(c))
 				if isEnd {
 					state = "end"
 				}
@@ -158,7 +158,7 @@ loop:
 		return "", nil, fmt.Errorf("httputil: invalid Www-Authenticate state")
 	}
 
-	return scheme, params, nil
+	return scheme.String(), params, nil
 }
 
 // Accepts returns the most highly desired mime type supported by the server.
@@ -167,8 +167,8 @@ func Accepts(header string, mimeTypes ...string) string {
 	matched := ""
 	matchedWeight := 0.0
 
-	entries := strings.Split(strings.TrimSpace(header), ",")
-	for _, entry := range entries {
+	entries := strings.SplitSeq(strings.TrimSpace(header), ",")
+	for entry := range entries {
 		directives := strings.Split(strings.TrimSpace(entry), ";")
 
 		pattern := directives[0]

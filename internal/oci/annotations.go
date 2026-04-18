@@ -1,6 +1,7 @@
 package oci
 
 import (
+	"maps"
 	"strings"
 	"time"
 )
@@ -179,12 +180,8 @@ func (a Annotations) Merge(b Annotations) Annotations {
 		return b
 	} else {
 		clone := make(Annotations)
-		for k, v := range a {
-			clone[k] = v
-		}
-		for k, v := range b {
-			clone[k] = v
-		}
+		maps.Copy(clone, a)
+		maps.Copy(clone, b)
 		return clone
 	}
 }

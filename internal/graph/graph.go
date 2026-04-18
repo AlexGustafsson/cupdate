@@ -39,7 +39,7 @@ func (g *Graph[T]) InsertTree(nodes ...T) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	for i := 0; i < len(nodes); i++ {
+	for i := range nodes {
 		g.insertNode(nodes[i])
 		if i > 0 {
 			g.insertEdge(nodes[i-1].ID(), nodes[i].ID(), true)
@@ -112,7 +112,7 @@ func (g *Graph[T]) String() string {
 	var result strings.Builder
 
 	roots := g.roots()
-	for i := 0; i < len(roots); i++ {
+	for i := range roots {
 		result.WriteString(g.describeFromRoot(roots[i].ID()))
 		if i < len(roots)-1 {
 			result.WriteByte('\n')
@@ -126,7 +126,7 @@ func (g *Graph[T]) describeFromRoot(rootID string) string {
 	var result strings.Builder
 
 	paths := g.traverse(rootID)
-	for i := 0; i < len(paths); i++ {
+	for i := range paths {
 		labels := make([]string, 0)
 		for _, nodeID := range paths[i] {
 			node := g.nodes[nodeID]
