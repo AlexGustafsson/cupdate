@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/models"
+	"github.com/AlexGustafsson/cupdate/internal/sqlutil"
+	"github.com/AlexGustafsson/cupdate/internal/store/schema"
 	_ "modernc.org/sqlite"
 )
 
@@ -1649,15 +1651,9 @@ func (s *Store) GetUpdates(ctx context.Context, options *GetUpdateOptions) ([]mo
 		parameters = append(parameters, options.Limit)
 	}
 
-	statement, err := s.db.PrepareContext(ctx, query)
+	rows, err := sqlutil.Scan[schema.ImageUpdate](ctx, query, parameters...)
 	if err != nil {
-		return nil, err
-	}
-
-	res, err := statement.QueryContext(ctx, parameters...)
-	statement.Close()
-	if err != nil {
-		return nil, err
+		return rows, err
 	}
 
 	updates := make([]models.ImageUpdate, 0)
