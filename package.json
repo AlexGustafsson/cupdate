@@ -11,13 +11,13 @@
     "format": "biome check --write --no-errors-on-unmatched . && prettier --write '**/*.{md,yml,yaml}'"
   },
   "dependencies": {
-    "dompurify": "3.4.2",
+    "dompurify": "3.4.5",
     "elkjs": "0.11.1",
     "github-markdown-css": "5.9.0",
     "marked": "18.0.3",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "react-router-dom": "7.15.0"
+    "react-router-dom": "7.15.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
@@ -25,13 +25,13 @@
     "@types/node": "24.12.2",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "6.0.1",
+    "@vitejs/plugin-react": "6.0.2",
     "@vitest/coverage-v8": "4.1.6",
     "globals": "17.6.0",
     "prettier": "3.8.3",
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",
-    "vite": "8.0.12",
+    "vite": "8.0.13",
     "vitest": "4.1.6"
   }
 }
