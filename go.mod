@@ -2,7 +2,7 @@ module github.com/AlexGustafsson/cupdate
 
 go 1.26.0
 
-toolchain go1.26.2
+toolchain go1.26.4
 
 require (
 	github.com/caarlos0/env/v11 v11.4.1
