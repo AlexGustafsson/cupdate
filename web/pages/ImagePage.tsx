@@ -268,7 +268,7 @@ export function ImagePage(): JSX.Element {
         <main className="min-w-[200px] max-w-[800px] w-full box-border space-y-6 mt-6">
           {/* Cupdate settings */}
           {image.value?.reference.startsWith(
-            'ghcr.io/alexgustafsson/cupdate'
+            import.meta.env.VITE_BRANDING_OCI_REFERENCE
           ) && <SettingsCard />}
 
           {/* Scorecard report */}

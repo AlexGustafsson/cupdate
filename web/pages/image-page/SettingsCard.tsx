@@ -12,7 +12,7 @@ export function SettingsCard(): JSX.Element {
           label: 'Settings',
           content: (
             <p>
-              Cupdate version:{' '}
+              {import.meta.env.VITE_BRANDING_NAME} version:{' '}
               {import.meta.env.VITE_CUPDATE_VERSION || 'development build'}.
             </p>
           ),

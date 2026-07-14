@@ -28,8 +28,9 @@ export function DemoWarning(): JSX.Element | null {
         <FluentInfo16Regular className="flex-shrink-0" />
       </div>
       <p>
-        <span className="font-semibold">Demo mode</span> Cupdate is in read-only
-        demo mode. GitHub Pages may fail to route some pages.
+        <span className="font-semibold">Demo mode</span>{' '}
+        {import.meta.env.VITE_BRANDING_NAME} is in read-only demo mode. GitHub
+        Pages may fail to route some pages.
       </p>
       <div>
         <button

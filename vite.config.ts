@@ -28,6 +28,46 @@ const removeUselessRule: Plugin = {
   },
 }
 
+const generateManifest: () => Plugin = () => {
+  let env: Record<string, any>
+  return {
+    name: 'substitute manifest values',
+    configResolved(config) {
+      env = config.env
+    },
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'manifest.json',
+        source: JSON.stringify(
+          {
+            short_name: env.VITE_BRANDING_NAME,
+            name: env.VITE_BRANDING_NAME,
+            icons: [
+              {
+                src: '/assets/icon.png',
+                purpose: 'any',
+                sizes: '512x512',
+                type: 'image/png',
+              },
+              {
+                src: '/assets/maskable-icon.png',
+                purpose: 'maskable',
+                sizes: '512x512',
+                type: 'image/png',
+              },
+            ],
+            start_url: '/',
+            display: 'standalone',
+          },
+          null,
+          2
+        ),
+      })
+    },
+  }
+}
+
 export default ({ mode }: { mode: string }): UserConfigExport => {
   // The dev server listens on port 8080, use it during development with vite
   if (!process.env.VITE_API_ENDPOINT) {
@@ -38,8 +78,16 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
     }
   }
 
+  if (!process.env.VITE_BRANDING_NAME) {
+    process.env.VITE_BRANDING_NAME = 'Cupdate'
+  }
+
+  if (!process.env.VITE_BRANDING_OCI_REFERENCE) {
+    process.env.VITE_BRANDING_OCI_REFERENCE = 'ghcr.io/alexgustafsson/cupdate'
+  }
+
   return defineConfig({
-    plugins: [react(), tailwindcss(), removeUselessRule],
+    plugins: [react(), tailwindcss(), removeUselessRule, generateManifest()],
     root: 'web',
     base: process.env.VITE_BASE_PATH,
     build: {
