@@ -1,5 +1,5 @@
 import React, { type JSX, useLayoutEffect } from 'react'
-import { Link, Route, Routes, useLocation } from 'react-router-dom'
+import { Link, Route, Routes, useLocation } from 'react-router'
 import { FluentArrowLeft24Regular } from './components/icons/fluent-arrow-left-24-regular'
 import { SimpleIconsRss } from './components/icons/simple-icons-rss'
 import { EventProvider } from './EventProvider'

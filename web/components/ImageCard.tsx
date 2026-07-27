@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { compareTags, tagByName } from '../tags'
 import { formatRelativeTimeTo } from '../time'
 import { Badge } from './Badge'

@@ -1,5 +1,5 @@
 import { type JSX, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import { DemoWarning } from '../components/DemoWarning'
 import { ImageCard } from '../components/ImageCard'
 import { FluentAlignSpaceEvenlyVertical20Filled } from '../components/icons/fluent-align-space-evenly-vertical-20-filled'

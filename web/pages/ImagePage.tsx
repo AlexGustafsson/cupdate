@@ -1,5 +1,5 @@
 import React, { type JSX, useState } from 'react'
-import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useSearchParams } from 'react-router'
 import { Badge } from '../components/Badge'
 import { DemoWarning } from '../components/DemoWarning'
 import { HTML } from '../components/HTML'

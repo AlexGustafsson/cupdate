@@ -1102,10 +1102,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^1.0.1":
-  version: 1.0.2
-  resolution: "cookie@npm:1.0.2"
-  checksum: 10c0/fd25fe79e8fbcfcaf6aa61cd081c55d144eeeba755206c058682257cb38c4bd6795c6620de3f064c740695bb65b7949ebb1db7a95e4636efb8357a335ad3f54b
+"cookie-es@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "cookie-es@npm:3.1.1"
+  checksum: 10c0/62cf0c325cc547b52477b351e9b5d068b3ffc74f7d143cdf7af854648dd1015fca3aed1498b355365e24b0746333f0b15688ed3a535abecc5ed0a046ae956a84
   languageName: node
   linkType: hard
 
@@ -1146,7 +1146,7 @@ __metadata:
     prettier: "npm:3.9.5"
     react: "npm:19.2.7"
     react-dom: "npm:19.2.7"
-    react-router-dom: "npm:7.18.1"
+    react-router: "npm:8.3.0"
     tailwindcss: "npm:4.3.3"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
@@ -1962,31 +1962,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:7.18.1":
-  version: 7.18.1
-  resolution: "react-router-dom@npm:7.18.1"
+"react-router@npm:8.3.0":
+  version: 8.3.0
+  resolution: "react-router@npm:8.3.0"
   dependencies:
-    react-router: "npm:7.18.1"
+    cookie-es: "npm:^3.1.1"
   peerDependencies:
-    react: ">=18"
-    react-dom: ">=18"
-  checksum: 10c0/5efb99f2f09cecf445788f3459a8f5ff952ed85061f2d40f8de25fdd6e2ce6aeea8e40e4bacad470ea42a45d0460feb6fb59c62f14d87720b43d5c96cd9b2cb6
-  languageName: node
-  linkType: hard
-
-"react-router@npm:7.18.1":
-  version: 7.18.1
-  resolution: "react-router@npm:7.18.1"
-  dependencies:
-    cookie: "npm:^1.0.1"
-    set-cookie-parser: "npm:^2.6.0"
-  peerDependencies:
-    react: ">=18"
-    react-dom: ">=18"
+    react: ">=19.2.7"
+    react-dom: ">=19.2.7"
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/1a559de58d656bad5565f2232e4f4fab7e9f5282dfaf95bc24f195a06e7e85b281077fe5c21ed3ff527e3d90d930447e0d0bb0f0713950d2a56ad0f0377a7d09
+  checksum: 10c0/c1277d6a75ff1b77e759bc0142e3257b6cea1eb683595a64a19d7fb341a7b9ba30c81ef8fc426e437c7fbec043bde683462b2463a055b0f58c8e5ad19cdee2ad
   languageName: node
   linkType: hard
 
@@ -2151,13 +2138,6 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/fd603a6fb9c399c6054015433051bdbe7b99a940a8fb44b85c2b524c4004b023d7928d47cb22154f8d054ea7ee8597f586605e05b52047f048278e4ac56ae958
-  languageName: node
-  linkType: hard
-
-"set-cookie-parser@npm:^2.6.0":
-  version: 2.7.1
-  resolution: "set-cookie-parser@npm:2.7.1"
-  checksum: 10c0/060c198c4c92547ac15988256f445eae523f57f2ceefeccf52d30d75dedf6bff22b9c26f756bd44e8e560d44ff4ab2130b178bd2e52ef5571bf7be3bd7632d9a
   languageName: node
   linkType: hard
 
