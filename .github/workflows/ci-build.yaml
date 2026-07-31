@@ -55,7 +55,7 @@ jobs:
           date --iso-8601=seconds >> "$GITHUB_OUTPUT"
 
       - name: Build
-        uses: ./.github/actions/build-push-cupdate
+        uses: $/.github/actions/build-push-cupdate
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.determine_tag.outputs.tag }}
