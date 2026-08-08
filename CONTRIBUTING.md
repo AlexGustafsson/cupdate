@@ -48,6 +48,34 @@ yarn build
 go build -o cupdate cmd/cupdate/*.go
 ```
 
+### Branding
+
+In order to build the app with your own branding, you'll need to change the
+following:
+
+- Brand name - set the `VITE_BRANDING_NAME` environment variable / build
+  argument
+- Official image OCI reference - set the `VITE_BRANDING_OCI_REFERENCE`
+  environment variable / build argument
+- Logos / icons - change the icon files in `web/public/assets` and the favicon
+  in `web/`
+
+Examples:
+
+```shell
+# Start the dev server, replacing the brand name
+VITE_BRANDING_NAME=NotCupdate yarn run dev
+
+# Build the docker container, replacing the brand name
+docker build \
+  # ...
+  --build-arg VITE_BRANDING_NAME=NotCupdate \
+  # ...
+```
+
+Changing values in the server (such as logs and API endpoints) or things like
+frontend local storage values is not supported.
+
 ## Running
 
 Cupdate supports both Kubernetes and Docker as the target platforms. Typically
@@ -171,6 +199,16 @@ as the Docker host rather then the one specified in `.env-docker`.
 
 ```shell
 go run tools/sockproxy/*.go -p 3000 docker.sock
+```
+
+### Running Cupdate frontend dev server
+
+By default, the dev server will use the API on localhost, port `:8080`. To
+instead use a remote server, use the `VITE_API_ENDPOINT` environment variable to
+point to the API base path (i.e. `https://example.com/api/v1`).
+
+```shell
+yarn run dev
 ```
 
 ### Testing custom registry

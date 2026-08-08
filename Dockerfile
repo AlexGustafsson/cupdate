@@ -12,6 +12,8 @@ COPY tsconfig.json vite.config.ts .
 COPY web web
 
 ARG CUPDATE_VERSION="development build"
+ARG VITE_BRANDING_NAME
+ARG VITE_BRANDING_OCI_REFERENCE
 RUN --mount=type=cache,target=node_modules \
   VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
 

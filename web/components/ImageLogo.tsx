@@ -19,7 +19,7 @@ export function ImageLogo({
   const src = useMemo(() => {
     // Don't show the default artwork for Cupdate
     // SEE: https://github.com/opencontainers/image-spec/issues/1231
-    if (reference.includes('ghcr.io/alexgustafsson/cupdate')) {
+    if (reference.includes(import.meta.env.VITE_BRANDING_OCI_REFERENCE)) {
       return CupdateLogoURL
     }
 

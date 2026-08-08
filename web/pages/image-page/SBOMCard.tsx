@@ -36,8 +36,9 @@ export function SBOMCard({ sbom }: SBOMCardProps): JSX.Element {
                 <i>Software Bill of Materials (SBOM) attestations</i> - means of
                 asserting facts about an image's contents. These details are
                 helpful for users to understand what software is running on
-                their machines, as well as for services like Cupdate to
-                automatically identify vulnerabilities.
+                their machines, as well as for services like{' '}
+                {import.meta.env.VITE_BRANDING_NAME} to automatically identify
+                vulnerabilities.
               </p>
               <p>
                 More information can be found here:{' '}
