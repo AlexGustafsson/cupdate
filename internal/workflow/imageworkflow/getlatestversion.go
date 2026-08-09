@@ -19,6 +19,11 @@ func GetLatestReference() workflow.Step {
 				return nil, err
 			}
 
+			graphReference, err := workflow.GetInput[oci.Reference](ctx, "graphReference", true)
+			if err != nil {
+				return nil, err
+			}
+
 			registryClient, err := workflow.GetInput[*oci.Client](ctx, "registryClient", true)
 			if err != nil {
 				return nil, err
@@ -31,7 +36,7 @@ func GetLatestReference() workflow.Step {
 
 			// NOTE: The id of nodes is defined in the platform code
 			var labels platform.Labels
-			if root, ok := graph.Nodes["oci/image/"+reference.String()]; ok {
+			if root, ok := graph.Nodes["oci/image/"+graphReference.String()]; ok {
 				labels = root.Labels
 			}
 

@@ -28,7 +28,8 @@ type Reference struct {
 
 // Canonical converts the reference to its canonical form (i.e. with all fields
 // explicitly set to their implicit default value).
-// Panics if the refernece is invalid.
+// Panics if the reference is invalid.
+//
 // A reference returned by [ParseReference] is always canonical.
 func (r Reference) Canonical() Reference {
 	// ParseReference always canonicalizes the reference, reuse it
@@ -38,6 +39,16 @@ func (r Reference) Canonical() Reference {
 	}
 
 	return ref
+}
+
+// WithDomain returns the reference with the given domain.
+// Handles docker.io's "library" namespace conventions.
+func (r Reference) WithDomain(domain string) Reference {
+	r.Domain = domain
+	if domain == "docker.io" && !strings.Contains(r.Path, "/") {
+		r.Path = "library/" + r.Path
+	}
+	return r
 }
 
 // ParseReference parses a reference string.

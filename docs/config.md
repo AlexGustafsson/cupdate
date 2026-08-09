@@ -5,35 +5,36 @@
 Cupdate requires zero configuration, but is very configurable. Configuration is
 done using environment variables.
 
-| Environment variable                    | Description                                                                                                           | Default                                               |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `CUPDATE_LOG_LEVEL`                     | `debug`, `info`, `warn`, `error`                                                                                      | `info`                                                |
-| `CUPDATE_API_ADDRESS`                   | The address to expose the API on.                                                                                     | `0.0.0.0`                                             |
-| `CUPDATE_API_PORT`                      | The port to expose the API on.                                                                                        | `8080`                                                |
-| `CUPDATE_WEB_DISABLED`                  | Whether or not to disable the web UI.                                                                                 | `false`                                               |
-| `CUPDATE_WEB_ADDRESS`                   | The URL at which the UI is available (such as `https://example.com`). Used for RSS feeds, should generally not be set | Automatically resolved.                               |
-| `CUPDATE_HTTP_USER_AGENT`               | The User Agent string to use for HTTP requests.                                                                       | `Cupdate/1.0`                                         |
-| `CUPDATE_CACHE_PATH`                    | A path to the boltdb file in which to store cache.                                                                    | `cachev1.boltdb`                                      |
-| `CUPDATE_CACHE_MAX_AGE`                 | The maximum age of cache entries.                                                                                     | `24h`                                                 |
-| `CUPDATE_DB_PATH`                       | A path to the sqlite file in which to store data.                                                                     | `dbv1.sqlite`                                         |
-| `CUPDATE_PROCESSING_INTERVAL`           | The interval between worker runs.                                                                                     | `1h`                                                  |
-| `CUPDATE_PROCESSING_ITEMS`              | The number of items (images) to process each worker run.                                                              | `10`                                                  |
-| `CUPDATE_PROCESSING_MIN_AGE`            | The minimum age of an item (image) before being processed.                                                            | `72h`                                                 |
-| `CUPDATE_PROCESSING_TIMEOUT`            | The maximum time one image may take to process before being terminated.                                               | `2m`                                                  |
-| `CUPDATE_PROCESSING_QUEUE_BURST`        | Number of items that can be processed in a short burst.                                                               | `10`                                                  |
-| `CUPDATE_PROCESSING_QUEUE_RATE`         | The desired processing rate under normal circumstances.                                                               | `1m`                                                  |
-| `CUPDATE_WORKFLOW_CLEANUP_MAX_AGE`      | The maximum age of a workflow run before it's removed.                                                                | `48h`                                                 |
-| `CUPDATE_WORKFLOW_CLEANUP_INTERVAL`     | The time between workflow run cleanup iterations.                                                                     | `1h`                                                  |
-| `CUPDATE_KUBERNETES_HOST`               | The host of the Kubernetes API. For use with proxying.                                                                | Required to use Kubernetes.                           |
-| `CUPDATE_KUBERNETES_DEBOUNCE_INTERVAL`  | The minimum time between graphs.                                                                                      | `1m`                                                  |
-| `CUPDATE_DOCKER_HOST`                   | One or more comma-separated Docker host URIs. Supports unix://path, tcp://host:port, http:// and https:// URIs.       | Required to use Docker.                               |
-| `CUPDATE_DOCKER_TLS_PATH`               | Path to a directory containing certificates and keys for Docker. See Docker-specific docs for details.                | Required to use Docker with mTLS or a self-signed CA. |
-| `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS` | Whether or not to include containers in any state, not just running containers.                                       | `false`                                               |
-| `CUPDATE_OTEL_TARGET`                   | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                 | Required to use Open Telemetry.                       |
-| `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                             | `false`                                               |
-| `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.         | None.                                                 |
-| `CUPDATE_LOGOS_PATH`                    | Path to a directory from which to serve logo images.                                                                  | None.                                                 |
-| `CUPDATE_STATIC_FILE_PATH`              | Path to a file containing OCI references.                                                                             | None.                                                 |
+| Environment variable                    | Description                                                                                                              | Default                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| `CUPDATE_LOG_LEVEL`                     | `debug`, `info`, `warn`, `error`                                                                                         | `info`                                                |
+| `CUPDATE_API_ADDRESS`                   | The address to expose the API on.                                                                                        | `0.0.0.0`                                             |
+| `CUPDATE_API_PORT`                      | The port to expose the API on.                                                                                           | `8080`                                                |
+| `CUPDATE_WEB_DISABLED`                  | Whether or not to disable the web UI.                                                                                    | `false`                                               |
+| `CUPDATE_WEB_ADDRESS`                   | The URL at which the UI is available (such as `https://example.com`). Used for RSS feeds, should generally not be set    | Automatically resolved.                               |
+| `CUPDATE_HTTP_USER_AGENT`               | The User Agent string to use for HTTP requests.                                                                          | `Cupdate/1.0`                                         |
+| `CUPDATE_CACHE_PATH`                    | A path to the boltdb file in which to store cache.                                                                       | `cachev1.boltdb`                                      |
+| `CUPDATE_CACHE_MAX_AGE`                 | The maximum age of cache entries.                                                                                        | `24h`                                                 |
+| `CUPDATE_DB_PATH`                       | A path to the sqlite file in which to store data.                                                                        | `dbv1.sqlite`                                         |
+| `CUPDATE_PROCESSING_INTERVAL`           | The interval between worker runs.                                                                                        | `1h`                                                  |
+| `CUPDATE_PROCESSING_ITEMS`              | The number of items (images) to process each worker run.                                                                 | `10`                                                  |
+| `CUPDATE_PROCESSING_MIN_AGE`            | The minimum age of an item (image) before being processed.                                                               | `72h`                                                 |
+| `CUPDATE_PROCESSING_TIMEOUT`            | The maximum time one image may take to process before being terminated.                                                  | `2m`                                                  |
+| `CUPDATE_PROCESSING_QUEUE_BURST`        | Number of items that can be processed in a short burst.                                                                  | `10`                                                  |
+| `CUPDATE_PROCESSING_QUEUE_RATE`         | The desired processing rate under normal circumstances.                                                                  | `1m`                                                  |
+| `CUPDATE_WORKFLOW_CLEANUP_MAX_AGE`      | The maximum age of a workflow run before it's removed.                                                                   | `48h`                                                 |
+| `CUPDATE_WORKFLOW_CLEANUP_INTERVAL`     | The time between workflow run cleanup iterations.                                                                        | `1h`                                                  |
+| `CUPDATE_KUBERNETES_HOST`               | The host of the Kubernetes API. For use with proxying.                                                                   | Required to use Kubernetes.                           |
+| `CUPDATE_KUBERNETES_DEBOUNCE_INTERVAL`  | The minimum time between graphs.                                                                                         | `1m`                                                  |
+| `CUPDATE_DOCKER_HOST`                   | One or more comma-separated Docker host URIs. Supports unix://path, tcp://host:port, http:// and https:// URIs.          | Required to use Docker.                               |
+| `CUPDATE_DOCKER_TLS_PATH`               | Path to a directory containing certificates and keys for Docker. See Docker-specific docs for details.                   | Required to use Docker with mTLS or a self-signed CA. |
+| `CUPDATE_DOCKER_INCLUDE_ALL_CONTAINERS` | Whether or not to include containers in any state, not just running containers.                                          | `false`                                               |
+| `CUPDATE_OTEL_TARGET`                   | Target URL to an Open Telemetry GRPC ingest endpoint.                                                                    | Required to use Open Telemetry.                       |
+| `CUPDATE_OTEL_INSECURE`                 | Disable client transport security for the Open Telemetry GRPC connection.                                                | `false`                                               |
+| `CUPDATE_REGISTRY_SECRETS`              | Path to a JSON file containing registry secrets. See Docker's config.json and Kubernetes' `imagePullSecrets`.            | None.                                                 |
+| `CUPDATE_REGISTRY_MIRRORS`              | Path to a JSON file containing registry mirror mapping in a `mirrors` object. Can be the same file as the Docker config. | None.                                                 |
+| `CUPDATE_LOGOS_PATH`                    | Path to a directory from which to serve logo images.                                                                     | None.                                                 |
+| `CUPDATE_STATIC_FILE_PATH`              | Path to a file containing OCI references.                                                                                | None.                                                 |
 
 ### Persistence
 
@@ -48,6 +49,60 @@ sqlite file itself: `<sqlite file>-shm` and `<sqlite file>-wal`.
 
 The cache path is specified using the `CUPDATE_CACHE_PATH` environment variable,
 which defaults to `cachev1.boltdb`.
+
+### Registry secrets, mirrors
+
+#### Secrets
+
+Cupdate can be configured to use a Docker config.json file via the
+`CUPDATE_REGISTRY_SECRETS` environment variable. The file follows the common
+format as used by Docker itself and platforms like Kubernetes. If it works
+with Docker or Kubernetes, it should work with Cupdate.
+
+A basic example for authenticating towards a local registry:
+
+```json
+{
+  "auths": {
+    "http://localhost:9090/v2/": {
+      "username": "username",
+      "password": "password"
+    }
+  }
+}
+```
+
+Other supported top-level fields are `HttpHeaders`. An "auth object" can also
+contain an `auth` value.
+
+#### Mirrors
+
+Cupdate supports mirrors by configuring the mapping of mirrored hostnames to
+their actual hostnames. Like with the registry secrets file, Cupdate takes a
+path to a JSON file in the `CUPDATE_REGISTRY_MIRRORS` environment variable.
+
+The file should contain a `mirrors` object like so:
+
+```jsonc
+{
+  "mirrors": {
+    // Tell Cupdate that images from mirror.gcr.io are actually from docker.io
+    "mirror.gcr.io": "docker.io",
+  },
+}
+```
+
+For convenience note that the file can be the same file as is used for registry
+secrets, but you still have to specify both environment variables.
+
+Note that this feature is mostly intended for _pull-through mirrors_. Cupdate
+will check the underlying registry for updates and assume that the mirror also
+serves the same image versions. If the mirror is configured to manually serve
+certain images and image versions, Cupdate might recommend versions found in the
+underlying registry that are unavailable from the mirror.
+
+Note that if the underlying registry requires authentication, you will need to
+configure a secret for that registry instead of the mirror.
 
 ### Labels
 

@@ -191,3 +191,41 @@ func TestReferenceCanonical(t *testing.T) {
 
 	assert.Equal(t, canonical, ref.Canonical())
 }
+
+func TestReference_WithDomain(t *testing.T) {
+	testCases := []struct {
+		Reference string
+
+		Domain            string
+		ExpectedReference string
+	}{
+		{
+			Reference: "mongo",
+
+			Domain:            "docker.io",
+			ExpectedReference: "mongo",
+		},
+		{
+			Reference: "mirror.gcr.io/mongo",
+
+			Domain:            "docker.io",
+			ExpectedReference: "mongo",
+		},
+		{
+			Reference: "mirror.gcr.io/b4bz/homer",
+
+			Domain:            "docker.io",
+			ExpectedReference: "b4bz/homer",
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Reference, func(t *testing.T) {
+			reference, err := ParseReference(testCase.Reference)
+			require.NoError(t, err)
+
+			reference = reference.WithDomain(testCase.Domain)
+			assert.Equal(t, testCase.ExpectedReference, reference.String())
+		})
+	}
+}

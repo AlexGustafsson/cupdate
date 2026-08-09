@@ -45,22 +45,24 @@ type Event struct {
 type Worker struct {
 	*events.Hub[Event]
 
-	httpClient   httputil.Requester
-	store        *store.Store
-	registryAuth *httputil.AuthMux
+	httpClient      httputil.Requester
+	store           *store.Store
+	registryAuth    *httputil.AuthMux
+	registryMirrors map[string]string
 
 	processedCounter   prometheus.Counter
 	processingDuration prometheus.Counter
 	processingGauge    prometheus.Gauge
 }
 
-func New(httpClient httputil.Requester, store *store.Store, registryAuth *httputil.AuthMux) *Worker {
+func New(httpClient httputil.Requester, store *store.Store, registryAuth *httputil.AuthMux, registryMirrors map[string]string) *Worker {
 	return &Worker{
 		Hub: events.NewHub[Event](),
 
-		httpClient:   httpClient,
-		store:        store,
-		registryAuth: registryAuth,
+		httpClient:      httpClient,
+		store:           store,
+		registryAuth:    registryAuth,
+		registryMirrors: registryMirrors,
 
 		processedCounter: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: "cupdate",
@@ -108,19 +110,26 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		return err
 	}
 
+	// Map any mirrored references to their underlying image reference
+	underlyingReference := reference
+	if underlyingDomain, ok := w.registryMirrors[reference.Domain]; ok {
+		underlyingReference = reference.WithDomain(underlyingDomain)
+	}
+
 	log.DebugContext(ctx, "Running workflow")
 	data := &imageworkflow.Data{
-		ImageReference:    reference,
-		Image:             "",
-		Annotations:       nil,
-		LatestReference:   nil,
-		LatestAnnotations: nil,
-		Tags:              make([]string, 0),
-		Description:       "",
-		Links:             make([]models.ImageLink, 0),
-		Vulnerabilities:   make([]models.ImageVulnerability, 0),
-		Graph:             image.Graph,
-		RegistryAuth:      w.registryAuth,
+		ImageReference:           reference,
+		UnderlyingImageReference: underlyingReference,
+		Image:                    "",
+		Annotations:              nil,
+		LatestReference:          nil,
+		LatestAnnotations:        nil,
+		Tags:                     make([]string, 0),
+		Description:              "",
+		Links:                    make([]models.ImageLink, 0),
+		Vulnerabilities:          make([]models.ImageVulnerability, 0),
+		Graph:                    image.Graph,
+		RegistryAuth:             w.registryAuth,
 	}
 
 	for _, tag := range image.Tags {

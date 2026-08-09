@@ -24,21 +24,22 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					SetupRegistryClient().
 						WithID("registry").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("registryAuth", data.RegistryAuth),
 					GetManifest().
 						WithID("manifest").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
-						With("reference", data.ImageReference),
+						With("reference", data.UnderlyingImageReference),
 					GetAnnotations().
 						WithID("annotations").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("manifest", workflow.Ref{Key: "step.manifest.manifest"}),
 					GetLatestReference().
 						WithID("latest").
 						With("registryClient", workflow.Ref{Key: "step.registry.client"}).
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
+						With("graphReference", data.ImageReference).
 						With("graph", data.Graph),
 					GetManifest().
 						WithID("latest-manifest").
@@ -100,7 +101,13 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 							return nil, err
 						}
 
-						data.LatestReference = reference
+						// As the latest reference might have been found using an underlying
+						// image reference (due to mirrors), ensure that the final domain
+						// is that of the mirror
+						{
+							r := (*reference).WithDomain(data.ImageReference.Domain)
+							data.LatestReference = &r
+						}
 
 						latestAnnotations, err := workflow.GetValue[oci.Annotations](ctx, "step.latest-annotations.annotations")
 						if err != nil {
@@ -128,16 +135,16 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					GetAttestationManifests().
 						WithID("attestations").
 						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
-						With("reference", data.ImageReference),
+						With("reference", data.UnderlyingImageReference),
 					GetProvenanceAttestations().
 						WithID("provenance").
 						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("manifests", workflow.Ref{Key: "step.attestations.manifests"}),
 					GetSBOMAttestations().
 						WithID("sbom").
 						With("registryClient", workflow.Ref{Key: "job.oci.step.registry.client"}).
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("manifests", workflow.Ref{Key: "step.attestations.manifests"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						currentManifest, err := workflow.GetValue[any](ctx, "job.oci.step.manifest.manifest")
@@ -251,7 +258,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				Steps: []workflow.Step{
 					DetermineSource().
 						WithID("source").
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("annotations", workflow.Ref{Key: "job.oci.step.annotations.annotations"}).
 						With("attestations", workflow.Ref{Key: "job.attestations.step.provenance.attestations"}),
 				},
@@ -273,7 +280,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					GetDockerHubRepository().
 						WithID("repository").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference),
+						With("reference", data.UnderlyingImageReference),
 					GetDockerHubRepositoryOwner().
 						WithID("owner").
 						With("httpClient", httpClient).
@@ -281,7 +288,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					GetDockerHubVulnerabilities().
 						WithID("vulnerabilities").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("manifest", workflow.Ref{Key: "job.oci.step.manifest.manifest"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						repository, err := workflow.GetValue[*dockerhub.Repository](ctx, "step.repository.repository")
@@ -341,7 +348,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					GetGithubPackage().
 						WithID("package").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference),
+						With("reference", data.UnderlyingImageReference),
 					GetGitHubDescription().
 						WithID("description").
 						With("httpClient", httpClient).
@@ -359,7 +366,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 
 						data.InsertLink(models.ImageLink{
 							Type: "ghcr",
-							URL:  github.PackageURL(data.ImageReference),
+							URL:  github.PackageURL(data.UnderlyingImageReference),
 						})
 						data.Description = description
 
@@ -385,13 +392,13 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				DependsOn: []string{},
 				// Only run for Quay images
 				If: func(ctx workflow.Context) (bool, error) {
-					return data.ImageReference.Domain == "quay.io", nil
+					return data.UnderlyingImageReference.Domain == "quay.io", nil
 				},
 				Steps: []workflow.Step{
 					GetQuayVulnerabilities().
 						WithID("vulnerabilities").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference),
+						With("reference", data.UnderlyingImageReference),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						vulnerabilities, err := workflow.GetValue[[]models.ImageVulnerability](ctx, "step.vulnerabilities.vulnerabilities")
 						if err != nil {
@@ -426,18 +433,18 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 				Steps: []workflow.Step{
 					GetGitLabDescription().
 						WithID("description").
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("httpClient", httpClient),
 					GetGitLabRepositoryREADME().
 						WithID("readme").
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("httpClient", httpClient),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {
 						data.InsertTag("gitlab")
 
 						data.InsertLink(models.ImageLink{
 							Type: "gitlab",
-							URL:  "https://gitlab.com/" + data.ImageReference.Path,
+							URL:  "https://gitlab.com/" + data.UnderlyingImageReference.Path,
 						})
 
 						description, err := workflow.GetValue[string](ctx, "step.description.description")
@@ -502,7 +509,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 						if data.LatestReference != nil {
 							reference = *data.LatestReference
 						}
-						return workflow.SetOutput("reference", reference), nil
+						return workflow.SetOutput("reference", reference.WithDomain(data.UnderlyingImageReference.Domain)), nil
 					}).WithID("init"),
 					GetGitHubRepsitory().
 						WithID("repository").
@@ -564,7 +571,7 @@ func New(httpClient httputil.Requester, data *Data) workflow.Workflow {
 					GetGitHubAdvisoriesForRepository().
 						WithID("vulnerabilities").
 						With("httpClient", httpClient).
-						With("reference", data.ImageReference).
+						With("reference", data.UnderlyingImageReference).
 						With("owner", workflow.Ref{Key: "step.repository.owner"}).
 						With("repository", workflow.Ref{Key: "step.repository.name"}),
 					workflow.Run(func(ctx workflow.Context) (workflow.Command, error) {

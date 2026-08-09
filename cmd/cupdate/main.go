@@ -100,7 +100,7 @@ func run(environ []string, signals <-chan os.Signal) ExitCode {
 		httpClient.UserAgent = config.HTTP.UserAgent
 		prometheus.DefaultRegisterer.MustRegister(httpClient)
 
-		worker := worker.New(httpClient, writeStore, config.RegistryAuth())
+		worker := worker.New(httpClient, writeStore, config.RegistryAuth(), config.RegistryMirrors())
 		prometheus.DefaultRegisterer.MustRegister(worker)
 
 		platformHub := events.NewHub[models.PlatformEvent]()

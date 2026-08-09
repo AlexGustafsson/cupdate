@@ -82,15 +82,17 @@ type Config struct {
 
 	Registry struct {
 		Secrets string `env:"SECRETS"`
+		Mirrors string `env:"MIRRORS"`
 	} `envPrefix:"REGISTRY_"`
 
 	Logos struct {
 		Path string `env:"PATH" envDefault:"logos"`
 	} `envPrefix:"LOGOS_"`
 
-	registryAuth *httputil.AuthMux
-	databaseURI  string
-	logLevel     slog.Level
+	registryAuth    *httputil.AuthMux
+	registryMirrors map[string]string
+	databaseURI     string
+	logLevel        slog.Level
 }
 
 // LogLevel returns the configured log level.
@@ -120,9 +122,17 @@ func (c *Config) parseLogLevel() error {
 
 // RegistryAuth returns the config to use when communicating with OCI
 // registries.
+//
 // Valid once the config has been parsed.
 func (c *Config) RegistryAuth() *httputil.AuthMux {
 	return c.registryAuth
+}
+
+// RegistryMirrors returns the mapping of registry mirrors.
+//
+// Valid once the config has been parsed.
+func (c *Config) RegistryMirrors() map[string]string {
+	return c.registryMirrors
 }
 
 func (c *Config) parseRegistryAuth() error {
@@ -133,10 +143,10 @@ func (c *Config) parseRegistryAuth() error {
 		if err != nil {
 			return fmt.Errorf("failed to read registry secrets: %w", err)
 		}
+		defer file.Close()
 
 		var dockerConfig *docker.ConfigFile
 		err = json.NewDecoder(file).Decode(&dockerConfig)
-		file.Close()
 		if err != nil {
 			return fmt.Errorf("failed to parse registry secrets: %w", err)
 		}
@@ -171,6 +181,29 @@ func (c *Config) parseRegistryAuth() error {
 	}
 
 	c.registryAuth = registryAuth
+	return nil
+}
+
+func (c *Config) parseRegistryMirrors() error {
+	if c.Registry.Mirrors == "" {
+		c.registryMirrors = make(map[string]string)
+	} else {
+		file, err := os.Open(c.Registry.Mirrors)
+		if err != nil {
+			return fmt.Errorf("failed to read registry mirrors: %w", err)
+		}
+		defer file.Close()
+
+		var dockerConfig struct {
+			Mirrors map[string]string `json:"mirrors"`
+		}
+		err = json.NewDecoder(file).Decode(&dockerConfig)
+		if err != nil {
+			return fmt.Errorf("failed to parse registry mirrors: %w", err)
+		}
+
+		c.registryMirrors = dockerConfig.Mirrors
+	}
 	return nil
 }
 
@@ -213,6 +246,10 @@ func ParseConfigFromEnv(environ []string) (*Config, error) {
 	}
 
 	if err := config.parseRegistryAuth(); err != nil {
+		return nil, err
+	}
+
+	if err := config.parseRegistryMirrors(); err != nil {
 		return nil, err
 	}
 
