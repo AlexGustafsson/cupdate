@@ -277,6 +277,14 @@ func NewServer(
 		}
 
 		processQueue.PushFront(reference)
+		// NOTE: Adding a token for the processing of the item doesn't necessarily
+		// mean that the item will get processed as it's subject to races. For
+		// example, if another reference gets pushed simultaneously, it might get
+		// picked instead of the one pushed here. In practice, though, this is of
+		// little concern as such simultaneous access is incredibly rare and it
+		// would still mean that there's an additional token pushed, letting this
+		// reference get processed anyway
+		processQueue.AddTokens(1)
 		w.WriteHeader(http.StatusAccepted)
 	})
 

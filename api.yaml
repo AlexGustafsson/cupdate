@@ -293,7 +293,7 @@ paths:
   # like processing logs, time to process etc.
   /image/scans:
     post:
-      summary: Schedule a new scan.
+      summary: Schedule an immediate scan of the image.
       parameters:
         - in: query
           name: reference
