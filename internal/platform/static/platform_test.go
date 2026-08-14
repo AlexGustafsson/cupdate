@@ -1,7 +1,6 @@
 package static
 
 import (
-	"context"
 	"testing"
 
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -15,7 +14,7 @@ func TestPlatformGraph(t *testing.T) {
 		FilePath: "./testdata/references.txt",
 	}
 
-	actual, err := staticPlatform.Graph(context.TODO())
+	actual, err := staticPlatform.Graph(t.Context())
 	require.NoError(t, err)
 
 	expected := platform.NewGraph()

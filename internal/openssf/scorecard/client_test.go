@@ -1,7 +1,6 @@
 package scorecard
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -125,7 +124,7 @@ func TestClientGetScorecard(t *testing.T) {
 
 			client := &Client{Client: httpClient}
 
-			actual, err := client.GetScorecard(context.TODO(), testCase.Repository)
+			actual, err := client.GetScorecard(t.Context(), testCase.Repository)
 
 			if testCase.Error {
 				assert.Error(t, err)
@@ -147,7 +146,7 @@ func TestIntegrationClientGetScorecard(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	scorecard, err := client.GetScorecard(context.TODO(), "github.com/home-assistant/core")
+	scorecard, err := client.GetScorecard(t.Context(), "github.com/home-assistant/core")
 	require.NoError(t, err)
 
 	fmt.Println(scorecard.Score)
@@ -168,7 +167,7 @@ func TestIntegrationClientGetScorecardNotFound(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	scorecard, err := client.GetScorecard(context.TODO(), "github.com/non-existent/no-existent")
+	scorecard, err := client.GetScorecard(t.Context(), "github.com/non-existent/no-existent")
 	require.NoError(t, err)
 	require.Nil(t, scorecard)
 }

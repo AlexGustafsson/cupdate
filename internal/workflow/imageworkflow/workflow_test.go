@@ -1,7 +1,6 @@
 package imageworkflow
 
 import (
-	"context"
 	"encoding/json"
 	"log/slog"
 	"os"
@@ -45,7 +44,7 @@ func TestWorkflow(t *testing.T) {
 	}
 
 	workflow := New(httpClient, data)
-	_, err = workflow.Run(context.TODO())
+	_, err = workflow.Run(t.Context())
 
 	require.NoError(t, err)
 

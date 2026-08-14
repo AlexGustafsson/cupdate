@@ -1,7 +1,6 @@
 package docker
 
 import (
-	"context"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -126,7 +125,7 @@ func TestNewPlatform(t *testing.T) {
 				options.TLSClientConfig.InsecureSkipVerify = true
 			}
 
-			_, err = NewPlatform(context.TODO(), uri, options)
+			_, err = NewPlatform(t.Context(), uri, options)
 			if testCase.ExpectedErr {
 				assert.Error(t, err)
 			} else {

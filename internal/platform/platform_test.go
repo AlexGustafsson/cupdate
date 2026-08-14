@@ -73,7 +73,7 @@ func TestCompoundGrapherHappyPath(t *testing.T) {
 		Graphers: []Grapher{grapher1, grapher2},
 	}
 
-	graph, err := compoundGrapher.Graph(context.TODO())
+	graph, err := compoundGrapher.Graph(t.Context())
 	require.NoError(t, err)
 	grapher1.AssertExpectations(t)
 	grapher2.AssertExpectations(t)
@@ -129,7 +129,7 @@ func TestCompoundGrapherError(t *testing.T) {
 				Graphers: []Grapher{grapher1, grapher2},
 			}
 
-			_, err := compoundGrapher.Graph(context.TODO())
+			_, err := compoundGrapher.Graph(t.Context())
 			require.EqualError(t, err, testCase.ExpectedErr)
 			grapher1.AssertExpectations(t)
 			grapher2.AssertExpectations(t)

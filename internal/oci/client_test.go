@@ -2,7 +2,6 @@ package oci
 
 import (
 	"bytes"
-	"context"
 	"crypto"
 	"crypto/ed25519"
 	"crypto/rand"
@@ -51,7 +50,7 @@ func TestClientGetManifest(t *testing.T) {
 			ref, err := ParseReference(reference)
 			require.NoError(t, err)
 
-			manifest, err := client.GetManifest(context.TODO(), ref)
+			manifest, err := client.GetManifest(t.Context(), ref)
 			require.NoError(t, err)
 			fmt.Printf("%+v\n", manifest)
 
@@ -67,7 +66,7 @@ func TestClientGetManifest(t *testing.T) {
 			}
 
 			// Expect it to exist
-			manifest, err = client.GetManifest(context.TODO(), ref)
+			manifest, err = client.GetManifest(t.Context(), ref)
 			require.NoError(t, err)
 			fmt.Printf("%+v\n", manifest)
 		})
@@ -98,7 +97,7 @@ func TestClientGetAttestationManifests(t *testing.T) {
 			ref, err := ParseReference(reference)
 			require.NoError(t, err)
 
-			manifests, err := client.GetAttestationManifests(context.TODO(), ref, nil)
+			manifests, err := client.GetAttestationManifests(t.Context(), ref, nil)
 			assert.NoError(t, err)
 
 			for _, manifest := range manifests {
@@ -134,7 +133,7 @@ func TestClientHeadBlob(t *testing.T) {
 			ref, err := ParseReference(testCase.Reference)
 			require.NoError(t, err)
 
-			info, err := client.HeadBlob(context.TODO(), ref, testCase.Digest)
+			info, err := client.HeadBlob(t.Context(), ref, testCase.Digest)
 			require.NoError(t, err)
 			fmt.Printf("%+v\n", info)
 		})
@@ -161,7 +160,7 @@ func TestClientGetAnnotations(t *testing.T) {
 			ref, err := ParseReference(reference)
 			require.NoError(t, err)
 
-			annotations, err := client.GetAnnotations(context.TODO(), ref, nil)
+			annotations, err := client.GetAnnotations(t.Context(), ref, nil)
 			require.NoError(t, err)
 			assert.NotNil(t, annotations)
 			fmt.Printf("%+v\n", annotations)
@@ -192,7 +191,7 @@ func TestClientGetTags(t *testing.T) {
 			ref, err := ParseReference(reference)
 			require.NoError(t, err)
 
-			tags, err := client.GetTags(context.TODO(), ref, nil)
+			tags, err := client.GetTags(t.Context(), ref, nil)
 			require.NoError(t, err)
 			assert.NotNil(t, tags)
 			fmt.Printf("%+v\n", tags)
@@ -249,17 +248,17 @@ func TestIntegrationClientZotBasicAuth(t *testing.T) {
 		},
 	}
 
-	zot, err := testcontainers.GenericContainer(context.TODO(), testcontainers.GenericContainerRequest{
+	zot, err := testcontainers.GenericContainer(t.Context(), testcontainers.GenericContainerRequest{
 		ContainerRequest: zotRequest,
 		Started:          true,
 	})
 	testcontainers.CleanupContainer(t, zot)
 	require.NoError(t, err)
 
-	zotHost, err := zot.Host(context.TODO())
+	zotHost, err := zot.Host(t.Context())
 	require.NoError(t, err)
 
-	zotPort, err := zot.MappedPort(context.TODO(), "9090/tcp")
+	zotPort, err := zot.MappedPort(t.Context(), "9090/tcp")
 	require.NoError(t, err)
 
 	authMux := httputil.NewAuthMux()
@@ -389,17 +388,17 @@ func TestIntegrationClientZotBearerAuth(t *testing.T) {
 		},
 	}
 
-	zot, err := testcontainers.GenericContainer(context.TODO(), testcontainers.GenericContainerRequest{
+	zot, err := testcontainers.GenericContainer(t.Context(), testcontainers.GenericContainerRequest{
 		ContainerRequest: zotRequest,
 		Started:          true,
 	})
 	testcontainers.CleanupContainer(t, zot)
 	require.NoError(t, err)
 
-	zotHost, err := zot.Host(context.TODO())
+	zotHost, err := zot.Host(t.Context())
 	require.NoError(t, err)
 
-	zotPort, err := zot.MappedPort(context.TODO(), "9090/tcp")
+	zotPort, err := zot.MappedPort(t.Context(), "9090/tcp")
 	require.NoError(t, err)
 
 	authMux := httputil.NewAuthMux()

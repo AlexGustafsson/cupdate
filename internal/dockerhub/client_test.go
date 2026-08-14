@@ -1,7 +1,6 @@
 package dockerhub
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -27,7 +26,7 @@ func TestClientGetRepository(t *testing.T) {
 	}
 	ref, err := oci.ParseReference("homeassistant/home-assistant")
 	require.NoError(t, err)
-	repository, err := client.GetRepository(context.TODO(), ref)
+	repository, err := client.GetRepository(t.Context(), ref)
 	require.NoError(t, err)
 
 	fmt.Println(repository.FullDescription)
@@ -186,7 +185,7 @@ func TestGetVulnerabilities(t *testing.T) {
 
 			client := &Client{Client: httpClient}
 
-			actual, err := client.GetVulnerabilities(context.TODO(), testCase.Repository, testCase.Digest)
+			actual, err := client.GetVulnerabilities(t.Context(), testCase.Repository, testCase.Digest)
 
 			// Set modified time to zero as to not check it. We currently don't have
 			// any means of finding the correct time from Docker Hub, so it's always
@@ -216,7 +215,7 @@ func TestIntegrationGetVulnerabilities(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	report, err := client.GetVulnerabilities(context.TODO(), "traefik", "sha256:ebad181937de72a6226b39a63eb92b26406cf0f3bd44b5d92810264c93b76078")
+	report, err := client.GetVulnerabilities(t.Context(), "traefik", "sha256:ebad181937de72a6226b39a63eb92b26406cf0f3bd44b5d92810264c93b76078")
 	require.NoError(t, err)
 
 	json.NewEncoder(os.Stdout).Encode(report)

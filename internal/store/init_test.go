@@ -14,10 +14,10 @@ func TestInitializeNew(t *testing.T) {
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 	uri := "file://" + t.TempDir() + "/sqlite.db"
 
-	err := Initialize(context.TODO(), uri)
+	err := Initialize(t.Context(), uri)
 	require.NoError(t, err)
 
-	store, err := New(context.TODO(), uri, true)
+	store, err := New(t.Context(), uri, true)
 	require.NoError(t, err)
 
 	err = store.Close()
@@ -30,7 +30,7 @@ func TestInitializeRandom(t *testing.T) {
 
 		// Try a few "false starts"
 		for range 5 {
-			ctx, cancel := context.WithCancel(context.TODO())
+			ctx, cancel := context.WithCancel(t.Context())
 			go func() {
 				<-time.After(time.Duration(rand.IntN(1 * 1e6)))
 				cancel()
@@ -43,10 +43,10 @@ func TestInitializeRandom(t *testing.T) {
 		}
 
 		// Expect initialization to work regardless of previous failures
-		err := Initialize(context.TODO(), uri)
+		err := Initialize(t.Context(), uri)
 		require.NoError(t, err)
 
-		store, err := New(context.TODO(), uri, true)
+		store, err := New(t.Context(), uri, true)
 		require.NoError(t, err)
 
 		err = store.Close()

@@ -1,7 +1,6 @@
 package github
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -22,7 +21,7 @@ func TestClientGetRelease(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	release, err := c.GetRelease(context.TODO(), "renovatebot", "renovate", "38.80.0")
+	release, err := c.GetRelease(t.Context(), "renovatebot", "renovate", "38.80.0")
 	require.NoError(t, err)
 
 	fmt.Printf("%+v\n", release)
@@ -37,7 +36,7 @@ func TestClientGetDescription(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	release, err := c.GetDescription(context.TODO(), "jellyfin", "jellyfin")
+	release, err := c.GetDescription(t.Context(), "jellyfin", "jellyfin")
 	require.NoError(t, err)
 
 	fmt.Printf("%+v\n", release)
@@ -55,7 +54,7 @@ func TestClientGetUserPackage(t *testing.T) {
 	ref, err := oci.ParseReference("ghcr.io/alexgustafsson/srdl")
 	require.NoError(t, err)
 
-	release, err := c.GetPackage(context.TODO(), ref)
+	release, err := c.GetPackage(t.Context(), ref)
 	require.NoError(t, err)
 	assert.NotNil(t, release)
 }
@@ -72,7 +71,7 @@ func TestClientGetOrgPackage(t *testing.T) {
 	ref, err := oci.ParseReference("ghcr.io/project-zot/zot-linux-arm64")
 	require.NoError(t, err)
 
-	release, err := c.GetPackage(context.TODO(), ref)
+	release, err := c.GetPackage(t.Context(), ref)
 	require.NoError(t, err)
 	assert.NotNil(t, release)
 }
@@ -86,7 +85,7 @@ func TestClientGetREADME(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	readme, err := c.GetREADME(context.TODO(), "https://github.com/users/AlexGustafsson/packages/container/srdl/307129679/readme?is_package_page=true")
+	readme, err := c.GetREADME(t.Context(), "https://github.com/users/AlexGustafsson/packages/container/srdl/307129679/readme?is_package_page=true")
 	require.NoError(t, err)
 
 	fmt.Printf("%s\n", readme)

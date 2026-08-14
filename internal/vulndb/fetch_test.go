@@ -1,7 +1,6 @@
 package vulndb
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -15,6 +14,6 @@ func TestFetch(t *testing.T) {
 		t.Skip()
 	}
 
-	err := Fetch(context.TODO(), httputil.NewClient(cachetest.NewCache(t), 24*time.Hour), "vulndb.sqlite")
+	err := Fetch(t.Context(), httputil.NewClient(cachetest.NewCache(t), 24*time.Hour), "vulndb.sqlite")
 	require.NoError(t, err)
 }

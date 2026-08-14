@@ -1,7 +1,6 @@
 package store
 
 import (
-	"context"
 	"fmt"
 	"slices"
 	"strings"
@@ -17,10 +16,10 @@ import (
 func newStore(t *testing.T, readOnly bool) *Store {
 	uri := "file://" + t.TempDir() + "/sqlite.db"
 
-	err := Initialize(context.TODO(), uri)
+	err := Initialize(t.Context(), uri)
 	require.NoError(t, err)
 
-	store, err := New(context.TODO(), uri, readOnly)
+	store, err := New(t.Context(), uri, readOnly)
 	require.NoError(t, err)
 
 	return store
@@ -40,10 +39,10 @@ func TestStoreInsertRawImage(t *testing.T) {
 		LastProcessed: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &expected)
+	_, err := store.InsertRawImage(t.Context(), &expected)
 	require.NoError(t, err)
 
-	actual, err := store.ListRawImages(context.TODO(), nil)
+	actual, err := store.ListRawImages(t.Context(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, expected, actual[0])
 }
@@ -74,23 +73,23 @@ func TestStoreInsertImage(t *testing.T) {
 		Image:           "https://example.com/logo.png",
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: expected.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), expected)
+	err = store.InsertImage(t.Context(), expected)
 	require.NoError(t, err)
 
-	actual, err := store.GetImage(context.TODO(), "mongo:4")
+	actual, err := store.GetImage(t.Context(), "mongo:4")
 	require.NoError(t, err)
 	assert.EqualValues(t, expected, actual)
 
 	// Make sure triggers don't complain when upserting
-	err = store.InsertImage(context.TODO(), expected)
+	err = store.InsertImage(t.Context(), expected)
 	require.NoError(t, err)
 
-	changes, err := store.GetChanges(context.TODO(), nil)
+	changes, err := store.GetChanges(t.Context(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, []Change{
 		{
@@ -107,7 +106,7 @@ func TestStoreInsertImage(t *testing.T) {
 		},
 	}, changes)
 
-	url, err := store.GetImageLogo(context.TODO(), expected.Reference)
+	url, err := store.GetImageLogo(t.Context(), expected.Reference)
 	require.NoError(t, err)
 	assert.Equal(t, expected.Image, url)
 }
@@ -116,18 +115,18 @@ func TestStoreTags(t *testing.T) {
 	store := newStore(t, false)
 	defer store.Close()
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), &models.Image{
+	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
 		Tags:      []string{"docker"},
 	})
 	require.NoError(t, err)
 
-	actual, err := store.GetTags(context.TODO())
+	actual, err := store.GetTags(t.Context())
 	require.NoError(t, err)
 	assert.Equal(t, []string{"docker"}, actual)
 }
@@ -140,24 +139,24 @@ func TestStoreImageDescription(t *testing.T) {
 		Markdown: "# Release",
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), &models.Image{
+	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImageDescription(context.TODO(), "mongo:4", &expected)
+	err = store.InsertImageDescription(t.Context(), "mongo:4", &expected)
 	require.NoError(t, err)
 
-	actual, err := store.GetImageDescription(context.TODO(), "mongo:4")
+	actual, err := store.GetImageDescription(t.Context(), "mongo:4")
 	require.NoError(t, err)
 	assert.Equal(t, &expected, actual)
 
-	changes, err := store.GetChanges(context.TODO(), nil)
+	changes, err := store.GetChanges(t.Context(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, []Change{
 		{
@@ -191,24 +190,24 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 		Released: time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local),
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), &models.Image{
+	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImageReleaseNotes(context.TODO(), "mongo:4", &expected)
+	err = store.InsertImageReleaseNotes(t.Context(), "mongo:4", &expected)
 	require.NoError(t, err)
 
-	actual, err := store.GetImageReleaseNotes(context.TODO(), "mongo:4")
+	actual, err := store.GetImageReleaseNotes(t.Context(), "mongo:4")
 	require.NoError(t, err)
 	assert.Equal(t, &expected, actual)
 
-	changes, err := store.GetChanges(context.TODO(), nil)
+	changes, err := store.GetChanges(t.Context(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, []Change{
 		{
@@ -256,24 +255,24 @@ func TestStoreImageGraph(t *testing.T) {
 		},
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), &models.Image{
+	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImageGraph(context.TODO(), "mongo:4", &expected)
+	err = store.InsertImageGraph(t.Context(), "mongo:4", &expected)
 	require.NoError(t, err)
 
-	actual, err := store.GetImageGraph(context.TODO(), "mongo:4")
+	actual, err := store.GetImageGraph(t.Context(), "mongo:4")
 	require.NoError(t, err)
 	assert.Equal(t, &expected, actual)
 
-	changes, err := store.GetChanges(context.TODO(), nil)
+	changes, err := store.GetChanges(t.Context(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, []Change{
 		{
@@ -335,12 +334,12 @@ func TestListImages(t *testing.T) {
 	}
 
 	for _, image := range expectedImages {
-		_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+		_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 			Reference: image.Reference,
 		})
 		require.NoError(t, err)
 
-		err = store.InsertImage(context.TODO(), &image)
+		err = store.InsertImage(t.Context(), &image)
 		require.NoError(t, err)
 	}
 
@@ -360,7 +359,7 @@ func TestListImages(t *testing.T) {
 			Previous: "",
 		},
 	}
-	actualPage, err := store.ListImages(context.TODO(), &ListImageOptions{Page: 0, Limit: 1})
+	actualPage, err := store.ListImages(t.Context(), &ListImageOptions{Page: 0, Limit: 1})
 	require.NoError(t, err)
 	assert.Equal(t, expectedPage, actualPage)
 
@@ -380,7 +379,7 @@ func TestListImages(t *testing.T) {
 			Previous: "",
 		},
 	}
-	actualPage, err = store.ListImages(context.TODO(), &ListImageOptions{Page: 1, Limit: 1})
+	actualPage, err = store.ListImages(t.Context(), &ListImageOptions{Page: 1, Limit: 1})
 	require.NoError(t, err)
 	assert.Equal(t, expectedPage, actualPage)
 }
@@ -441,16 +440,16 @@ func TestListImagesQuery(t *testing.T) {
 	}
 
 	for _, image := range images {
-		_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+		_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 			Reference: image.Reference,
 		})
 		require.NoError(t, err)
 
-		err = store.InsertImage(context.TODO(), &image)
+		err = store.InsertImage(t.Context(), &image)
 		require.NoError(t, err)
 	}
 
-	page, err := store.ListImages(context.TODO(), &ListImageOptions{
+	page, err := store.ListImages(t.Context(), &ListImageOptions{
 		Query: "database",
 	})
 	require.NoError(t, err)
@@ -519,20 +518,20 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 	}
 
 	for _, image := range images {
-		_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+		_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 			Reference: image.Reference,
 		})
 		require.NoError(t, err)
 
-		err = store.InsertImage(context.TODO(), image)
+		err = store.InsertImage(t.Context(), image)
 		require.NoError(t, err)
 	}
 
-	removed, err := store.DeleteNonPresent(context.TODO(), []string{"mongo:4"})
+	removed, err := store.DeleteNonPresent(t.Context(), []string{"mongo:4"})
 	require.NoError(t, err)
 	assert.Equal(t, int64(3), removed)
 
-	actual, err := store.ListImages(context.TODO(), nil)
+	actual, err := store.ListImages(t.Context(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, expected, actual)
 }
@@ -557,19 +556,19 @@ func TestStoreUpdateImageReference(t *testing.T) {
 		Image:           "https://example.com/logo.png",
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: image.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), image)
+	err = store.InsertImage(t.Context(), image)
 	require.NoError(t, err)
 
 	image.LatestReference = "mongo:5"
-	err = store.InsertImage(context.TODO(), image)
+	err = store.InsertImage(t.Context(), image)
 	require.NoError(t, err)
 
-	changes, err := store.GetChanges(context.TODO(), nil)
+	changes, err := store.GetChanges(t.Context(), nil)
 	require.NoError(t, err)
 	assert.EqualValues(t, []Change{
 		{
@@ -605,7 +604,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 		Reference: "mongo:4",
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), rawImage)
+	_, err := store.InsertRawImage(t.Context(), rawImage)
 	require.NoError(t, err)
 
 	image := &models.Image{
@@ -616,7 +615,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local).UTC(),
 	}
 
-	err = store.InsertImage(context.TODO(), image)
+	err = store.InsertImage(t.Context(), image)
 	require.NoError(t, err)
 
 	expected := models.WorkflowRun{
@@ -644,20 +643,20 @@ func TestInsertWorkflowRun(t *testing.T) {
 		},
 	}
 
-	err = store.InsertWorkflowRun(context.TODO(), "mongo:4", expected)
+	err = store.InsertWorkflowRun(t.Context(), "mongo:4", expected)
 	require.NoError(t, err)
 
-	actual, err := store.GetLatestWorkflowRun(context.TODO(), "mongo:4")
+	actual, err := store.GetLatestWorkflowRun(t.Context(), "mongo:4")
 	require.NoError(t, err)
 	assert.EqualValues(t, &expected, actual)
 
 	// Insert a later job, expect it to be the latest
 	expected.Started = time.Date(2025, 02, 01, 17, 40, 0, 0, time.Local).UTC()
 
-	err = store.InsertWorkflowRun(context.TODO(), "mongo:4", expected)
+	err = store.InsertWorkflowRun(t.Context(), "mongo:4", expected)
 	require.NoError(t, err)
 
-	actual, err = store.GetLatestWorkflowRun(context.TODO(), "mongo:4")
+	actual, err = store.GetLatestWorkflowRun(t.Context(), "mongo:4")
 	require.NoError(t, err)
 	assert.EqualValues(t, &expected, actual)
 }
@@ -678,37 +677,37 @@ func TestCascadeDelete(t *testing.T) {
 		Vulnerabilities: 0,
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: image.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), image)
+	err = store.InsertImage(t.Context(), image)
 	require.NoError(t, err)
 
-	err = store.InsertImageDescription(context.TODO(), image.Reference, &models.ImageDescription{
+	err = store.InsertImageDescription(t.Context(), image.Reference, &models.ImageDescription{
 		Markdown: "# Image",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImageReleaseNotes(context.TODO(), image.Reference, &models.ImageReleaseNotes{
+	err = store.InsertImageReleaseNotes(t.Context(), image.Reference, &models.ImageReleaseNotes{
 		Markdown: "# Release",
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImageGraph(context.TODO(), image.Reference, &models.Graph{
+	err = store.InsertImageGraph(t.Context(), image.Reference, &models.Graph{
 		Edges: make(map[string]map[string]bool),
 		Nodes: make(map[string]models.GraphNode),
 	})
 	require.NoError(t, err)
 
-	err = store.InsertWorkflowRun(context.TODO(), image.Reference, models.WorkflowRun{
+	err = store.InsertWorkflowRun(t.Context(), image.Reference, models.WorkflowRun{
 		TraceID: "1234",
 	})
 	require.NoError(t, err)
 
 	// Remove the raw image and expect all data to be removed with it
-	removed, err := store.DeleteNonPresent(context.TODO(), []string{})
+	removed, err := store.DeleteNonPresent(t.Context(), []string{})
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), removed)
 
@@ -770,12 +769,12 @@ func TestStoreGetUpdates(t *testing.T) {
 		VersionDiffSortable: 1,
 	}
 
-	_, err := store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: base1.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), base1)
+	err = store.InsertImage(t.Context(), base1)
 	require.NoError(t, err)
 
 	base2 := &models.Image{
@@ -791,12 +790,12 @@ func TestStoreGetUpdates(t *testing.T) {
 		VersionDiffSortable: 1,
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: base2.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), base2)
+	err = store.InsertImage(t.Context(), base2)
 	require.NoError(t, err)
 
 	// Insert image updates (test UPDATE)
@@ -813,12 +812,12 @@ func TestStoreGetUpdates(t *testing.T) {
 		VersionDiffSortable: 1,
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: updated1.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), updated1)
+	err = store.InsertImage(t.Context(), updated1)
 	require.NoError(t, err)
 
 	updated2 := &models.Image{
@@ -834,16 +833,16 @@ func TestStoreGetUpdates(t *testing.T) {
 		VersionDiffSortable: 1,
 	}
 
-	_, err = store.InsertRawImage(context.TODO(), &models.RawImage{
+	_, err = store.InsertRawImage(t.Context(), &models.RawImage{
 		Reference: updated2.Reference,
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(context.TODO(), updated2)
+	err = store.InsertImage(t.Context(), updated2)
 	require.NoError(t, err)
 
 	// Expect there to be updates
-	updates, err := store.GetUpdates(context.TODO(), nil)
+	updates, err := store.GetUpdates(t.Context(), nil)
 	require.NoError(t, err)
 
 	assert.EqualValues(t, []models.ImageUpdate{

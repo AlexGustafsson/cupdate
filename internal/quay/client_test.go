@@ -1,7 +1,6 @@
 package quay
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -180,7 +179,7 @@ func TestGetVulnerabilities(t *testing.T) {
 
 			client := &Client{Client: httpClient}
 
-			actual, err := client.GetVulnerabilities(context.TODO(), ref)
+			actual, err := client.GetVulnerabilities(t.Context(), ref)
 
 			// Set modified time to zero as to not check it. We currently don't have
 			// any means of finding the correct time from Docker Hub, so it's always
@@ -212,7 +211,7 @@ func TestIntegrationGetVulnerabilities(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	vulnerabilities, err := client.GetVulnerabilities(context.TODO(), ref)
+	vulnerabilities, err := client.GetVulnerabilities(t.Context(), ref)
 	require.NoError(t, err)
 
 	fmt.Printf("%+v\n", vulnerabilities)

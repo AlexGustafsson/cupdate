@@ -498,7 +498,7 @@ func (c *Client) GetAttestationManifests(ctx context.Context, ref Reference, opt
 				ref.Digest = digest
 				ref.HasDigest = true
 
-				manifestOrIndex, err := c.GetManifest(context.TODO(), ref)
+				manifestOrIndex, err := c.GetManifest(ctx, ref)
 				if err != nil {
 					return nil, err
 				}

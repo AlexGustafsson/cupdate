@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"context"
 	"log/slog"
 	"os"
 	"path"
@@ -20,25 +19,25 @@ func TestDiskCache(t *testing.T) {
 	require.NoError(t, err)
 
 	// Ensure that a non-existing item returns the expexted error
-	data, err := cache.Get(context.TODO(), "foo")
+	data, err := cache.Get(t.Context(), "foo")
 	assert.Nil(t, data)
 	assert.Equal(t, ErrNotExist, err)
 
 	// Create an entry
-	err = cache.Set(context.TODO(), "foo", []byte("bar"), nil)
+	err = cache.Set(t.Context(), "foo", []byte("bar"), nil)
 	require.NoError(t, err)
 
 	// Ensure it can be read
-	data, err = cache.Get(context.TODO(), "foo")
+	data, err = cache.Get(t.Context(), "foo")
 	assert.Equal(t, []byte("bar"), data)
 	assert.Equal(t, nil, err)
 
 	// Replace the entry, with a TTL
-	err = cache.Set(context.TODO(), "foo", []byte("bar"), &SetEntryOptions{Expires: time.Now().Add(-5 * time.Minute)})
+	err = cache.Set(t.Context(), "foo", []byte("bar"), &SetEntryOptions{Expires: time.Now().Add(-5 * time.Minute)})
 	require.NoError(t, err)
 
 	// Make sure it cannot be read, even though it hasn't been removed yet
-	data, err = cache.Get(context.TODO(), "foo")
+	data, err = cache.Get(t.Context(), "foo")
 	assert.Nil(t, data)
 	assert.Equal(t, ErrNotExist, err)
 
@@ -48,7 +47,7 @@ func TestDiskCache(t *testing.T) {
 	assert.Equal(t, 1, removed)
 
 	// Make sure it cannot be read
-	data, err = cache.Get(context.TODO(), "foo")
+	data, err = cache.Get(t.Context(), "foo")
 	assert.Nil(t, data)
 	assert.Equal(t, ErrNotExist, err)
 

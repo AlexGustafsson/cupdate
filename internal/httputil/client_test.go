@@ -1,7 +1,6 @@
 package httputil
 
 import (
-	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -35,7 +34,7 @@ func TestClientDoCachedHappyPath(t *testing.T) {
 	client := NewClient(testCache, 5*time.Second)
 
 	// Perform a request with the response not yet cached
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
 	res, err := client.DoCached(req)
@@ -55,11 +54,11 @@ func TestClientDoCachedHappyPath(t *testing.T) {
 	assert.Equal(t, []byte("bar"), body)
 
 	// Expect the response to be cached
-	_, err = testCache.Get(context.TODO(), client.CacheKey(req))
+	_, err = testCache.Get(t.Context(), client.CacheKey(req))
 	require.NoError(t, err)
 
 	// Perform the request again, expecting the server to not be hit
-	req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
+	req, err = http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
 	res, err = client.DoCached(req)
@@ -97,7 +96,7 @@ func TestClientDoCachedServerError(t *testing.T) {
 	client := NewClient(testCache, 5*time.Second)
 
 	// Perform a request
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
 	res, err := client.DoCached(req)
@@ -117,11 +116,11 @@ func TestClientDoCachedServerError(t *testing.T) {
 	assert.Equal(t, []byte("bar"), body)
 
 	// Expect the response to not be cached
-	_, err = testCache.Get(context.TODO(), client.CacheKey(req))
+	_, err = testCache.Get(t.Context(), client.CacheKey(req))
 	require.Equal(t, cache.ErrNotExist, err)
 
 	// Perform the request again, expecting the server to be hit again
-	req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
+	req, err = http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
 	res, err = client.DoCached(req)
@@ -159,7 +158,7 @@ func TestClientDoCachedOutdatedEntry(t *testing.T) {
 	client := NewClient(cache, 1*time.Second)
 
 	// Perform a request with the response not yet cached
-	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
 	res, err := client.DoCached(req)
@@ -179,13 +178,13 @@ func TestClientDoCachedOutdatedEntry(t *testing.T) {
 	assert.Equal(t, []byte("bar"), body)
 
 	// Expect the response to be cached
-	_, err = cache.Get(context.TODO(), client.CacheKey(req))
+	_, err = cache.Get(t.Context(), client.CacheKey(req))
 	require.NoError(t, err)
 
 	<-time.After(1 * time.Second)
 
 	// Perform the request again, expecting the server to be hit
-	req, err = http.NewRequestWithContext(context.TODO(), http.MethodGet, server.URL, nil)
+	req, err = http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
 	res, err = client.DoCached(req)

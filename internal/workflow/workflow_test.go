@@ -281,7 +281,7 @@ func TestWorkflowRun(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.TODO(), 1*time.Second)
+			ctx, cancel := context.WithTimeout(t.Context(), 1*time.Second)
 			actual, err := testCase.Workflow.Run(ctx)
 			cancel()
 
@@ -329,7 +329,7 @@ func TestWorkflowRunRace(t *testing.T) {
 			}
 		}
 
-		_, err := workflow.Run(context.TODO())
+		_, err := workflow.Run(t.Context())
 		assert.NoError(t, err)
 	}
 }

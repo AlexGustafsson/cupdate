@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -37,7 +36,7 @@ func TestJobRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Outputs: make(map[string]any),
 				WorkflowRun: models.WorkflowRun{
 					Jobs: []models.JobRun{
@@ -86,7 +85,7 @@ func TestJobRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Outputs: make(map[string]any),
 				WorkflowRun: models.WorkflowRun{
 					Jobs: []models.JobRun{
@@ -115,7 +114,7 @@ func TestJobRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Outputs: make(map[string]any),
 				WorkflowRun: models.WorkflowRun{
 					Jobs: []models.JobRun{
@@ -146,7 +145,7 @@ func TestJobRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Outputs: make(map[string]any),
 				WorkflowRun: models.WorkflowRun{
 					Jobs: []models.JobRun{
@@ -181,7 +180,7 @@ func TestJobRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Outputs: make(map[string]any),
 				WorkflowRun: models.WorkflowRun{
 					Jobs: []models.JobRun{
@@ -213,7 +212,7 @@ func TestJobRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Outputs: make(map[string]any),
 				WorkflowRun: models.WorkflowRun{
 					Jobs: []models.JobRun{
@@ -242,7 +241,7 @@ func TestJobRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Outputs: make(map[string]any),
 				WorkflowRun: models.WorkflowRun{
 					Jobs: []models.JobRun{

@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -70,7 +69,7 @@ func TestStepRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 			},
 			Error: fmt.Errorf("main failed"),
 		},
@@ -82,7 +81,7 @@ func TestStepRun(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 				Step: Step{
 					ID: "1",
 				},
@@ -120,7 +119,7 @@ func TestStepRunPost(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 			},
 			Error: nil,
 		},
@@ -159,7 +158,7 @@ func TestStepRunPost(t *testing.T) {
 				},
 			},
 			Context: Context{
-				Context: context.TODO(),
+				Context: t.Context(),
 			},
 			Error: fmt.Errorf("main failed"),
 		},

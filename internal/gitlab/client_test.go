@@ -1,7 +1,6 @@
 package gitlab
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -20,7 +19,7 @@ func TestGetRepositoryDescription(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	res, err := client.GetRepositoryDescription(context.TODO(), "arm-research/smarter/smarter-device-manager")
+	res, err := client.GetRepositoryDescription(t.Context(), "arm-research/smarter/smarter-device-manager")
 	require.NoError(t, err)
 
 	fmt.Printf("%+v\n", res)
@@ -35,7 +34,7 @@ func TestGetRepositoryREADMEBlob(t *testing.T) {
 		Client: httputil.NewClient(cachetest.NewCache(t), 24*time.Hour),
 	}
 
-	res, err := client.GetRepositoryREADMEBlob(context.TODO(), "/arm-research/smarter/smarter-device-manager/-/blob/master/README.md")
+	res, err := client.GetRepositoryREADMEBlob(t.Context(), "/arm-research/smarter/smarter-device-manager/-/blob/master/README.md")
 	require.NoError(t, err)
 
 	if res != nil {
