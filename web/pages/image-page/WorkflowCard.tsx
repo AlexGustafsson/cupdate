@@ -251,7 +251,7 @@ export function WorkflowCard({
               )}
               <ProcessStatus
                 reference={reference}
-                lastModified={lastModified}
+                lastProcessed={workflowRun ? lastModified : undefined}
               />
             </>
           ),

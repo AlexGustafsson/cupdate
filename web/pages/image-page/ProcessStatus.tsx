@@ -7,12 +7,12 @@ import { useScheduleScan } from '../../lib/api/ApiProvider'
 import { formatRelativeTimeTo } from '../../time'
 
 type ProcessStatusProps = {
-  lastModified: string
+  lastProcessed: string | undefined
   reference: string
 }
 
 export function ProcessStatus({
-  lastModified: initialLastModified,
+  lastProcessed: initialLastProcessed,
   reference,
 }: ProcessStatusProps): JSX.Element {
   const scheduleScan = useScheduleScan()
@@ -22,8 +22,8 @@ export function ProcessStatus({
   >('idle')
 
   // Get the time from the image once, then rely on events to update it
-  const [lastModified, setLastModified] = useState(
-    new Date(initialLastModified)
+  const [lastProcessed, setLastProcessed] = useState(
+    initialLastProcessed ? new Date(initialLastProcessed) : undefined
   )
 
   const onSchedule = useCallback(() => {
@@ -37,7 +37,7 @@ export function ProcessStatus({
     (e) => {
       if (e.type === 'imageProcessed' && e.reference === reference) {
         // TODO: Use time from event rather then the current time
-        setLastModified(new Date())
+        setLastProcessed(new Date())
 
         // If we successfully queued the image for processing, clear the state
         // when the reference was processed
@@ -51,14 +51,17 @@ export function ProcessStatus({
 
   return (
     <div className="flex justify-center">
-      {status !== 'successful' && (
-        <p>
-          Last processed{' '}
-          <span title={lastModified.toLocaleString()}>
-            {formatRelativeTimeTo(lastModified)}
-          </span>
-        </p>
-      )}
+      {status !== 'successful' &&
+        (lastProcessed ? (
+          <p>
+            Last processed{' '}
+            <span title={lastProcessed.toLocaleString()}>
+              {formatRelativeTimeTo(lastProcessed)}
+            </span>
+          </p>
+        ) : (
+          <p>Awaiting processing</p>
+        ))}
       <p>{status === 'successful' && 'Image is scheduled for processing'}</p>
       <button
         type="button"

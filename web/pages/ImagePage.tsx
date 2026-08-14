@@ -194,9 +194,10 @@ export function ImagePage(): JSX.Element {
               <InfoTooltip
                 icon={<FluentWarning16Filled className="text-yellow-600" />}
               >
-                The latest version cannot be identified. This could be due to
-                the image not being available, the registry not being supported,
-                missing authentication or a temporary issue.
+                The latest version hasn't been identified. This could be due to
+                the image not being processed yet, not being available, the
+                registry not being supported, missing authentication or a
+                temporary issue.
               </InfoTooltip>
             </>
           ) : image.value.reference === image.value.latestReference ? (

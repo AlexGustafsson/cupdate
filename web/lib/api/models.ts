@@ -23,6 +23,7 @@ export interface PaginationMetadata {
 
 export interface Image {
   reference: string
+  processed: boolean
   created?: string
   annotations?: Record<string, string>
   latestReference?: string

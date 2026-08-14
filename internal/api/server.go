@@ -299,6 +299,11 @@ func NewServer(
 		reference := query.Get("reference")
 
 		response, err := api.GetLatestWorkflowRun(ctx, reference)
+		if response == nil && err == nil {
+			s.handleGenericResponse(w, r, ErrNotFound)
+			return
+		}
+
 		s.handleJSONResponse(w, r, response, err)
 	})
 

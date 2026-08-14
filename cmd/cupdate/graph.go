@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
+	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/events"
 	"github.com/AlexGustafsson/cupdate/internal/models"
@@ -146,7 +148,7 @@ func HandleGraphs(ctx context.Context, targetPlatform platform.ContinuousGrapher
 
 				rawImage := &models.RawImage{
 					Reference: imageNode.Reference.String(),
-					Tags:      tags,
+					Tags:      slices.Clone(tags),
 					Graph:     mappedGraph,
 				}
 
@@ -156,6 +158,19 @@ func HandleGraphs(ctx context.Context, targetPlatform platform.ContinuousGrapher
 				if err != nil {
 					slog.Error("Failed to insert raw image", slog.Any("error", err))
 					continue
+				}
+
+				image := &models.Image{
+					Reference:    imageNode.Reference.String(),
+					Tags:         append(slices.Clone(tags), "unprocessed"),
+					LastModified: time.Now(),
+				}
+
+				slog.Debug("Inserting raw image as unprocessed image", slog.String("reference", image.Reference))
+				err = writeStore.InsertImage(ctx, image, true)
+				if err != nil {
+					slog.Error("Failed to insert raw image as unprocessed image", slog.Any("error", err))
+					// Fallthrough - scheduling will process it eventually
 				}
 
 				// Try to schedule the image for processing

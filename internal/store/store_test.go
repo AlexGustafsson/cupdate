@@ -78,7 +78,7 @@ func TestStoreInsertImage(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(t.Context(), expected)
+	err = store.InsertImage(t.Context(), expected, false)
 	require.NoError(t, err)
 
 	actual, err := store.GetImage(t.Context(), "mongo:4")
@@ -86,7 +86,7 @@ func TestStoreInsertImage(t *testing.T) {
 	assert.EqualValues(t, expected, actual)
 
 	// Make sure triggers don't complain when upserting
-	err = store.InsertImage(t.Context(), expected)
+	err = store.InsertImage(t.Context(), expected, false)
 	require.NoError(t, err)
 
 	changes, err := store.GetChanges(t.Context(), nil)
@@ -123,7 +123,7 @@ func TestStoreTags(t *testing.T) {
 	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
 		Tags:      []string{"docker"},
-	})
+	}, false)
 	require.NoError(t, err)
 
 	actual, err := store.GetTags(t.Context())
@@ -146,7 +146,7 @@ func TestStoreImageDescription(t *testing.T) {
 
 	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
-	})
+	}, false)
 	require.NoError(t, err)
 
 	err = store.InsertImageDescription(t.Context(), "mongo:4", &expected)
@@ -197,7 +197,7 @@ func TestStoreImageReleaseNotes(t *testing.T) {
 
 	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
-	})
+	}, false)
 	require.NoError(t, err)
 
 	err = store.InsertImageReleaseNotes(t.Context(), "mongo:4", &expected)
@@ -262,7 +262,7 @@ func TestStoreImageGraph(t *testing.T) {
 
 	err = store.InsertImage(t.Context(), &models.Image{
 		Reference: "mongo:4",
-	})
+	}, false)
 	require.NoError(t, err)
 
 	err = store.InsertImageGraph(t.Context(), "mongo:4", &expected)
@@ -339,7 +339,7 @@ func TestListImages(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = store.InsertImage(t.Context(), &image)
+		err = store.InsertImage(t.Context(), &image, false)
 		require.NoError(t, err)
 	}
 
@@ -445,7 +445,7 @@ func TestListImagesQuery(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = store.InsertImage(t.Context(), &image)
+		err = store.InsertImage(t.Context(), &image, false)
 		require.NoError(t, err)
 	}
 
@@ -523,7 +523,7 @@ func TestStoreDeleteNonPresent(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		err = store.InsertImage(t.Context(), image)
+		err = store.InsertImage(t.Context(), image, false)
 		require.NoError(t, err)
 	}
 
@@ -561,11 +561,11 @@ func TestStoreUpdateImageReference(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(t.Context(), image)
+	err = store.InsertImage(t.Context(), image, false)
 	require.NoError(t, err)
 
 	image.LatestReference = "mongo:5"
-	err = store.InsertImage(t.Context(), image)
+	err = store.InsertImage(t.Context(), image, false)
 	require.NoError(t, err)
 
 	changes, err := store.GetChanges(t.Context(), nil)
@@ -615,7 +615,7 @@ func TestInsertWorkflowRun(t *testing.T) {
 		LastModified:    time.Date(2024, 10, 05, 18, 39, 0, 0, time.Local).UTC(),
 	}
 
-	err = store.InsertImage(t.Context(), image)
+	err = store.InsertImage(t.Context(), image, false)
 	require.NoError(t, err)
 
 	expected := models.WorkflowRun{
@@ -682,7 +682,7 @@ func TestCascadeDelete(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(t.Context(), image)
+	err = store.InsertImage(t.Context(), image, false)
 	require.NoError(t, err)
 
 	err = store.InsertImageDescription(t.Context(), image.Reference, &models.ImageDescription{
@@ -774,7 +774,7 @@ func TestStoreGetUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(t.Context(), base1)
+	err = store.InsertImage(t.Context(), base1, false)
 	require.NoError(t, err)
 
 	base2 := &models.Image{
@@ -795,7 +795,7 @@ func TestStoreGetUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(t.Context(), base2)
+	err = store.InsertImage(t.Context(), base2, false)
 	require.NoError(t, err)
 
 	// Insert image updates (test UPDATE)
@@ -817,7 +817,7 @@ func TestStoreGetUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(t.Context(), updated1)
+	err = store.InsertImage(t.Context(), updated1, false)
 	require.NoError(t, err)
 
 	updated2 := &models.Image{
@@ -838,7 +838,7 @@ func TestStoreGetUpdates(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = store.InsertImage(t.Context(), updated2)
+	err = store.InsertImage(t.Context(), updated2, false)
 	require.NoError(t, err)
 
 	// Expect there to be updates
@@ -895,4 +895,60 @@ func TestStoreGetUpdates(t *testing.T) {
 			Released:   &update1ReleasedAt,
 		},
 	}, updates)
+}
+
+func TestStoreInsertUnprocessedImage(t *testing.T) {
+	store := newStore(t, false)
+	defer store.Close()
+
+	_, err := store.InsertRawImage(t.Context(), &models.RawImage{
+		Reference: "mongo:4",
+	})
+	require.NoError(t, err)
+
+	// Insert a processed image
+	err = store.InsertImage(t.Context(), &models.Image{
+		Reference: "mongo:4",
+		Tags:      []string{"some tag"},
+	}, false)
+	require.NoError(t, err)
+
+	// Try to insert an unprocessed image, expecting it to succeed but change
+	// nothing
+	err = store.InsertImage(t.Context(), &models.Image{
+		Reference: "mongo:4",
+		Tags:      []string{"unprocessed"},
+	}, true)
+	require.NoError(t, err)
+
+	actual, err := store.GetImage(t.Context(), "mongo:4")
+	require.NoError(t, err)
+	assert.EqualValues(t, &models.Image{
+		Reference:    "mongo:4",
+		Tags:         []string{"some tag"},
+		Links:        []models.ImageLink{},
+		LastModified: actual.LastModified, // Difficult to assert
+	}, actual)
+
+	// Try to insert another unprocessed image, expecting it to succeed as there's
+	// no existing image
+	_, err = store.InsertRawImage(t.Context(), &models.RawImage{
+		Reference: "mongo:5",
+	})
+	require.NoError(t, err)
+
+	err = store.InsertImage(t.Context(), &models.Image{
+		Reference: "mongo:5",
+		Tags:      []string{"unprocessed"},
+	}, true)
+	require.NoError(t, err)
+
+	actual, err = store.GetImage(t.Context(), "mongo:5")
+	require.NoError(t, err)
+	assert.EqualValues(t, &models.Image{
+		Reference:    "mongo:5",
+		Tags:         []string{"unprocessed"},
+		Links:        []models.ImageLink{},
+		LastModified: actual.LastModified, // Difficult to assert
+	}, actual)
 }

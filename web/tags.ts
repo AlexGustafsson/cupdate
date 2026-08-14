@@ -242,6 +242,11 @@ export const Tags: Tag[] = [
     description: 'Up-to-date images',
     color: palette.positive,
   },
+  {
+    name: 'unprocessed',
+    description: 'Unprocessed images',
+    color: palette.warning,
+  },
 
   // Security information
   {

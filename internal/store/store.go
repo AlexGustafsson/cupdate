@@ -211,7 +211,7 @@ func (s *Store) ListRawImages(ctx context.Context, options *ListRawImagesOptions
 	return rawImages, nil
 }
 
-func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
+func (s *Store) InsertImage(ctx context.Context, image *models.Image, ifNotExists bool) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -220,11 +220,13 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		return err
 	}
 
-	statement, err := tx.PrepareContext(ctx, `INSERT INTO images
-	(reference, created, annotations, latestReference, latestCreated, latestAnnotations, versionDiffSortable, description, lastModified, imageUrl)
-	VALUES
-	(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	ON CONFLICT(reference) DO UPDATE SET
+	// NOTE: This text is directly inserted into the prepared statement. It must
+	// not include user-supplied strings
+	onConflictClause := ""
+	if ifNotExists {
+		onConflictClause = `DO NOTHING`
+	} else {
+		onConflictClause = `DO UPDATE SET
 		created=excluded.created,
 		annotations=excluded.annotations,
 		latestReference=excluded.latestReference,
@@ -233,8 +235,14 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		versionDiffSortable=excluded.versionDiffSortable,
 		description=excluded.description,
 		lastModified=excluded.lastModified,
-		imageUrl=excluded.imageUrl
-	;`)
+		imageUrl=excluded.imageUrl`
+	}
+
+	statement, err := tx.PrepareContext(ctx, `INSERT INTO images
+	(reference, created, annotations, latestReference, latestCreated, latestAnnotations, versionDiffSortable, description, lastModified, imageUrl)
+	VALUES
+	(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	ON CONFLICT(reference) `+onConflictClause+";")
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -266,11 +274,25 @@ func (s *Store) InsertImage(ctx context.Context, image *models.Image) error {
 		latestAnnotations = &encodedString
 	}
 
-	_, err = statement.ExecContext(ctx, image.Reference, image.Created, annotations, latestReference, image.LatestCreated, latestAnnotations, image.VersionDiffSortable, image.Description, image.LastModified, image.Image)
+	result, err := statement.ExecContext(ctx, image.Reference, image.Created, annotations, latestReference, image.LatestCreated, latestAnnotations, image.VersionDiffSortable, image.Description, image.LastModified, image.Image)
 	statement.Close()
 	if err != nil {
 		tx.Rollback()
 		return err
+	}
+
+	// If the image should only be inserted if it didn't already exist, bail
+	// unless the row was not inserted for the first time
+	affected, err := result.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	if ifNotExists && affected == 0 {
+		// NOTE: At this point, nothing's been modified, but rollback has a clearer
+		// intent than commit
+		tx.Rollback()
+		return nil
 	}
 
 	// First clear out tags for an easy way of removing those that are no longer
@@ -513,6 +535,10 @@ func (s *Store) GetImagesLinks(ctx context.Context, reference string) ([]models.
 	var links []models.ImageLink
 	if err := json.Unmarshal(serializedLinks, &links); err != nil {
 		return nil, err
+	}
+
+	if links == nil {
+		links = make([]models.ImageLink, 0)
 	}
 
 	return links, nil
