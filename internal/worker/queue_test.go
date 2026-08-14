@@ -4,6 +4,7 @@ import (
 	"iter"
 	"slices"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/AlexGustafsson/cupdate/internal/oci"
@@ -96,28 +97,31 @@ func TestQueueNoBacklog(t *testing.T) {
 }
 
 func TestQueueMultipleConsumers(t *testing.T) {
-	// By having 1 burst we ensure that a worker will only pull a single item each
-	// time it's woken up, assuming it's quicker to process than the tick
-	q := NewQueue[int](1, 1*time.Millisecond)
-	defer q.Close()
+	synctest.Test(t, func(t *testing.T) {
+		// By having 1 burst we ensure that a worker will only pull a single item
+		// each time it's woken up, assuming it's quicker to process than the tick
+		q := NewQueue[int](1, 1*time.Second)
+		defer q.Close()
 
-	// Keep track of which worker handled with item
-	items := make([]int, 5)
-	for i := range 5 {
-		go func() {
-			for item := range q.Pull() {
-				items[item] = i
-			}
-		}()
-	}
+		// Keep track of which worker handled with item
+		items := make([]int, 5)
+		for i := range 5 {
+			go func() {
+				for item := range q.Pull() {
+					items[item] = i
+				}
+			}()
+		}
 
-	q.PushBack(0, 1, 2, 3, 4)
+		q.PushBack(0, 1, 2, 3, 4)
 
-	// Wait for all items to be processed
-	<-time.After(1 * time.Second)
+		// Wait for enough time to have passed for all items to have been processed
+		<-time.After(6 * time.Second)
+		synctest.Wait()
 
-	slices.Sort(items)
-	assert.NotEqual(t, items[0], items[4], "different workers handled requests")
+		slices.Sort(items)
+		assert.NotEqual(t, items[0], items[4], "different workers handled requests")
+	})
 }
 
 func TestQueueClose(t *testing.T) {
@@ -168,4 +172,40 @@ func TestQueueDeduplication(t *testing.T) {
 	ref.Tag = "5"
 	q.PushBack(ref)
 	assert.Equal(t, 2, q.Len())
+}
+
+func TestQueueAddTokens(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		// By having 1 burst we ensure that a worker will only pull a single item
+		// each time it's woken up, assuming it's quicker to process than the tick.
+		// By setting the tick to something big, we can control it manually
+		q := NewQueue[int](1, 1*time.Hour)
+		defer q.Close()
+
+		// Keep track of consumed items
+		items := make([]int, 0, 2)
+		go func() {
+			for item := range q.Pull() {
+				items = append(items, item)
+			}
+		}()
+
+		// Right off the bat there's one token to consume. Thus, pushing an item and
+		// waiting a few seconds should leave the sole item consumed
+		q.PushBack(0)
+		<-time.After(5 * time.Second)
+		synctest.Wait()
+		assert.Equal(t, []int{0}, items)
+
+		// Pushing another item and waiting for a while leaves the item unprocessed
+		q.PushBack(1)
+		<-time.After(5 * time.Second)
+		synctest.Wait()
+		assert.Equal(t, []int{0}, items)
+
+		// Adding a token processes the item ASAP
+		q.AddTokens(1)
+		synctest.Wait()
+		assert.Equal(t, []int{0, 1}, items)
+	})
 }

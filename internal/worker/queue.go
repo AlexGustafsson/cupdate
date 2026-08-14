@@ -19,6 +19,8 @@ type Queue[T comparable] struct {
 	cond    *sync.Cond
 	backlog []T
 	tokens  int
+	burst   int
+	close   chan struct{}
 	closed  bool
 
 	burstGauge  prometheus.Gauge
@@ -36,6 +38,8 @@ func NewQueue[T comparable](burst int, tick time.Duration) *Queue[T] {
 		cond:    sync.NewCond(&sync.Mutex{}),
 		backlog: make([]T, 0),
 		tokens:  burst,
+		burst:   burst,
+		close:   make(chan struct{}),
 
 		burstGauge: prometheus.NewGauge(prometheus.GaugeOpts{
 			Namespace: "cupdate",
@@ -54,22 +58,31 @@ func NewQueue[T comparable](burst int, tick time.Duration) *Queue[T] {
 		go func() {
 			ticker := time.NewTicker(tick)
 
-			for range ticker.C {
-				q.cond.L.Lock()
-				tokens := min(burst, q.tokens+1)
-				changed := tokens != q.tokens
-				q.tokens = tokens
-				q.cond.L.Unlock()
-
-				if changed {
-					q.burstGauge.Set(float64(tokens))
-					q.cond.Broadcast()
-				}
+			select {
+			case <-ticker.C:
+				q.AddTokens(1)
+			case <-q.close:
+				return
 			}
 		}()
 	}
 
 	return q
+}
+
+// AddTokens adds the specified number of tokens to the bucket, limited to the
+// configured burst.
+func (q *Queue[T]) AddTokens(tokens int) {
+	q.cond.L.Lock()
+	tokens = min(q.burst, q.tokens+1)
+	changed := tokens != q.tokens
+	q.tokens = tokens
+	q.cond.L.Unlock()
+
+	if changed {
+		q.burstGauge.Set(float64(tokens))
+		q.cond.Broadcast()
+	}
 }
 
 // PushFront puts one or more unique items at the front of the queue.
@@ -161,6 +174,9 @@ func (q *Queue[T]) AvailableBurst() int {
 func (q *Queue[T]) Close() {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
+	if !q.closed {
+		close(q.close)
+	}
 	q.closed = true
 	q.backlog = []T{}
 	q.cond.Broadcast()
