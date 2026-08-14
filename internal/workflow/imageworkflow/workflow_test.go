@@ -28,16 +28,20 @@ func TestWorkflow(t *testing.T) {
 
 	httpClient := httputil.NewClient(cache, 5*time.Minute)
 
-	reference, err := oci.ParseReference("mongo:4")
+	reference, err := oci.ParseReference("mirror.gcr.io/mongo:4")
+	require.NoError(t, err)
+
+	underlyingReference, err := oci.ParseReference("mongo:4")
 	require.NoError(t, err)
 
 	data := &Data{
-		ImageReference:  reference,
-		Image:           "",
-		LatestReference: &reference,
-		Tags:            make([]string, 0),
-		Links:           make([]models.ImageLink, 0),
-		RegistryAuth:    httputil.NewAuthMux(),
+		ImageReference:           reference,
+		UnderlyingImageReference: underlyingReference,
+		Image:                    "",
+		LatestReference:          &reference,
+		Tags:                     make([]string, 0),
+		Links:                    make([]models.ImageLink, 0),
+		RegistryAuth:             httputil.NewAuthMux(),
 	}
 
 	workflow := New(httpClient, data)
