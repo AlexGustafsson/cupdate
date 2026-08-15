@@ -61,12 +61,6 @@ const ScorecardCard = React.lazy(() =>
   }))
 )
 
-const SettingsCard = React.lazy(() =>
-  import('./image-page/SettingsCard').then((module) => ({
-    default: module.SettingsCard,
-  }))
-)
-
 const VulnerabilitiesCard = React.lazy(() =>
   import('./image-page/VulnerabilitiesCard').then((module) => ({
     default: module.VulnerabilitiesCard,
@@ -267,11 +261,6 @@ export function ImagePage(): JSX.Element {
         </div>
 
         <main className="min-w-[200px] max-w-[800px] w-full box-border space-y-6 mt-6">
-          {/* Cupdate settings */}
-          {image.value?.reference.startsWith(
-            'ghcr.io/alexgustafsson/cupdate'
-          ) && <SettingsCard />}
-
           {/* Scorecard report */}
           {scorecard.value && <ScorecardCard scorecard={scorecard.value} />}
 
