@@ -5,6 +5,7 @@ import { SimpleIconsRss } from './components/icons/simple-icons-rss'
 import { EventProvider } from './EventProvider'
 import { DEFAULT_RSS_ENDPOINT } from './lib/api/api-client'
 import { Dashboard } from './pages/Dashboard'
+import { SettingsPage } from './pages/SettingsPage'
 
 const ImagePage = React.lazy(() =>
   import('./pages/ImagePage').then((module) => ({ default: module.ImagePage }))
@@ -46,6 +47,7 @@ export function App(): JSX.Element {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/image" element={<ImagePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </EventProvider>
       </main>
