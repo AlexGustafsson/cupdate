@@ -7,6 +7,7 @@ import { FluentAlignSpaceEvenlyVertical20Regular } from '../components/icons/flu
 import { FluentArrowSync20Regular } from '../components/icons/fluent-arrow-sync-20-regular'
 import { FluentGrid20Filled } from '../components/icons/fluent-grid-20-filled'
 import { FluentGrid20Regular } from '../components/icons/fluent-grid-20-regular'
+import { FluentSettings20Regular } from '../components/icons/fluent-settings-regular-20'
 import { Select } from '../components/Select'
 import { TagSelect } from '../components/TagSelect'
 import { Toast } from '../components/Toast'
@@ -266,51 +267,63 @@ export function Dashboard(): JSX.Element {
             <TagSelect tags={tags.value} filter={filter} onChange={setFilter} />
           </div>
           {/* Toolbar */}
-          <div className="flex flex-row items-center justify-end gap-x-2 w-full">
-            <div className="grid grid-cols-2 divide-x divide-[#e5e5e5] dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
+          <div className="flex flex-row items-center justify-between gap-x-2 w-full">
+            {/* Left */}
+            <div className="flex flex-row items-center justify-end gap-x-2">
+              <Link
+                to="/settings"
+                className="border border-[#e5e5e5] flex items-center dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px] px-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+              >
+                <FluentSettings20Regular />
+              </Link>
+            </div>
+            {/* Right */}
+            <div className="flex flex-row items-center justify-end gap-x-2">
+              <div className="grid grid-cols-2 divide-x divide-[#e5e5e5] dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
+                <button
+                  type="button"
+                  title="Enable list view"
+                  className="pl-2 pr-1 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+                  onClick={() => setLayout('list')}
+                  tabIndex={0}
+                >
+                  {layout === 'list' ? (
+                    <FluentAlignSpaceEvenlyVertical20Filled />
+                  ) : (
+                    <FluentAlignSpaceEvenlyVertical20Regular />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  title="Enable grid view"
+                  className="pl-1 pr-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+                  onClick={() => setLayout('grid')}
+                  tabIndex={0}
+                >
+                  {layout === 'grid' ? (
+                    <FluentGrid20Filled />
+                  ) : (
+                    <FluentGrid20Regular />
+                  )}
+                </button>
+              </div>
               <button
                 type="button"
-                title="Enable list view"
-                className="pl-2 pr-1 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
-                onClick={() => setLayout('list')}
+                title="Refresh images"
+                className="border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px] px-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
                 tabIndex={0}
+                onClick={() => {
+                  refreshImages()
+                    .then(() => setScanResult('resolved'))
+                    .catch(() => setScanResult('rejected'))
+                }}
+                disabled={isRefreshingImages}
               >
-                {layout === 'list' ? (
-                  <FluentAlignSpaceEvenlyVertical20Filled />
-                ) : (
-                  <FluentAlignSpaceEvenlyVertical20Regular />
-                )}
-              </button>
-              <button
-                type="button"
-                title="Enable grid view"
-                className="pl-1 pr-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
-                onClick={() => setLayout('grid')}
-                tabIndex={0}
-              >
-                {layout === 'grid' ? (
-                  <FluentGrid20Filled />
-                ) : (
-                  <FluentGrid20Regular />
-                )}
+                <FluentArrowSync20Regular
+                  className={isRefreshingImages ? 'animate-spin' : ''}
+                />
               </button>
             </div>
-            <button
-              type="button"
-              title="Refresh images"
-              className="border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px] px-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
-              tabIndex={0}
-              onClick={() => {
-                refreshImages()
-                  .then(() => setScanResult('resolved'))
-                  .catch(() => setScanResult('rejected'))
-              }}
-              disabled={isRefreshingImages}
-            >
-              <FluentArrowSync20Regular
-                className={isRefreshingImages ? 'animate-spin' : ''}
-              />
-            </button>
           </div>
         </div>
 
