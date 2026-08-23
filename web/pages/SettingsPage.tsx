@@ -37,14 +37,12 @@ export function SettingsPage(): JSX.Element {
                         <div
                           className={`bg-surface-2-bg p-2 m-2 rounded-sm border ${theme.name === currentTheme ? 'border-accent ' : 'border-surface-1-stroke'}`}
                         >
-                          <div className={`theme-${theme.name}`}>
-                            <ThemePreview />
+                          <div className={`theme-${theme.name} w-full`}>
+                            <ThemePreview className="w-full" />
                           </div>
                         </div>
                         <p className="whitespace-pre">{theme.displayName}</p>
-                        <p className="whitespace-pre text-xs">
-                          {theme.description}
-                        </p>
+                        <p className="text-xs">{theme.description}</p>
                       </button>
                     ))}
                   </div>
