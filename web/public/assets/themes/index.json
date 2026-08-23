@@ -2,13 +2,13 @@
   {
     "name": "gruvbox",
     "displayName": "Gruvbox",
-    "description": "",
+    "description": "Gruvbox auto",
     "file": "gruvbox.css"
   },
   {
     "name": "dracula",
     "displayName": "Dracula",
-    "description": "",
+    "description": "Dracula dark",
     "file": "dracula.css"
   }
 ]
