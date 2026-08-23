@@ -10,5 +10,11 @@
     "displayName": "Dracula",
     "description": "Dracula dark",
     "file": "dracula.css"
+  },
+  {
+    "name": "catppuccin",
+    "displayName": "Catppuccin",
+    "description": "Catppuccin pastel auto (latte/mocha)",
+    "file": "catppuccin.css"
   }
 ]
