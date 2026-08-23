@@ -4,5 +4,11 @@
     "displayName": "Gruvbox",
     "description": "",
     "file": "gruvbox.css"
+  },
+  {
+    "name": "dracula",
+    "displayName": "Dracula",
+    "description": "",
+    "file": "dracula.css"
   }
 ]

@@ -1,0 +1,44 @@
+:root.theme-dracula {
+  color-scheme: light dark;
+}
+.theme-dracula {
+  --bg-backdrop: #000000;
+
+  --surface-0-bg: #282a36;
+  --surface-0-fg: #f8f8f2;
+  --surface-0-stroke: #6272a4;
+
+  --surface-1-bg: #44475a;
+  --surface-1-fg: #f8f8f2;
+  --surface-1-fg-disabled: #ff5555;
+  --surface-1-stroke: #6272a4;
+
+  --surface-2-bg: #44475a;
+  --surface-2-bg-disabled: #44475a;
+  --surface-2-stroke: #6272a4;
+
+  --surface-3-bg: #44475a;
+
+  --color-positive: #50fa7b;
+  --color-negative: #ff5555;
+  --color-warning: #ffb86c;
+  --color-maybe-warning: #bd93f9;
+
+  --color-major: oklch(62.7% 0.265 303.9);
+  --color-minor: oklch(60.6% 0.25 292.717);
+  --color-patch: oklch(58.5% 0.233 277.117);
+
+  --color-brand-rss: #ffb86c;
+  --color-brand-kubernetes: #8be9fd;
+  --color-brand-docker: #8be9fd;
+  --color-brand-github: #b16286;
+  --color-brand-gitlab: #b16286;
+  --color-brand-quay: #8be9fd;
+  --color-brand-git: #ae3a03;
+  --color-brand-oci: #8be9fd;
+
+  --color-accent: #8be9fd;
+  --color-accent-disabled: #8be9fd;
+  --color-accent-highlight: #8be9fd;
+  --color-accent-fg: #f8f8f2;
+}
