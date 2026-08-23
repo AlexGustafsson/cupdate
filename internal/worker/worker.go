@@ -222,6 +222,15 @@ func (w *Worker) ProcessRawImage(ctx context.Context, reference oci.Reference) e
 		}
 	}
 
+	exists, err := w.store.RawImageExists(ctx, reference.String())
+	if err != nil {
+		return err
+	}
+	if !exists {
+		log.DebugContext(ctx, "Image removed during processing")
+		return nil
+	}
+
 	timeBeforeInsert := time.Now()
 
 	result := models.Image{

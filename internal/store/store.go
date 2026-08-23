@@ -141,6 +141,12 @@ func (s *Store) GetRawImage(ctx context.Context, reference string) (*models.RawI
 	return &rawImage, nil
 }
 
+func (s *Store) RawImageExists(ctx context.Context, reference string) (bool, error) {
+	var exists bool
+	err := s.db.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM raw_images WHERE reference = ?);`, reference).Scan(&exists)
+	return exists, err
+}
+
 type ListRawImagesOptions struct {
 	NotUpdatedSince time.Time
 	Limit           int
