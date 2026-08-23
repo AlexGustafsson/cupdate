@@ -73,7 +73,7 @@ export function TagSelect({
   if (IOS) {
     return (
       <div
-        className={`relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] ${className || ''}`}
+        className={`relative border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs focus:shadow-md bg-surface-1-bg ${className || ''}`}
       >
         <select
           multiple
@@ -128,7 +128,7 @@ export function TagSelect({
       }}
       role="menu"
       tabIndex={0}
-      className={`pl-3 pr-8 py-2 relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:bg-[#f5f5f5] dark:focus:bg-[#262626] focus:border-gray-300 dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-xs bg-white dark:bg-[#1e1e1e] dark:focus:bg-[#262626] dark:hover:bg-[#262626] cursor-pointer ${className || ''}`}
+      className={`pl-3 pr-8 py-2 relative border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs focus:shadow-md bg-surface-1-bg cursor-pointer ${className || ''}`}
     >
       <p className="text-sm">
         {filter.tags.length > 0 ? `${filter.tags.length} selected` : 'Tags'}
@@ -154,7 +154,7 @@ export function TagSelect({
           ref={menuRef}
           className="absolute -top-4 -left-4 p-2 z-150 text-black dark:text-[#dddddd]"
         >
-          <div className="flex max-h-64 overflow-y-auto flex-col gap-y-2 py-2 px-3 pr-6 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d0d0d0]/95 dark:border-[#505050] rounded-lg w-max shadow">
+          <div className="flex max-h-64 overflow-y-auto flex-col gap-y-2 py-2 px-3 pr-6 bg-surface-2-bg border border-surface-2-stroke rounded-lg w-max shadow">
             {tags
               .toSorted((a, b) =>
                 compareTags(

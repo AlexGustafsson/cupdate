@@ -170,13 +170,13 @@ export function Dashboard(): JSX.Element {
         <div className="grid grid-cols-3 sm:grid-cols-5 mt-4">
           <Link
             to="/?tag=outdated"
-            className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
+            className="rounded-lg focus:bg-surface-1-bg hover:bg-surface-1-bg transition-colors"
             tabIndex={0}
           >
             <div className="py-2 px-4">
               <p className="text-sm">Outdated</p>
               <p
-                className={`text-3xl font-semibold ${images.value.summary.outdated === 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-3xl font-semibold ${images.value.summary.outdated === 0 ? 'text-positive' : 'text-negative'}`}
               >
                 {images.value.summary.outdated}
               </p>
@@ -184,13 +184,13 @@ export function Dashboard(): JSX.Element {
           </Link>
           <Link
             to="/?tag=vulnerability:critical&tag=vulnerability:high&tag=vulnerability:medium&tag=vulnerability:low&tag=vulnerability:unspecified&tagop=or"
-            className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
+            className="rounded-lg focus:bg-surface-1-bg hover:bg-surface-1-bg transition-colors"
             tabIndex={0}
           >
             <div className="py-2 px-4">
               <p className="text-sm">Vulnerable</p>
               <p
-                className={`text-3xl font-semibold ${images.value.summary.vulnerable === 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-3xl font-semibold ${images.value.summary.vulnerable === 0 ? 'text-positive' : 'text-negative'}`}
               >
                 {images.value.summary.vulnerable}
               </p>
@@ -198,13 +198,13 @@ export function Dashboard(): JSX.Element {
           </Link>
           <Link
             to="/?tag=status:failed"
-            className="rounded-lg focus:bg-white hover:bg-white dark:focus:bg-[#1e1e1e] dark:hover:bg-[#1e1e1e] transition-colors"
+            className="rounded-lg focus:bg-surface-1-bg hover:bg-surface-1-bg transition-colors"
             tabIndex={0}
           >
             <div className="py-2 px-4">
               <p className="text-sm">Failed</p>
               <p
-                className={`text-3xl font-semibold ${images.value.summary.failed === 0 ? 'text-green-600' : 'text-red-600'}`}
+                className={`text-3xl font-semibold ${images.value.summary.failed === 0 ? 'text-positive' : 'text-negative'}`}
               >
                 {images.value.summary.failed}
               </p>
@@ -238,7 +238,7 @@ export function Dashboard(): JSX.Element {
             onKeyUp={(e) =>
               e.key === 'Enter' ? e.currentTarget.blur() : undefined
             }
-            className="bg-white dark:bg-[#1e1e1e] pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full border border-[#e5e5e5] dark:border-[#333333]"
+            className="bg-surface-1-bg pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full border border-surface-1-stroke"
           />
           {/* Filters */}
           <div className="grid grid-cols-3 gap-x-2 w-full">
@@ -272,18 +272,18 @@ export function Dashboard(): JSX.Element {
             <div className="flex flex-row items-center justify-end gap-x-2">
               <Link
                 to="/settings"
-                className="border border-[#e5e5e5] flex items-center dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px] px-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+                className="border flex items-center border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke hover:bg-surface-2-bg shadow-xs bg-surface-1-bg h-[38px] px-2 cursor-pointer focus:bg-surface-1-bg"
               >
                 <FluentSettings20Regular />
               </Link>
             </div>
             {/* Right */}
             <div className="flex flex-row items-center justify-end gap-x-2">
-              <div className="grid grid-cols-2 divide-x divide-[#e5e5e5] dark:divide-[#333333] border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px]">
+              <div className="grid grid-cols-2 divide-x divide-surface-1-stroke dark:divide-surface-1-stroke border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke hover:bg-surface-2-bg shadow-xs focus:shadow-md bg-surface-1-bg h-[38px]">
                 <button
                   type="button"
                   title="Enable list view"
-                  className="pl-2 pr-1 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+                  className="pl-2 pr-1 cursor-pointer focus:bg-surface-1-bg"
                   onClick={() => setLayout('list')}
                   tabIndex={0}
                 >
@@ -296,7 +296,7 @@ export function Dashboard(): JSX.Element {
                 <button
                   type="button"
                   title="Enable grid view"
-                  className="pl-1 pr-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+                  className="pl-1 pr-2 cursor-pointer focus:bg-surface-1-bg"
                   onClick={() => setLayout('grid')}
                   tabIndex={0}
                 >
@@ -310,7 +310,7 @@ export function Dashboard(): JSX.Element {
               <button
                 type="button"
                 title="Refresh images"
-                className="border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] h-[38px] px-2 cursor-pointer focus:bg-[#f5f5f5] dark:focus:bg-[#262626]"
+                className="border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs bg-surface-1-bg h-[38px] px-2 cursor-pointer focus:bg-surface-1-bg"
                 tabIndex={0}
                 onClick={() => {
                   refreshImages()
@@ -340,7 +340,7 @@ export function Dashboard(): JSX.Element {
               className="group/link"
             >
               <ImageCard
-                className={`group/link-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus/link:bg-[#f5f5f5] dark:group-focus/link:bg-[#262626] dark:hover:bg-[#262626] ${layout === 'list' ? '' : 'h-[150px]'}`}
+                className={`group/link-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus/link:bg-surface-2-bg ${layout === 'list' ? '' : 'h-[150px]'}`}
                 reference={x.reference}
                 name={name(x.reference)}
                 currentVersion={formattedVersion(x.reference, x.annotations)}
@@ -389,7 +389,7 @@ export function Dashboard(): JSX.Element {
                   key={page.index}
                   to={page.href}
                   tabIndex={0}
-                  className={`m-1 w-6 h-6 text-center text-white dark:text-[#dddddd] leading-6 rounded-sm ${page.current ? 'bg-blue-400 dark:bg-blue-700' : 'bg-blue-200 dark:bg-blue-900 focus:bg-blue-400 hover:bg-blue-400  hover:dark:bg-blue-700 focus:dark:bg-blue-700'}`}
+                  className={`m-1 w-6 h-6 text-center text-accent-fg leading-6 rounded-sm ${page.current ? 'bg-accent' : 'bg-accent-disabled focus:bg-accent-highlight hover:bg-accent-highlight'}`}
                 >
                   <p>{page.label}</p>
                 </Link>

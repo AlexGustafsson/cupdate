@@ -21,7 +21,7 @@ export function App(): JSX.Element {
 
   return (
     <>
-      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow-sm bg-white/90 dark:bg-[#1e1e1e]/70 z-250 backdrop-blur-md">
+      <div className="fixed top-0 left-0 h-[64px] w-full grid grid-cols-3 items-center shadow-sm bg-surface-1-bg/90 z-250 backdrop-blur-md">
         <div className="justify-self-start ml-5">
           {location.pathname !== '/' && (
             <Link
@@ -38,7 +38,7 @@ export function App(): JSX.Element {
         </div>
         <div className="justify-self-end mr-5">
           <a target="_blank" href={DEFAULT_RSS_ENDPOINT} rel="noreferrer">
-            <SimpleIconsRss className="text-orange-400" />
+            <SimpleIconsRss className="text-brand-rss" />
           </a>
         </div>
       </div>

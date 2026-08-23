@@ -1,30 +1,27 @@
 import type { HTMLAttributes, JSX } from 'react'
+import type { Color } from '../tags'
 
 export type BadgeProps = {
   label: string
-  color?: string | { light: string; dark: string }
+  color?: Color
   disabled?: boolean
 }
 
 export function Badge({
   label,
-  color,
   disabled,
+  color,
   className,
   ...rest
-}: Omit<HTMLAttributes<HTMLSpanElement>, 'color'> & BadgeProps): JSX.Element {
-  let backgroundColor = 'light-dark(#3A3FCE, #4349f0)'
-  if (typeof color === 'string') {
-    backgroundColor = color
-  } else if (color !== undefined) {
-    backgroundColor = `light-dark(${color.light}, ${color.dark})`
-  }
-
+}: HTMLAttributes<HTMLSpanElement> & BadgeProps): JSX.Element {
   return (
     <span
       {...rest}
-      className={`rounded-md px-1 sm:px-2 py-1 text-xs text-nowrap text-white dark:text-[#dddddd] h-fit ${disabled ? 'opacity-50 hover:opacity-70' : ''}${className}`}
-      style={{ backgroundColor }}
+      className={`rounded-md px-1 sm:px-2 py-1 text-xs text-nowrap h-fit ${disabled ? 'opacity-50 hover:opacity-70' : ''}${className}`}
+      style={{
+        backgroundColor: `var(--color-${color})`,
+        color: `contrast-color(var(--color-${color}))`,
+      }}
     >
       {label}
     </span>

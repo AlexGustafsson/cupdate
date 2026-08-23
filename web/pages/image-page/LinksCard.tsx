@@ -31,21 +31,19 @@ function Link({ type, url }: { type: string; url: string }): JSX.Element {
     case 'github':
     case 'github-releases':
     case 'ghcr':
-      icon = (
-        <SimpleIconsGithub className="text-black dark:text-[#dddddd] shrink-0" />
-      )
+      icon = <SimpleIconsGithub className="text-surface-1-fg shrink-0" />
       break
     case 'gitlab':
-      icon = <SimpleIconsGitlab className="text-orange-500 shrink-0" />
+      icon = <SimpleIconsGitlab className="text-brand-gitlab shrink-0" />
       break
     case 'docker':
-      icon = <SimpleIconsDocker className="text-blue-500 shrink-0" />
+      icon = <SimpleIconsDocker className="text-brand-docker shrink-0" />
       break
     case 'quay':
-      icon = <Quay className="text-blue-700 shrink-0" />
+      icon = <Quay className="text-brand-quay shrink-0" />
       break
     case 'git':
-      icon = <SimpleIconsGit className="text-orange-500 shrink-0" />
+      icon = <SimpleIconsGit className="text-brand-git shrink-0" />
       break
     case 'svc':
       switch (hostname) {
@@ -58,13 +56,11 @@ function Link({ type, url }: { type: string; url: string }): JSX.Element {
       }
     case 'docs':
       icon = (
-        <FluentBookQuestionMark24Filled className="text-black dark:text-[#dddddd] shrink-0" />
+        <FluentBookQuestionMark24Filled className="text-surface-1-fg shrink-0" />
       )
       break
     default:
-      icon = (
-        <FluentLink24Filled className="text-black dark:text-[#dddddd] shrink-0" />
-      )
+      icon = <FluentLink24Filled className="text-surface-1-fg shrink-0" />
   }
 
   return (

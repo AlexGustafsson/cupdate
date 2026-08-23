@@ -151,7 +151,7 @@ export function Surface({
         ref={controlsRef}
         className="absolute right-0 top-0 gap-x-2 flex flex-row pb-4"
       >
-        <div className="rounded-sm bg-white dark:bg-[#1e1e1e] shadow-md border border-[#e5e5e5] dark:border-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]">
+        <div className="rounded-sm bg-surface-2-bg shadow-md border border-surface-2-stroke hover:bg-surface-2-bg">
           <button
             type="button"
             className="cursor-pointer p-2"
@@ -160,11 +160,11 @@ export function Surface({
             <FluentFullScreenMaximize16Regular />
           </button>
         </div>
-        <div className="flex flex-row divide-x divide-[#e5e5e5] dark:divide-[#333333] rounded-sm bg-white dark:bg-[#1e1e1e] shadow-md border border-[#e5e5e5] dark:border-[#333333]">
+        <div className="flex flex-row divide-x divide-surface-2-stroke rounded-sm bg-surface-2-bg shadow-md border border-surface-2-stroke">
           <button
             type="button"
             disabled={Math.abs(scale - scaleToFit) < 0.001}
-            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-[#f5f5f5] dark:disabled:bg-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]"
+            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-surface-2-bg-disabled hover:bg-surface-2-bg"
             onClick={() => onZoom(-1)}
           >
             <FluentSubtract16Regular />
@@ -172,7 +172,7 @@ export function Surface({
           <button
             type="button"
             disabled={scale === MAX_SCALE}
-            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-[#f5f5f5] dark:disabled:bg-[#333333] hover:bg-[#f5f5f5] dark:hover:bg-[#333333]"
+            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-surface-2-bg-disabled hover:bg-surface-2-bg"
             onClick={() => onZoom(1)}
           >
             <FluentAdd16Regular />

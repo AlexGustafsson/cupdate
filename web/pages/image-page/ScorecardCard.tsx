@@ -63,12 +63,12 @@ export type ScorecardCardProps = {
 export function ScorecardCard({ scorecard }: ScorecardCardProps): JSX.Element {
   const color =
     scorecard.score <= 2.5
-      ? 'text-red-400'
+      ? 'text-negative'
       : scorecard.score <= 5.0
-        ? 'text-red-400'
+        ? 'text-negative'
         : scorecard.score <= 7.5
-          ? 'text-orange-400'
-          : 'text-green-400'
+          ? 'text-warning'
+          : 'text-positive'
 
   return (
     <Card

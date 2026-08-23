@@ -1,0 +1,44 @@
+:root.theme-gruvbox {
+  color-scheme: light dark;
+}
+.theme-gruvbox {
+  --bg-backdrop: #000000;
+
+  --surface-0-bg: light-dark(#fbf1c7, #282828);
+  --surface-0-fg: light-dark(#282828, #fbf1c7);
+  --surface-0-stroke: #7c8886;
+
+  --surface-1-bg: light-dark(#ebdbb2, #3c3836);
+  --surface-1-fg: light-dark(#3c3836, #ebdbb2);
+  --surface-1-fg-disabled: light-dark(#d5c4a1, #504945);
+  --surface-1-stroke: light-dark(#d5c4a1, #504945);
+
+  --surface-2-bg: light-dark(#d5c4a1, #504945);
+  --surface-2-bg-disabled: light-dark(#bdae93, #665c54);
+  --surface-2-stroke: light-dark(#bdae93, #665c54);
+
+  --surface-3-bg: light-dark(#bdae93, #665c54);
+
+  --color-positive: #98971a;
+  --color-negative: #cc241d;
+  --color-warning: #d65d0e;
+  --color-maybe-warning: #b16286;
+
+  --color-major: oklch(62.7% 0.265 303.9);
+  --color-minor: oklch(60.6% 0.25 292.717);
+  --color-patch: oklch(58.5% 0.233 277.117);
+
+  --color-brand-rss: #fe8019;
+  --color-brand-kubernetes: #458588;
+  --color-brand-docker: #83a598;
+  --color-brand-github: #b16286;
+  --color-brand-gitlab: #b16286;
+  --color-brand-quay: #458588;
+  --color-brand-git: #ae3a03;
+  --color-brand-oci: #83a598;
+
+  --color-accent: #458588;
+  --color-accent-disabled: #83a598;
+  --color-accent-highlight: #458588;
+  --color-accent-fg: #465953;
+}

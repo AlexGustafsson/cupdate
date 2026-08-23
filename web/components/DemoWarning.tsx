@@ -23,7 +23,7 @@ export function DemoWarning(): JSX.Element | null {
   }
 
   return (
-    <div className="max-w-[600px] flex text-xs gap-x-2 border-1 bg-white dark:bg-[#1e1e1e] border border-[#e5e5e5] dark:border-[#333333] rounded p-2">
+    <div className="max-w-[600px] flex text-xs gap-x-2 border-1 surface-0-bg border border-surface-0-stroke rounded p-2">
       <div>
         <FluentInfo16Regular className="flex-shrink-0" />
       </div>

@@ -7,11 +7,11 @@ export function Select({
 }: PropsWithChildren<SelectHTMLAttributes<HTMLSelectElement>>): JSX.Element {
   return (
     <div
-      className={`relative border border-[#e5e5e5] dark:border-[#333333] rounded-sm transition-colors focus:border-[#f0f0f0] dark:focus:border-[#333333] hover:border-[#f0f0f0] dark:hover:border-[#333333] shadow-xs focus:shadow-md bg-white dark:bg-[#1e1e1e] dark:hover:bg-[#262626] ${className || ''}`}
+      className={`relative border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs focus:shadow-md bg-surface-1-bg ${className || ''}`}
     >
       <select
         {...rest}
-        className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none focus:bg-[#f5f5f5] dark:focus:bg-[#262626] w-full"
+        className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none focus:bg-surface-2-bg w-full"
       >
         {children}
       </select>

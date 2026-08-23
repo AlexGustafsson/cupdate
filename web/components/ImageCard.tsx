@@ -23,6 +23,7 @@ export type ImageCardProps = {
   description?: string
   tags: string[]
   compact?: boolean
+  disabled?: boolean
 }
 
 export function ImageCard({
@@ -37,13 +38,14 @@ export function ImageCard({
   description,
   tags,
   compact,
+  disabled,
   className,
 }: ImageCardProps & { className?: string }): JSX.Element {
   const navigate = useNavigate()
 
   return (
     <div
-      className={`flex gap-x-4 bg-white dark:bg-[#1e1e1e] rounded-lg shadow-sm ${compact ? 'p-3' : 'p-4 md:p-6'} ${className || ''}`}
+      className={`flex gap-x-4 bg-surface-1-bg rounded-lg shadow-sm ${compact ? 'p-3' : 'p-4 md:p-6'} ${className || ''}`}
     >
       <ImageLogo reference={reference} className="w-[48px] h-[48px]" />
       <div className="flex flex-col w-full">
@@ -59,7 +61,7 @@ export function ImageCard({
             {(tags.includes('vulnerability:critical') ||
               tags.includes('vulnerability:high')) && (
               <InfoTooltip
-                icon={<FluentShieldError16Filled className="text-red-600" />}
+                icon={<FluentShieldError16Filled className="text-negative" />}
               >
                 {vulnerabilities}{' '}
                 {vulnerabilities === 1 ? 'vulnerability' : 'vulnerabilities'}{' '}
@@ -72,7 +74,7 @@ export function ImageCard({
             {latestVersion ? (
               fullCurrentVersion === fullLatestVersion ? (
                 <p
-                  className="text-green-600 max-w-[15ch] truncate"
+                  className="text-positive max-w-[15ch] truncate"
                   title={fullLatestVersion}
                 >
                   {latestVersion}
@@ -80,13 +82,13 @@ export function ImageCard({
               ) : (
                 <>
                   <p
-                    className="text-red-600 line-through max-w-[15ch] truncate"
+                    className="text-negative line-through max-w-[15ch] truncate"
                     title={fullCurrentVersion}
                   >
                     {currentVersion}
                   </p>
                   <p
-                    className="text-green-600 max-w-[15ch] truncate"
+                    className="text-positive max-w-[15ch] truncate"
                     title={fullLatestVersion}
                   >
                     {latestVersion}
@@ -96,14 +98,14 @@ export function ImageCard({
             ) : (
               <>
                 <p
-                  className="text-yellow-600 max-w-[15ch] truncate"
+                  className="text-warning max-w-[15ch] truncate"
                   title={fullCurrentVersion}
                 >
                   {currentVersion}
                 </p>
                 {!latestVersion && (
                   <InfoTooltip
-                    icon={<FluentWarning16Filled className="text-yellow-600" />}
+                    icon={<FluentWarning16Filled className="text-warning" />}
                   >
                     The latest version hasn't been identified. This could be due
                     to the image not being processed yet, not being available,
@@ -134,10 +136,12 @@ export function ImageCard({
                   // It's illegal to nest anchors in HTML, so unfortunately we need
                   // to use onClick here
                   onClick={(e) => {
-                    e.metaKey || e.ctrlKey
-                      ? openTab(`/?tag=${encodeURIComponent(x)}`)
-                      : navigate(`/?tag=${encodeURIComponent(x)}`)
-                    e.preventDefault()
+                    if (!disabled) {
+                      e.metaKey || e.ctrlKey
+                        ? openTab(`/?tag=${encodeURIComponent(x)}`)
+                        : navigate(`/?tag=${encodeURIComponent(x)}`)
+                      e.preventDefault()
+                    }
                   }}
                 />
               ))}

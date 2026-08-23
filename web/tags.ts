@@ -1,3 +1,18 @@
+export type Color =
+  | 'brand-kubernetes'
+  | 'brand-docker'
+  | 'brand-github'
+  | 'brand-gitlab'
+  | 'brand-quay'
+  | 'negative'
+  | 'warning'
+  | 'maybe-warning'
+  | 'positive'
+  | 'major'
+  | 'minor'
+  | 'patch'
+  | 'accent'
+
 /** Tag holds information about a label / tag used to categorize images. */
 export interface Tag {
   /** Name is the human-readable name of the tag. */
@@ -5,111 +20,46 @@ export interface Tag {
   /** Description optionally holds a description for the tag. */
   description?: string
   /**
-   * Color optionally holds a CSS color or light/dark color combo for the tag.
+   * Color optionally holds a reference to a known color.
    */
-  color?: string | { light: string; dark: string }
-}
-
-const palette: Record<string, string | { light: string; dark: string }> = {
-  // Brand colors
-  kubernetes: { light: '#316ce6', dark: '#1955cc' },
-  docker: { light: '#1d63ed', dark: '#104dc6' },
-  github: { light: '#8B57E8', dark: '#571ac1' },
-  gitlab: { light: '#7759c2', dark: '#2f2a6b' },
-  quay: { light: '#40B4E5', dark: '#177ba6' },
-
-  // Emotions
-  negative: {
-    // Tailwind's red-500
-    light: 'oklch(63.7% 0.237 25.331)',
-    // Tailwind's red-700
-    dark: 'oklch(50.5% 0.213 27.518)',
-  },
-  warning: {
-    // Tailwind's amber-500
-    light: 'oklch(82.8% 0.189 84.429)',
-    // Tailwind's amber-700
-    dark: 'oklch(55.5% 0.163 48.998)',
-  },
-  // Akin to a red color without being red
-  maybeWarning: {
-    // Tailwind's purple-500
-    light: 'oklch(62.7% 0.265 303.9)',
-    dark: 'oklch(49.6% 0.265 301.924)',
-  },
-  positive: {
-    // Tailwind's green-500
-    light: 'oklch(72.3% 0.219 149.579)',
-    // Tailwind's green-700
-    dark: 'oklch(52.7% 0.154 150.069)',
-  },
-
-  // Bumps - chosen to have a growing sense of urgency if the bump is higher,
-  // but without using emotive colors (red, blue, green). That is, major is akin
-  // to a red color without being red, minor blue and patch green.
-  major: {
-    // Tailwind's purple-500
-    light: 'oklch(62.7% 0.265 303.9)',
-    // Tailwind's purple-700
-    dark: 'oklch(49.6% 0.265 301.924)',
-  },
-  minor: {
-    // Tailwind's violet-500
-    light: 'oklch(60.6% 0.25 292.717)',
-    // Tailwind's violet-700
-    dark: 'oklch(49.1% 0.27 292.581)',
-  },
-  patch: {
-    // Tailwind's indigo-500
-    light: 'oklch(58.5% 0.233 277.117)',
-    // Tailwind's indigo-700
-    dark: 'oklch(45.7% 0.24 277.023)',
-  },
-
-  // Generic
-  blue: {
-    // Tailwind's blue-500
-    light: 'oklch(62.3% 0.214 259.815)',
-    // Tailwind's blue-700
-    dark: 'oklch(48.8% 0.243 264.376)',
-  },
+  color?: Color
 }
 
 const KubernetesTags: Tag[] = [
   {
     name: 'pod',
     description: 'A kubernetes pod',
-    color: palette.kubernetes,
+    color: 'brand-kubernetes',
   },
   {
     name: 'job',
     description: 'A kubernetes job',
-    color: palette.kubernetes,
+    color: 'brand-kubernetes',
   },
   {
     name: 'cron job',
     description: 'A kubernetes cron job',
-    color: palette.kubernetes,
+    color: 'brand-kubernetes',
   },
   {
     name: 'deployment',
     description: 'A kubernetes deployment',
-    color: palette.kubernetes,
+    color: 'brand-kubernetes',
   },
   {
     name: 'replica set',
     description: 'A kubernetes replica set',
-    color: palette.kubernetes,
+    color: 'brand-kubernetes',
   },
   {
     name: 'daemon set',
     description: 'A kubernetes daemon set',
-    color: palette.kubernetes,
+    color: 'brand-kubernetes',
   },
   {
     name: 'stateful set',
     description: 'A kubernetes stateful set',
-    color: palette.kubernetes,
+    color: 'brand-kubernetes',
   },
 ]
 
@@ -117,17 +67,17 @@ const DockerTags: Tag[] = [
   {
     name: 'service',
     description: 'A Docker Swarm service',
-    color: palette.docker,
+    color: 'brand-docker',
   },
   {
     name: 'task',
     description: 'A Docker Swarm task',
-    color: palette.docker,
+    color: 'brand-docker',
   },
   {
-    name: 'docker',
+    name: 'brand-docker',
     description: 'A docker image',
-    color: palette.docker,
+    color: 'brand-docker',
   },
 ]
 
@@ -138,148 +88,153 @@ export const Tags: Tag[] = [
     // TODO: Remove in v1. Replaced with prefixed version
     name: 'vulnerable',
     description: 'Vulnerable images',
-    color: palette.negative,
+    color: 'negative',
   },
   {
     name: 'vulnerability:critical',
     description: 'Critical severity vulnerabilities discovered',
-    color: palette.negative,
+    color: 'negative',
   },
   {
     name: 'vulnerability:high',
     description: 'High severity vulnerabilities discovered',
-    color: palette.negative,
+    color: 'negative',
   },
 
   // Outdated, failure status
   {
     name: 'outdated',
     description: 'Outdated images',
-    color: palette.negative,
+    color: 'negative',
   },
   {
     // TODO: Remove in v1. Replaced with prefixed version
     name: 'failed',
     description: 'Failed images',
-    color: palette.negative,
+    color: 'negative',
   },
   {
     name: 'status:failed',
     description: 'Failed images',
-    color: palette.negative,
+    color: 'negative',
   },
   {
     name: 'status:incomplete',
     description: 'Incomplete information',
-    color: palette.warning,
+    color: 'warning',
   },
 
   // Security warnings
   {
     name: 'vulnerability:medium',
     description: 'Medium severity vulnerabilities discovered',
-    color: palette.warning,
+    color: 'warning',
   },
   {
     name: 'vulnerability:low',
     description: 'Medium severity vulnerabilities discovered',
-    color: palette.warning,
+    color: 'warning',
   },
   {
     name: 'risk:high',
     description: 'High risk project',
-    color: palette.negative,
+    color: 'negative',
   },
   {
     name: 'risk:medium',
     description: 'Medium risk project',
-    color: palette.warning,
+    color: 'warning',
   },
   {
     name: 'vulnerability:unspecified',
     description: 'Unspecified severity vulnerabilities discovered',
-    color: palette.maybeWarning,
+    color: 'maybe-warning',
   },
 
   // Bump
   {
     name: 'bump:major',
     description: 'Major update',
-    color: palette.major,
+    color: 'major',
   },
   {
     name: 'bump:minor',
     description: 'Minor update',
-    color: palette.minor,
+    color: 'minor',
   },
   {
     name: 'bump:patch',
     description: 'Patch update',
-    color: palette.patch,
+    color: 'patch',
   },
   {
     // TODO: Remove in v1. Replaced with prefixed version
     name: 'major',
     description: 'Major update',
-    color: palette.major,
+    color: 'major',
   },
   {
     // TODO: Remove in v1. Replaced with prefixed version
     name: 'minor',
     description: 'Minor update',
-    color: palette.minor,
+    color: 'minor',
   },
   {
     // TODO: Remove in v1. Replaced with prefixed version
     name: 'patch',
     description: 'Patch update',
-    color: palette.patch,
+    color: 'patch',
   },
 
   // Status
   {
     name: 'up-to-date',
     description: 'Up-to-date images',
-    color: palette.positive,
+    color: 'positive',
   },
   {
     name: 'unprocessed',
     description: 'Unprocessed images',
-    color: palette.warning,
+    color: 'warning',
   },
 
   // Security information
   {
     name: 'risk:low',
     description: 'Low risk project',
-    color: palette.blue,
+    color: 'accent',
   },
   {
     name: 'attestation',
     description: 'This image contains attestations',
-    color: palette.blue,
+    color: 'accent',
   },
   {
     name: 'sbom',
     description: 'This image contains an SBOM',
-    color: palette.positive,
+    color: 'positive',
   },
 
   // VCS
   {
     name: 'ghcr',
     description: 'A ghcr image',
-    color: palette.github,
+    color: 'brand-github',
   },
   {
     name: 'github',
     description: 'A github project',
-    color: palette.github,
+    color: 'brand-github',
   },
   {
     name: 'gitlab',
     description: 'A gitlab project',
-    color: palette.gitlab,
+    color: 'brand-gitlab',
+  },
+  {
+    name: 'quay',
+    description: 'A quay project',
+    color: 'brand-quay',
   },
 
   // Deployment information
@@ -288,7 +243,7 @@ export const Tags: Tag[] = [
   {
     name: 'namespace:*',
     description: 'A namespace',
-    color: palette.blue,
+    color: 'accent',
   },
 ]
 

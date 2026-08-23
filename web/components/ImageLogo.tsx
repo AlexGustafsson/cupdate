@@ -48,8 +48,8 @@ export function ImageLogo({
         />
       )}
       {(!src || isError) && (
-        <div className="flex items-center justify-center w-full h-full rounded-sm bg-blue-400 dark:bg-blue-700">
-          <SimpleIconsOci className="w-2/3 h-2/3 text-white dark:text-[#dddddd]" />
+        <div className="flex items-center justify-center w-full h-full rounded-sm bg-accent">
+          <SimpleIconsOci className="w-2/3 h-2/3 text-accent-fg" />
         </div>
       )}
     </div>

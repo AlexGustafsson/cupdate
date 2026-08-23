@@ -186,7 +186,7 @@ export function ImagePage(): JSX.Element {
                 )}{' '}
               </p>
               <InfoTooltip
-                icon={<FluentWarning16Filled className="text-yellow-600" />}
+                icon={<FluentWarning16Filled className="text-warning" />}
               >
                 The latest version hasn't been identified. This could be due to
                 the image not being processed yet, not being available, the
@@ -203,9 +203,9 @@ export function ImagePage(): JSX.Element {
             </p>
           ) : (
             <>
-              <FluentChevronDown20Regular className="text-red-600" />
+              <FluentChevronDown20Regular className="text-negative" />
               <p
-                className="font-medium text-red-600 max-w-[15ch] truncate"
+                className="font-medium text-negative max-w-[15ch] truncate"
                 title={fullVersion(image.value.reference)}
               >
                 {formattedVersion(
@@ -214,7 +214,7 @@ export function ImagePage(): JSX.Element {
                 )}
               </p>
               <p
-                className="font-medium ml-4 text-green-600 max-w-[15ch] truncate"
+                className="font-medium ml-4 text-positive max-w-[15ch] truncate"
                 title={fullVersion(image.value.latestReference)}
               >
                 {image.value.latestReference
@@ -224,7 +224,7 @@ export function ImagePage(): JSX.Element {
                     )
                   : 'unknown'}
               </p>
-              <FluentChevronUp20Regular className="text-green-600" />
+              <FluentChevronUp20Regular className="text-positive" />
             </>
           )}
         </div>

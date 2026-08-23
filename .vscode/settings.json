@@ -2,5 +2,7 @@
   "yaml.schemas": {
     "https://spec.openapis.org/oas/3.1/schema/2025-02-13": "api.yaml",
     "https://json.schemastore.org/github-issue-config.json": ".github/ISSUE_TEMPLATE/config.yml"
-  }
+  },
+  "colorize.languages": ["css", "svg", "yaml"],
+  "colorize.include": ["web/**/*.css", "web/themes.yaml"]
 }

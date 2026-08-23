@@ -7,6 +7,7 @@ import './main.css'
 import { ApiProvider } from './lib/api/ApiProvider'
 import { ApiClient, DEFAULT_API_ENDPOINT } from './lib/api/api-client'
 import { DemoApiClient } from './lib/api/demo-api-client'
+import { ThemeProvider } from './ThemeProvider'
 
 const apiClient = import.meta.env.VITE_DEMO_MODE
   ? new DemoApiClient()
@@ -27,7 +28,9 @@ if (root) {
     <React.StrictMode>
       <BrowserRouter basename={import.meta.env.VITE_BASE_PATH || '/'}>
         <ApiProvider client={apiClient}>
-          <App />
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
         </ApiProvider>
       </BrowserRouter>
     </React.StrictMode>

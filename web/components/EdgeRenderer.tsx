@@ -93,7 +93,7 @@ export function EdgeRenderer({
           <path
             key={bezier}
             d={bezier}
-            className={`transition-all fill-none stroke-2 stroke-[#ebebeb] dark:stroke-[#333333] ${edges[i].className ?? ''}`}
+            className={`transition-all fill-none stroke-2 stroke-surface-2-stroke ${edges[i].className ?? ''}`}
           />
         ))}
       </g>

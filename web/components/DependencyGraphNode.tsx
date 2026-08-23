@@ -42,21 +42,21 @@ export function DependencyGraphNode({
   let label: ReactNode
   switch (data.domain) {
     case 'oci':
-      label = <SimpleIconsOci className="text-blue-400" />
+      label = <SimpleIconsOci className="text-brand-oci" />
       break
     case 'kubernetes':
-      label = <SimpleIconsKubernetes className="text-blue-400" />
+      label = <SimpleIconsKubernetes className="text-brand-kubernetes" />
       break
     case 'docker':
-      label = <SimpleIconsDocker className="text-blue-500" />
+      label = <SimpleIconsDocker className="text-brand-docker" />
   }
 
   return (
     <div
-      className={`px-4 py-2 cursor-pointer hover:shadow-md transition-all rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333] ${className}`}
+      className={`px-4 py-2 cursor-pointer hover:shadow-md transition-all rounded-md bg-surface-2-bg border-2 border-surface-2-stroke ${className}`}
     >
       <div className="flex">
-        <div className="rounded-full w-12 h-12 flex justify-center items-center bg-gray-100 dark:bg-[#363a3a] shrink-0">
+        <div className="rounded-full w-12 h-12 flex justify-center items-center bg-surface-3-bg shrink-0">
           {label}
         </div>
         <div className="ml-2 grow min-w-0">

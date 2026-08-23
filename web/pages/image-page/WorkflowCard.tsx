@@ -22,35 +22,33 @@ function Job({ data, className }: NodeProps<JobRun>): JSX.Element {
   let status: string
   switch (data.result) {
     case 'succeeded':
-      label = (
-        <FluentCheckmarkCircle20Filled className="text-green-500 dark:text-green-700" />
-      )
+      label = <FluentCheckmarkCircle20Filled className="text-positive" />
       status = `Succeded in ${formatDuration(data.duration)}`
       break
     case 'skipped':
-      label = <FluentCheckmarkCircle20Regular className="text-gray-500" />
+      label = (
+        <FluentCheckmarkCircle20Regular className="text-fg-surface-1-disabled" />
+      )
       status = 'Skipped'
       break
     case 'failed':
-      label = (
-        <FluentDismissCircle20Filled className="text-red-500 dark:text-red-700" />
-      )
+      label = <FluentDismissCircle20Filled className="text-negative" />
       status = `Failed after ${formatDuration(data.duration)}`
   }
 
   return (
     <div
-      className={`px-4 py-2 cursor-pointer hover:shadow-md transition-all rounded-md bg-white dark:bg-[#262626] border-2 border-[#ebebeb] dark:border-[#333333] ${className}`}
+      className={`px-4 py-2 cursor-pointer hover:shadow-md transition-all rounded-md bg-surface-2-bg border-2 border-surface-2-stroke ${className}`}
     >
       <div className="flex">
         <div
-          className={`rounded-full w-12 h-12 flex justify-center items-center ${data.result === 'succeeded' ? 'bg-green-400/20 dark:bg-green-800/20' : data.result === 'skipped' ? 'bg-gray-100 dark:bg-[#363a3a]' : 'bg-red-400/20 dark:bg-red-800/20'} shrink-0`}
+          className={`rounded-full w-12 h-12 flex justify-center items-center ${data.result === 'succeeded' ? 'bg-positive/20' : data.result === 'skipped' ? 'bg-surface-2-bg-disabled' : 'bg-negative/20'} shrink-0`}
         >
           {label}
         </div>
         <div className="ml-2 grow min-w-0">
           <div className="text-lg font-bold truncate">{data.jobName}</div>
-          <div className="text-gray-500 truncate">{status}</div>
+          <div className="text-fg-surface-1-disabled truncate">{status}</div>
         </div>
       </div>
     </div>
@@ -71,17 +69,15 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
   let icon: ReactNode
   switch (stepRun.result) {
     case 'succeeded':
-      icon = (
-        <FluentCheckmarkCircle20Filled className="text-green-500 dark:text-green-700" />
-      )
+      icon = <FluentCheckmarkCircle20Filled className="text-positive" />
       break
     case 'skipped':
-      icon = <FluentCheckmarkCircle20Regular className="text-gray-500" />
+      icon = (
+        <FluentCheckmarkCircle20Regular className="text-fg-surface-1-disabled" />
+      )
       break
     case 'failed':
-      icon = (
-        <FluentDismissCircle20Filled className="text-red-500 dark:text-red-700" />
-      )
+      icon = <FluentDismissCircle20Filled className="text-negative" />
   }
 
   return (
@@ -100,7 +96,7 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
         </div>
       </div>
       {stepRun.error && (
-        <pre className="p-4 rounded-lg bg-[#fafafa] dark:bg-[#121212] text-xs overflow-x-scroll">
+        <pre className="p-4 rounded-lg surface-0-bg-bg text-xs overflow-x-scroll">
           <code>{stepRun.error}</code>
         </pre>
       )}
@@ -138,10 +134,10 @@ function JobRunDialog({
     // biome-ignore lint/a11y/useKeyWithClickEvents: The dialog element already handles ESC
     <dialog
       ref={ref}
-      className="starting:backdrop:bg-black/0 backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-transparent m-auto backdrop:transition-colors"
+      className="starting:backdrop:bg-backdrop/0 backdrop:bg-backdrop/20 backdrop:backdrop-blur-sm bg-transparent m-auto backdrop:transition-colors"
       onClick={(e) => e.target === ref.current && ref.current.close()}
     >
-      <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll">
+      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll">
         <p className="font-bold">{jobRun?.jobName}</p>
         <p className="text-sm opacity-60">{status}</p>
         <div className="mt-4 flex flex-col gap-y-4 overflow-y-scroll">
@@ -209,7 +205,7 @@ export function WorkflowCard({
     ...edge,
     className: hoveredNode
       ? [edge.start.nodeId, edge.end.nodeId].includes(hoveredNode)
-        ? 'stroke-4 stroke-blue-400 dark:stroke-blue-700 ease-linear'
+        ? 'stroke-4 !stroke-accent ease-linear'
         : 'ease-linear opacity-50'
       : 'ease-linear',
   }))

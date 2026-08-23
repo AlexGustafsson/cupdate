@@ -58,7 +58,7 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
       className="starting:backdrop:bg-black/0 backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-transparent m-auto backdrop:transition-all"
       onClick={(e) => e.target === ref.current && ref.current.close()}
     >
-      <div className="rounded-lg bg-white dark:bg-[#1e1e1e] px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll">
+      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll">
         <p className="font-bold">
           {graphNode
             ? titles[graphNode.domain]?.[graphNode.type] || graphNode.type
@@ -182,7 +182,7 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
     ...edge,
     className: hoveredNode
       ? [edge.start.nodeId, edge.end.nodeId].includes(hoveredNode)
-        ? 'stroke-4 stroke-blue-400 dark:stroke-blue-700 ease-linear'
+        ? 'stroke-4 !stroke-accent ease-linear'
         : 'ease-linear opacity-50'
       : 'ease-linear',
   }))

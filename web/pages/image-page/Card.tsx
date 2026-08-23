@@ -16,7 +16,7 @@ export function TabAction({ action }: TabActionProps): JSX.Element | undefined {
           rel="noreferrer"
           href={action.href}
           title={action.title}
-          className="ml-1 rounded p-1 focus:bg-[#f5f5f5] dark:focus:bg-[#262626] hover:bg-[#f5f5f5] dark:hover:bg-[#262626] cursor-pointer"
+          className="ml-1 rounded p-1 focus:bg-surface-2-bg hover:bg-surface-2-bg cursor-pointer"
           tabIndex={0}
         >
           <FluentOpen16Regular />
@@ -47,14 +47,14 @@ export function Tab({
   return (
     <div
       role="tablist"
-      className={`flex-shrink-0 px-1 py-2 border-b-2 ${active ? 'border-blue-400 dark:border-blue-700' : 'border-transparent'}`}
+      className={`flex-shrink-0 px-1 py-2 border-b-2 ${active ? 'border-accent' : 'border-transparent'}`}
     >
       <button
         type="button"
         role="tab"
         onClick={onClick}
         disabled={disabled}
-        className="flex items-center font-semibold text-sm rounded p-1 enabled:hover:bg-[#f5f5f5] enabled:focus:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] dark:enabled:focus:bg-[#262626] enabled:cursor-pointer"
+        className="flex items-center font-semibold text-sm rounded p-1 enabled:hover:bg-surface-2-bg enabled:focus:bg-surface-2-bg enabled:cursor-pointer"
         tabIndex={0}
       >
         {icon}
@@ -110,10 +110,10 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
   }, [persistenceKey, showContent])
 
   return (
-    <div className="rounded-lg bg-white dark:bg-[#1e1e1e] shadow">
+    <div className="rounded-lg bg-surface-1-bg shadow">
       {/* Header */}
       <div
-        className={`sticky z-50 top-[64px] bg-white dark:bg-[#1e1e1e] flex items-center w-full ${showContent ? 'rounded-t-lg border-b border-[#e5e5e5] dark:border-[#333333] mb-2' : 'rounded-lg'}`}
+        className={`sticky z-50 top-[64px] bg-surface-1-bg flex items-center w-full ${showContent ? 'rounded-t-lg border-b border-surface-1-stroke mb-2' : 'rounded-lg'}`}
       >
         {/* Tabs */}
         <div className="flex items-center flex-grow px-2 max-w-full overflow-auto">
@@ -138,7 +138,7 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
           <button
             type="button"
             onClick={() => setShowContent((current) => !current)}
-            className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:focus:bg-[#f5f5f5] dark:enabled:focus:bg-[#262626] enabled:hover:bg-[#f5f5f5] dark:enabled:hover:bg-[#262626] enabled:cursor-pointer"
+            className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:focus:bg-surface-2-bg enabled:hover:bg-surface-2-bg enabled:cursor-pointer"
             tabIndex={0}
           >
             {showContent ? (
