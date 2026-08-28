@@ -31,24 +31,33 @@ export function TagSelect({
   className?: string
 }>): JSX.Element {
   const menuRef = useRef<HTMLDivElement>(null)
+  const selectRef = useRef<HTMLDivElement>(null)
 
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       const handler = (e: MouseEvent) => {
-        if (!menuRef.current) {
+        if (!menuRef.current || !selectRef.current) {
           return
         }
 
-        const { offsetLeft, offsetWidth, offsetTop, offsetHeight } =
-          menuRef.current
-        if (
-          e.offsetX < offsetLeft ||
-          e.offsetX > offsetLeft + offsetWidth ||
-          e.offsetY < offsetTop ||
-          e.offsetY > offsetTop + offsetHeight
-        ) {
+        const outsideOfMenu =
+          e.offsetX < menuRef.current.offsetLeft ||
+          e.offsetX >
+            menuRef.current.offsetLeft + menuRef.current.offsetWidth ||
+          e.offsetY < menuRef.current.offsetTop ||
+          e.offsetY > menuRef.current.offsetTop + menuRef.current.offsetHeight
+
+        const outsideOfSelect =
+          e.offsetX < selectRef.current.clientLeft ||
+          e.offsetX >
+            selectRef.current.clientLeft + selectRef.current.clientWidth ||
+          e.offsetY < selectRef.current.clientTop ||
+          e.offsetY >
+            selectRef.current.clientTop + selectRef.current.clientHeight
+
+        if (outsideOfMenu && outsideOfSelect) {
           setIsOpen(false)
         }
       }
@@ -118,6 +127,7 @@ export function TagSelect({
 
   return (
     <div
+      ref={selectRef}
       onMouseDown={() => setIsOpen(true)}
       onKeyDown={(e) => {
         if (e.key === ' ' || e.key === 'enter') {
