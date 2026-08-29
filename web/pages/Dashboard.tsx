@@ -344,7 +344,7 @@ export function Dashboard(): JSX.Element {
             >
               <ImageCard
                 tabIndex={0}
-                className={`focus:outline-1 outline-accent cursor-pointer dark:transition-colors group-focus/link:bg-surface-2-bg ${layout === 'list' ? '' : 'h-[150px]'}`}
+                className={`focus:outline-1 outline-accent cursor-pointer ${layout === 'list' ? '' : 'h-[150px]'}`}
                 onKeyDown={(e) => {
                   if (e.key === ' ' || e.key.toLowerCase() === 'enter') {
                     e.preventDefault()

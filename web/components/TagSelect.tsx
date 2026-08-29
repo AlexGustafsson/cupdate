@@ -158,10 +158,7 @@ export function TagSelect({
         />
       </svg>
       {isOpen && (
-        <div
-          ref={menuRef}
-          className="absolute -top-4 -left-4 p-2 z-150 text-black dark:text-[#dddddd]"
-        >
+        <div ref={menuRef} className="absolute -top-4 -left-4 p-2 z-150">
           <div className="flex max-h-64 overflow-y-auto flex-col gap-y-2 py-2 px-3 pr-6 bg-surface-2-bg border border-surface-2-stroke rounded-lg w-max shadow">
             {tags
               .toSorted((a, b) =>
