@@ -32,7 +32,7 @@ export function App(): JSX.Element {
           )}
         </div>
         <div className="justify-self-center">
-          <Link to="/">
+          <Link to="/" className="cursor-pointer">
             <h1 className="text-xl font-medium">Cupdate</h1>
           </Link>
         </div>
