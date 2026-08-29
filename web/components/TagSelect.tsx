@@ -81,12 +81,10 @@ export function TagSelect({
   // Use the nice native multi-select input on iOS
   if (IOS) {
     return (
-      <div
-        className={`relative border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs focus:shadow-md bg-surface-1-bg ${className || ''}`}
-      >
+      <div className={`select relative ${className || ''}`}>
         <select
           multiple
-          className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none w-full"
+          className="pl-3 pr-8 py-2 text-sm cursor-pointer w-full"
           value={filter.tags}
           onChange={(e) =>
             onChange({
@@ -138,7 +136,7 @@ export function TagSelect({
       }}
       role="menu"
       tabIndex={0}
-      className={`pl-3 pr-8 py-2 relative border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs focus:shadow-md bg-surface-1-bg cursor-pointer ${className || ''}`}
+      className={`select pl-3 pr-8 py-2 relative cursor-pointer ${className || ''}`}
     >
       <p className="text-sm">
         {filter.tags.length > 0 ? `${filter.tags.length} selected` : 'Tags'}

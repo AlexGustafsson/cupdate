@@ -26,9 +26,41 @@
     outline: none;
   }
 
-  input,
   select {
-    background: none;
+    appearance: none;
+  }
+
+  /* TODO: Use styled selects after macOS 27 is released. */
+  input,
+  .select,
+  button {
+    background: var(--surface-1-bg);
+    border: 1px solid var(--surface-1-stroke);
+    border-radius: 4px;
+    transition: colors 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  }
+
+  input:focus,
+  .select:focus,
+  .select:has(select:focus),
+  button:focus {
+    outline: 1px solid var(--color-accent);
+  }
+
+  button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  button.flat {
+    border: none;
   }
 
   body {

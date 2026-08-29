@@ -6,12 +6,10 @@ export function Select({
   ...rest
 }: PropsWithChildren<SelectHTMLAttributes<HTMLSelectElement>>): JSX.Element {
   return (
-    <div
-      className={`relative border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs focus:shadow-md bg-surface-1-bg ${className || ''}`}
-    >
+    <div className={`select relative ${className || ''}`}>
       <select
         {...rest}
-        className="pl-3 pr-8 py-2 text-sm cursor-pointer appearance-none focus:bg-surface-2-bg w-full"
+        className="pl-3 pr-8 py-2 text-sm cursor-pointer w-full"
       >
         {children}
       </select>

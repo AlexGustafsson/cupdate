@@ -238,7 +238,7 @@ export function Dashboard(): JSX.Element {
             onKeyUp={(e) =>
               e.key === 'Enter' ? e.currentTarget.blur() : undefined
             }
-            className="bg-surface-1-bg pl-3 pr-8 py-2 text-sm rounded-sm flex-grow shrink-0 w-full border border-surface-1-stroke"
+            className="pl-3 pr-8 py-2 text-sm flex-grow shrink-0 w-full"
           />
           {/* Filters */}
           <div className="grid grid-cols-3 gap-x-2 w-full">
@@ -270,11 +270,14 @@ export function Dashboard(): JSX.Element {
           <div className="flex flex-row items-center justify-between gap-x-2 w-full">
             {/* Left */}
             <div className="flex flex-row items-center justify-end gap-x-2">
-              <Link
-                to="/settings"
-                className="border flex items-center border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke hover:bg-surface-2-bg shadow-xs bg-surface-1-bg h-[38px] px-2 cursor-pointer focus:bg-surface-1-bg"
-              >
-                <FluentSettings20Regular />
+              <Link to="/settings">
+                <button
+                  tabIndex={0}
+                  type="button"
+                  className="flex items-center h-[38px] px-2"
+                >
+                  <FluentSettings20Regular />
+                </button>
               </Link>
             </div>
             {/* Right */}
@@ -283,7 +286,7 @@ export function Dashboard(): JSX.Element {
                 <button
                   type="button"
                   title="Enable list view"
-                  className="pl-2 pr-1 cursor-pointer focus:bg-surface-1-bg"
+                  className="flat pl-2 pr-1"
                   onClick={() => setLayout('list')}
                   tabIndex={0}
                 >
@@ -296,7 +299,7 @@ export function Dashboard(): JSX.Element {
                 <button
                   type="button"
                   title="Enable grid view"
-                  className="pl-1 pr-2 cursor-pointer focus:bg-surface-1-bg"
+                  className="flat pl-1 pr-2"
                   onClick={() => setLayout('grid')}
                   tabIndex={0}
                 >
@@ -310,7 +313,7 @@ export function Dashboard(): JSX.Element {
               <button
                 type="button"
                 title="Refresh images"
-                className="border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke shadow-xs bg-surface-1-bg h-[38px] px-2 cursor-pointer focus:bg-surface-1-bg"
+                className="h-[38px] px-2"
                 tabIndex={0}
                 onClick={() => {
                   refreshImages()

@@ -72,7 +72,7 @@ export function ProcessStatus({
       >
         {(status === 'idle' || status === 'in-flight') && (
           <FluentArrowSync16Regular
-            className={`ml-1 hover:opacity-90 active:opacity-80 disabled:opacity-70 ${status === 'in-flight' ? 'animate-spin' : ''}`}
+            className={`hover:opacity-90 active:opacity-80 disabled:opacity-70 ${status === 'in-flight' ? 'animate-spin' : ''}`}
           />
         )}
         {status === 'failed' && (
