@@ -14,9 +14,9 @@ export function InfoTooltip({
       {icon || <FluentInfo16Regular />}
       <span
         role="tooltip"
-        className="starting:opacity-0 transition-opacity absolute hidden group-hover/tooltip:block bottom-full p-2 left-2/4 -translate-x-2/4 z-200 text-surface-0-fg"
+        className="starting:opacity-0 transition-opacity absolute hidden group-hover/tooltip:block bottom-full p-2 left-2/4 -translate-x-2/4 z-200"
       >
-        <div className="p-2 bg-white dark:bg-[#292929] border-solid border-[1px] border-[#d9d9d9] dark:border-[#454545] rounded-sm w-60 text-xs text-left font-normal shadow-around">
+        <div className="p-2 bg-surface-2-bg border-solid border-[1px] border-surface-2-stroke rounded-sm w-60 text-xs text-left font-normal shadow-around">
           {children}
         </div>
       </span>
