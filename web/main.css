@@ -51,16 +51,107 @@
   .select:has(select:focus),
   button:focus {
     outline: 1px solid var(--color-accent);
+    /**
+     * Make sure that the outline is visible even if the sibling has a border
+     * that would normally get rendered above the outline.
+     */
+    position: relative;
+    z-index: 100;
   }
 
   button {
     cursor: pointer;
     display: flex;
     align-items: center;
+    justify-content: center;
   }
 
-  button.flat {
+  button:active {
+    background: var(--surface-2-bg-disabled);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    background: var(--surface-2-bg-disabled);
+  }
+
+  button.btn-flat {
     border: none;
+    box-shadow: none;
+  }
+
+  button.btn-small.btn-square {
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  button.btn-medium.btn-square {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    line-height: 24px;
+  }
+
+  button.btn-large.btn-square {
+    width: 38px;
+    height: 38px;
+    line-height: 38px;
+  }
+
+  button.btn-inline.btn-square {
+    margin-left: 1ch;
+    width: 1lh;
+    height: 1lh;
+  }
+
+  .button-group {
+    display: flex;
+    flex-direction: row;
+
+    background: var(--surface-1-bg);
+    border: 1px solid var(--surface-1-stroke);
+    border-radius: 4px;
+    transition: colors 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+
+    /* flex flex-row divide-x divide-surface-2-stroke rounded-sm bg-surface-2-bg shadow-md border border-surface-2-stroke */
+  }
+
+  .button-group button {
+    background: none;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .button-group button:disabled {
+    cursor: not-allowed;
+    background: var(--surface-2-bg-disabled);
+  }
+
+  .button-group button:active {
+    background: var(--surface-2-bg-disabled);
+  }
+
+  .button-group :nth-child(1) {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .button-group :last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  .button-group :nth-child(n + 2) {
+    border-left: 1px solid var(--surface-1-stroke);
   }
 
   body {

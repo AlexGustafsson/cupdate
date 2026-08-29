@@ -16,10 +16,14 @@ export function TabAction({ action }: TabActionProps): JSX.Element | undefined {
           rel="noreferrer"
           href={action.href}
           title={action.title}
-          className="ml-1 rounded p-1 focus:bg-surface-2-bg hover:bg-surface-2-bg cursor-pointer"
-          tabIndex={0}
         >
-          <FluentOpen16Regular />
+          <button
+            type="button"
+            className="btn-flat btn-small btn-square ml-1"
+            tabIndex={0}
+          >
+            <FluentOpen16Regular />
+          </button>
         </a>
       )
     default:
@@ -54,7 +58,7 @@ export function Tab({
         role="tab"
         onClick={onClick}
         disabled={disabled}
-        className="flex items-center font-semibold text-sm rounded p-1 enabled:hover:bg-surface-2-bg enabled:focus:bg-surface-2-bg enabled:cursor-pointer"
+        className="btn-flat disabled:cursor-default disabled:bg-[initial] font-semibold text-sm p-1"
         tabIndex={0}
       >
         {icon}
@@ -133,21 +137,19 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
           ))}
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center p-2">
-          <button
-            type="button"
-            onClick={() => setShowContent((current) => !current)}
-            className="flex items-center gap-x-2 font-semibold text-sm rounded p-1 enabled:focus:bg-surface-2-bg enabled:hover:bg-surface-2-bg enabled:cursor-pointer"
-            tabIndex={0}
-          >
-            {showContent ? (
-              <FluentChevronUp16Regular />
-            ) : (
-              <FluentChevronDown16Regular />
-            )}
-          </button>
-        </div>
+        {/* Collapse */}
+        <button
+          type="button"
+          onClick={() => setShowContent((current) => !current)}
+          className="btn-flat btn-medium btn-square mr-2"
+          tabIndex={0}
+        >
+          {showContent ? (
+            <FluentChevronUp16Regular />
+          ) : (
+            <FluentChevronDown16Regular />
+          )}
+        </button>
       </div>
 
       {/* Content */}

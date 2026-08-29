@@ -65,7 +65,7 @@ export function ProcessStatus({
       <p>{status === 'successful' && 'Image is scheduled for processing'}</p>
       <button
         type="button"
-        className="cursor-pointer"
+        className="btn-inline btn-square"
         title={status === 'idle' ? 'Schedule update' : ''}
         onClick={onSchedule}
         disabled={status !== 'idle'}

@@ -11,6 +11,8 @@ import { FluentWarning16Filled } from './icons/fluent-warning-16-filled'
 import { WordBreak } from './WordBreak'
 
 export type ImageCardProps = {
+  tabIndex?: number
+  onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>
   reference: string
   name: string
   currentVersion: string
@@ -27,6 +29,8 @@ export type ImageCardProps = {
 }
 
 export function ImageCard({
+  tabIndex,
+  onKeyDown,
   reference,
   name,
   currentVersion,
@@ -44,8 +48,11 @@ export function ImageCard({
   const navigate = useNavigate()
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Keyboard navigation
     <div
       className={`flex gap-x-4 bg-surface-1-bg rounded-lg shadow-sm ${compact ? 'p-3' : 'p-4 md:p-6'} ${className || ''}`}
+      tabIndex={tabIndex}
+      onKeyDown={onKeyDown}
     >
       <ImageLogo reference={reference} className="w-[48px] h-[48px]" />
       <div className="flex flex-col w-full">
@@ -62,6 +69,7 @@ export function ImageCard({
               tags.includes('vulnerability:high')) && (
               <InfoTooltip
                 icon={<FluentShieldError16Filled className="text-negative" />}
+                className="ml-1"
               >
                 {vulnerabilities}{' '}
                 {vulnerabilities === 1 ? 'vulnerability' : 'vulnerabilities'}{' '}
@@ -106,6 +114,7 @@ export function ImageCard({
                 {!latestVersion && (
                   <InfoTooltip
                     icon={<FluentWarning16Filled className="text-warning" />}
+                    className="ml-1"
                   >
                     The latest version hasn't been identified. This could be due
                     to the image not being processed yet, not being available,

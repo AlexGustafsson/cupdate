@@ -26,16 +26,18 @@ export function SettingsPage(): JSX.Element {
               label: 'Theming',
               content: (
                 <>
-                  <div className="grid justify-center grid-cols-3">
+                  <div className="grid justify-center grid-cols-3 space-x-2 space-y-2">
                     {themes.map((theme) => (
                       <button
                         type="button"
                         key={theme.name}
                         onClick={() => setTheme(theme.name)}
-                        className="flex flex-col items-center flex-shrink-1 cursor-pointer"
+                        className="flex-col p-2"
+                        disabled={theme.name === currentTheme}
+                        tabIndex={0}
                       >
                         <div
-                          className={`bg-surface-2-bg p-2 m-2 rounded-sm border ${theme.name === currentTheme ? 'border-accent ' : 'border-surface-1-stroke'}`}
+                          className={`bg-surface-2-bg p-2 m-2 rounded-sm border border-surface-1-stroke`}
                         >
                           <div className={`theme-${theme.name} w-full`}>
                             <ThemePreview className="w-full" />

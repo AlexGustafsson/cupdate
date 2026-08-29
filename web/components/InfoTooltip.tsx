@@ -5,9 +5,12 @@ import { FluentInfo16Regular } from './icons/fluent-info-16-regular'
 export function InfoTooltip({
   children,
   icon,
-}: PropsWithChildren<{ icon?: JSX.Element }>): JSX.Element {
+  className,
+}: PropsWithChildren<{ icon?: JSX.Element; className?: string }>): JSX.Element {
   return (
-    <span className="inline-block align-middle relative group/tooltip ml-1">
+    <span
+      className={`inline-block align-middle relative group/tooltip ${className ?? ''}`}
+    >
       {icon || <FluentInfo16Regular />}
       <span
         role="tooltip"

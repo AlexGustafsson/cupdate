@@ -128,7 +128,7 @@ export function TagSelect({
       ref={selectRef}
       onMouseDown={() => setIsOpen(true)}
       onKeyDown={(e) => {
-        if (e.key === ' ' || e.key === 'enter') {
+        if (e.key === ' ' || e.key.toLowerCase() === 'enter') {
           setIsOpen(true)
           e.preventDefault()
           return false

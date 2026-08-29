@@ -236,7 +236,9 @@ export function Dashboard(): JSX.Element {
             value={queryInput}
             onChange={(e) => setQueryInput(e.target.value)}
             onKeyUp={(e) =>
-              e.key === 'Enter' ? e.currentTarget.blur() : undefined
+              e.key.toLowerCase() === 'enter'
+                ? e.currentTarget.blur()
+                : undefined
             }
             className="pl-3 pr-8 py-2 text-sm flex-grow shrink-0 w-full"
           />
@@ -274,7 +276,7 @@ export function Dashboard(): JSX.Element {
                 <button
                   tabIndex={0}
                   type="button"
-                  className="flex items-center h-[38px] px-2"
+                  className="btn-large btn-square"
                 >
                   <FluentSettings20Regular />
                 </button>
@@ -282,11 +284,11 @@ export function Dashboard(): JSX.Element {
             </div>
             {/* Right */}
             <div className="flex flex-row items-center justify-end gap-x-2">
-              <div className="grid grid-cols-2 divide-x divide-surface-1-stroke dark:divide-surface-1-stroke border border-surface-1-stroke rounded-sm transition-colors focus:border-surface-1-stroke hover:border-surface-1-stroke hover:bg-surface-2-bg shadow-xs focus:shadow-md bg-surface-1-bg h-[38px]">
+              <div className="button-group">
                 <button
                   type="button"
                   title="Enable list view"
-                  className="flat pl-2 pr-1"
+                  className="btn-large btn-square"
                   onClick={() => setLayout('list')}
                   tabIndex={0}
                 >
@@ -299,7 +301,7 @@ export function Dashboard(): JSX.Element {
                 <button
                   type="button"
                   title="Enable grid view"
-                  className="flat pl-1 pr-2"
+                  className="btn-large btn-square"
                   onClick={() => setLayout('grid')}
                   tabIndex={0}
                 >
@@ -313,7 +315,7 @@ export function Dashboard(): JSX.Element {
               <button
                 type="button"
                 title="Refresh images"
-                className="h-[38px] px-2"
+                className="btn-large btn-square"
                 tabIndex={0}
                 onClick={() => {
                   refreshImages()
@@ -339,11 +341,20 @@ export function Dashboard(): JSX.Element {
               key={x.reference}
               to={`image?reference=${encodeURIComponent(x.reference)}`}
               state={window.location.href}
-              tabIndex={0}
-              className="group/link"
             >
               <ImageCard
-                className={`group/link-focus:shadow-md hover:shadow-md transition-shadow-sm cursor-pointer dark:transition-colors group-focus/link:bg-surface-2-bg ${layout === 'list' ? '' : 'h-[150px]'}`}
+                tabIndex={0}
+                className={`focus:outline-1 outline-accent cursor-pointer dark:transition-colors group-focus/link:bg-surface-2-bg ${layout === 'list' ? '' : 'h-[150px]'}`}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key.toLowerCase() === 'enter') {
+                    e.preventDefault()
+                    navigate(
+                      `image?reference=${encodeURIComponent(x.reference)}`,
+                      { state: window.location.href }
+                    )
+                    return false
+                  }
+                }}
                 reference={x.reference}
                 name={name(x.reference)}
                 currentVersion={formattedVersion(x.reference, x.annotations)}
@@ -381,20 +392,26 @@ export function Dashboard(): JSX.Element {
               images.value.images.length}{' '}
             of {images.value.pagination.total} entries
           </p>
-          <div className="flex items-center justify-center text-sm">
+          <div className="button-group">
             {pages.map((page) =>
-              page.index === undefined ? (
-                <p key={page.index} className="m-1 cursor-default">
-                  {page.label}
-                </p>
-              ) : (
-                <Link
+              page.index === undefined || page.current ? (
+                <button
                   key={page.index}
-                  to={page.href}
-                  tabIndex={0}
-                  className={`m-1 w-6 h-6 text-center text-accent-fg leading-6 rounded-sm ${page.current ? 'bg-accent' : 'bg-accent-disabled focus:bg-accent-highlight hover:bg-accent-highlight'}`}
+                  type="button"
+                  disabled
+                  className="btn-medium btn-square"
                 >
-                  <p>{page.label}</p>
+                  {page.label}
+                </button>
+              ) : (
+                <Link key={page.index} to={page.href}>
+                  <button
+                    type="button"
+                    className="btn-medium btn-square"
+                    tabIndex={0}
+                  >
+                    {page.label}
+                  </button>
                 </Link>
               )
             )}

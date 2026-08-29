@@ -187,6 +187,7 @@ export function ImagePage(): JSX.Element {
               </p>
               <InfoTooltip
                 icon={<FluentWarning16Filled className="text-warning" />}
+                className="ml-1"
               >
                 The latest version hasn't been identified. This could be due to
                 the image not being processed yet, not being available, the

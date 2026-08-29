@@ -151,29 +151,30 @@ export function Surface({
         ref={controlsRef}
         className="absolute right-0 top-0 gap-x-2 flex flex-row pb-4"
       >
-        <div className="rounded-sm bg-surface-2-bg shadow-md border border-surface-2-stroke hover:bg-surface-2-bg">
-          <button
-            type="button"
-            className="cursor-pointer p-2"
-            onClick={() => onCenter()}
-          >
-            <FluentFullScreenMaximize16Regular />
-          </button>
-        </div>
-        <div className="flex flex-row divide-x divide-surface-2-stroke rounded-sm bg-surface-2-bg shadow-md border border-surface-2-stroke">
+        <button
+          type="button"
+          className="btn-large btn-square"
+          onClick={() => onCenter()}
+          tabIndex={0}
+        >
+          <FluentFullScreenMaximize16Regular />
+        </button>
+        <div className="button-group">
           <button
             type="button"
             disabled={Math.abs(scale - scaleToFit) < 0.001}
-            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-surface-2-bg-disabled hover:bg-surface-2-bg"
+            className="btn-flat btn-large btn-square"
             onClick={() => onZoom(-1)}
+            tabIndex={0}
           >
             <FluentSubtract16Regular />
           </button>
           <button
             type="button"
             disabled={scale === MAX_SCALE}
-            className="p-2 cursor-pointer disabled:cursor-not-allowed disabled:bg-surface-2-bg-disabled hover:bg-surface-2-bg"
+            className="btn-flat btn-large btn-square"
             onClick={() => onZoom(1)}
+            tabIndex={0}
           >
             <FluentAdd16Regular />
           </button>

@@ -38,7 +38,5 @@
   --color-brand-oci: light-dark(#04a5e5, #89dceb);
 
   --color-accent: light-dark(#1e66f5, #89b4fa);
-  --color-accent-disabled: light-dark(#7287fd, #b4befe);
-  --color-accent-highlight: light-dark(#04a5e5, #74c7ec);
   --color-accent-fg: light-dark(#4c4f69, #1e1e2e);
 }
