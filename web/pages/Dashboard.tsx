@@ -170,7 +170,7 @@ export function Dashboard(): JSX.Element {
         <div className="grid grid-cols-3 sm:grid-cols-5 mt-4">
           <Link
             to="/?tag=outdated"
-            className="rounded-lg focus:bg-surface-1-bg hover:bg-surface-1-bg transition-colors"
+            className="rounded-lg focus:outline-1 outline-accent"
             tabIndex={0}
           >
             <div className="py-2 px-4">
@@ -184,7 +184,7 @@ export function Dashboard(): JSX.Element {
           </Link>
           <Link
             to="/?tag=vulnerability:critical&tag=vulnerability:high&tag=vulnerability:medium&tag=vulnerability:low&tag=vulnerability:unspecified&tagop=or"
-            className="rounded-lg focus:bg-surface-1-bg hover:bg-surface-1-bg transition-colors"
+            className="rounded-lg focus:outline-1 outline-accent"
             tabIndex={0}
           >
             <div className="py-2 px-4">
@@ -198,7 +198,7 @@ export function Dashboard(): JSX.Element {
           </Link>
           <Link
             to="/?tag=status:failed"
-            className="rounded-lg focus:bg-surface-1-bg hover:bg-surface-1-bg transition-colors"
+            className="rounded-lg focus:outline-1 outline-accent"
             tabIndex={0}
           >
             <div className="py-2 px-4">
