@@ -272,3 +272,13 @@ oras push \
   ghcr.io/alexgustafsson/cupdate/demo:latest \
   demo.json:application/json
 ```
+
+## Themes
+
+Cupdate supports themes. Themes can be added by adding a stylesheet to
+`web/public/assets/themes` and adding a reference to it in
+`web/public/assets/index.json`.
+
+PRs for themes are welcome, as are improvements to existing themes. Themes
+affecting something other than colors are generally not welcome as they are
+difficult to maintain over time.
