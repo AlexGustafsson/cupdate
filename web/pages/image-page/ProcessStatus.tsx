@@ -63,24 +63,26 @@ export function ProcessStatus({
           <p>Awaiting processing</p>
         ))}
       <p>{status === 'successful' && 'Image is scheduled for processing'}</p>
-      <button
-        type="button"
-        className="btn-inline btn-square"
-        title={status === 'idle' ? 'Schedule update' : ''}
-        onClick={onSchedule}
-        disabled={status !== 'idle'}
-      >
-        {(status === 'idle' || status === 'in-flight') && (
-          <FluentArrowSync16Regular
-            className={`hover:opacity-90 active:opacity-80 disabled:opacity-70 ${status === 'in-flight' ? 'animate-spin' : ''}`}
-          />
-        )}
-        {status === 'failed' && (
-          <InfoTooltip icon={<FluentWarning16Filled />}>
-            Failed to schedule image. Try again later.
-          </InfoTooltip>
-        )}
-      </button>
+      {status !== 'successful' && (
+        <button
+          type="button"
+          className="btn-inline btn-square"
+          title={status === 'idle' ? 'Schedule update' : ''}
+          onClick={onSchedule}
+          disabled={status !== 'idle'}
+        >
+          {(status === 'idle' || status === 'in-flight') && (
+            <FluentArrowSync16Regular
+              className={`hover:opacity-90 active:opacity-80 disabled:opacity-70 ${status === 'in-flight' ? 'animate-spin' : ''}`}
+            />
+          )}
+          {status === 'failed' && (
+            <InfoTooltip icon={<FluentWarning16Filled />}>
+              Failed to schedule image. Try again later.
+            </InfoTooltip>
+          )}
+        </button>
+      )}
     </div>
   )
 }
