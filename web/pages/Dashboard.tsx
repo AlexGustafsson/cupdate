@@ -172,6 +172,7 @@ export function Dashboard(): JSX.Element {
             to="/?tag=outdated"
             className="rounded-lg focus:outline-1 outline-accent"
             tabIndex={0}
+            title="Filter by outdated"
           >
             <div className="py-2 px-4">
               <p className="text-sm">Outdated</p>
@@ -186,6 +187,7 @@ export function Dashboard(): JSX.Element {
             to="/?tag=vulnerability:critical&tag=vulnerability:high&tag=vulnerability:medium&tag=vulnerability:low&tag=vulnerability:unspecified&tagop=or"
             className="rounded-lg focus:outline-1 outline-accent"
             tabIndex={0}
+            title="Filter by vulnerable"
           >
             <div className="py-2 px-4">
               <p className="text-sm">Vulnerable</p>
@@ -200,6 +202,7 @@ export function Dashboard(): JSX.Element {
             to="/?tag=status:failed"
             className="rounded-lg focus:outline-1 outline-accent"
             tabIndex={0}
+            title="Filter by failed"
           >
             <div className="py-2 px-4">
               <p className="text-sm">Failed</p>
