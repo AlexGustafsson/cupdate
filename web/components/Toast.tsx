@@ -27,7 +27,7 @@ export function Toast({
         {secondaryAction && (
           <button
             type="button"
-            className="text-accent hover:underline cursor-pointer"
+            className="btn-flat p-1 text-accent hover:underline cursor-pointer"
             onClick={() => onSecondaryAction?.()}
           >
             {secondaryAction}
@@ -35,7 +35,7 @@ export function Toast({
         )}
         <button
           type="button"
-          className="text-accent hover:underline cursor-pointer"
+          className="btn-flat p-1 text-accent hover:underline cursor-pointer"
           onClick={() => onPrimaryAction?.()}
         >
           {primaryAction}
