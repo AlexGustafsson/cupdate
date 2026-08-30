@@ -58,19 +58,22 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
       className="starting:backdrop:bg-black/0 backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-transparent m-auto backdrop:transition-all"
       onClick={(e) => e.target === ref.current && ref.current.close()}
     >
-      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll">
-        <p className="font-bold">
+      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll markdown-body">
+        <h3>
           {graphNode
             ? titles[graphNode.domain]?.[graphNode.type] || graphNode.type
-            : ''}
-        </p>
+            : ''}{' '}
+          overview
+        </h3>
         {graphNode?.domain !== 'oci' && (
-          <p className="text-sm opacity-60 break-all">{graphNode?.name}</p>
+          <p>
+            Name: <code className="break-all">{graphNode?.name}</code>
+          </p>
         )}
         {oci && (
           <>
-            <p className="mt-2">Details</p>
-            <ul className="text-sm">
+            <p>Details</p>
+            <ul>
               <li>
                 <code>
                   Registry:{' '}
@@ -96,8 +99,8 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
         )}
         {graphNode?.internalLabels && (
           <>
-            <p className="mt-2">Details</p>
-            <ul className="text-sm">
+            <p>Details</p>
+            <ul>
               {graphNode?.internalLabels &&
                 Object.entries(graphNode.internalLabels).map(([k, v]) => (
                   <li key={`${k}`}>
@@ -111,8 +114,8 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
         )}
         {graphNode?.labels && (
           <>
-            <p className="mt-2">Labels</p>
-            <ul className="text-sm">
+            <p>Labels</p>
+            <ul>
               {graphNode?.labels &&
                 Object.entries(graphNode.labels).map(([k, v]) => (
                   <li key={`${k}`}>
