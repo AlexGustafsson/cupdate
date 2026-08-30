@@ -194,11 +194,12 @@
 
   .markdown-body {
     --fgColor-default: var(--surface-1-fg);
-    --bgColor-default: var(--surface-1-bg);
-    --bgColor-muted: var(--surface-2-bg);
+    --fgColor-accent: var(--color-accent);
+    --bgColor-default: none;
     --borderColor-default: var(--surface-1-stroke);
+    --bgColor-muted: var(--surface-3-bg);
+    --bgColor-neutral-muted: var(--surface-3-bg);
     --borderColor-muted: var(--surface-2-stroke);
-    --bgColor-neutral-muted: var(--surface-2-bg);
   }
 
   .markdown-body li {
