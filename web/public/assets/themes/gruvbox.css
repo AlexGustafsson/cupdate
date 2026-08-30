@@ -10,7 +10,7 @@
 
   --surface-1-bg: light-dark(#ebdbb2, #3c3836);
   --surface-1-fg: light-dark(#3c3836, #ebdbb2);
-  --surface-1-fg-disabled: light-dark(#d5c4a1, #504945);
+  --surface-1-fg-disabled: light-dark(#414141, #bab088);
   --surface-1-stroke: light-dark(#d5c4a1, #504945);
 
   --surface-2-bg: light-dark(#d5c4a1, #504945);

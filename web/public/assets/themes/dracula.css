@@ -10,14 +10,14 @@
 
   --surface-1-bg: #44475a;
   --surface-1-fg: #f8f8f2;
-  --surface-1-fg-disabled: #ff5555;
+  --surface-1-fg-disabled: #bebebb;
   --surface-1-stroke: #6272a4;
 
-  --surface-2-bg: #44475a;
-  --surface-2-bg-disabled: #44475a;
-  --surface-2-stroke: #6272a4;
+  --surface-2-bg: #3e4154;
+  --surface-2-bg-disabled: #3b3e51;
+  --surface-2-stroke: #5f6fa1;
 
-  --surface-3-bg: #44475a;
+  --surface-3-bg: #3b3e51;
 
   --color-positive: #50fa7b;
   --color-negative: #ff5555;
