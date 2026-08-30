@@ -27,7 +27,7 @@ function Job({ data, className }: NodeProps<JobRun>): JSX.Element {
       break
     case 'skipped':
       label = (
-        <FluentCheckmarkCircle20Regular className="text-fg-surface-1-disabled" />
+        <FluentCheckmarkCircle20Regular className="text-surface-1-fg-disabled" />
       )
       status = 'Skipped'
       break
@@ -48,7 +48,7 @@ function Job({ data, className }: NodeProps<JobRun>): JSX.Element {
         </div>
         <div className="ml-2 grow min-w-0">
           <div className="text-lg font-bold truncate">{data.jobName}</div>
-          <div className="text-fg-surface-1-disabled truncate">{status}</div>
+          <div className="text-surface-1-fg-disabled truncate">{status}</div>
         </div>
       </div>
     </div>
@@ -73,7 +73,7 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
       break
     case 'skipped':
       icon = (
-        <FluentCheckmarkCircle20Regular className="text-fg-surface-1-disabled" />
+        <FluentCheckmarkCircle20Regular className="text-surface-1-fg-disabled" />
       )
       break
     case 'failed':
@@ -86,17 +86,17 @@ function StepRunListItem({ stepRun }: StepRunListItemProps): JSX.Element {
         {icon}
         <div className="flex flex-col sm:flex-row sm:items-center w-full">
           <p
-            className={`flex-grow truncate text-sm ${stepRun.result === 'skipped' ? 'opacity-60' : ''}`}
+            className={`flex-grow m-0 truncate text-sm ${stepRun.result === 'skipped' ? 'text-surface-1-fg-disabled' : ''}`}
           >
             {stepRun.stepName}
           </p>
-          <p className="text-nowrap text-sm opacity-60">
+          <p className="text-nowrap m-0 text-sm text-surface-1-fg-disabled">
             {stepRun.duration ? formatDuration(stepRun.duration) : ''}
           </p>
         </div>
       </div>
       {stepRun.error && (
-        <pre className="p-4 rounded-lg surface-0-bg-bg text-xs overflow-x-scroll">
+        <pre className="m-0">
           <code>{stepRun.error}</code>
         </pre>
       )}
@@ -137,10 +137,10 @@ function JobRunDialog({
       className="starting:backdrop:bg-backdrop/0 backdrop:bg-backdrop/20 backdrop:backdrop-blur-sm bg-transparent m-auto backdrop:transition-colors"
       onClick={(e) => e.target === ref.current && ref.current.close()}
     >
-      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll">
-        <p className="font-bold">{jobRun?.jobName}</p>
-        <p className="text-sm opacity-60">{status}</p>
-        <div className="mt-4 flex flex-col gap-y-4 overflow-y-scroll">
+      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll markdown-body">
+        <h3>{jobRun?.jobName}</h3>
+        <h4 className="text-sm text-surface-1-fg-disabled">{status}</h4>
+        <div className="mt-4 flex flex-col gap-y-4">
           {jobRun?.steps
             .filter((x) => x.stepName)
             .map((x, i) => (
