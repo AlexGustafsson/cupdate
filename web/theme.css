@@ -59,10 +59,7 @@
 
     --surface-1-bg: light-dark(#ffffff, #1e1e1e);
     --surface-1-fg: light-dark(#000000, #dddddd);
-    --surface-1-fg-disabled: light-dark(
-      oklch(92.8% 0.006 264.531),
-      oklch(92.8% 0.006 264.531)
-    );
+    --surface-1-fg-disabled: light-dark(#7e8084, #9c9ea2);
     --surface-1-stroke: light-dark(#e5e5e5, #333333);
 
     --surface-2-bg: light-dark(#ffffff, #262626);
@@ -136,7 +133,7 @@
 
     --surface-1-bg: #ffffff;
     --surface-1-fg: #000000;
-    --surface-1-fg-disabled: oklch(92.8% 0.006 264.531);
+    --surface-1-fg-disabled: #7e8084;
     --surface-1-stroke: #e5e5e5;
 
     --surface-2-bg: #ffffff;
@@ -177,75 +174,45 @@
 
     --bg-backdrop: #000000;
 
-    --surface-0-bg: light-dark(#fafafa, #121212);
-    --surface-0-fg: light-dark(#000000, #dddddd);
-    --surface-0-stroke: light-dark(#e5e5e5, #333333);
+    --surface-0-bg: #121212;
+    --surface-0-fg: #dddddd;
+    --surface-0-stroke: #333333;
 
-    --surface-1-bg: light-dark(#ffffff, #1e1e1e);
-    --surface-1-fg: light-dark(#000000, #dddddd);
-    --surface-1-fg-disabled: light-dark(
-      oklch(92.8% 0.006 264.531),
-      oklch(92.8% 0.006 264.531)
-    );
-    --surface-1-stroke: light-dark(#e5e5e5, #333333);
+    --surface-1-bg: #1e1e1e;
+    --surface-1-fg: #dddddd;
+    --surface-1-fg-disabled: #9c9ea2;
+    --surface-1-stroke: #333333;
 
-    --surface-2-bg: light-dark(#ffffff, #262626);
-    --surface-2-bg-disabled: light-dark(oklch(96.7% 0.003 264.542), #363a3a);
-    --surface-2-stroke: light-dark(#e5e5e5, #333333);
+    --surface-2-bg: #262626;
+    --surface-2-bg-disabled: #363a3a;
+    --surface-2-stroke: #333333;
 
     --surface-3-bg: #363a3a;
 
-    --color-positive: light-dark(
-      oklch(72.3% 0.219 149.579),
-      oklch(52.7% 0.154 150.069)
-    );
-    --color-negative: light-dark(
-      oklch(63.7% 0.237 25.331),
-      oklch(50.5% 0.213 27.518)
-    );
-    --color-warning: light-dark(
-      oklch(82.8% 0.189 84.429),
-      oklch(55.5% 0.163 48.998)
-    );
-    --color-maybe-warning: light-dark(
-      oklch(62.7% 0.265 303.9),
-      oklch(49.6% 0.265 301.924)
-    );
+    --color-positive: oklch(52.7% 0.154 150.069);
+    --color-negative: oklch(50.5% 0.213 27.518);
+    --color-warning: oklch(55.5% 0.163 48.998);
+    --color-maybe-warning: oklch(49.6% 0.265 301.924);
 
     /**
      * Bumps - chosen to have a growing sense of urgency if the bump is higher,
      * but without using emotive colors (red, blue, green). That is, major is
      * akin to a red color without being red, minor blue and patch green.
      */
-    --color-major: light-dark(
-      oklch(62.7% 0.265 303.9),
-      oklch(49.6% 0.265 301.924)
-    );
-    --color-minor: light-dark(
-      oklch(60.6% 0.25 292.717),
-      oklch(49.1% 0.27 292.581)
-    );
-    --color-patch: light-dark(
-      oklch(58.5% 0.233 277.117),
-      oklch(45.7% 0.24 277.023)
-    );
+    --color-major: oklch(49.6% 0.265 301.924);
+    --color-minor: oklch(49.1% 0.27 292.581);
+    --color-patch: oklch(45.7% 0.24 277.023);
 
     --color-brand-rss: #ff8905;
-    --color-brand-kubernetes: light-dark(#316ce6, #1955cc);
-    --color-brand-docker: light-dark(#1d63ed, #104dc6);
-    --color-brand-github: light-dark(#7759c2, #2f2a6b);
-    --color-brand-gitlab: light-dark(#7759c2, #2f2a6b);
-    --color-brand-quay: light-dark(#40b4e5, #177ba6);
-    --color-brand-git: light-dark(
-      oklch(0.651 0.2095 33.98),
-      oklch(0.6 0.2095 33.98)
-    );
-    --color-brand-oci: light-dark(#1d63ed, #104dc6);
+    --color-brand-kubernetes: #1955cc;
+    --color-brand-docker: #104dc6;
+    --color-brand-github: #2f2a6b;
+    --color-brand-gitlab: #2f2a6b;
+    --color-brand-quay: #177ba6;
+    --color-brand-git: oklch(0.6 0.2095 33.98);
+    --color-brand-oci: #104dc6;
 
-    --color-accent: light-dark(
-      oklch(55% 0.214 259.815),
-      oklch(50% 0.214 259.815)
-    );
-    --color-accent-fg: light-dark(#ffffff, #ffffff);
+    --color-accent: oklch(50% 0.214 259.815);
+    --color-accent-fg: #ffffff;
   }
 }
