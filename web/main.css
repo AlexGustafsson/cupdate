@@ -162,6 +162,31 @@
   hr {
     border-color: var(--surface-0-stroke);
   }
+
+  dialog::backdrop {
+    background-color: color-mix(in srgb, var(--bg-backdrop) 20%, transparent);
+    backdrop-filter: blur(8px);
+    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    @starting-style {
+      background-color: color-mix(in srgb, var(--bg-backdrop) 0%, transparent);
+    }
+  }
+
+  dialog {
+    margin: auto;
+    border: 1px solid var(--surface-0-stroke);
+    border-radius: 8px;
+    background-color: var(--surface-2-bg);
+    padding: 24px 16px 24px 16px;
+    box-shadow:
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0) 0px 0px 0px 0px,
+      rgba(0, 0, 0, 0.1) 0px 1px 3px 0px,
+      rgba(0, 0, 0, 0.1) 0px 1px 2px -1px;
+  }
 }
 
 @layer components {

@@ -55,10 +55,10 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
     // biome-ignore lint/a11y/useKeyWithClickEvents: The dialog element already handles ESC
     <dialog
       ref={ref}
-      className="starting:backdrop:bg-black/0 backdrop:bg-black/20 backdrop:backdrop-blur-sm bg-transparent m-auto backdrop:transition-all"
       onClick={(e) => e.target === ref.current && ref.current.close()}
+      className="w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll"
     >
-      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll markdown-body">
+      <div className="markdown-body">
         <h3>
           {graphNode
             ? titles[graphNode.domain]?.[graphNode.type] || graphNode.type

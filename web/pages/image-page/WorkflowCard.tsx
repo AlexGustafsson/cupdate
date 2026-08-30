@@ -134,10 +134,10 @@ function JobRunDialog({
     // biome-ignore lint/a11y/useKeyWithClickEvents: The dialog element already handles ESC
     <dialog
       ref={ref}
-      className="starting:backdrop:bg-backdrop/0 backdrop:bg-backdrop/20 backdrop:backdrop-blur-sm bg-transparent m-auto backdrop:transition-colors"
       onClick={(e) => e.target === ref.current && ref.current.close()}
+      className="w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll"
     >
-      <div className="rounded-lg bg-surface-2-bg px-4 py-6 shadow w-[90vw] max-w-[800px] max-h-[80vh] overflow-y-scroll markdown-body">
+      <div className="markdown-body">
         <h3>{jobRun?.jobName}</h3>
         <h4 className="text-sm text-surface-1-fg-disabled">{status}</h4>
         <div className="mt-4 flex flex-col gap-y-4">
