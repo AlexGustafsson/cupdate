@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM} node:24.12.0@sha256:929c026d5a4e4a59685b3c1dbc1a8c3eb090aa95373d3a4fd668daa2493c8331 AS web-builder
+FROM --platform=${BUILDPLATFORM} node:26.8.1@sha256:f5d1cc40abc10c2843339a2134d07817cf33c405cb16bfd052b0ed790254c3a3 AS web-builder
 
 WORKDIR /src
 
