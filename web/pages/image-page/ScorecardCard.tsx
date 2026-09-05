@@ -32,9 +32,9 @@ function Gauge({
           r="16"
           fill="none"
           className="stroke-current opacity-25"
-          stroke-width="3"
-          stroke-dasharray="50 100"
-          stroke-linecap="round"
+          strokeWidth="3"
+          strokeDasharray="50 100"
+          strokeLinecap="round"
         />
 
         <circle
@@ -43,9 +43,9 @@ function Gauge({
           r="16"
           fill="none"
           className="stroke-current"
-          stroke-width="1"
-          stroke-dasharray={`${percentage * 50} 100`}
-          stroke-linecap="round"
+          strokeWidth="1"
+          strokeDasharray={`${percentage * 50} 100`}
+          strokeLinecap="round"
         />
       </svg>
 
