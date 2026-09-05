@@ -259,7 +259,8 @@ run `cupdate.dump()` in the browser's terminal. The file will be downloaded as
 soon as it's ready.
 
 The file can be used by replacing the one in `web/public/assets` and then
-running vite with `VITE_DEMO_MODE=true`.
+running vite with `VITE_DEMO_MODE=true`. To match GitHub Pages, also specify
+`VITE_BASE_PATH='/cupdate'`.
 
 An OCI artifact containing a demo file is available in
 `ghcr.io/alexgustafsson/cupdate/demo:latest`.
@@ -276,8 +277,7 @@ oras push \
 ## Themes
 
 Cupdate supports themes. Themes can be added by adding a stylesheet to
-`web/public/assets/themes` and adding a reference to it in
-`web/public/assets/index.json`.
+`web/themes` and adding a reference to it in `web/themes/index.json`.
 
 PRs for themes are welcome, as are improvements to existing themes. Themes
 affecting something other than colors are generally not welcome as they are

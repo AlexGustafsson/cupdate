@@ -1,5 +1,5 @@
 :root.theme-dracula {
-  color-scheme: light dark;
+  color-scheme: initial;
 }
 .theme-dracula {
   --bg-backdrop: #000000;

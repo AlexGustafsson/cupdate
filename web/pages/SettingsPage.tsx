@@ -5,17 +5,17 @@ import { FluentBug16Regular } from '../components/icons/fluent-bug-16-regular'
 import { FluentPaintBrush16Regular } from '../components/icons/fluent-paint-brush-16-regular'
 import { ThemePreview } from '../components/icons/theme-preview'
 import { useCollapseState } from '../hooks/useCollapseState'
-import { useLoadTheme, useTheme, useThemes } from '../ThemeProvider'
+import { useTheme } from '../ThemeProvider'
+import themes from '../themes'
 import { TableOfContents } from './image-page/TableOfContents'
 
 export function SettingsPage(): JSX.Element {
   const [currentTheme, setTheme] = useTheme()
-  const loadTheme = useLoadTheme()
-  const themes = useThemes()
 
+  // Load all themes
   useEffect(() => {
-    Promise.all(themes.map(loadTheme))
-  }, [loadTheme, themes])
+    Promise.all(themes.map((x) => x?.load?.()))
+  }, [])
 
   const scrollIntoView = useCallback((id: string) => {
     const element = document.getElementById(id)
