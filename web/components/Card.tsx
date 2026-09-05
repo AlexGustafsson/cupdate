@@ -51,7 +51,7 @@ export function Tab({
   return (
     <div
       role="tablist"
-      className={`flex-shrink-0 px-1 py-2 border-b-2 ${active ? 'border-accent' : 'border-transparent'}`}
+      className={`flex items-center flex-shrink-0 px-1 py-2 border-b-2 ${active ? 'border-accent' : 'border-transparent'}`}
     >
       <button
         type="button"
@@ -63,8 +63,8 @@ export function Tab({
       >
         {icon}
         <p className={icon ? 'ml-2' : ''}>{label}</p>
-        {action && <TabAction action={action} />}
       </button>
+      {action && <TabAction action={action} />}
     </div>
   )
 }
