@@ -98,7 +98,10 @@ export function LinksCard({
             <div className="markdown-body">
               <ul className="p-0">
                 {links.map((x) => (
-                  <li key={x.url} className="list-none w-min max-w-full">
+                  <li
+                    key={`${x.type}-${x.url}`}
+                    className="list-none w-min max-w-full"
+                  >
                     <Link type={x.type} url={x.url} />
                   </li>
                 ))}

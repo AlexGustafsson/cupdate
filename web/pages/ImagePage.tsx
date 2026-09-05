@@ -277,7 +277,6 @@ export function ImagePage(): JSX.Element {
                 tabIndex={0}
               >
                 <Badge
-                  key={x.name}
                   label={x.name}
                   color={x.color}
                   className="hover:opacity-90 group-focus/link:opacity-90"
