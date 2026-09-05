@@ -1,8 +1,8 @@
 import type { JSX } from 'react'
+import { Card } from '../../components/Card'
 import { FluentBoxSearch16Regular } from '../../components/icons/fluent-box-search-16-regular'
 import type { ImageScorecard } from '../../lib/api/models'
 import { formatRelativeTimeTo } from '../../time'
-import { Card } from './Card'
 
 type GaugeProps = {
   percentage: number
@@ -58,9 +58,17 @@ function Gauge({
 }
 
 export type ScorecardCardProps = {
+  id: string
   scorecard: ImageScorecard
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
-export function ScorecardCard({ scorecard }: ScorecardCardProps): JSX.Element {
+export function ScorecardCard({
+  id,
+  scorecard,
+  collapsed,
+  onToggleCollapsed,
+}: ScorecardCardProps): JSX.Element {
   const color =
     scorecard.score <= 2.5
       ? 'text-negative'
@@ -72,7 +80,9 @@ export function ScorecardCard({ scorecard }: ScorecardCardProps): JSX.Element {
 
   return (
     <Card
-      persistenceKey="scorecard"
+      id={id}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
       tabs={[
         {
           icon: <FluentBoxSearch16Regular />,

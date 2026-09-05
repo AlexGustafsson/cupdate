@@ -1,7 +1,7 @@
-import { type JSX, useEffect, useState } from 'react'
-import { FluentChevronDown16Regular } from '../../components/icons/fluent-chevron-down-16-regular'
-import { FluentChevronUp16Regular } from '../../components/icons/fluent-chevron-up-16-regular'
-import { FluentOpen16Regular } from '../../components/icons/fluent-open-16-regular'
+import { type JSX, useState } from 'react'
+import { FluentChevronDown16Regular } from './icons/fluent-chevron-down-16-regular'
+import { FluentChevronUp16Regular } from './icons/fluent-chevron-up-16-regular'
+import { FluentOpen16Regular } from './icons/fluent-open-16-regular'
 
 export type TabActionProps = {
   action: TabAction
@@ -70,9 +70,10 @@ export function Tab({
 }
 
 export type CardProps = {
-  /** Local storage key used to persist the state of the card. */
-  persistenceKey?: string
+  id?: string
   tabs: Tab[]
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
 export interface Tab {
@@ -88,36 +89,19 @@ type TabAction = {
   title?: string
 }
 
-export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
-  const [showContent, setShowContent] = useState(() => {
-    // Try to load persisted state
-    if (persistenceKey) {
-      const item = localStorage.getItem(`cupdate-card-state-${persistenceKey}`)
-      if (item === 'false') {
-        return false
-      }
-    }
-
-    return true
-  })
-
+export function Card({
+  id,
+  tabs,
+  collapsed,
+  onToggleCollapsed,
+}: CardProps): JSX.Element {
   const [selectedTabIndex, setSelectedTabIndex] = useState(0)
 
-  // Persist state
-  useEffect(() => {
-    if (persistenceKey) {
-      localStorage.setItem(
-        `cupdate-card-state-${persistenceKey}`,
-        showContent ? 'true' : 'false'
-      )
-    }
-  }, [persistenceKey, showContent])
-
   return (
-    <div className="rounded-lg bg-surface-1-bg shadow">
+    <div id={id} className="rounded-lg bg-surface-1-bg shadow scroll-mt-[64px]">
       {/* Header */}
       <div
-        className={`sticky z-50 top-[64px] bg-surface-1-bg flex items-center w-full ${showContent ? 'rounded-t-lg border-b border-surface-1-stroke mb-2' : 'rounded-lg'}`}
+        className={`sticky z-50 top-[64px] bg-surface-1-bg flex items-center w-full ${collapsed ? 'rounded-lg' : 'rounded-t-lg border-b border-surface-1-stroke mb-2'}`}
       >
         {/* Tabs */}
         <div className="flex items-center flex-grow px-2 max-w-full overflow-auto">
@@ -127,11 +111,11 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
               icon={tab.icon}
               label={tab.label}
               action={tab.action}
-              disabled={showContent ? i === selectedTabIndex : false}
-              active={tabs.length > 1 && i === selectedTabIndex && showContent}
+              disabled={collapsed ? false : i === selectedTabIndex}
+              active={tabs.length > 1 && i === selectedTabIndex && !collapsed}
               onClick={() => {
                 setSelectedTabIndex(i)
-                setShowContent(true)
+                onToggleCollapsed()
               }}
             />
           ))}
@@ -140,20 +124,21 @@ export function Card({ persistenceKey, tabs }: CardProps): JSX.Element {
         {/* Collapse */}
         <button
           type="button"
-          onClick={() => setShowContent((current) => !current)}
+          onClick={() => onToggleCollapsed()}
           className="btn-flat btn-medium btn-square mr-2"
           tabIndex={0}
+          title={collapsed ? 'Expand' : 'Collapse'}
         >
-          {showContent ? (
-            <FluentChevronUp16Regular />
-          ) : (
+          {collapsed ? (
             <FluentChevronDown16Regular />
+          ) : (
+            <FluentChevronUp16Regular />
           )}
         </button>
       </div>
 
       {/* Content */}
-      {showContent && (
+      {!collapsed && (
         <div className="p-4 pt-2">{tabs[selectedTabIndex].content}</div>
       )}
     </div>

@@ -1,15 +1,18 @@
 import type { JSX } from 'react'
 import React from 'react'
+import { Card } from '../../components/Card'
 import { FluentBug16Regular } from '../../components/icons/fluent-bug-16-regular'
 import { Markdown } from '../../components/Markdown'
 import type { AffectedPackage, Vulnerability } from '../../lib/osv/osv'
 import { compareSeverity, normalizedSeverity } from '../../lib/osv/severity'
 import { parsePurl, purlLink, purlType } from '../../lib/purl'
 import { formatRelativeTimeTo } from '../../time'
-import { Card } from './Card'
 
 export type VulnerabilitiesCardProps = {
+  id: string
   vulnerabilities: Vulnerability[]
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
 type VulnerabilityCount = {
@@ -70,7 +73,10 @@ function AffectedPackageDetails({
 }
 
 export function VulnerabilitiesCard({
+  id,
   vulnerabilities,
+  collapsed,
+  onToggleCollapsed,
 }: VulnerabilitiesCardProps): JSX.Element {
   const counts = countVulnerabilities(vulnerabilities)
 
@@ -80,7 +86,9 @@ export function VulnerabilitiesCard({
 
   return (
     <Card
-      persistenceKey="vulnerabilities"
+      id={id}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
       tabs={[
         {
           icon: <FluentBug16Regular />,

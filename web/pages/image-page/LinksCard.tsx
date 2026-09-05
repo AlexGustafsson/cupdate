@@ -1,4 +1,5 @@
 import type { JSX, ReactNode } from 'react'
+import { Card } from '../../components/Card'
 import { FluentBookQuestionMark24Filled } from '../../components/icons/fluent-book-question-mark-24-filled'
 import { FluentLink16Regular } from '../../components/icons/fluent-link-16-regular'
 import { FluentLink24Filled } from '../../components/icons/fluent-link-24-filled'
@@ -8,7 +9,6 @@ import { SimpleIconsGit } from '../../components/icons/simple-icons-git'
 import { SimpleIconsGithub } from '../../components/icons/simple-icons-github'
 import { SimpleIconsGitlab } from '../../components/icons/simple-icons-gitlab'
 import type { ImageLink } from '../../lib/api/models'
-import { Card } from './Card'
 
 const titles: Record<string, string | undefined> = {
   github: 'GitHub project page',
@@ -73,13 +73,23 @@ function Link({ type, url }: { type: string; url: string }): JSX.Element {
 }
 
 export type LinksCardProps = {
+  id: string
   links: ImageLink[]
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
-export function LinksCard({ links }: LinksCardProps): JSX.Element {
+export function LinksCard({
+  id,
+  links,
+  collapsed,
+  onToggleCollapsed,
+}: LinksCardProps): JSX.Element {
   return (
     <Card
-      persistenceKey="links"
+      id={id}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
       tabs={[
         {
           icon: <FluentLink16Regular />,

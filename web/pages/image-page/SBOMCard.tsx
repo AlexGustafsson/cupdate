@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
+import { Card } from '../../components/Card'
 import { FluentBoxSearch16Regular } from '../../components/icons/fluent-box-search-16-regular'
 import type { ImageSBOM, SBOM } from '../../lib/api/models'
-import { Card } from './Card'
 
 type SBOMTabProps = {
   sbom: SBOM
@@ -18,13 +18,23 @@ function SBOMTab({ sbom }: SBOMTabProps): JSX.Element {
 }
 
 export type SBOMCardProps = {
+  id: string
   sbom: ImageSBOM
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
-export function SBOMCard({ sbom }: SBOMCardProps): JSX.Element {
+export function SBOMCard({
+  id,
+  sbom,
+  collapsed,
+  onToggleCollapsed,
+}: SBOMCardProps): JSX.Element {
   return (
     <Card
-      persistenceKey="sbom"
+      id={id}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
       tabs={[
         {
           icon: <FluentBoxSearch16Regular />,

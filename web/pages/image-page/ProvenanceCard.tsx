@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
+import { Card } from '../../components/Card'
 import { FluentDocumentRibbon16Regular } from '../../components/icons/fluent-document-ribbon-16-regular'
 import type { ImageProvenance, ProvenanceBuildInfo } from '../../lib/api/models'
-import { Card } from './Card'
 
 type BuildInfoProps = {
   buildInfo: ProvenanceBuildInfo
@@ -79,15 +79,23 @@ function BuildInfo({ buildInfo }: BuildInfoProps): JSX.Element {
 }
 
 export type ProvenanceCardProps = {
+  id: string
   provenance: ImageProvenance
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
 export function ProvenanceCard({
+  id,
   provenance,
+  collapsed,
+  onToggleCollapsed,
 }: ProvenanceCardProps): JSX.Element {
   return (
     <Card
-      persistenceKey="provenance"
+      id={id}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
       tabs={[
         {
           icon: <FluentDocumentRibbon16Regular />,

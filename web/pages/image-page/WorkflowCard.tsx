@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { Card } from '../../components/Card'
 import { GraphRenderer, type NodeProps } from '../../components/GraphRenderer'
 import { FluentCheckmarkCircle20Filled } from '../../components/icons/fluent-checkmark-circle-20-filled'
 import { FluentCheckmarkCircle20Regular } from '../../components/icons/fluent-checkmark-circle-20-regular'
@@ -14,7 +15,6 @@ import { FluentFlow16Regular } from '../../components/icons/fluent-flow-16-regul
 import { useGraphLayout } from '../../graph'
 import type { JobRun, StepRun, WorkflowRun } from '../../lib/api/models'
 import { formatDuration, formatRelativeTimeTo } from '../../time'
-import { Card } from './Card'
 import { ProcessStatus } from './ProcessStatus'
 
 function Job({ data, className }: NodeProps<JobRun>): JSX.Element {
@@ -56,9 +56,12 @@ function Job({ data, className }: NodeProps<JobRun>): JSX.Element {
 }
 
 export type WorkflowRunCardProps = {
+  id: string
   reference: string
   workflowRun: WorkflowRun | null
   lastModified: string
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
 type StepRunListItemProps = {
@@ -158,9 +161,12 @@ function JobRunDialog({
 }
 
 export function WorkflowCard({
+  id,
   reference,
   workflowRun,
   lastModified,
+  collapsed,
+  onToggleCollapsed,
 }: WorkflowRunCardProps): JSX.Element {
   const [hoveredNode, setHoveredNode] = useState<string>()
 
@@ -220,7 +226,9 @@ export function WorkflowCard({
 
   return (
     <Card
-      persistenceKey="workflow"
+      id={id}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
       tabs={[
         {
           icon: <FluentFlow16Regular />,

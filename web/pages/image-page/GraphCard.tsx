@@ -1,11 +1,11 @@
 import { type JSX, useCallback, useMemo, useRef, useState } from 'react'
+import { Card } from '../../components/Card'
 import { DependencyGraphNode } from '../../components/DependencyGraphNode'
 import { GraphRenderer } from '../../components/GraphRenderer'
 import { FluentBranch16Regular } from '../../components/icons/fluent-branch-16-regular'
 import { useGraphLayout } from '../../graph'
 import type { Graph, GraphNode } from '../../lib/api/models'
 import { parse } from '../../oci'
-import { Card } from './Card'
 
 const titles: Record<string, Record<string, string | undefined> | undefined> = {
   oci: {
@@ -133,10 +133,18 @@ function GraphNodeDialog({ ref, graphNode }: GraphNodeProps): JSX.Element {
 }
 
 type GraphCardProps = {
+  id: string
   graph: Graph
+  collapsed: boolean
+  onToggleCollapsed: () => void
 }
 
-export function GraphCard({ graph }: GraphCardProps): JSX.Element {
+export function GraphCard({
+  id,
+  graph,
+  collapsed,
+  onToggleCollapsed,
+}: GraphCardProps): JSX.Element {
   const [hoveredNode, setHoveredNode] = useState<string>()
 
   const [formattedGraph, options] = useMemo(() => {
@@ -200,7 +208,9 @@ export function GraphCard({ graph }: GraphCardProps): JSX.Element {
 
   return (
     <Card
-      persistenceKey="graph"
+      id={id}
+      collapsed={collapsed}
+      onToggleCollapsed={onToggleCollapsed}
       tabs={[
         {
           icon: <FluentBranch16Regular />,
