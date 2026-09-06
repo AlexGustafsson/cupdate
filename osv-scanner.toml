@@ -1,0 +1,3 @@
+[[IgnoredVulns]]
+id = "GO-2026-5932"
+reason = "Unmaintained package unused by us. This alert will always be there until osv-scanner removes its indirect use"
