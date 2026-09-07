@@ -47,18 +47,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/biome@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/biome@npm:2.5.10"
+"@biomejs/biome@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/biome@npm:2.5.11"
   dependencies:
-    "@biomejs/cli-darwin-arm64": "npm:2.5.10"
-    "@biomejs/cli-darwin-x64": "npm:2.5.10"
-    "@biomejs/cli-linux-arm64": "npm:2.5.10"
-    "@biomejs/cli-linux-arm64-musl": "npm:2.5.10"
-    "@biomejs/cli-linux-x64": "npm:2.5.10"
-    "@biomejs/cli-linux-x64-musl": "npm:2.5.10"
-    "@biomejs/cli-win32-arm64": "npm:2.5.10"
-    "@biomejs/cli-win32-x64": "npm:2.5.10"
+    "@biomejs/cli-darwin-arm64": "npm:2.5.11"
+    "@biomejs/cli-darwin-x64": "npm:2.5.11"
+    "@biomejs/cli-linux-arm64": "npm:2.5.11"
+    "@biomejs/cli-linux-arm64-musl": "npm:2.5.11"
+    "@biomejs/cli-linux-x64": "npm:2.5.11"
+    "@biomejs/cli-linux-x64-musl": "npm:2.5.11"
+    "@biomejs/cli-win32-arm64": "npm:2.5.11"
+    "@biomejs/cli-win32-x64": "npm:2.5.11"
   dependenciesMeta:
     "@biomejs/cli-darwin-arm64":
       optional: true
@@ -78,62 +78,62 @@ __metadata:
       optional: true
   bin:
     biome: bin/biome
-  checksum: 10c0/486653f389d235abf2f899e6b1bc5ec548905d89f15ce5a3c60f673ed4c473eabdf9ad9cebbe5c1ef080739ebdda88402c58f64e2a055af3e319126f0fec1e93
+  checksum: 10c0/6d76d2b2e2fcf01e40e0e65dd249b6a6e003b7db716fb3bcb17789bef644fa7353be62c595ae7a25831d80515b5b311b22f4660f82446f55843a0fdd3458f32a
   languageName: node
   linkType: hard
 
-"@biomejs/cli-darwin-arm64@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-darwin-arm64@npm:2.5.10"
+"@biomejs/cli-darwin-arm64@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-darwin-arm64@npm:2.5.11"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-darwin-x64@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-darwin-x64@npm:2.5.10"
+"@biomejs/cli-darwin-x64@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-darwin-x64@npm:2.5.11"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-arm64-musl@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-linux-arm64-musl@npm:2.5.10"
+"@biomejs/cli-linux-arm64-musl@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-linux-arm64-musl@npm:2.5.11"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-arm64@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-linux-arm64@npm:2.5.10"
+"@biomejs/cli-linux-arm64@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-linux-arm64@npm:2.5.11"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-x64-musl@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-linux-x64-musl@npm:2.5.10"
+"@biomejs/cli-linux-x64-musl@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-linux-x64-musl@npm:2.5.11"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-x64@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-linux-x64@npm:2.5.10"
+"@biomejs/cli-linux-x64@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-linux-x64@npm:2.5.11"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@biomejs/cli-win32-arm64@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-win32-arm64@npm:2.5.10"
+"@biomejs/cli-win32-arm64@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-win32-arm64@npm:2.5.11"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-win32-x64@npm:2.5.10":
-  version: 2.5.10
-  resolution: "@biomejs/cli-win32-x64@npm:2.5.10"
+"@biomejs/cli-win32-x64@npm:2.5.11":
+  version: 2.5.11
+  resolution: "@biomejs/cli-win32-x64@npm:2.5.11"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -815,9 +815,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:6.1.0":
-  version: 6.1.0
-  resolution: "@vitejs/plugin-react@npm:6.1.0"
+"@vitejs/plugin-react@npm:6.1.1":
+  version: 6.1.1
+  resolution: "@vitejs/plugin-react@npm:6.1.1"
   dependencies:
     "@rolldown/pluginutils": "npm:^1.0.1"
   peerDependencies:
@@ -832,7 +832,7 @@ __metadata:
       optional: true
     oxc-transform-react:
       optional: true
-  checksum: 10c0/e6a955d2aa84fa09d4335fb0a3d3466a71bc31efe8d3e0096d34c5d1c6f97d9c92b3ffe7ec8ad8fd63ceee1323770d6b184b2a32a7fadd82fd2a46a3b444e81a
+  checksum: 10c0/4599b37ee19ebee289782b177642e3002afa9b74cb57a2c0e2a601053c7ebb47f9ef178ab605ff1217de1d23069948a8d366447bfac0d9fb2f17afee5368acd0
   languageName: node
   linkType: hard
 
@@ -1099,22 +1099,22 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "cupdate@workspace:."
   dependencies:
-    "@biomejs/biome": "npm:2.5.10"
+    "@biomejs/biome": "npm:2.5.11"
     "@tailwindcss/vite": "npm:4.3.3"
     "@types/node": "npm:24.12.2"
     "@types/react": "npm:19.2.18"
     "@types/react-dom": "npm:19.2.5"
-    "@vitejs/plugin-react": "npm:6.1.0"
+    "@vitejs/plugin-react": "npm:6.1.1"
     "@vitest/coverage-v8": "npm:4.1.11"
     dompurify: "npm:3.4.14"
     elkjs: "npm:0.12.0"
     github-markdown-css: "npm:5.9.0"
     globals: "npm:17.11.0"
-    marked: "npm:18.0.10"
+    marked: "npm:18.0.11"
     prettier: "npm:3.9.6"
     react: "npm:19.2.8"
     react-dom: "npm:19.2.8"
-    react-router: "npm:8.3.0"
+    react-router: "npm:8.3.1"
     tailwindcss: "npm:4.3.3"
     typescript: "npm:6.0.3"
     vite: "npm:8.2.2"
@@ -1778,12 +1778,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:18.0.10":
-  version: 18.0.10
-  resolution: "marked@npm:18.0.10"
+"marked@npm:18.0.11":
+  version: 18.0.11
+  resolution: "marked@npm:18.0.11"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/7ffdfae727e1cb73e786431953950ee941c38251c8d469b07058446043d070a8746d51ef52d59c1c935875126a35c04b579ac1f1e5b6b0b94aa9eeb44f815287
+  checksum: 10c0/6c2a2bea05974f08f869d591a8eb6aa7fe68e56edbfe74c2d15eea3b85d45aabfea9dada6914d6f4a7917d612059b64eb8b9e5fd190c74ad8ab79c1f48a249b3
   languageName: node
   linkType: hard
 
@@ -2070,9 +2070,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:8.3.0":
-  version: 8.3.0
-  resolution: "react-router@npm:8.3.0"
+"react-router@npm:8.3.1":
+  version: 8.3.1
+  resolution: "react-router@npm:8.3.1"
   dependencies:
     cookie-es: "npm:^3.1.1"
   peerDependencies:
@@ -2081,7 +2081,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/c1277d6a75ff1b77e759bc0142e3257b6cea1eb683595a64a19d7fb341a7b9ba30c81ef8fc426e437c7fbec043bde683462b2463a055b0f58c8e5ad19cdee2ad
+  checksum: 10c0/1de8feec25518f036980ecab291ab5477fb5bc1bfbda64f830bf12bd8207d46e22824108837df4bc8386c59f29b6aaa551a6f3f72771c495b456ff643f5c6de9
   languageName: node
   linkType: hard
 
