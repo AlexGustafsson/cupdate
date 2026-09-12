@@ -55,10 +55,8 @@ type Client struct {
 // NewClient returns a [Client] with cache invalidated after maxAge.
 func NewClient(cache cache.Cache, maxAge time.Duration) *Client {
 	return &Client{
-		Client: http.Client{
-			Transport: NewTransport(),
-			Timeout:   10 * time.Second,
-		},
+		Transport: NewTransport(),
+		Timeout:   10 * time.Second,
 
 		cache:       cache,
 		cacheMaxAge: maxAge,
