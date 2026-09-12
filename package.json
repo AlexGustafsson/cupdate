@@ -1,6 +1,6 @@
 {
   "name": "cupdate",
-  "packageManager": "yarn@4.6.0",
+  "packageManager": "npm@12.0.2+sha512.uIXokLlBj6FpNUTQX1PmT5pz7BlIN9QlixX+zdaSNHsd0qUXsbDLr50xzY6Sw7cJVr0uzHKDOle0swmPW/p5Qw==",
   "private": true,
   "type": "module",
   "scripts": {

@@ -12,13 +12,12 @@ on:
     paths:
       - .github/workflows/cd-publish-demo.yaml
       - web/**
-      - .yarn
-      - .yarnrc.yml
+      - .npmrc
       - biome.jsonc
       - package.json
+      - package-lock.json
       - tsconfig.json
       - vite.config.ts
-      - yarn.lock
 
 permissions:
   contents: read
@@ -41,13 +40,13 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - name: Setup oras
         uses: oras-project/setup-oras@1d808f7d7f6995cc68b7bf507bfe5c5446e1dc9d # v2.0.1
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: npm ci
 
       - name: Log in to GHCR
         run: echo "$GITHUB_TOKEN" | oras login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
@@ -67,7 +66,7 @@ jobs:
         env:
           VITE_DEMO_MODE: "true"
           VITE_BASE_PATH: "/cupdate"
-        run: yarn build
+        run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

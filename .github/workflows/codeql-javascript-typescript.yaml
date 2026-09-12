@@ -11,26 +11,24 @@ on:
     paths:
       - .github/workflows/codeql-javascript-typescript.yaml
       - web/**
-      - .yarn
-      - .yarnrc.yml
+      - .npmrc
       - biome.jsonc
       - package.json
+      - package-lock.json
       - tsconfig.json
       - vite.config.ts
-      - yarn.lock
   push:
     branches:
       - main
     paths:
       - .github/workflows/codeql-javascript-typescript.yaml
       - web/**
-      - .yarn
-      - .yarnrc.yml
+      - .npmrc
       - biome.jsonc
       - package.json
+      - package-lock.json
       - tsconfig.json
       - vite.config.ts
-      - yarn.lock
   schedule:
     # Some random-ish cron to help with GitHub Actions scheduling, once a week
     - cron: 29 11 * * 2

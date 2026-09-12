@@ -1,5 +1,4 @@
 /node_modules
-/.yarn/install-state.gz
 /tsconfig.tsbuildinfo
 .DS_Store
 /coverage

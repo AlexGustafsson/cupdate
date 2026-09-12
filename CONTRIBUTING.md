@@ -17,7 +17,7 @@ React and Tailwind. For more information see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Building
 
-Cupdate can be built on host using yarn and go, or inside of a container using
+Cupdate can be built on host using npm and go, or inside of a container using
 Docker.
 
 ### Building in Docker
@@ -43,8 +43,8 @@ docker buildx build --platform macos/arm64  --target=export --output=. .
 ### Building on host
 
 ```shell
-yarn install
-yarn build
+npm install
+npm run build
 go build -o cupdate cmd/cupdate/*.go
 ```
 
@@ -150,7 +150,7 @@ go run cmd/cupdate/*.go
 Optionally start the development web server for frontend development.
 
 ```shell
-yarn run dev
+npm run dev
 ```
 
 Optionally use Jaeger for otel testing.

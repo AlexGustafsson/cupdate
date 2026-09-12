@@ -2,18 +2,17 @@ FROM --platform=${BUILDPLATFORM} node:24.12.0@sha256:929c026d5a4e4a59685b3c1dbc1
 
 WORKDIR /src
 
-COPY .yarnrc.yml package.json yarn.lock .
-COPY .yarn .yarn
+COPY .npmrc package.json package-lock.json .
 
 RUN --mount=type=cache,target=node_modules  \
-  yarn install --immutable
+  npm ci
 
 COPY tsconfig.json vite.config.ts .
 COPY web web
 
 ARG CUPDATE_VERSION="development build"
 RUN --mount=type=cache,target=node_modules \
-  VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" yarn build
+  VITE_CUPDATE_VERSION="${CUPDATE_VERSION}" npm run build
 
 FROM --platform=${BUILDPLATFORM} golang:1.27.0@sha256:0ecdc2a9f6156af6451080bfe3d8382a662fcc4e209608c6f919e643453514c1 AS osv-scanner-builder
 

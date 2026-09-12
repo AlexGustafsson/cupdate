@@ -19,13 +19,12 @@ on:
       - internal/**
       - go.*
       - web/**
-      - .yarn
-      - .yarnrc.yml
+      - .npmrc
       - biome.jsonc
       - package.json
+      - package-lock.json
       - tsconfig.json
       - vite.config.ts
-      - yarn.lock
 
 permissions:
   contents: read
