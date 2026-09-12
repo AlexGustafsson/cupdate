@@ -1,4 +1,3 @@
-import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin, type UserConfigExport } from 'vite'
@@ -46,11 +45,6 @@ export default ({ mode }: { mode: string }): UserConfigExport => {
       outDir: '../internal/web/public',
       emptyOutDir: true,
       sourcemap: true,
-    },
-    resolve: {
-      alias: {
-        '@': resolve(__dirname, '/web'),
-      },
     },
   })
 }
