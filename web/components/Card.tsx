@@ -115,7 +115,9 @@ export function Card({
               active={tabs.length > 1 && i === selectedTabIndex && !collapsed}
               onClick={() => {
                 setSelectedTabIndex(i)
-                onToggleCollapsed()
+                if (collapsed) {
+                  onToggleCollapsed()
+                }
               }}
             />
           ))}
