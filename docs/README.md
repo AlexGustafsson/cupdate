@@ -3,6 +3,7 @@
 - Getting started
   - [Kubernetes](./kubernetes/README.md)
   - [Docker](./docker/README.md)
+  - [Easypanel](./easypanel/README.md)
 - [Config](./config.md)
 - [Cookbook](./cookbook/README.md)
 - [Observability](./observability/README.md)
