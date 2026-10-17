@@ -232,6 +232,7 @@ Supported extensions:
 - `.jpg` / `.jpeg`
 - `.svg`
 - `.webp`
+- `.avif`
 
 Note that the images are cached _even if not found_. That means that when you
 add, change or remove a logo, you might have to wait for a few minutes before
