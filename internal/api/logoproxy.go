@@ -22,8 +22,8 @@ type LogoFSProxy struct {
 }
 
 func (p *LogoFSProxy) ServeLogo(w http.ResponseWriter, r *http.Request, reference oci.Reference) error {
-	extensions := []string{".png", ".jpg", ".jpeg", ".svg", ".webp"}
-	mimeTypes := []string{"image/png", "image/jpeg", "image/jpeg", "image/svg+xml", "image/webp"}
+	extensions := []string{".png", ".jpg", ".jpeg", ".svg", ".webp", ".avif"}
+	mimeTypes := []string{"image/png", "image/jpeg", "image/jpeg", "image/svg+xml", "image/webp", "image/avif"}
 
 	var file fs.File
 	var mimeType string
