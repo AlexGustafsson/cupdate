@@ -47,7 +47,14 @@ while read -r kustomization; do
 		fi
 
 		# Use the Cupdate API to find the latest reference
-		latestReference="$(curl --silent --get "$CUPDATE_API?query=$reference" | jq -rc .images[0].latestReference 2>/dev/null | sed 's/@sha256:.*//')"
+		latestReference="$(curl --silent --get "$CUPDATE_API?query=$reference" | jq -rc .images[0].latestReference 2>/dev/null)"
+
+		# Remove the SHA unless the reference in use specifies it
+		if [[ ! "$reference" =~ "@sha256:" ]]; then
+			latestReference="$(echo -n "$latestReference" | sed 's/@sha256:.*//')"
+		fi
+
+		# Skip invalid or unchanged references
 		if [[ ! $! -eq 0 ]] || [[ -z "$latestReference" ]] || [[ "$latestReference" = "$reference" ]] || [[ "$latestReference" = "null" ]]; then
 			continue
 		fi
