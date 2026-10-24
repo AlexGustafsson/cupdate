@@ -34,40 +34,41 @@ const (
 // If any resource failes to initialize, those that succeeded are still
 // returned. The caller should therefore make sure to clean up the initialized
 // resources upon receiving an error.
-func setup(ctx context.Context, config *Config) (*cache.DiskCache, *store.Store, *store.Store, platform.ContinuousGrapher, error) {
-	if err := ConfigureOtel(ctx, config); err != nil {
+func setup(ctx context.Context, config *Config) (func(context.Context) error, *cache.DiskCache, *store.Store, *store.Store, platform.ContinuousGrapher, error) {
+	shutdownOtel, err := ConfigureOtel(ctx, config)
+	if err != nil {
 		slog.ErrorContext(ctx, "Failed to initialize otel", slog.Any("error", err))
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	cache, err := cache.NewDiskCache(config.Cache.Path)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to create disk cache", slog.Any("error", err))
-		return nil, nil, nil, nil, err
+		return shutdownOtel, nil, nil, nil, nil, err
 	}
 	prometheus.DefaultRegisterer.MustRegister(cache)
 
 	if err := store.Initialize(ctx, config.DatabaseURI()); err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to initialize database: %w", err)
+		return shutdownOtel, cache, nil, nil, nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
 	readStore, err := store.New(ctx, config.DatabaseURI(), true)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to configure read database: %w", err)
+		return shutdownOtel, cache, nil, nil, nil, fmt.Errorf("failed to configure read database: %w", err)
 	}
 
 	writeStore, err := store.New(ctx, config.DatabaseURI(), false)
 	if err != nil {
-		return cache, readStore, nil, nil, fmt.Errorf("failed to configure write database: %w", err)
+		return shutdownOtel, cache, readStore, nil, nil, fmt.Errorf("failed to configure write database: %w", err)
 	}
 
 	targetPlatform, err := ConfigurePlatform(ctx, config)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to configure platform", slog.Any("error", err))
-		return cache, readStore, writeStore, nil, err
+		return shutdownOtel, cache, readStore, writeStore, nil, err
 	}
 
-	return cache, readStore, writeStore, targetPlatform, nil
+	return shutdownOtel, cache, readStore, writeStore, targetPlatform, nil
 }
 
 func run(environ []string, signals <-chan os.Signal) ExitCode {
@@ -83,7 +84,7 @@ func run(environ []string, signals <-chan os.Signal) ExitCode {
 	slog.Debug("Parsed config", slog.Any("config", config))
 
 	setupCtx, cancelSetup := context.WithTimeout(context.Background(), 60*time.Second)
-	cache, readStore, writeStore, targetPlatform, startErr := setup(setupCtx, config)
+	shutdownOtel, cache, readStore, writeStore, targetPlatform, startErr := setup(setupCtx, config)
 	cancelSetup()
 	if startErr != nil {
 		slog.Error("Failed to set up resources", slog.Any("error", err))
@@ -166,6 +167,17 @@ func run(environ []string, signals <-chan os.Signal) ExitCode {
 	}
 
 	// Gracefully shut down resources
+
+	if shutdownOtel != nil {
+		wg.Go(func() {
+			slog.Debug("Closing otel")
+			err := shutdownOtel(shutdownCtx)
+			if err != nil {
+				slog.Error("Failed to shut down otel collector", slog.Any("error", err))
+				return
+			}
+		})
+	}
 
 	if cache != nil {
 		wg.Go(func() {
