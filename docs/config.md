@@ -87,8 +87,8 @@ The file should contain a `mirrors` object like so:
 {
   "mirrors": {
     // Tell Cupdate that images from mirror.gcr.io are actually from docker.io
-    "mirror.gcr.io": "docker.io",
-  },
+    "mirror.gcr.io": "docker.io"
+  }
 }
 ```
 
