@@ -100,6 +100,10 @@ that case, please build Cupdate and run it using the instructions in
 <sup>1 Podman support is in beta and subject to change. Requires the
 Docker socket compatibility mode.</sup>
 
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Cupdate/)
+
 ## Screenshots
 
 To experience an always up-to-date version of Cupdate's UI, visit the
