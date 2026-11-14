@@ -1,5 +1,7 @@
 {
-  "name": "cupdate",
+  "name": "cupdate-frontend",
+  "version": "0.0.0",
+  "description": "Cupdate's frontend",
   "packageManager": "npm@12.0.2+sha512.uIXokLlBj6FpNUTQX1PmT5pz7BlIN9QlixX+zdaSNHsd0qUXsbDLr50xzY6Sw7cJVr0uzHKDOle0swmPW/p5Qw==",
   "private": true,
   "type": "module",
