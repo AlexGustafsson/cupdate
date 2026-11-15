@@ -3,6 +3,7 @@ import React from 'react'
 import { Card } from '../../components/Card'
 import { FluentBug16Regular } from '../../components/icons/fluent-bug-16-regular'
 import { Markdown } from '../../components/Markdown'
+import type { ImageSBOM } from '../../lib/api/models'
 import type { AffectedPackage, Vulnerability } from '../../lib/osv/osv'
 import { compareSeverity, normalizedSeverity } from '../../lib/osv/severity'
 import { parsePurl, purlLink, purlType } from '../../lib/purl'
@@ -12,6 +13,7 @@ export type VulnerabilitiesCardProps = {
   id: string
   vulnerabilities: Vulnerability[]
   collapsed: boolean
+  sbom?: ImageSBOM
   onToggleCollapsed: () => void
 }
 
@@ -72,9 +74,109 @@ function AffectedPackageDetails({
   )
 }
 
+function VulnerabilitiesList({
+  vulnerabilities,
+}: {
+  vulnerabilities: Vulnerability[]
+}): JSX.Element {
+  return (
+    <div className="markdown-body">
+      {vulnerabilities.map((x) => (
+        <React.Fragment key={x.id}>
+          <h2>
+            {x.id} ({normalizedSeverity(x)})
+          </h2>
+          {x.published && (
+            <p>Published {formatRelativeTimeTo(new Date(x.published))}.</p>
+          )}
+          {x.modified !== x.published && (
+            <p>Modified {formatRelativeTimeTo(new Date(x.modified))}.</p>
+          )}
+          {x.summary && (
+            <>
+              <h3>Summary</h3>
+              <Markdown>{x.summary}</Markdown>
+            </>
+          )}
+          {x.affected && x.affected.length > 0 && (
+            <>
+              <h3>Affected packages</h3>
+              <ul>
+                {x.affected
+                  ?.filter((x) => x.package)
+                  .map((x) => (
+                    <li key={x.package!.purl || x.package!.name}>
+                      <AffectedPackageDetails package={x.package!} />
+                    </li>
+                  ))}
+              </ul>
+            </>
+          )}
+          <h3>References</h3>
+          <ul>
+            {/* Database-specific references */}
+            {typeof x.database_specific?.url === 'string' && (
+              <li key={x.database_specific.url}>
+                <a
+                  href={x.database_specific.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {x.database_specific.url}
+                </a>
+              </li>
+            )}
+            {/* Included references */}
+            {x.references?.map((x) => (
+              <li key={x.url}>
+                <a href={x.url} target="_blank" rel="noreferrer">
+                  {x.url}
+                </a>
+              </li>
+            ))}
+            {/* NIST */}
+            {(x.id.startsWith('CVE-') || x.id.startsWith('cve-')) && (
+              <li>
+                <a
+                  href={`https://nvd.nist.gov/vuln/detail/${x.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {`https://nvd.nist.gov/vuln/detail/${x.id}`}
+                </a>
+              </li>
+            )}
+            {/* OSV */}
+            <li>
+              <a
+                href={`https://osv.dev/vulnerability/${x.id}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {`https://osv.dev/vulnerability/${x.id}`}
+              </a>
+            </li>
+          </ul>
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
+function VulnerabilitiesGraph({
+  vulnerabilities,
+  sbom,
+}: {
+  vulnerabilities: Vulnerability[]
+  sbom: ImageSBOM
+}): JSX.Element {
+  return <p>TODO</p>
+}
+
 export function VulnerabilitiesCard({
   id,
   vulnerabilities,
+  sbom,
   collapsed,
   onToggleCollapsed,
 }: VulnerabilitiesCardProps): JSX.Element {
@@ -84,120 +186,46 @@ export function VulnerabilitiesCard({
     compareSeverity(normalizedSeverity(a), normalizedSeverity(b))
   )
 
+  const tabs = [
+    {
+      icon: <FluentBug16Regular />,
+      label: 'Vulnerabilities',
+      content: (
+        <div className="markdown-body">
+          <h2>Summary</h2>
+          <ul>
+            {counts.critical > 0 && <li>Critical: {counts.critical}</li>}
+            {counts.high > 0 && <li>High: {counts.high}</li>}
+            {counts.medium > 0 && <li>Medium: {counts.medium}</li>}
+            {counts.low > 0 && <li>Low: {counts.low}</li>}
+            {counts.unspecified > 0 && (
+              <li>Unspecified: {counts.unspecified}</li>
+            )}
+          </ul>
+        </div>
+      ),
+    },
+    {
+      label: sbom ? 'List' : 'Details',
+      content: <VulnerabilitiesList vulnerabilities={vulnerabilities} />,
+    },
+  ]
+
+  if (sbom) {
+    tabs.push({
+      label: 'Graph',
+      content: (
+        <VulnerabilitiesGraph sbom={sbom} vulnerabilities={vulnerabilities} />
+      ),
+    })
+  }
+
   return (
     <Card
       id={id}
       collapsed={collapsed}
       onToggleCollapsed={onToggleCollapsed}
-      tabs={[
-        {
-          icon: <FluentBug16Regular />,
-          label: 'Vulnerabilities',
-          content: (
-            <div className="markdown-body">
-              <h2>Summary</h2>
-              <ul>
-                {counts.critical > 0 && <li>Critical: {counts.critical}</li>}
-                {counts.high > 0 && <li>High: {counts.high}</li>}
-                {counts.medium > 0 && <li>Medium: {counts.medium}</li>}
-                {counts.low > 0 && <li>Low: {counts.low}</li>}
-                {counts.unspecified > 0 && (
-                  <li>Unspecified: {counts.unspecified}</li>
-                )}
-              </ul>
-            </div>
-          ),
-        },
-        {
-          label: 'Details',
-          content: (
-            <div className="markdown-body">
-              {vulnerabilities.map((x) => (
-                <React.Fragment key={x.id}>
-                  <h2>
-                    {x.id} ({normalizedSeverity(x)})
-                  </h2>
-                  {x.published && (
-                    <p>
-                      Published {formatRelativeTimeTo(new Date(x.published))}.
-                    </p>
-                  )}
-                  {x.modified !== x.published && (
-                    <p>
-                      Modified {formatRelativeTimeTo(new Date(x.modified))}.
-                    </p>
-                  )}
-                  {x.summary && (
-                    <>
-                      <h3>Summary</h3>
-                      <Markdown>{x.summary}</Markdown>
-                    </>
-                  )}
-                  {x.affected && x.affected.length > 0 && (
-                    <>
-                      <h3>Affected packages</h3>
-                      <ul>
-                        {x.affected
-                          ?.filter((x) => x.package)
-                          .map((x) => (
-                            <li key={x.package!.purl || x.package!.name}>
-                              <AffectedPackageDetails package={x.package!} />
-                            </li>
-                          ))}
-                      </ul>
-                    </>
-                  )}
-                  <h3>References</h3>
-                  <ul>
-                    {/* Database-specific references */}
-                    {typeof x.database_specific?.url === 'string' && (
-                      <li key={x.database_specific.url}>
-                        <a
-                          href={x.database_specific.url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {x.database_specific.url}
-                        </a>
-                      </li>
-                    )}
-                    {/* Included references */}
-                    {x.references?.map((x) => (
-                      <li key={x.url}>
-                        <a href={x.url} target="_blank" rel="noreferrer">
-                          {x.url}
-                        </a>
-                      </li>
-                    ))}
-                    {/* NIST */}
-                    {(x.id.startsWith('CVE-') || x.id.startsWith('cve-')) && (
-                      <li>
-                        <a
-                          href={`https://nvd.nist.gov/vuln/detail/${x.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {`https://nvd.nist.gov/vuln/detail/${x.id}`}
-                        </a>
-                      </li>
-                    )}
-                    {/* OSV */}
-                    <li>
-                      <a
-                        href={`https://osv.dev/vulnerability/${x.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {`https://osv.dev/vulnerability/${x.id}`}
-                      </a>
-                    </li>
-                  </ul>
-                </React.Fragment>
-              ))}
-            </div>
-          ),
-        },
-      ]}
+      tabs={tabs}
     />
   )
 }

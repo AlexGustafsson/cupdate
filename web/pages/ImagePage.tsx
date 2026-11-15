@@ -305,6 +305,7 @@ export function ImagePage(): JSX.Element {
               <VulnerabilitiesCard
                 id="vulnerabilities"
                 vulnerabilities={vulnerabilities.value}
+                sbom={sbom.value || undefined}
                 collapsed={collapsed.has('vulnerabilities')}
                 onToggleCollapsed={() => toggleCollapsed('vulnerabilities')}
               />
