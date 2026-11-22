@@ -176,36 +176,37 @@ func TestQueueDeduplication(t *testing.T) {
 
 func TestQueueAddTokens(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
-		// By having 1 burst we ensure that a worker will only pull a single item
-		// each time it's woken up, assuming it's quicker to process than the tick.
-		// By setting the tick to something big, we can control it manually
-		q := NewQueue[int](1, 1*time.Hour)
+		q := NewQueue[int](2, 0)
 		defer q.Close()
 
 		// Keep track of consumed items
-		items := make([]int, 0, 2)
+		items := make([]int, 0)
 		go func() {
 			for item := range q.Pull() {
 				items = append(items, item)
 			}
 		}()
 
-		// Right off the bat there's one token to consume. Thus, pushing an item and
-		// waiting a few seconds should leave the sole item consumed
+		// Right off the bat there are two tokens to consume. Thus, pushing an item
+		// processes it immediately
 		q.PushBack(0)
-		<-time.After(5 * time.Second)
 		synctest.Wait()
 		assert.Equal(t, []int{0}, items)
 
-		// Pushing another item and waiting for a while leaves the item unprocessed
+		// Pushing another similarily processes it immediately
 		q.PushBack(1)
-		<-time.After(5 * time.Second)
-		synctest.Wait()
-		assert.Equal(t, []int{0}, items)
-
-		// Adding a token processes the item ASAP
-		q.AddTokens(1)
 		synctest.Wait()
 		assert.Equal(t, []int{0, 1}, items)
+
+		// Pushing another couple of items leaves the items unprocessed as the burst
+		// is consumed
+		q.PushBack(2, 3)
+		synctest.Wait()
+		assert.Equal(t, []int{0, 1}, items)
+
+		// Adding tokens processes the items ASAP
+		q.AddTokens(2)
+		synctest.Wait()
+		assert.Equal(t, []int{0, 1, 2, 3}, items)
 	})
 }

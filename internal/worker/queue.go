@@ -74,7 +74,7 @@ func NewQueue[T comparable](burst int, tick time.Duration) *Queue[T] {
 // configured burst.
 func (q *Queue[T]) AddTokens(tokens int) {
 	q.cond.L.Lock()
-	tokens = min(q.burst, q.tokens+1)
+	tokens = min(q.burst, q.tokens+tokens)
 	changed := tokens != q.tokens
 	q.tokens = tokens
 	q.cond.L.Unlock()
