@@ -57,12 +57,13 @@ func NewQueue[T comparable](burst int, tick time.Duration) *Queue[T] {
 	if tick > 0 {
 		go func() {
 			ticker := time.NewTicker(tick)
-
-			select {
-			case <-ticker.C:
-				q.AddTokens(1)
-			case <-q.close:
-				return
+			for {
+				select {
+				case <-ticker.C:
+					q.AddTokens(1)
+				case <-q.close:
+					return
+				}
 			}
 		}()
 	}
