@@ -43,7 +43,7 @@ RUN cat << 'EOF' | /bin/sh
   mv sbom2.spdx.json sbom.spdx.json
 EOF
 
-FROM --platform=${BUILDPLATFORM} golang:1.27.3@sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf AS osv-scanner-builder
+FROM --platform=${BUILDPLATFORM} golang:1.27.3@sha256:e519d3b0a5b285e5aa53ab9eef02bc6bbb9cb04608389b743a136a9ce75f0d1e AS osv-scanner-builder
 
 ARG TARGETARCH
 ARG TARGETOS
@@ -70,7 +70,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
   GOARCH=${TARGETARCH} GOOS=${TARGETOS} CGO_ENABLED=0 go build -a -ldflags="-s -w" -o osv-scanner ./cmd/osv-scanner/main.go
 
-FROM --platform=${BUILDPLATFORM} golang:1.27.3@sha256:205c7636d74e0ffbe3d007162df7d74f859f5a8c8322dfb9f907977686c126cf AS builder
+FROM --platform=${BUILDPLATFORM} golang:1.27.3@sha256:e519d3b0a5b285e5aa53ab9eef02bc6bbb9cb04608389b743a136a9ce75f0d1e AS builder
 
 WORKDIR /src
 
